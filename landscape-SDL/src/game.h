@@ -44,6 +44,8 @@ public:
     virtual double  getTimeDelta();
     virtual double  getTime();
     virtual void drawDebugTriangleAt(const Vector & p);
+    virtual bool debugMode();
+
     
     virtual Ptr<IView> getCurrentView();
     virtual void setCurrentView(Ptr<IView>);
@@ -72,6 +74,7 @@ private:
 
 public:
     void togglePauseMode();
+    void toggleDebugMode();
 private:
     void toggleFollowMode();
 
@@ -87,6 +90,8 @@ private:
 private:
     int argc;
     const char **argv;
+    
+    bool debug_mode;
 
     SDL_Surface *surface;
     JOpenGLRenderer *renderer;

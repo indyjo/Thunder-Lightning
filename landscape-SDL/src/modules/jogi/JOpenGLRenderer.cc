@@ -15,6 +15,7 @@
 
 #include <landscape.h>
 JOpenGLRenderer::JOpenGLRenderer(int init_width, int init_height, float aspect)
+: clip_planes(0)
 {
     resize(init_width, init_height);
 
@@ -61,6 +62,13 @@ JOpenGLRenderer::JOpenGLRenderer(int init_width, int init_height, float aspect)
 
     //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     glHint(GL_FOG_HINT, GL_NICEST);
+    
+    int max_lights = std::min(GL_MAX_LIGHTS, 64);
+    printf("max_lights: %d\n", max_lights);
+    while (max_lights--) {
+    	printf("reserving light:%d\n", GL_LIGHT0 + max_lights);
+    	free_lights.push(GL_LIGHT0 + max_lights);
+    }
 }
 
 void JOpenGLRenderer::setVertexMode(jrvertexmode_t mode)
@@ -212,6 +220,11 @@ void JOpenGLRenderer::setAbsoluteUVW(const Vector & u) {
     uvw[0] /= texture[current_tex].size_w;
     uvw[1] /= texture[current_tex].size_h;
 }
+
+void JOpenGLRenderer::setNormal(const Vector &v) {
+	glNormal3f(v[0],v[1],v[2]);
+}
+
 
 void JOpenGLRenderer::vertex(const Vector & v) {
     glColor4f(color[0], color[1], color[2], alpha);
@@ -410,6 +423,31 @@ void JOpenGLRenderer::multMatrix(const Matrix & M)
     glMultMatrixf(M.glMatrix());
 }
 
+jError JOpenGLRenderer::pushClipPlane(const Vector & n, float c) {
+    // Check whether OpenGL implementation supports another addidtional clip plane
+    int max_clip_planes=0;
+    glGetIntegerv(GL_MAX_CLIP_PLANES, &max_clip_planes);
+    if (clip_planes == max_clip_planes) return JERR_NOT_SUPPORTED;
+    
+    // Enable the plane
+    double plane[4] = {n[0],n[1],n[2],c};
+    glClipPlane(GL_CLIP_PLANE0 + clip_planes, plane);
+    glEnable(GL_CLIP_PLANE0 + clip_planes);
+    ++clip_planes;
+    
+    return JERR_OK;
+}
+
+void JOpenGLRenderer::popClipPlanes(int n) {
+    if (n>clip_planes) return;
+    // disable n clipping planes
+    clip_planes -= n;
+    while (n--) {
+        glDisable(GL_CLIP_PLANE0 + n);
+    }
+}
+
+
 void JOpenGLRenderer::setZBufferFunc(jrzbfunc_t func)
 {
     switch(func) {
@@ -533,6 +571,34 @@ void JOpenGLRenderer::resize(int new_width, int new_height)
 {
     glViewport(0,0, new_width, new_height);
 }
+
+void JOpenGLRenderer::enableLighting() {
+	glEnable(GL_LIGHTING);
+}
+
+void JOpenGLRenderer::disableLighting() {
+	glDisable(GL_LIGHTING);
+}
+
+void JOpenGLRenderer::setAmbientColor(const Vector & c) {
+	float ambient[] = {c[0], c[1], c[2], 1};
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
+}
+
+Ptr<JMaterial> JOpenGLRenderer::createMaterial() {
+	return new JOpenGLMaterial;
+}
+
+Ptr<JPointLight> JOpenGLRenderer::createPointLight() {
+	if (free_lights.empty()) return 0;
+	return new JOpenGLPointLight(this);
+}
+
+Ptr<JDirectionalLight> JOpenGLRenderer::createDirectionalLight() {
+	if (free_lights.empty()) return 0;
+	return new JOpenGLDirectionalLight(this);
+}
+
 
 /* --------------------- Private Functions -------------------------------- */
 
@@ -704,3 +770,112 @@ void JOpenGLRenderer::textureScaleDown(int w, int h, ju32 *src, ju32 *dst)
         }
     }
 }
+
+unsigned int JOpenGLRenderer::requestLight() {
+	unsigned int light = free_lights.top();
+	free_lights.pop();
+	return light;
+}
+
+void JOpenGLRenderer::releaseLight(unsigned int light) {
+	free_lights.push(light);
+}
+
+
+/* ----------------- Functions of related classes ------------------------- */
+
+JOpenGLLight::JOpenGLLight(JOpenGLRenderer *r)
+:	renderer(r),
+	gl_name(r->requestLight())
+{
+	printf("Light %d: created\n", gl_name);
+	glEnable(gl_name);
+}
+	
+JOpenGLLight::~JOpenGLLight() {
+	printf("Light %d: destroyed\n", gl_name);
+	glDisable(gl_name);
+	renderer->releaseLight(gl_name);
+}
+
+void JOpenGLLight::setEnabled(bool e) {
+	printf("Light %d: %s\n", gl_name, e?"enabled":"disabled");
+	if (e) glEnable(gl_name);
+	else   glDisable(gl_name);
+}
+
+bool JOpenGLLight::getEnabled() {
+	return glIsEnabled(gl_name);
+}
+
+void JOpenGLLight::setColor(const Vector &c) {
+	printf("Light %d: setColor\n", gl_name);
+	float val[4] = {c[0], c[1], c[2], 1};
+	glLightfv(gl_name, GL_DIFFUSE, val);
+	glLightfv(gl_name, GL_SPECULAR, val);
+}
+	
+void JOpenGLLight::setAttenuation(float squared, float linear, float constant) {
+	printf("Light %d: setAttenuation\n", gl_name);
+	glLightfv(gl_name, GL_CONSTANT_ATTENUATION, &constant);
+	glLightfv(gl_name, GL_LINEAR_ATTENUATION, &linear);
+	glLightfv(gl_name, GL_QUADRATIC_ATTENUATION, &squared);	
+}
+
+void JOpenGLLight::setPosition(const Vector &p) {
+	printf("Light %d: setPosition\n", gl_name);
+	float val[] = {p[0],p[1],p[2],1};
+	glLightfv(gl_name, GL_POSITION, val);	
+}
+	
+void JOpenGLLight::setDirection(const Vector &p) {
+	printf("Light %d: setDirection\n", gl_name);
+	float val[] = {p[0],p[1],p[2],0};
+	glLightfv(gl_name, GL_POSITION, val);	
+}
+
+JOpenGLPointLight::JOpenGLPointLight(JOpenGLRenderer *r)
+:	JOpenGLLight(r)
+{ }
+
+void JOpenGLPointLight::setEnabled(bool b) { JOpenGLLight::setEnabled(b); }
+bool JOpenGLPointLight::getEnabled() { return JOpenGLLight::getEnabled(); }
+void JOpenGLPointLight::setColor(const Vector &c) { JOpenGLLight::setColor(c); }
+void JOpenGLPointLight::setAttenuation(float squared, float linear, float constant)
+{	JOpenGLLight::setAttenuation(squared, linear, constant); }
+void JOpenGLPointLight::setPosition(const Vector &p) { JOpenGLLight::setPosition(p); }
+
+JOpenGLDirectionalLight::JOpenGLDirectionalLight(JOpenGLRenderer *r)
+:	JOpenGLLight(r)
+{ }
+
+void JOpenGLDirectionalLight::setEnabled(bool b) { JOpenGLLight::setEnabled(b); }
+bool JOpenGLDirectionalLight::getEnabled() { return JOpenGLLight::getEnabled(); }
+void JOpenGLDirectionalLight::setColor(const Vector &c) { JOpenGLLight::setColor(c); }
+void JOpenGLDirectionalLight::setDirection(const Vector &d) { JOpenGLLight::setDirection(d); }
+
+
+JOpenGLMaterial::JOpenGLMaterial()
+:	diffuse(.8,.8,.8), specular(0,0,0), ambient(.2,.2,.2), emission(0,0,0),
+	shininess(16)
+{ }
+
+void JOpenGLMaterial::activate() {
+	float param[][4] = {
+		{diffuse[0],diffuse[1],diffuse[2],1},
+		{specular[0],specular[1],specular[2],1},
+		{ambient[0],ambient[1],ambient[2],1},
+		{emission[0],emission[1],emission[2],1}};
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, param[0]);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, param[1]);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, param[2]);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, param[3]);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &shininess);
+};
+
+void JOpenGLMaterial::setDiffuse(const Vector &c) { diffuse = c; }
+void JOpenGLMaterial::setSpecular(const Vector &c) { specular = c; }
+void JOpenGLMaterial::setAmbient(const Vector &c) { ambient = c; }
+void JOpenGLMaterial::setAmbientAndDiffuse(const Vector &c) { ambient = diffuse = c; }
+void JOpenGLMaterial::setEmission(const Vector &c) { emission = c; }
+void JOpenGLMaterial::setShininess(float f) { shininess = f; }

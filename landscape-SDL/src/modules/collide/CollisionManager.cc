@@ -178,6 +178,7 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
 
                 if (pc.makeContact(contact[found_contacts], delta_t, hints)) {
                     Contact & c = contact[found_contacts++];
+                    /*
                     char buf[256];
                     snprintf(buf, 256, "contact: %s / %s hints: %s",
                         pc.partners[0].isTriangle()?"Triangle":
@@ -188,16 +189,17 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
                         (hints.triangle_triangle.type==Hints::TriTri::TRIANGLE_VERTEX?"triangle-vertex":
                         "edge-edge")
                         );
-                    new DebugActor(game, c.p, buf);
+                    new DebugActor(game, c.p, buf);*/
                     if (pc.partners[0].isTriangle() && pc.partners[1].isTriangle()) {
                         for(int j=0; j<2; j++) {
                             ContactPartner & partner = pc.partners[j];
+                            /*
                             for(int i=0; i<3; i++) {
                                 Vector p = partner.instance->transforms_0[partner.transform]
                                     (partner.data.triangle[i]);
-                                snprintf(buf, 256, "Triangle %d point %d", j, i);
-                                new DebugActor(game, p, buf);
-                            }
+                                //snprintf(buf, 256, "Triangle %d point %d", j, i);
+                                //new DebugActor(game, p, buf);
+                            }*/
                             GeometryInstance *instance = partner.instance;
                             Ptr<BoundingGeometry> bounding = instance->collidable->getBoundingGeometry();
                             Transform & transform = instance->transforms_0[partner.transform];
@@ -208,9 +210,8 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
                     }
 
 
-
-
                     stop_time = pc.t0;
+                    /*
                     ls_warning("Found first contact #%d!\n", found_contacts);
                     ls_warning("t0:%f t1:%f\n", pc.t0, pc.t1);
                     ls_warning("p: %f %f %f\n",
@@ -218,13 +219,14 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
                     ls_warning("n: %f %f %f\n",
                         c.n[0],c.n[1],c.n[2]);
                     ls_warning("v[0]: %f v[1]: %f\n", c.v[0], c.v[1]);
+                    */
                     //Game::the_game->togglePauseMode();
 
                     if (found_contacts == NUM_CONTACTS)
                         break;
 
                 } else {
-                    ls_warning("Sorry, this ain't no first contact.\n");
+                    //ls_warning("Sorry, this ain't no first contact.\n");
                 }
             }
         }

@@ -2,7 +2,10 @@
 #include <vector>
 #include <modules/math/SpecialMatrices.h>
 #include <modules/jogi/JRenderer.h>
+#include <modules/weaponsys/Armament.h>
 #include <modules/weaponsys/Targeter.h>
+#include <modules/weaponsys/Weapon.h>
+#include <interfaces/IFontMan.h>
 #include <TargetInfo.h>
 #include <Faction.h>
 #include "gunsight.h"
@@ -346,6 +349,9 @@ struct InterceptionModule : public GunsightModule {
 	}
 };
 
+
+
+
 void FlexibleGunsight::addInterception(
 	Ptr<IActor> self, Ptr<IActor> other)
 {
@@ -353,4 +359,45 @@ void FlexibleGunsight::addInterception(
     		surface.getWidth(), surface.getHeight(),
     		self, other),
         "screen", HCENTER | VCENTER, HCENTER | VCENTER);
+}
+
+struct CurrentWeaponModule : public GunsightModule {
+	Armament *arms;
+	Ptr<IFontMan> fontman;
+	
+	CurrentWeaponModule(const char *name, Ptr<IGame> game, Armament *arms)
+	:	GunsightModule(name, 200, 25),
+		arms(arms),
+		fontman(game->getFontMan())
+	{ }
+	
+	void draw(FlexibleGunsight & gunsight) {
+		UI::Surface surface = gunsight.getSurface();
+		surface.translateOrigin(offset[0],offset[1]);
+		
+		fontman->selectFont(IFontMan::FontSpec(
+			"dungeon", 12));
+		
+		fontman->setCursor(
+			surface.getOrigin(),
+			surface.getDX(),
+			surface.getDY());
+		fontman->setAlpha(1);
+		fontman->setColor(Vector(0,1,0));
+		
+		char buf[256];
+		snprintf(buf,256,"%s:\t%4d / %4d\n",
+		                 arms->getWeaponName(),
+		                 arms->currentWeapon()->getRoundsLeft(),
+		                 arms->currentWeapon()->getMaxRounds());
+		fontman->print(buf);
+	}
+};
+
+
+void FlexibleGunsight::addArmamentToScreen(
+	Ptr<IGame> game, Armament *arms)
+{
+    addModule(new CurrentWeaponModule("primary", game, arms),
+        "screen", LEFT | BOTTOM, LEFT | BOTTOM, Vector(5,5,0));
 }

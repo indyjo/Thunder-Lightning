@@ -134,7 +134,7 @@ public:
         T trace = M(0,0)+M(1,1)+M(2,2)+1;
         T s;
 
-        ls_message("trace: %f\n", trace);
+        //ls_message("trace: %f\n", trace);
         if (trace > 0) {
             s = 0.5 / sqrt(trace);
             u = 0.25 / s;

@@ -3,6 +3,7 @@
 
 #include "Vector.h"
 #include "Quaternion.h"
+#include "SpecialMatrices.h"
 
 template<class T>
 class XTransform {
@@ -40,6 +41,15 @@ public:
     inline XTransform inv() {
         return XTransform(q.conj(), -q.conj().rot(t));
     }
+    
+    inline Matrix toMatrix() {
+        Matrix mat;
+        q.toMatrix(mat);
+        mat(0,3) = t[0];
+        mat(1,3) = t[1];
+        mat(2,3) = t[2];
+        return mat;
+    }
 
     /*
     inline friend XTransform interp(T u, const XTransform & T1, const XTransform & T2) {
@@ -66,6 +76,7 @@ public:
     inline operator XTransform<U> () const {
         return XTransform<U>((XQuaternion<U>) q, (XVector<3,U>) t);
     }
+   
 };
 
 

@@ -50,6 +50,7 @@ public:
     virtual double  getTimeDelta()=0;
     virtual double  getTime()=0;
     virtual void drawDebugTriangleAt(const Vector & p) = 0;
+    virtual bool debugMode()=0;
     
     virtual Ptr<IView> getCurrentView()=0;
     virtual void setCurrentView(Ptr<IView>)=0;

@@ -11,6 +11,8 @@
 class Bullet: public IProjectile, public SimpleActor, public Collide::Collidable
 {
 public:
+    static int no_collide_tag;
+
     Bullet(IGame *thegame, Ptr<IActor> source=0, float factor=1);
 
     virtual void action();

@@ -4,14 +4,16 @@
 #include <landscape.h>
 #include <modules/math/Vector.h>
 #include <modules/math/Matrix.h>
-#include <modules/model/model.h>
+#include <modules/model/Skeleton.h>
 #include <modules/actors/simpleactor.h>
 #include <modules/engines/tankengine.h>
 #include <modules/engines/controls.h>
+#include <modules/weaponsys/Armament.h>
 
 class TankBrain;
 class SoundSource;
 class EventSheet;
+class Targeter;
 
 class Tank : virtual public SimpleActor, virtual public SigObject {
 public:
@@ -40,19 +42,19 @@ private:
     JRenderer * renderer;
     Ptr<ITerrain> terrain;
 
-    // 3d models
-    Ptr<Model> base, turret, cannon;
+    Ptr<Skeleton> skeleton;
 
     // sound sources
     Ptr<SoundSource> sound_low, sound_high;
 
     // Tank state
+    Armament armament;
     ControlMode control_mode;
     Ptr<EventSheet> event_sheet;
     Ptr<TankControls> tank_controls;
     Ptr<TankEngine> tank_engine;
     Ptr<TankBrain> brain;
-    Ptr<IActor> target;
+    Ptr<Targeter> targeter;
     float damage;
     double age;
 };

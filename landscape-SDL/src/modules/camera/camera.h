@@ -5,7 +5,7 @@
 #include <modules/jogi/JCamera.h>
 #include <modules/math/Plane.h>
 
-class Camera: public ICamera
+class Camera: public ICamera, public SigObject
 {
 public:
     Camera(IGame *thegame);
@@ -35,10 +35,14 @@ public:
     
     virtual const Matrix3 & getOrient();
     virtual const Matrix3 & getOrientInv();
-    
+
+    void zoomIn();
+    void zoomOut();
+        
     void update();
 
 private:
+
     IGame *thegame;
     Ptr<IConfig> config;
     float focus, aspect;

@@ -100,7 +100,7 @@ Ptr<IActor> DumbMissile::getSource() {
 }
 
 
-#define NUM_SPARKS 5
+#define NUM_SPARKS 25
 #define MAX_HORIZONTAL_SPEED 100.0
 #define MAX_VERTICAL_SPEED 100.0
 #define RAND ((float) rand() / (float) RAND_MAX * 2.0 - 1.0)
@@ -115,14 +115,14 @@ void DumbMissile::shootSparks()
     
     // Setup smoke column parameters so that the puff interval is shorter
     params.ttl = 1.0;
-    params.interval = 0.025;
+    params.interval = 0.01;
     
     // Setup smoke puff parameters so that their time to live is shorter
     // and they are much smaller then the default
     puff_params.ttl = Interval(1,3);
     puff_params.pos_deviation = 0.5;
-    puff_params.start_size = 4.0;
-    puff_params.end_size = 20.0;
+    puff_params.start_size = 0.5;
+    puff_params.end_size = 2.0;
     
     thegame->addActor(new Explosion(thegame, getLocation(), 10.0));
     for (i=0; i<NUM_SPARKS; i++) {

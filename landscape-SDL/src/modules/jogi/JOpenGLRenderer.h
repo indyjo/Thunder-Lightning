@@ -1,6 +1,7 @@
 #ifndef _JOGI_OPENGL_H
 #define _JOGI_OPENGL_H
 
+#include <stack>
 #include "JRenderer.h"
 
 #define JGL_MAX_TEXTURES 256
@@ -75,6 +76,7 @@ public:
     virtual void setColor(const Vector &);
     virtual void setUVW(const Vector &);
     virtual void setAbsoluteUVW(const Vector &);
+    virtual void setNormal(const Vector &);
     virtual void vertex(const Vector &);
     
     virtual void flush();
@@ -117,8 +119,22 @@ public:
     virtual void multMatrix(const Matrix &);
     virtual void popMatrix();
     
+    /* Additional clipping planes -----------------------------------*/
+    virtual jError pushClipPlane(const Vector & n, float c) ;
+    virtual void popClipPlanes(int n);
+    
     /* Status requesting methods ------------------------------------*/
     virtual void resize(int new_width, int new_height);
+
+    /* Lighting -----------------------------------------------------*/
+    virtual void enableLighting();
+    virtual void disableLighting();
+    virtual void setAmbientColor(const Vector &);
+    
+    virtual Ptr<JMaterial> createMaterial();
+    
+    virtual Ptr<JPointLight> createPointLight();
+    virtual Ptr<JDirectionalLight> createDirectionalLight();
 
 private:
     void initProjectionMatrix();
@@ -128,6 +144,10 @@ private:
     void initTextureArray();
     int findFreeTexture();
     void textureScaleDown(int w, int h, ju32 *src, ju32 *dst);
+    
+    friend struct JOpenGLLight;
+    unsigned int requestLight();
+    void releaseLight(unsigned int);
 
 private:
     float view_frustum[6];
@@ -141,7 +161,59 @@ private:
     JCamera camera;
     jgl_texture_t texture[JGL_MAX_TEXTURES];
     int current_tex;
+    int clip_planes;
+    std::stack<unsigned int> free_lights;
 };
 
+struct JOpenGLMaterial : public JMaterial {
+	Vector diffuse, specular, ambient, emission;
+	float shininess;
+	
+	JOpenGLMaterial();
+	
+	virtual void activate();
+	
+	virtual void setDiffuse(const Vector &);
+	virtual void setSpecular(const Vector &);
+	virtual void setAmbient(const Vector &);
+	virtual void setAmbientAndDiffuse(const Vector &);
+	virtual void setEmission(const Vector &);
+	
+	virtual void setShininess(float);
+};
+
+
+struct JOpenGLLight {
+	JOpenGLRenderer *renderer;
+	unsigned int gl_name;
+	
+	JOpenGLLight(JOpenGLRenderer *r);
+	~JOpenGLLight();
+	void setEnabled(bool e);
+	bool getEnabled();
+	void setColor(const Vector &);
+	void setAttenuation(float squared, float linear, float constant);
+	void setPosition(const Vector &);
+	void setDirection(const Vector &);
+};
+
+struct JOpenGLPointLight: public JPointLight, public JOpenGLLight {
+	JOpenGLPointLight(JOpenGLRenderer *);
+	
+	virtual void setEnabled(bool);
+	virtual bool getEnabled();
+	virtual void setColor(const Vector &);
+	virtual void setAttenuation(float squared, float linear, float constant);
+	virtual void setPosition(const Vector &);
+};
+	
+struct JOpenGLDirectionalLight: public JDirectionalLight, public JOpenGLLight {
+	JOpenGLDirectionalLight(JOpenGLRenderer *);
+	
+	virtual void setEnabled(bool);
+	virtual bool getEnabled();
+	virtual void setColor(const Vector &);
+	virtual void setDirection(const Vector &);
+};	
 
 #endif

@@ -32,7 +32,7 @@ void LoDQuad::init (IGame * the_game, std::istream & in, LoDQuad ** neighbor,
                     const char * lightmap_name,
                     Status & stat)
 {
-    ls_message("LoDQuad::init\n");
+    //ls_message("LoDQuad::init\n");
     this->textures = textures;
     LoDQuadFileHeader header;
     LoDTriangleFileStruct ftriangle;
@@ -52,7 +52,7 @@ void LoDQuad::init (IGame * the_game, std::istream & in, LoDQuad ** neighbor,
     vertices=header.vertices;
     
     triangle = new LoDTriangle[triangles];
-    ls_warning("Init %p: (vertices=%d)\n", this, vertices);
+    //ls_warning("Init %p: (vertices=%d)\n", this, vertices);
     vx = new float[vertices];
     vy = new float[vertices];
     vz = new float[vertices];
@@ -155,7 +155,7 @@ void LoDQuad::init (IGame * the_game, std::istream & in, LoDQuad ** neighbor,
     environment = game->getEnvironment();
     
     stat.endJob();
-    ls_message("end LoDQuad::init\n");
+    //ls_message("end LoDQuad::init\n");
 }
 
 void LoDQuad::done()

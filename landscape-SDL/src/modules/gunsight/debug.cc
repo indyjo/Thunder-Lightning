@@ -23,6 +23,7 @@ FPSModule::FPSModule(Ptr<IGame> game)
 }
 
 void FPSModule::draw(FlexibleGunsight & gunsight) {
+    if (!game->debugMode()) return;
 	UI::Surface surface = gunsight.getSurface();
 	Ptr<IFontMan> fontman = game->getFontMan();
 	Ptr<Clock> clock = game->getClock();
@@ -54,6 +55,7 @@ TargetInfoModule::TargetInfoModule(Ptr<IGame> game, Ptr<IActor> actor)
 }
 
 void TargetInfoModule::draw(FlexibleGunsight & gunsight) {
+    if (!game->debugMode()) return;
 	UI::Surface surface = gunsight.getSurface();
 	JRenderer *r=game->getRenderer();
 

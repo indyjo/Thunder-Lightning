@@ -41,9 +41,8 @@ using namespace std;
 
 Game * Game::the_game = 0;
 
-
 Game::Game(int argc, const char **argv)
-: argc(argc), argv(argv), game_speed(1.0)
+: argc(argc), argv(argv), game_speed(1.0), debug_mode(false)
 {
     the_game = this;
 
@@ -60,6 +59,8 @@ Game::Game(int argc, const char **argv)
     }
     ls_message("done.\n");
 
+    event_remapper = new EventRemapper();
+
     ls_message("Initializing SDL: ");
     if (-1 == SDL_Init( SDL_INIT_VIDEO |
                         SDL_INIT_JOYSTICK |
@@ -67,7 +68,8 @@ Game::Game(int argc, const char **argv)
                         	0:SDL_INIT_NOPARACHUTE) )  )
     {
         const char * err = SDL_GetError();
-        ls_error("error: %s", err);
+        ls_error("error: %s\n", err);
+        throw runtime_error(err);
     }
     SDL_EnableUNICODE(true);
     ls_message("Found %d joysticks.\n", SDL_NumJoysticks());
@@ -87,10 +89,10 @@ Game::Game(int argc, const char **argv)
                 xres, yres,
                 fullscreen?"(fullscreen)":"(in a window)");
 
-        SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 5 );
-        SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 5 );
-        SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 5 );
-        SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 16 );
+        SDL_GL_SetAttribute( SDL_GL_RED_SIZE, config->queryInt("Game_red_bits", 5) );
+        SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, config->queryInt("Game_green_bits", 5) );
+        SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, config->queryInt("Game_blue_bits", 5) );
+        SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, config->queryInt("Game_zbuffer_bits", 16) );
         SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
         if(fullscreen) {
             surface = SDL_SetVideoMode(xres, yres, 32,
@@ -98,7 +100,10 @@ Game::Game(int argc, const char **argv)
         } else {
             surface = SDL_SetVideoMode(xres, yres, 32, SDL_OPENGL);
         }
-        if (!surface) ls_error("error! ");
+        if (!surface) {
+            ls_error("Failed requesting video mode.\n");
+            throw runtime_error("Could not initialize OpenGL surface.");
+        }
         int r=0,g=0,b=0,d=0,db=0;
         SDL_GL_GetAttribute( SDL_GL_RED_SIZE, &r );
         SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE, &g );
@@ -107,7 +112,7 @@ Game::Game(int argc, const char **argv)
         SDL_GL_GetAttribute( SDL_GL_DOUBLEBUFFER, &db );
         ls_message(" got r/g/b/d %d/%d/%d/%d %s double buffering. ",
                 r,g,b,d,db?"width":"without");
-        renderer = new JOpenGLRenderer(xres, yres, atof(config->query("Camera_aspect","1.33333")));
+        renderer = new JOpenGLRenderer(xres, yres, config->queryFloat("Camera_aspect",1.33333));
     	camera = new Camera(this);
     	JCamera jcam;
     	camera->getCamera(&jcam);
@@ -130,7 +135,6 @@ Game::Game(int argc, const char **argv)
 
     ls_message("Initializing managers... ");
     texman = new TextureManager(*renderer);
-    event_remapper = new EventRemapper();
     modelman = new ModelMan(texman);
     fontman = new FontMan(this);
     soundman = new SoundMan(config);
@@ -257,9 +261,14 @@ void Game::run()
 	Ptr<IGame> guard = this;
     game_done=false;
 
+    Ptr<JDirectionalLight> sun = renderer->createDirectionalLight();
+    sun->setColor(Vector(1,1,1) - 0.25*Vector(.97,.83,.74));
+    sun->setEnabled(true);
+    
     doEvents();
     while (!game_done) {
         preFrame();
+    	sun->setDirection(Vector(-0.9, 0.4, 0).normalize());
         doFrame();
         postFrame();
     }
@@ -363,9 +372,7 @@ Ptr<IDrawable> Game::getGunsight()
 }
 
 void Game::setGunsight(Ptr<IDrawable> gunsight) {
-    ls_message("setGunsight\n");
     this->gunsight=gunsight;
-    ls_message("end setGunsight\n");
 }
 
 #if ENABLE_SKY
@@ -443,6 +450,11 @@ void Game::setCurrentlyControlledActor(Ptr<IActor> actor)
 	}
 }
 
+bool Game::debugMode() {
+    return debug_mode;
+}
+
+
 void Game::initModules(Status & stat)
 {
     ls_message("initModules\n");
@@ -492,6 +504,7 @@ void Game::initControls()
 {
     Ptr<EventRemapper> r = getEventRemapper();
     r->map("endgame", SigC::slot(*this, & Game::endGame));
+    r->map("debug", SigC::slot(*this, & Game::toggleDebugMode));
 
     r->map("throttle0", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.0f));
@@ -884,6 +897,10 @@ void Game::clearScreen() {
 
 void Game::togglePauseMode() {
     if (clock->isPaused()) clock->resume(); else clock->pause();
+}
+
+void Game::toggleDebugMode() {
+    debug_mode = !debug_mode;
 }
 
 void Game::endGame() {

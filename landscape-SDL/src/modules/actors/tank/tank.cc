@@ -1,7 +1,6 @@
 #include <string>
 #include <modules/clock/clock.h>
-#include <modules/actors/fx/smokecolumn.h>
-#include <modules/actors/fx/explosion.h>
+#include <modules/actors/fx/SpecialEffects.h>
 #include <modules/actors/projectiles/bullet.h>
 #include <modules/actors/fx/smoketrail.h>
 #include <modules/gunsight/gunsight.h>
@@ -17,6 +16,10 @@
 #include <remap.h>
 #include <modules/actors/SimpleView.h>
 #include <modules/actors/RelativeView.h>
+#include <modules/weaponsys/Armament.h>
+#include <modules/weaponsys/Targeter.h>
+#include <modules/weaponsys/Cannon.h>
+
 
 #define PI 3.14159265358979323846
 
@@ -25,9 +28,36 @@
 #define RAND ((float) rand() / (float) RAND_MAX)
 #define RAND2 ((float) rand() / (float) RAND_MAX * 2.0 - 1.0)
 
-#define MUZZLE_VELOCITY 800.0f
-#define BULLET_RANGE 5000.0f
+#define MUZZLE_VELOCITY 1700.0f
+#define BULLET_RANGE 10000.0f
 #define BULLET_TTL (BULLET_RANGE / MUZZLE_VELOCITY)
+
+
+struct PointView: public SimpleView {
+    Ptr<Skeleton> skeleton;
+    const char *pos, *vec1, *vec2;
+    
+    PointView(Ptr<IActor> subject, Ptr<Skeleton> skeleton,
+        const char *pos, const char *vec1, const char *vec2,
+        Ptr<IDrawable> gunsight=0)
+    : SimpleView(subject, gunsight), skeleton(skeleton), pos(pos), vec1(vec1), vec2(vec2)
+    { }
+    
+	virtual void getPositionAndOrientation(Vector *location, Matrix3 *orient)
+	{
+	    Vector p = skeleton->getPoint(pos);
+	    Vector front = skeleton->getPoint(vec2)-skeleton->getPoint(vec1);
+	    Vector right = Vector(0,1,0) % front;
+	    Vector up = front % right;
+	    
+	    front.normalize();
+	    right.normalize();
+	    up.normalize();
+	    
+	    *orient = MatrixFromColumns(right,up,front);
+	    *location = p;
+	}
+};    
 
 struct CannonView: public SimpleView {
 	Ptr<TankEngine> engine;
@@ -70,17 +100,73 @@ struct TurretView: public SimpleView {
 	    *orient =
 	    	MatrixFromColumns(right,up,front)
 	        * RotateYMatrix<float>(engine->getTurretAngle());
-	    *pos = subject->getLocation() + (*orient) * Vector(0,15,-30);
+	    *pos = subject->getLocation() + (*orient) * Vector(0,6,-12);
 	}
 };
 
 
+struct SkeletonProvider : public IPositionProvider {
+    Ptr<Skeleton> skeleton;
+    const char * pos, *front1, *front2, *up1, *up2;
+    
+    SkeletonProvider(Ptr<Skeleton> skel, const char *p, const char *f1, const char *f2,
+        const char* u1=0, const char *u2=0)
+    :   skeleton(skel), pos(p), front1(f1), front2(f2), up1(u1), up2(u2)
+    { }
+    
+    virtual Vector getLocation() { return skeleton->getPoint(pos); }
+    Matrix3 orient() {
+        Vector front = skeleton->getPoint(front2)-skeleton->getPoint(front1);
+        Vector right, up;
+        if (up1) {
+            up = skeleton->getPoint(up2)-skeleton->getPoint(up1);
+            right = up % front;
+        } else {
+            right = Vector(0,1,0) % front;
+            right.normalize();
+            up = front % right;
+        }
+        return MatrixFromColumns(right,up,front);
+    }
+    virtual Vector getFrontVector() {
+        return skeleton->getPoint(front2)-skeleton->getPoint(front1);
+    }
+    virtual Vector getRightVector() {
+        return orient()*Vector(1,0,0);
+    }
+    virtual Vector getUpVector() {
+        return orient()*Vector(0,1,0);
+    }
+    virtual void getOrientation(Vector *up, Vector *right, Vector *front) {
+        Matrix3 M = orient();
+        *up = M * Vector(0,1,0);
+        *right = M * Vector(1,0,0);
+        *front = M * Vector(0,0,1);
+    }
+};
+
+struct FollowingView : public SimpleView {
+    Ptr<IPositionProvider> pp;
+    
+    inline FollowingView(Ptr<IPositionProvider> pp, Ptr<IActor> subject=0, Ptr<IDrawable> gunsight=0)
+    : SimpleView(subject, gunsight), pp(pp)
+    { }
+    
+	virtual void getPositionAndOrientation(Vector*pos, Matrix3 *orient)
+	{
+	    Vector right,up,front;
+	    *pos = pp->getLocation();
+	    pp->getOrientation(&up,&right,&front);
+	    *orient = MatrixFromColumns(right,up,front);
+	}
+};
 
 Tank::Tank(Ptr<IGame> thegame)
 : SimpleActor(thegame),
   renderer(thegame->getRenderer()),
   terrain(thegame->getTerrain()), damage(0),
-  age(0), control_mode(UNCONTROLLED)
+  age(0), control_mode(UNCONTROLLED),
+  armament(this, 0)
 {
     setTargetInfo(new TargetInfo(
         "Tank", RADIUS, TargetInfo::TANK));
@@ -92,6 +178,8 @@ Tank::Tank(Ptr<IGame> thegame)
     tank_engine->getFireSignal().connect(
         SigC::slot(*this, &Tank::shoot));
     setEngine(tank_engine);
+    
+    targeter = new Targeter(*thegame, *this);
 
     brain = new TankBrain(thegame, thegame->getClock(),
                           this, tank_controls, tank_engine);
@@ -103,15 +191,21 @@ Tank::Tank(Ptr<IGame> thegame)
     Vector v = Vector(0, 0, 0);
     setLocation(p);
     setMovementVector(v);
-
-    std::string model_path = thegame->getConfig()->query("Tank_model_path");
-    std::string base_file = thegame->getConfig()->query("Tank_base_file");
-    std::string turret_file = thegame->getConfig()->query("Tank_tower_file");
-    std::string cannon_file = thegame->getConfig()->query("Tank_cannon_file");
-
-    base = thegame->getModelMan()->query(base_file);
-    turret = thegame->getModelMan()->query(turret_file);
-    cannon = thegame->getModelMan()->query(cannon_file);
+    
+    std::string skeletonfile = thegame->getConfig()->query("Tank_skeleton");
+    skeleton = new Skeleton(thegame, skeletonfile);
+    
+    Ptr<Cannon> cannon=new Cannon(thegame);
+    cannon->addBarrel(new SkeletonProvider(skeleton, "CannonTip", "CannonTip", "CannonTipFront"));
+    
+    Ptr<Cannon> machinegun = new Cannon(thegame, "4x Vulcan", 1500, 4.0/60, false);
+    machinegun->addBarrel(new SkeletonProvider(skeleton, "MGTopRight", "CannonTip", "CannonTipFront"));
+    machinegun->addBarrel(new SkeletonProvider(skeleton, "MGBottomLeft", "CannonTip", "CannonTipFront"));
+    machinegun->addBarrel(new SkeletonProvider(skeleton, "MGTopLeft", "CannonTip", "CannonTipFront"));
+    machinegun->addBarrel(new SkeletonProvider(skeleton, "MGBottomRight", "CannonTip", "CannonTipFront"));
+    
+    armament.addWeapon(cannon);
+    armament.addWeapon(machinegun);
 
     sound_low = thegame->getSoundMan()->requestSource();
     sound_low->setPosition(p);
@@ -132,6 +226,7 @@ Tank::Tank(Ptr<IGame> thegame)
 	*/
 
     event_sheet = new EventSheet;
+    /*
     thegame->getEventRemapper()->map("+primary",
         SigC::bind(
             SigC::slot(*tank_controls, &TankControls::setFire),
@@ -142,25 +237,32 @@ Tank::Tank(Ptr<IGame> thegame)
             SigC::slot(*tank_controls, &TankControls::setFire),
             false
             ));
-    
-	
+    */
+    event_sheet->map("+primary", SigC::slot(armament, &Armament::trigger));
+    event_sheet->map("-primary", SigC::slot(armament, &Armament::release));
+    event_sheet->map("cycle-primary", SigC::slot(armament, &Armament::nextWeapon));
+    event_sheet->map("next-target", SigC::slot(*targeter, &Targeter::selectNextTarget));
+    event_sheet->map("previous-target", SigC::slot(*targeter, &Targeter::selectPreviousTarget));
+    event_sheet->map("next-hostile-target", SigC::slot(*targeter, &Targeter::selectNextHostileTarget));
+    event_sheet->map("previous-hostile-target", SigC::slot(*targeter, &Targeter::selectPreviousHostileTarget));
+    event_sheet->map("next-friendly-target", SigC::slot(*targeter, &Targeter::selectNextFriendlyTarget));
+    event_sheet->map("previous-friendly-target", SigC::slot(*targeter, &Targeter::selectPreviousFriendlyTarget));
+    event_sheet->map("nearest-target", SigC::slot(*targeter, &Targeter::selectNearestTarget));
+    event_sheet->map("nearest-hostile-target", SigC::slot(*targeter, &Targeter::selectNearestHostileTarget));
+    event_sheet->map("nearest-friendly-target", SigC::slot(*targeter, &Targeter::selectNearestFriendlyTarget));
+    event_sheet->map("gunsight-target", SigC::slot(*targeter, &Targeter::selectTargetInGunsight));
 }
 
 Tank::~Tank() {
-	ls_error("Tank dying with %d refs\n", getRefs());
-	fprintf(stderr, "Object debug because of tank death -------------\n");
-	debug(this);
-	fprintf(stderr, "Done object debug because of tank death -------------\n");
 }
 
 void Tank::action() {
     if (state == DEAD) return;
-    double delta_t = thegame->getClock()->getStepDelta();
+    float delta_t = thegame->getClock()->getStepDelta();
 
     age+=delta_t;
 
-    //target = thegame->getGunsight()->getCurrentTarget();
-    if (target && target->getState() == IActor::DEAD) target = 0;
+    Ptr<IActor> target = targeter->getCurrentTarget();
 
     if (control_mode == AUTOMATIC) {
     	brain->info = "";
@@ -193,6 +295,21 @@ void Tank::action() {
 
     //setTargetInfo(main_idea->getInfo());
     SimpleActor::action();
+    armament.action(delta_t);
+    
+    Vector right, up, front;
+    getOrientation(&up, &right, &front);
+    Matrix3 M = MatrixFromColumns(right, up, front);
+    Quaternion q;
+    q.fromMatrix(M);
+    skeleton->setBoneTransform("Body", Transform(q, getLocation()));
+    skeleton->setBoneTransform("Turret", Transform(
+        Quaternion::Rotation(Vector(0,1,0), tank_engine->getTurretAngle()), Vector(0,0,0)));
+    skeleton->setBoneTransform("Cannon", Transform(
+        Quaternion::Rotation(Vector(-1,0,0), tank_engine->getCannonAngle()), Vector(0,0,0)));
+    skeleton->setBoneTransform("MachineGun", Transform(
+        Quaternion::Rotation(Vector(-1,0,0), tank_engine->getCannonAngle()), Vector(0,0,0)));
+    
     sound_high->setPosition(getLocation());
     sound_high->setVelocity(getMovementVector());
     sound_low->setPosition(getLocation());
@@ -241,48 +358,11 @@ void Tank::draw() {
         renderer->disableAlphaBlending();
         return;
     }
-
-    Matrix Init = Matrix::Hom(MatrixFromColumns<float>(
-            Vector(-1, 0, 0),
-            Vector( 0, 0,-1),
-            Vector( 0, 1, 0)));
-    Matrix Translation = TranslateMatrix<4, float>(p);
-
-    Vector right, up, front;
-    getOrientation(&up, &right, &front);
-    Matrix Rotation    = Matrix::Hom(
-        MatrixFromColumns(right, up, front));
-    //Matrix Rotation = Matrix::IdentityMatrix();
-    //ls_message("right: "); right.dump();
-    //ls_message("up: "); up.dump();
-    //ls_message("front: "); front.dump();
-
-    Matrix Mnormal = Rotation * Init;
-    Matrix Mmodel  = Translation * Mnormal;
-    thegame->getRenderer()->setCullMode(JR_CULLMODE_CULL_POSITIVE);
-    base->draw(*renderer, Mmodel, Mnormal);
-
-    Vector turret_pivot(0.0f, -0.424f, 2.297f);
-    Vector cannon_pivot(0.0f, -0.424f, 2.413f);
-
-    Mmodel  = Mmodel
-            * TranslateMatrix<4,float>(turret_pivot)
-            * Matrix::Hom(
-                RotateZMatrix<float>(-tank_engine->getTurretAngle()))
-            * TranslateMatrix<4,float>(-turret_pivot);
-
-    Mnormal = Mnormal * Matrix::Hom(
-        RotateZMatrix<float>(-tank_engine->getTurretAngle()));
-    turret->draw(*renderer, Mmodel, Mnormal);
-
-    Mmodel  = Mmodel
-            * TranslateMatrix<4,float>(cannon_pivot)
-            * Matrix::Hom(
-                RotateXMatrix(-tank_engine->getCannonAngle()))
-            * TranslateMatrix<4,float>(-cannon_pivot);
-    Mnormal = Mnormal * Matrix::Hom(
-        RotateXMatrix(-tank_engine->getCannonAngle()));
-    cannon->draw(*renderer, Mmodel, Mnormal);
+    
+    renderer->setCullMode(JR_CULLMODE_NO_CULLING);
+    renderer->enableLighting();
+    skeleton->draw(*renderer);
+    renderer->disableLighting();
 }
 
 // Our tank has been hit ...
@@ -290,17 +370,13 @@ void Tank::applyDamage(float damage, int domain, Ptr<IProjectile> projectile) {
 	if (projectile->getSource()) {
 		Ptr<IActor> src = projectile->getSource();
 		float dist2 = (src->getLocation()-getLocation()).lengthSquare();
+
 		if (src->getFaction()->getAttitudeTowards(getFaction()) != Faction::FRIENDLY)
-			target=src;
+			targeter->setCurrentTarget(src);
 	}
 	damage *= 0.2;
     if (this->damage < 0.7 && this->damage+damage>0.7) {
-        SmokeColumn::PuffParams pparams;
-        pparams.color = Vector(0.6f, 0.6f, 0.6f);
-        Ptr<FollowingSmokeColumn> smoke =
-                new FollowingSmokeColumn(thegame, SmokeColumn::Params(), pparams);
-        smoke->follow(this);
-        thegame->addActor(smoke);
+        tankFirstExplosion(thegame, this);
     }
     this->damage += damage;
     if (this->damage > 1.0) explode();
@@ -331,7 +407,7 @@ void Tank::setControlMode(ControlMode m) {
 }
 
 int Tank::getNumViews() {
-	return 5;
+	return 6;
 }
 
 Ptr<IView> Tank::getView(int n) {
@@ -339,9 +415,13 @@ Ptr<IView> Tank::getView(int n) {
     Ptr<FlexibleGunsight> gunsight1 = new FlexibleGunsight(thegame);
     gunsight1->addBasicCrosshairs();
     gunsight1->addDebugInfo(thegame, this);
+    gunsight1->addTargeting(this, targeter);
+    gunsight1->addArmamentToScreen(thegame, &armament);
     
     Ptr<FlexibleGunsight> gunsight2 = new FlexibleGunsight(thegame);
     gunsight2->addDebugInfo(thegame, this);
+    gunsight2->addTargeting(this, targeter);
+    gunsight1->addArmamentToScreen(thegame, &armament);
     
     switch(n) {
     case 0:
@@ -353,83 +433,47 @@ Ptr<IView> Tank::getView(int n) {
             Vector(0,0,1),
             gunsight2);
     case 1:
-    	return new CannonView(this, tank_engine, gunsight1);
+        return new FollowingView(
+            new SkeletonProvider(skeleton, "CannonCamera",
+                "CannonTip", "CannonTipFront",
+                "CannonTip", "CannonTipUp"), this, gunsight1);
     case 2:
-    	return new RelativeView(
-            this,
-            Vector(0,8,-12),
-            Vector(1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,1),
-            gunsight2);
+        return new FollowingView(
+            new SkeletonProvider(skeleton, "MGCamera",
+                "MG", "MGFront",
+                "MG", "MGUp"), this, gunsight1);
     case 3:
     	return new RelativeView(
             this,
-            Vector(0,10,18),
+            Vector(0,6,18),
             Vector(-1,0,0),
             Vector(0,1,0),
             Vector(0,0,-1),
             gunsight2);
     case 4:
     	return new TurretView(this, tank_engine, gunsight1);
+    case 5:
+    	return new RelativeView(
+            this,
+            Vector(0,4,-8),
+            Vector(1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,1),
+            gunsight2);
     default:
     	return 0;
     }
 }
 
-#define MAX_EXPLOSION_SIZE 6.0
-#define MIN_EXPLOSION_SIZE 1.0
-#define MAX_EXPLOSION_DISTANCE 40.0
-#define NUM_EXPLOSIONS 15
-#define MAX_EXPLOSION_AGE -2.0
 void Tank::explode() {
     state=DEAD;
-    Vector p = getLocation();
-    for(int i=0; i<NUM_EXPLOSIONS; i++) {
-        Vector v = p + RAND * MAX_EXPLOSION_DISTANCE *
-                Vector(RAND2, RAND2, RAND2).normalize();
-        float size = MIN_EXPLOSION_SIZE +
-                RAND * (MAX_EXPLOSION_SIZE - MIN_EXPLOSION_SIZE);
-        double time = RAND * MAX_EXPLOSION_AGE;
-        thegame->addActor(new Explosion(thegame, v, size, time));
-    }
+    tankFinalExplosion(thegame, this);
 }
 
 
 void Tank::shoot() {
-    Matrix Init = Matrix::Hom(MatrixFromColumns<float>(
-            Vector(-1, 0, 0),
-            Vector( 0, 0,-1),
-            Vector( 0, 1, 0)));
-    Vector p = engine->getLocation();
-    Matrix Translation = TranslateMatrix<4,float>(p);
-
-    Vector right, up, front;
-    getOrientation(&up, &right, &front);
-    Matrix Rotation    = Matrix::Hom(
-        MatrixFromColumns<float>(right, up, front));
-
-    Matrix Mmodel  = Translation * Rotation * Init;
-
-    Vector turret_pivot(0.0f, -0.424f, 2.297f);
-    Vector cannon_pivot(0.0f, -0.424f, 2.413f);
-    Vector cannon_nozzle1(0.0f, -9.278f, 4.097f);
-    Vector cannon_nozzle2(0.0f,-10.278f, 4.097f);
-
-    Mmodel  = Mmodel
-            * TranslateMatrix<4,float>(turret_pivot)
-            * Matrix::Hom(
-                RotateZMatrix<float>(-tank_engine->getTurretAngle()))
-            * TranslateMatrix<4,float>(-turret_pivot);
-
-    Mmodel  = Mmodel
-            * TranslateMatrix<4,float>(cannon_pivot)
-            * Matrix::Hom(
-                RotateXMatrix(-tank_engine->getCannonAngle()))
-            * TranslateMatrix<4,float>(-cannon_pivot);
-
-    Vector p_bullet = Mmodel * cannon_nozzle1;
-    Vector d_bullet = Mmodel * cannon_nozzle2 - p_bullet;
+    Vector p_bullet = skeleton->getPoint("CannonTip");
+    Vector d_bullet = skeleton->getPoint("CannonTip2") - p_bullet;
     Vector v_bullet = MUZZLE_VELOCITY * d_bullet;
 
     Ptr<Bullet> bullet = new Bullet(ptr(thegame), this, 2.5f);

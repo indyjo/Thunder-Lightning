@@ -15,8 +15,8 @@ void FlexibleGunsight::addBasicCrosshairs() {
 
 void FlexibleGunsight::addFlightModules(Ptr<IGame> game, FlightInfo &fi)
 {
-    addModule(new HUDFrameModule(surface.getWidth(), surface.getHeight()),
-        "screen", HCENTER | VCENTER, HCENTER | VCENTER);
+    Ptr<GunsightModule> hud_frame = new HUDFrameModule(surface.getWidth(), surface.getHeight());
+    addModule(hud_frame, "screen", HCENTER | VCENTER, HCENTER | VCENTER);
     addModule(
         new HeightGraphModule(
                 surface.getHeight(),game,fi),
@@ -35,8 +35,8 @@ void FlexibleGunsight::addFlightModules(Ptr<IGame> game, FlightInfo &fi)
         Vector(8,0,0));
     addModule(
     	new HorizonIndicator(
-    		game,fi, surface.getWidth(), surface.getHeight()),
-    	"screen", HCENTER | VCENTER, HCENTER | VCENTER);
+    		game,fi, hud_frame->getWidth(), hud_frame->getHeight()),
+    	"hud-frame", HCENTER | VCENTER, HCENTER | VCENTER);
 }
 
 
@@ -337,15 +337,16 @@ void HorizonIndicator::draw(FlexibleGunsight & gunsight) {
 	r->setColor(Vector(0,1,0));
 	
 	Ptr<ICamera> cam = gunsight.getCamera();
-	float pixels_per_degree = PI/180*surf.getHeight()/cam->getFocus();
+	float pixels_per_degree = PI/180*surf.getHeight()*cam->getFocus()/2;
 	float roll = flight_info.getCurrentRoll();
 	float pitch = flight_info.getCurrentPitch();
 	Vector right = Vector(std::cos(roll),-std::sin(roll),0);
 	Vector up = Vector(-std::sin(roll), -std::cos(roll),0);
 	for(int i=-80; i<= 80; i+=20) {
 		float degrees = (float) i - pitch*180/PI;
-		Vector center = Vector(width/2,height/2,0) + 
-			pixels_per_degree * degrees * up;
+		if (cos(degrees*PI/180) <= 0) continue;
+		float elev = tan(degrees*PI/180) *surf.getHeight()/2*cam->getFocus();
+		Vector center = Vector(width/2,height/2,0) + elev * up;
 		drawIndicator(r,i,center,right);
 	}
 	

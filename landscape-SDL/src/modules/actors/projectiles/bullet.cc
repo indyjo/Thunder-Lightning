@@ -16,6 +16,9 @@
 #define RAND_POS ((float) rand() / (float) RAND_MAX)
 
 
+// Value is irrelevant, we only need a unique address
+int Bullet::no_collide_tag = 42;
+
 Bullet::Bullet(IGame *thegame, Ptr<IActor> source, float factor)
 :   SimpleActor(thegame) , age(0), source(source), factor(factor)
 {
@@ -34,6 +37,8 @@ Bullet::Bullet(IGame *thegame, Ptr<IActor> source, float factor)
     getBoundingGeometry()->setBoundingRadius(0.01f);
     setRigidBody(&*engine);
     setActor(this);
+    
+    setNoCollideTag(&no_collide_tag);
 
     thegame->getCollisionMan()->add(this);
 }

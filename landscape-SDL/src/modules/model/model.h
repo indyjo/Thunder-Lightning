@@ -5,59 +5,70 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <list>
 #include <landscape.h>
 #include <modules/texman/TextureManager.h>
+#include <modules/math/Transform.h>
 
-class Model : virtual public Object {
-    struct Material;
-    struct Face;
-    class Group;
+class Model : virtual public ::Object {
+    struct Corner {
+        int v, n, t;
+    };
+    
+    typedef std::vector<Corner> Face;
 
     Model();
     Model(const Model &);
 public:
-    Model(TextureManager & texman, std::istream & in, const char *dir);
+    struct Material;
+    struct Group;
+    struct Object;
+
+    Model(TextureManager & texman, const std::string & filename);
     virtual ~Model();
 
     void draw(JRenderer &, const Matrix & Mmodel, const Matrix & Mnormal);
-    
-    void debugTextures(JRenderer & r, const Matrix & M);
-    void dump();
+    Ptr<Object> getObject(const std::string & name);
     
 protected:
-    void parseObjFile(TextureManager & texman, std::istream &, const char *dir);
-    void parseMtlFile(TextureManager & texman, std::istream &, const char *dir);
+    void parseObjFile(TextureManager & texman, const std::string & filename);
+    void parseMtlFile(TextureManager & texman, const std::string & filename,
+        std::map<std::string, Material> & mtls);
 
 protected:
-    std::string path;                 // Directory in which texture and material
-                                 // files are expected to be found
-    std::map<std::string, Material> mtls;  // Materials referenced by name
-    std::vector<Vector> v;            // Vertices
-    std::vector<Vector> n;            // Normals
-    std::vector<Vector> t;            // UVW coords
-    std::list<Group> grps;            // Groups of Material+faces
+    std::vector<Ptr<Object> > objects;            // Groups of Material+faces
 };
 
 struct Model::Material {
-    inline Material() : use_tex(false) { }
+    inline Material() : use_tex(false), Kd(1,0,1), Ka(0,0,0), Ks(0,0,0), Ns(1)
+    { }
     bool use_tex;
     int w,h;
     TexPtr tex;
     Vector Kd, Ka, Ks;
+    float Ns;
 };
 
-struct Model::Face {
-    Face() { for(int i=0; i<3; i++) v[i] = n[i] = t[i] = 0; }
-    int v[3], n[3], t[3];
+struct Model::Group : public ::Object {
+    std::string name;
+    Material mtl;
+    std::vector<Face> faces;
+
+    inline Group(const std::string & name = "" )
+    : name(name) { }
 };
 
-class Model::Group {
+class Model::Object : public ::Object {
+    friend class Model;
+
+    std::string name;
+    std::vector<Ptr<Group> > groups;
+    std::vector<Vector> vertices, normals, texcoords;
+    
 public:
-    Material & mtl;
-    std::vector<Face> f;             // faces
-
-    Group( Material & mtl ) : mtl(mtl) { }
+    inline Object(const std::string & name="") : name(name) { }
+    inline const std::string & getName() { return name; }
+    void draw(JRenderer &);
 };
+    
 
 #endif

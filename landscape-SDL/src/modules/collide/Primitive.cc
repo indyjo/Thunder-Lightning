@@ -199,6 +199,7 @@ bool intersectTriangleVertex(const IVector * tri,
     ls_message("(%+1.5f, %+1.5f)\n", normal[1].a, normal[1].b);
     ls_message("(%+1.5f, %+1.5f)\n", normal[2].a, normal[2].b);
     */
+    /*
     ls_message("Intersecting vertex/triangle:\n");
     ls_message("vector:      "); dump_ivector(v);
     ls_message("triangle 0:  "); dump_ivector(tri[0]);
@@ -207,6 +208,7 @@ bool intersectTriangleVertex(const IVector * tri,
     ls_message("normal:      "); dump_ivector(normal);
     ls_message("plane dist:  [%f %f]\n", d.a, d.b);
     ls_message("exactness:    %f\n", hints.triangle_triangle.exactness);
+    */
 
     return true;
 }
@@ -233,6 +235,7 @@ bool intersectEdgeEdge(const IVector & a, const IVector & b,
 
     hints.triangle_triangle.exactness = exactness(a+b+c+d);
     
+    /*
     ls_message("Intersecting edge/edge:\n");
     ls_message("edge 1 a:    "); dump_ivector(a);
     ls_message("edge 1 b:    "); dump_ivector(b);
@@ -241,6 +244,7 @@ bool intersectEdgeEdge(const IVector & a, const IVector & b,
     ls_message("normal:      "); dump_ivector(normal);
     ls_message("plane dist:  [%f %f]\n", dist.a, dist.b);
     ls_message("exactness:    %f\n", hints.triangle_triangle.exactness);
+    */
 
     return true;
 }

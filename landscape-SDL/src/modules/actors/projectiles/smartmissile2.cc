@@ -322,8 +322,8 @@ void SmartMissile2::interceptTarget() {
     //ls_message("delta_omega: "); delta_omega.dump();
     //ls_message("d_delta_omega: "); d_delta_omega.dump();
     //ls_message("Applying angular accel: ");
-    (config->queryFloat("Missile_Ka",1)*delta_omega
-    	+config->queryFloat("Missile_Kb",1)*d_delta_omega).dump();
+    //(config->queryFloat("Missile_Ka",1)*delta_omega
+    //	+config->queryFloat("Missile_Kb",1)*d_delta_omega).dump();
     engine->applyAngularAcceleration(
     	config->queryFloat("Missile_Ka",1)*delta_omega
     	+config->queryFloat("Missile_Kb",1)*d_delta_omega);

@@ -16,7 +16,9 @@ void PlaceholderModule::draw(FlexibleGunsight &) {
 }
 
 
-FlexibleGunsight::FlexibleGunsight(Ptr<IGame> game) {
+FlexibleGunsight::FlexibleGunsight(Ptr<IGame> game)
+:   game(game)
+{
     camera = game->getCamera();
     surface = game->getScreenSurface();
     renderer = game->getRenderer();
@@ -78,19 +80,32 @@ void FlexibleGunsight::addModule(
 }
 
 void FlexibleGunsight::draw() {
+    surface = game->getScreenSurface();
 	typedef Modules::iterator Iter;
 	renderer->disableAlphaBlending();
 	renderer->disableTexturing();
+	renderer->disableFog();
 	renderer->setCullMode(JR_CULLMODE_NO_CULLING);
 	renderer->setCoordSystem(JR_CS_EYE);
 	renderer->disableZBuffer();
     renderer->setClipRange(0.1, 10.0);
     
 	for(Iter i=modules.begin(); i!=modules.end(); ++i) {
-		(*i)->draw(*this);
+	    Ptr<GunsightModule> & module = *i;
+	    Vector topleft = surface.getOrigin() + surface.getDX()*module->getOffset()[0]
+	        + surface.getDY()*module->getOffset()[1];
+	    Vector bottomright = topleft + surface.getDX()*module->getWidth() +
+	        + surface.getDY()*module->getHeight();
+	    renderer->pushClipPlane(Vector(1,0,0), -topleft[0]);
+	    renderer->pushClipPlane(Vector(-1,0,0), bottomright[0]);
+	    renderer->pushClipPlane(Vector(0,-1,0), topleft[1]);
+	    renderer->pushClipPlane(Vector(0,1,0), -bottomright[1]);
+		module->draw(*this);
+		renderer->popClipPlanes(4);
 	}
 	
     renderer->setClipRange(env->getClipMin(), env->getClipMax());
 	renderer->enableZBuffer();
 	renderer->setCoordSystem(JR_CS_WORLD);
+	renderer->enableFog();
 }

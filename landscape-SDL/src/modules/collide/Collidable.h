@@ -20,12 +20,13 @@ class Collidable : virtual public Object{
     Ptr<BoundingGeometry> bounding;
     IActor *actor;
     RigidBody *rigid;
-    Ptr<Collidable> ncparent;
+    Ptr<Collidable> ncparent, ncpartner;
+    void *nctag;
 protected:
     inline Collidable(Ptr<BoundingGeometry> b=0,
                       RigidBody *r=0, IActor *a=0,
                       Ptr<Collidable> ncparent=0)
-    :   bounding(b), rigid(r), actor(a), ncparent(ncparent)
+    :   bounding(b), rigid(r), actor(a), ncparent(ncparent), ncpartner(0), nctag(0)
     { }
 protected:
     inline void setBoundingGeometry(Ptr<BoundingGeometry> b) {
@@ -64,9 +65,24 @@ public:
     inline void setNoCollideParent(Ptr<Collidable> parent) {
     	ncparent = parent;
     }
-    /// Checks whether this and other belong to the same no-collide tree
+    
+    /// Sets a single collidable to not collide with. Example: The actor that shot a bullet.
+    inline void setNoCollidePartner(Ptr<Collidable> partner) {
+        ncpartner = partner;
+    }
+    
+    /// Sets a non-collide tag. All collisions between Collidables with the same tag
+    /// will be ignored. A tag of 0 disables this.
+    inline void setNoCollideTag(void * tag) {
+        nctag = tag;
+    }
+    
+    /// Checks whether this and other are marked as non-collidable in any of three ways.
     inline bool noCollideWith(Ptr<Collidable> & other) {
-    	return getNoCollideRoot() == other->getNoCollideRoot();
+        return (nctag && nctag == other->nctag) ||
+            other == ncpartner ||
+            ptr(other->ncpartner) == this ||
+            getNoCollideRoot() == other->getNoCollideRoot();
     }
 
     // These three methods have to be implemented by the derived class

@@ -16,6 +16,7 @@ class FlexibleGunsight;
 class Environment;
 class FlightInfo;
 class Targeter;
+class Armament;
 
 class GunsightModule : virtual public Object {
 protected:
@@ -39,6 +40,7 @@ public:
 class FlexibleGunsight : public IDrawable {
 protected:
     UI::Surface surface;
+    Ptr<IGame> game;
     Ptr<ICamera> camera;
     Ptr<Environment> env;
     typedef std::vector<Ptr<GunsightModule> > Modules;
@@ -69,6 +71,7 @@ public:
     void addBasicCrosshairs();
     void addFlightModules(Ptr<IGame>, FlightInfo &);
     void addTargeting(Ptr<IActor>, Ptr<Targeter>);
+    void addArmamentToScreen(Ptr<IGame>, Armament*);
     void addDirectionOfFlight(Ptr<IActor>);
     void addInterception(Ptr<IActor> src, Ptr<IActor> target);
     

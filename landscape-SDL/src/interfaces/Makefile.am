@@ -17,4 +17,5 @@ noinst_HEADERS=\
 	IProjectile.h		\
 	ISkyBox.h			\
 	ITerrain.h			\
-	IView.h
+	IView.h             \
+	IWeapon.h

@@ -7,5 +7,6 @@ libfx_a_SOURCES = \
 	smoketrail.cc smoketrail.h \
 	spark.cc spark.h \
     explosion.cc explosion.h\
-    DebugObject.cc DebugObject.h
+    DebugObject.cc DebugObject.h \
+    SpecialEffects.cc SpecialEffects.h
 

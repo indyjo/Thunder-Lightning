@@ -463,7 +463,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE build build_cpu build_vendor build_os host host_cpu host_vendor host_os EGREP LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL OPENGL_CFLAGS OPENGL_LIBS OPENAL_CFLAGS OPENAL_LIBS LIBPNG_CFLAGS LIBPNG_LIBS PKG_CONFIG SIGC_CFLAGS SIGC_LIBS SDL_CONFIG SDL_CFLAGS SDL_LIBS LIB@&t@OBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE build build_cpu build_vendor build_os host host_cpu host_vendor host_os EGREP LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL OPENGL_CFLAGS OPENGL_LIBS OPENAL_CFLAGS OPENAL_LIBS LIBPNG_CFLAGS LIBPNG_LIBS IO_CFLAGS IO_LIBS PKG_CONFIG SIGC_CFLAGS SIGC_LIBS SDL_CONFIG SDL_CFLAGS SDL_LIBS LIB@&t@OBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1032,6 +1032,12 @@ Optional Features:
   --enable-fast-install@<:@=PKGS@:>@ 
                           optimize for fast installation @<:@default=yes@:>@
   --disable-libtool-lock  avoid locking (might break parallel builds)
+  --enable-debug               Sets debug flags for compiling
+  --enable-optimize            Enables basic optimization
+  --enable-heavy-optimize      Enables heavy optimization
+  --enable-pentium2            Enables Pentium 2 code generation
+  --enable-pentium4            Enables Pentium 4 code generation
+  --enable-athlonxp            Enables Athlon XP code generation
   --disable-sdltest       Do not try to compile and run a test SDL program
 
 Optional Packages:
@@ -1048,6 +1054,8 @@ Optional Packages:
   --with-openal-libs=PATH      Specify OpenAL libs
   --with-libpng-cflags=PATH    Specify libPNG cflags
   --with-libpng-libs=PATH      Specify libPNG libs
+  --with-io-cflags=PATH    Specify Io cflags
+  --with-io-libs=PATH      Specify Io libs
   --with-sdl-prefix=PFX   Prefix where SDL is installed (optional)
   --with-sdl-exec-prefix=PFX Exec prefix where SDL is installed (optional)
 
@@ -18998,6 +19006,43 @@ LIBTOOL='$(SHELL) $(top_builddir)/libtool'
 
 
 
+# Check whether --enable-debug or --disable-debug was given.
+if test "${enable_debug+set}" = set; then
+  enableval="$enable_debug"
+  CXXFLAGS="$CXXFLAGS -g"
+fi; 
+    
+# Check whether --enable-optimize or --disable-optimize was given.
+if test "${enable_optimize+set}" = set; then
+  enableval="$enable_optimize"
+  CXXFLAGS="$CXXFLAGS -O2"
+fi; 
+    
+# Check whether --enable-heavy-optimize or --disable-heavy-optimize was given.
+if test "${enable_heavy_optimize+set}" = set; then
+  enableval="$enable_heavy_optimize"
+  CXXFLAGS="$CXXFLAGS -O3"
+fi; 
+
+# Check whether --enable-pentium2 or --disable-pentium2 was given.
+if test "${enable_pentium2+set}" = set; then
+  enableval="$enable_pentium2"
+  CXXFLAGS="$CXXFLAGS -march=i686 -mcpu=i686 -mfpmath=sse -msse"
+fi; 
+
+# Check whether --enable-pentium4 or --disable-pentium4 was given.
+if test "${enable_pentium4+set}" = set; then
+  enableval="$enable_pentium4"
+  CXXFLAGS="$CXXFLAGS -march=pentium4 -mcpu=pentium4 -mfpmath=sse -msse2"
+fi; 
+
+# Check whether --enable-athlonxp or --disable-athlonxp was given.
+if test "${enable_athlonxp+set}" = set; then
+  enableval="$enable_athlonxp"
+  CXXFLAGS="$CXXFLAGS -march=athlonxp -mcpu=athlonxp -mfpmath=sse -msse"
+fi; 
+
+
 # Check whether --with-opengl-cflags or --without-opengl-cflags was given.
 if test "${with_opengl_cflags+set}" = set; then
   withval="$with_opengl_cflags"
@@ -19030,7 +19075,7 @@ if test "${with_openal_libs+set}" = set; then
   withval="$with_openal_libs"
   OPENAL_LIBS="$withval"
 else
-  OPENGL_LIBS="-lopenal"
+  OPENAL_LIBS="-lopenal"
 fi; 
 
 
@@ -19051,6 +19096,26 @@ if test "${with_libpng_libs+set}" = set; then
 else
   LIBPNG_LIBS="-lpng"
 fi; 
+
+
+
+
+# Check whether --with-io-cflags or --without-io-cflags was given.
+if test "${with_io_cflags+set}" = set; then
+  withval="$with_io_cflags"
+  IO_CFLAGS="$withval"
+else
+  IO_CFLAGS=""
+fi; 
+
+# Check whether --with-io-libs or --without-io-libs was given.
+if test "${with_io_libs+set}" = set; then
+  withval="$with_io_libs"
+  IO_LIBS="$withval"
+else
+  IO_LIBS="libIoVM.a"
+fi; 
+
 
 
 
@@ -19600,7 +19665,7 @@ done
 
 
 
-                                                                                                                                                                                                                                                                                                            ac_config_files="$ac_config_files Makefile scripts/Makefile src/Makefile src/boost/Makefile src/interfaces/Makefile src/modules/Makefile src/modules/LoDTerrain/Makefile src/modules/actors/Makefile src/modules/actors/drone/Makefile src/modules/actors/fx/Makefile src/modules/actors/projectiles/Makefile src/modules/actors/tank/Makefile src/modules/ai/Makefile src/modules/camera/Makefile src/modules/clock/Makefile src/modules/collide/Makefile src/modules/config/Makefile src/modules/engines/Makefile src/modules/environment/Makefile src/modules/flight/Makefile src/modules/fontman/Makefile src/modules/gunsight/Makefile src/modules/jogi/Makefile src/modules/map/Makefile src/modules/math/Makefile src/modules/model/Makefile src/modules/physics/Makefile src/modules/skybox/Makefile src/modules/texman/Makefile src/modules/ui/Makefile"
+                                                                                                                                                                                                                                                                                                                                ac_config_files="$ac_config_files Makefile scripts/Makefile src/Makefile src/boost/Makefile src/interfaces/Makefile src/modules/Makefile src/modules/LoDTerrain/Makefile src/modules/actors/Makefile src/modules/actors/drone/Makefile src/modules/actors/fx/Makefile src/modules/actors/projectiles/Makefile src/modules/actors/tank/Makefile src/modules/ai/Makefile src/modules/camera/Makefile src/modules/clock/Makefile src/modules/collide/Makefile src/modules/config/Makefile src/modules/engines/Makefile src/modules/environment/Makefile src/modules/flight/Makefile src/modules/fontman/Makefile src/modules/gunsight/Makefile src/modules/jogi/Makefile src/modules/map/Makefile src/modules/math/Makefile src/modules/model/Makefile src/modules/physics/Makefile src/modules/scripting/Makefile src/modules/skybox/Makefile src/modules/texman/Makefile src/modules/ui/Makefile src/modules/weaponsys/Makefile"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -20184,9 +20249,11 @@ do
   "src/modules/math/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/modules/math/Makefile" ;;
   "src/modules/model/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/modules/model/Makefile" ;;
   "src/modules/physics/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/modules/physics/Makefile" ;;
+  "src/modules/scripting/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/modules/scripting/Makefile" ;;
   "src/modules/skybox/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/modules/skybox/Makefile" ;;
   "src/modules/texman/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/modules/texman/Makefile" ;;
   "src/modules/ui/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/modules/ui/Makefile" ;;
+  "src/modules/weaponsys/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/modules/weaponsys/Makefile" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
@@ -20343,6 +20410,8 @@ s,@OPENAL_CFLAGS@,$OPENAL_CFLAGS,;t t
 s,@OPENAL_LIBS@,$OPENAL_LIBS,;t t
 s,@LIBPNG_CFLAGS@,$LIBPNG_CFLAGS,;t t
 s,@LIBPNG_LIBS@,$LIBPNG_LIBS,;t t
+s,@IO_CFLAGS@,$IO_CFLAGS,;t t
+s,@IO_LIBS@,$IO_LIBS,;t t
 s,@PKG_CONFIG@,$PKG_CONFIG,;t t
 s,@SIGC_CFLAGS@,$SIGC_CFLAGS,;t t
 s,@SIGC_LIBS@,$SIGC_LIBS,;t t

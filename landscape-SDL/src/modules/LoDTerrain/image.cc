@@ -171,7 +171,7 @@ Image::Image(const char *filename)
     if( (header.descriptor & ORIGIN_MASK) == UPPER_LEFT ) {
         fread(pixels, 1, w * h, in);
     } else {
-        printf("BOTTOM-UP\n");
+        //printf("BOTTOM-UP\n");
         for(i=0; i<h; i++) {
             fread(&pixels[(h-i-1)*w], 1, w, in);
         }
@@ -179,7 +179,7 @@ Image::Image(const char *filename)
 
     /* Close file */
     fclose(in);
-    dump();
+    //dump();
 }
 
 #undef RGB3

@@ -2,6 +2,8 @@
 #define _JOGI_RENDERER_H
 
 #include "JCamera.h"
+#include "JMaterial.h"
+#include "JLight.h"
 #include "types.h"
 
 typedef enum {
@@ -152,6 +154,7 @@ public:
     virtual void setColor(const Vector &) = 0;
     virtual void setUVW(const Vector &) = 0;
     virtual void setAbsoluteUVW(const Vector &) = 0;
+    virtual void setNormal(const Vector &) = 0;
     virtual void vertex(const Vector &) = 0;
     
     virtual void flush() = 0;
@@ -193,6 +196,20 @@ public:
     virtual void setMatrix(const Matrix &) = 0;
     virtual void multMatrix(const Matrix &) = 0;
     virtual void popMatrix() = 0;
+    
+    /* Additional clipping planes -----------------------------------*/
+    virtual jError pushClipPlane(const Vector & n, float c) = 0;
+    virtual void popClipPlanes(int n) = 0;
+    
+    /* Lighting -----------------------------------------------------*/
+    virtual void enableLighting() = 0;
+    virtual void disableLighting() = 0;
+    virtual void setAmbientColor(const Vector &) = 0;
+    
+    virtual Ptr<JMaterial> createMaterial() = 0;
+    
+    virtual Ptr<JPointLight> createPointLight() = 0;
+    virtual Ptr<JDirectionalLight> createDirectionalLight() = 0;
     
     /* Convenience operators ----------------------------------------*/
     inline JRenderer & operator<< (const Vector & v) {vertex(v); return *this;}

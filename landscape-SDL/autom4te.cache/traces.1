@@ -2624,36 +2624,38 @@ m4trace:configure.in:9: -1- _LT_AC_SHELL_INIT([tagnames=${tagnames+${tagnames},}
 m4trace:configure.in:9: -1- AC_LIBTOOL_F77
 m4trace:configure.in:9: -1- _LT_AC_LANG_F77
 m4trace:configure.in:9: -1- _LT_AC_SHELL_INIT([tagnames=${tagnames+${tagnames},}F77])
-m4trace:configure.in:20: -1- AC_SUBST([OPENGL_CFLAGS])
-m4trace:configure.in:21: -1- AC_SUBST([OPENGL_LIBS])
-m4trace:configure.in:31: -1- AC_SUBST([OPENAL_CFLAGS])
-m4trace:configure.in:32: -1- AC_SUBST([OPENAL_LIBS])
-m4trace:configure.in:42: -1- AC_SUBST([LIBPNG_CFLAGS])
-m4trace:configure.in:43: -1- AC_SUBST([LIBPNG_LIBS])
-m4trace:configure.in:47: -1- PKG_CHECK_MODULES([SIGC], [sigc++-1.2])
-m4trace:configure.in:47: -1- AC_SUBST([PKG_CONFIG], [$ac_cv_path_PKG_CONFIG])
-m4trace:configure.in:47: -1- AC_SUBST([SIGC_CFLAGS])
-m4trace:configure.in:47: -1- AC_SUBST([SIGC_LIBS])
-m4trace:configure.in:50: -1- AM_PATH_SDL([1.2.0], [], [{ { echo "$as_me:$LINENO: error: SDL verion 1.2.0+ needed" >&5
+m4trace:configure.in:51: -1- AC_SUBST([OPENGL_CFLAGS])
+m4trace:configure.in:52: -1- AC_SUBST([OPENGL_LIBS])
+m4trace:configure.in:62: -1- AC_SUBST([OPENAL_CFLAGS])
+m4trace:configure.in:63: -1- AC_SUBST([OPENAL_LIBS])
+m4trace:configure.in:73: -1- AC_SUBST([LIBPNG_CFLAGS])
+m4trace:configure.in:74: -1- AC_SUBST([LIBPNG_LIBS])
+m4trace:configure.in:84: -1- AC_SUBST([IO_CFLAGS])
+m4trace:configure.in:85: -1- AC_SUBST([IO_LIBS])
+m4trace:configure.in:90: -1- PKG_CHECK_MODULES([SIGC], [sigc++-1.2])
+m4trace:configure.in:90: -1- AC_SUBST([PKG_CONFIG], [$ac_cv_path_PKG_CONFIG])
+m4trace:configure.in:90: -1- AC_SUBST([SIGC_CFLAGS])
+m4trace:configure.in:90: -1- AC_SUBST([SIGC_LIBS])
+m4trace:configure.in:93: -1- AM_PATH_SDL([1.2.0], [], [{ { echo "$as_me:$LINENO: error: SDL verion 1.2.0+ needed" >&5
 echo "$as_me: error: SDL verion 1.2.0+ needed" >&2;}
    { (exit 1); exit 1; }; }])
-m4trace:configure.in:50: -1- AC_SUBST([SDL_CONFIG], [$ac_cv_path_SDL_CONFIG])
-m4trace:configure.in:50: -1- _m4_warn([obsolete], [The macro `AC_TRY_RUN' is obsolete.
+m4trace:configure.in:93: -1- AC_SUBST([SDL_CONFIG], [$ac_cv_path_SDL_CONFIG])
+m4trace:configure.in:93: -1- _m4_warn([obsolete], [The macro `AC_TRY_RUN' is obsolete.
 You should run autoupdate.], [autoconf/general.m4:2289: AC_TRY_RUN is expanded from...
 /usr/share/aclocal/sdl.m4:175: AM_PATH_SDL is expanded from...
-configure.in:50: the top level])
-m4trace:configure.in:50: -1- _m4_warn([obsolete], [The macro `AC_TRY_LINK' is obsolete.
+configure.in:93: the top level])
+m4trace:configure.in:93: -1- _m4_warn([obsolete], [The macro `AC_TRY_LINK' is obsolete.
 You should run autoupdate.], [autoconf/general.m4:2223: AC_TRY_LINK is expanded from...
 /usr/share/aclocal/sdl.m4:175: AM_PATH_SDL is expanded from...
-configure.in:50: the top level])
-m4trace:configure.in:50: -1- AC_SUBST([SDL_CFLAGS])
-m4trace:configure.in:50: -1- AC_SUBST([SDL_LIBS])
-m4trace:configure.in:53: -1- AC_CHECK_HEADERS([sys/time.h unistd.h])
-m4trace:configure.in:53: -1- AH_OUTPUT([HAVE_SYS_TIME_H], [/* Define to 1 if you have the <sys/time.h> header file. */
+configure.in:93: the top level])
+m4trace:configure.in:93: -1- AC_SUBST([SDL_CFLAGS])
+m4trace:configure.in:93: -1- AC_SUBST([SDL_LIBS])
+m4trace:configure.in:96: -1- AC_CHECK_HEADERS([sys/time.h unistd.h])
+m4trace:configure.in:96: -1- AH_OUTPUT([HAVE_SYS_TIME_H], [/* Define to 1 if you have the <sys/time.h> header file. */
 #undef HAVE_SYS_TIME_H])
-m4trace:configure.in:53: -1- AH_OUTPUT([HAVE_UNISTD_H], [/* Define to 1 if you have the <unistd.h> header file. */
+m4trace:configure.in:96: -1- AH_OUTPUT([HAVE_UNISTD_H], [/* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H])
-m4trace:configure.in:93: -1- AC_CONFIG_FILES([
+m4trace:configure.in:138: -1- AC_CONFIG_FILES([
 Makefile
 scripts/Makefile
 src/Makefile
@@ -2681,13 +2683,15 @@ src/modules/map/Makefile
 src/modules/math/Makefile
 src/modules/model/Makefile
 src/modules/physics/Makefile
+src/modules/scripting/Makefile
 src/modules/skybox/Makefile
 src/modules/texman/Makefile
 src/modules/ui/Makefile
+src/modules/weaponsys/Makefile
 ])
-m4trace:configure.in:93: -1- _m4_warn([obsolete], [AC_OUTPUT should be used without arguments.
+m4trace:configure.in:138: -1- _m4_warn([obsolete], [AC_OUTPUT should be used without arguments.
 You should run autoupdate.], [])
-m4trace:configure.in:93: -1- AC_SUBST([LIB@&t@OBJS], [$ac_libobjs])
-m4trace:configure.in:93: -1- AC_SUBST([LTLIBOBJS], [$ac_ltlibobjs])
-m4trace:configure.in:93: -1- _AC_AM_CONFIG_HEADER_HOOK([$ac_file])
-m4trace:configure.in:93: -1- _AM_OUTPUT_DEPENDENCY_COMMANDS
+m4trace:configure.in:138: -1- AC_SUBST([LIB@&t@OBJS], [$ac_libobjs])
+m4trace:configure.in:138: -1- AC_SUBST([LTLIBOBJS], [$ac_ltlibobjs])
+m4trace:configure.in:138: -1- _AC_AM_CONFIG_HEADER_HOOK([$ac_file])
+m4trace:configure.in:138: -1- _AM_OUTPUT_DEPENDENCY_COMMANDS

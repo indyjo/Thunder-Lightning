@@ -11,7 +11,7 @@ exec_dir=`dirname $0`
 source $exec_dir/landscape-vars
 
 echo $bin_dir/landscape-bin $param $*
-$bin_dir/landscape-bin $param $*
+$bin_dir/landscape-bin $param $* >/tmp/stdout.txt 2>/tmp/stderr.txt
 if [ $? != 0 ]; then
   on_error
 fi

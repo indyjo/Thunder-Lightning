@@ -2,6 +2,7 @@
 #include <modules/math/SpecialMatrices.h>
 #include <modules/environment/environment.h>
 #include <interfaces/IConfig.h>
+#include <remap.h>
 
 Camera::Camera(IGame *thegame)
 :	dirty(true)
@@ -12,6 +13,10 @@ Camera::Camera(IGame *thegame)
     this->aspect=atof(config->query("Camera_aspect","1.33333"));
     orient = IdentityMatrix<3,float>();
     location = Vector(0,0,0);
+    
+    Ptr<EventRemapper> remap = thegame->getEventRemapper();
+    remap->map("zoom-in", SigC::slot(*this, &Camera::zoomIn));
+    remap->map("zoom-out", SigC::slot(*this, &Camera::zoomOut));
 }
 
 Vector Camera::getLocation()
@@ -148,3 +153,14 @@ void Camera::update() {
     
     // That's it!
 }
+
+void Camera::zoomIn() {
+    dirty = true;
+    focus *= 1.25;
+}
+
+void Camera::zoomOut() {
+    dirty = true;
+    focus *= 0.8;
+}
+

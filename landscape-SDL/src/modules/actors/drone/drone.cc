@@ -2,8 +2,7 @@
 #include <iostream>
 #include <string>
 #include <sigc++/bind.h>
-#include <modules/actors/fx/smokecolumn.h>
-#include <modules/actors/fx/explosion.h>
+#include <modules/actors/fx/SpecialEffects.h>
 #include <modules/actors/projectiles/bullet.h>
 #include <modules/actors/projectiles/dumbmissile.h>
 #include <modules/actors/projectiles/smartmissile.h>
@@ -369,6 +368,7 @@ void Drone::draw() {
     Vector p = engine->getLocation();
 
     thegame->getCamera()->getFrustumPlanes(frustum);
+    
     for(int plane=0; plane<6; plane++) {
         float d = 0;
         for(int i=0; i<3; i++) d += frustum[plane][i]*p[i];
@@ -376,6 +376,8 @@ void Drone::draw() {
         if (d < -RADIUS) return;
         if (plane == PLANE_MINUS_Z) dist = d;
     }
+    
+    dist /= thegame->getCamera()->getFocus();
 
     if (dist > MAX_POINT_DISTANCE) return;
     if (dist > MAX_MODEL_DISTANCE) {
@@ -412,7 +414,9 @@ void Drone::draw() {
     	if ((pilot_pos-cam_pos).lengthSquare()<1)
     		model = inside_model;
     }
+    renderer->enableLighting();
     model->draw(*renderer, Mmodel, Rotation);
+    renderer->disableLighting();
     drawWheels();
     
     if (current_idea == patrol_idea) {
@@ -460,20 +464,6 @@ void Drone::applyDamage(float damage, int domain, Ptr<IProjectile> projectile) {
 	}
     if (this->damage < 0.5 && this->damage+damage>0.5) {
     	explode(false);
-        SmokeColumn::Params params;
-        params.interval=0.01;
-        params.ttl=1.2;
-        SmokeColumn::PuffParams puffparams;
-        puffparams.start_size=0.5f;
-        puffparams.end_size=1.5f;
-        puffparams.color=Vector(0.4,0.4,0.4);
-        puffparams.ttl=Interval(3,5);
-        puffparams.pos_deviation=0.2;
-        puffparams.direction_deviation=0.5;
-        Ptr<FollowingSmokeColumn> smoke =
-                new FollowingSmokeColumn(thegame, params, puffparams);
-        smoke->follow(this);
-        thegame->addActor(smoke);
     }
     this->damage += damage;
     engine->setMaxThrust( 40000 * (1-damage) );
@@ -499,6 +489,7 @@ Ptr<IView> Drone::getView(int n) {
 		    gunsight->addFlightModules(thegame, flight_info);
 		    gunsight->addBasicCrosshairs();
 		    gunsight->addTargeting(this, targeter);
+		    gunsight->addDirectionOfFlight(this);
 	    	return new RelativeView(
 	            this,
 	            pilot_pos,
@@ -549,23 +540,12 @@ Ptr<IView> Drone::getView(int n) {
 	}
 }
 
-#define MAX_EXPLOSION_SIZE 4.0
-#define MIN_EXPLOSION_SIZE 1.0
-#define MAX_EXPLOSION_DISTANCE 15.0
-#define NUM_EXPLOSIONS 15
-#define MAX_EXPLOSION_AGE -2.0
 void Drone::explode(bool deadly) {
-	if (deadly) kill();
-    Vector p = getLocation();
-    for(int i=0; i<NUM_EXPLOSIONS; i++) {
-        Vector v = p + RAND * MAX_EXPLOSION_DISTANCE *
-                Vector(RAND2, RAND2, RAND2).normalize();
-        float size = MIN_EXPLOSION_SIZE +
-                RAND * (MAX_EXPLOSION_SIZE - MIN_EXPLOSION_SIZE);
-        double time = RAND * MAX_EXPLOSION_AGE;
-        Ptr<Explosion> explosion = new Explosion(thegame, v, size, time);
-        explosion->setMovementVector((0.9 + 0.1*RAND)*getMovementVector());
-        thegame->addActor(explosion);
+	if (deadly) {
+	    kill();
+	    aircraftFinalExplosion(thegame, this);
+	} else {
+        aircraftFirstExplosion(thegame, this);
     }
 }
 
@@ -613,10 +593,10 @@ void Drone::fireBullet()
     Vector deviation(0,0,0);
     for(int i=0; i<3; ++i)
     	deviation += Vector(RAND2,RAND2,0);
-    deviation /= 2;
+    deviation /= 3;
     
     move += engine->getState().q.rot(
-        BULLET_SPEED * (Vector(0,0,1) + 0.03*deviation));
+        BULLET_SPEED * (Vector(0,0,1) + 0.015*deviation));
 
     thegame->addActor(projectile);
     projectile->shoot(start, move, getFrontVector());
@@ -663,8 +643,6 @@ void Drone::fireSmartMissile()
 
     Ptr<SmartMissile> projectile(
     		new SmartMissile(ptr(thegame), targeter->getCurrentTarget(), this) );
-    ls_message("Launching smart missile to target: %p\n",
-    	&*targeter->getCurrentTarget());
     Vector start = getLocation()
         + engine->getState().q.rot(launchers[smart_launcher_num++]);
     Vector move(getMovementVector());
@@ -689,8 +667,6 @@ void Drone::fireSmartMissile2()
 
     Ptr<SmartMissile2> projectile(
     		new SmartMissile2(ptr(thegame), targeter->getCurrentTarget(), this) );
-    ls_message("Launching smart missile to target: %p\n",
-    	&*targeter->getCurrentTarget());
     Vector start = getLocation()
         + engine->getState().q.rot(launchers[smart_launcher_num++]);
     Vector move(getMovementVector());
