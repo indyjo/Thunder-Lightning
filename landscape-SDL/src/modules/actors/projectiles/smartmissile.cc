@@ -21,7 +21,7 @@ SmartMissile::SmartMissile(Ptr<IGame> thegame, Ptr<IActor> target)
     renderer = thegame->getRenderer();
     terrain = thegame->getTerrain();
     setTargetInfo(new TargetInfo(
-        "Smart missile", 1.0f, TargetInfo::CLASS_GUIDED_MISSILE));
+        "Smart missile", 1.0f, TargetInfo::GUIDED_MISSILE));
     engine = new SmartMissileEngine(thegame);
     setEngine(engine);
     if (target) {

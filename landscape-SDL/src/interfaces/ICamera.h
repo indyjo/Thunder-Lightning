@@ -1,6 +1,7 @@
 #ifndef ICAMERA_H
 #define ICAMERA_H
 
+#include <modules/math/Matrix.h>
 #include "IPositionProvider.h"
 #include "IPositionReceiver.h"
 
@@ -18,6 +19,9 @@ public:
     virtual void getFrustumPlanes(float planes[6][4])=0;
     virtual float getFocus()=0;
     virtual float getAspect()=0;
+    
+    virtual const Matrix3 & getOrient()=0;
+    virtual const Matrix3 & getOrientInv()=0;
 };
 
 #endif

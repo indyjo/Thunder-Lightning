@@ -8,7 +8,7 @@ SimpleActor::SimpleActor( Ptr<IGame> game)
     engine = new NewtonianEngine(thegame);
     faction = Faction::basic_factions.none;
     target_info = new TargetInfo(
-        "<unnamed SimpleActor>", 1.0f, TargetInfo::CLASS_NONE);
+        "<unnamed SimpleActor>", 1.0f, TargetInfo::NONE);
 
     views.push_back(new RelativeView(
             *this,

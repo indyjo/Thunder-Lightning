@@ -39,28 +39,11 @@ public:
 
 class SelectAxisByActivityTransform : public AxisTransform {
 	std::vector<float> old_values;
-	float threshold;
-	int last_active_input;
+	float threshold, value;
+	bool init;
 public:
-	SelectAxisByActivityTransform(float thresold = 0.0f)
-	: threshold(threshold), last_active_input(0)
-	{ }
-	
-	virtual float operator() (std::vector<float> & inputs) {
-		if (inputs.size() == old_values.size()) {
-			for (int i=0; i<inputs.size(); ++i) {
-				if (std::abs(inputs[i]-old_values[i]) > threshold) {
-					last_active_input = i;
-					break;
-				}
-			}
-		} else {
-			old_values = inputs;
-			last_active_input = 0;
-		}
-		return (last_active_input<inputs.size())?
-			inputs[last_active_input] : 0;
-	}
+	SelectAxisByActivityTransform(float threshold = 0.0f);
+	virtual float operator() (std::vector<float> & inputs);
 };
 
 

@@ -194,5 +194,15 @@ std::istream & operator>> (std::istream & is,
                            XVector<N,T> & v);
 
 typedef XVector<3, float> Vector;
+typedef XVector<2, float> Vector2;
+typedef XVector<3, float> Vector3;
+typedef XVector<4, float> Vector4;
+typedef XVector<5, float> Vector5;
+typedef XVector<6, float> Vector6;
+typedef XVector<7, float> Vector7;
+typedef XVector<8, float> Vector8;
+
+
+
 
 #endif

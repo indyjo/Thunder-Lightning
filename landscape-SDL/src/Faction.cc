@@ -37,7 +37,7 @@ void Faction::setAttitudeTowards(Ptr<Faction> f, Attitude a) {
 }
 
 Faction::Attitude Faction::getAttitudeTowards(Ptr<Faction> f) {
-	{
+	/*{
 		std::map<Ptr<Faction>, Attitude>::iterator i;
 		ls_message("Attitude of %s towards %p \"%s\":",
 			getName().c_str(), &*f, f->getName().c_str());
@@ -47,7 +47,7 @@ Faction::Attitude Faction::getAttitudeTowards(Ptr<Faction> f) {
 				((i->second==HOSTILE)?"HOSTILE":"NEUTRAL"));
 		}
 		ls_message("\n");
-	}
+	}*/
     std::map<Ptr<Faction>, Attitude>::iterator i = attitudes.find(f);
     
     if (i==attitudes.end())

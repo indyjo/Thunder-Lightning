@@ -17,6 +17,7 @@ class Idea;
 class PatrolIdea;
 struct Context;
 struct Rating;
+class Targeter;
 
 class EventSheet;
 
@@ -88,6 +89,8 @@ private:
     Ptr<DroneControls> drone_controls;
     AutoPilot auto_pilot;
 
+    // weapon systems stuff
+    Ptr<Targeter> targeter;
     int cannon_num, smart_launcher_num, dumb_launcher_num;
     float primary_reload_time, secondary_reload_time;
     float damage;

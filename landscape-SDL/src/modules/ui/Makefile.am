@@ -1,6 +1,6 @@
 noinst_LIBRARIES = libui.a
 
-INCLUDES = -I${top_srcdir}/src
+INCLUDES = -I${top_srcdir}/src @IO_CFLAGS@
 
 libui_a_SOURCES = \
 	Console.h Console.cc			\

@@ -22,8 +22,8 @@ setv fonts_dir			      $data_dir/fonts
 setv sounds_dir			      $data_dir/sounds
 
 # Game configuration
-setv Game_grab_mouse		  true
-#setv Game_grab_mouse		  false
+#setv Game_grab_mouse		  true
+setv Game_grab_mouse		  false
 setv Game_xres			      800
 setv Game_yres			      600
 setv Game_fullscreen	              0

@@ -197,7 +197,7 @@ void FollowingSmokeColumn::action()
                     puff_params);
             smokelist.insert(smokelist.end(), puff);
         }
-    } else {
+    } else if (smokelist.empty()) {
         state = DEAD;
     }
 

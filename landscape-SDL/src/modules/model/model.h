@@ -44,6 +44,7 @@ struct Model::Material {
     bool use_tex;
     int w,h;
     TexPtr tex;
+    Vector Kd, Ka, Ks;
 };
 
 struct Model::Face {

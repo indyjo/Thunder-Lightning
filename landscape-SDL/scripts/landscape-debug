@@ -2,11 +2,7 @@
 
 debug_1="ddd --args"
 debug_2="valgrind -v --leak-check=yes --logfile=valgrind --num-callers=8"
-debug_3="efence"
-
-function efence {
-  export LD_PRELOAD=libefence.so.0.0
-}
+debug_3="gdb --args"
 
 function on_error() {
   xset r on

@@ -82,20 +82,20 @@ void SmokeTrail::action()
             trail.push_front(t);
         }
 
-        if (!trail.empty()) {
-            if (trail.size()==1) {
-                if (trail.back().age > MAX_AGE_IN_SECS) {
-                    trail.pop_back();
-                }
-            } else while (trail[trail.size()-1].age > MAX_AGE_IN_SECS) {
-                trail.pop_back();
-            }
-        }
     } else {
         // If last added trail point has become older than MAX_AGE_IN_SECS
         // we can die
         if ( trail.front().age > MAX_AGE_IN_SECS) {
             state = IActor::DEAD;
+        }
+    }
+    if (!trail.empty()) {
+        if (trail.size()==1) {
+            if (trail.back().age > MAX_AGE_IN_SECS) {
+                trail.pop_back();
+            }
+        } else while (trail[trail.size()-1].age > MAX_AGE_IN_SECS) {
+            trail.pop_back();
         }
     }
 }

@@ -80,7 +80,7 @@ void FlightEngine2::run() {
     //const static float CD_x[] = {-8.0, 0.0, 8.0, 16.0, 24.0};
     //const static float CD_y[] = {0.01,.015, .05,  0.7,  1.5};
     const static float CD_x[] = {-180.0, -90.0, -45.0, -24.0, -16.0, -8.0,  0.0, 8.0,  16.0, 24.0, 45.0, 90.0, 180.0};
-    const static float CD_y[] = {   1.5,   4.0,   3.5,   1.2,   0.3,  0.2, 0.15, 0.2,   0.3,  1.2,  3.5,  4.0,   1.5};
+    const static float CD_y[] = {   1.5,   3.0,   2.0,   0.8,   0.2,  .18, 0.15, .18,   0.2,  0.8,  3.5,  4.0,   1.5};
     //const static float CD_h_x[] = {-8.0, 0.0, 8.0};
     //const static float CD_h_y[] = {-1.0, 0.0, 1.0};
     const static float CD_h_x[] = {-180.0, -172.0, -120.0, -90.0, -60.0, -8.0, 0.0, 8.0, 60.0, 90.0, 120.0, 172.0, 180.0};

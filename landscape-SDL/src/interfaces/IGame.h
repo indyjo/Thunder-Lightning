@@ -11,6 +11,7 @@ class EventRemapper;
 class Clock;
 class Environment;
 class SoundMan;
+class IoScriptingManager;
 
 class IActor;
 class IConfig;
@@ -44,6 +45,7 @@ public:
     virtual Ptr<IFontMan> getFontMan()=0;
     virtual Ptr<SoundMan> getSoundMan()=0;
     virtual Ptr<Collide::CollisionManager> getCollisionMan()=0;
+    virtual Ptr<IoScriptingManager> getIoScriptingManager()=0;
     virtual void getMouseState(float *mx, float *my, int *buttons)=0;
     virtual double  getTimeDelta()=0;
     virtual double  getTime()=0;

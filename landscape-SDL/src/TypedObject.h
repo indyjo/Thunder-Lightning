@@ -2,34 +2,33 @@
 #define TYPEDOBJECT_H
 
 class Type {
+public:
+	typedef const Type *const List;
+private:
+	static const List noparents;
+	static const char *noname;
     const char * name;
-    Type * parent;
+    /// Pointer to a zero-terminated list of parents.
+    const List * parents;
 
 public:
-    Type(const char *name = "<unnamed>", Type & parent = *(Type*)0)
-    :   name(name), parent(&parent)
-    { }
+    Type(const char *name, ...);
 
-    bool operator== (Type & other) { return &other == this; }
-    const char * getName() { return name; }
-    Type & getParent() { return *parent; }
+    inline bool operator== (const Type & other) const { return &other == this; }
+    inline const char * getName() const { return name; }
+    inline List * getParents() const { return parents; }
+    
+    bool isA(const Type & t) const;
 };
 
 class TypedObject {
-    Type * type;
+    const Type * type;
 public:
-    TypedObject(Type & type) : type(&type) { }
-    Type & getType() { return *type; }
+    TypedObject(const Type & type) : type(&type) { }
+    const Type & getType() const { return *type; }
 
-    bool instanceOf(Type & t) { return &t == type; }
-    bool isA(Type & t) {
-        Type * my_type = type;
-        do {
-            if (my_type == &t) return true;
-            my_type = &my_type->getParent();
-        } while (my_type);
-        return false;
-    }
+    inline bool instanceOf(const Type & t) { return &t == type; }
+    inline bool isA(const Type & t) { return type->isA(t); }
 };
 
 

@@ -23,6 +23,7 @@
 #include <modules/collide/CollisionManager.h>
 #include <modules/ui/Console.h>
 #include <modules/ui/Surface.h>
+#include <modules/scripting/IoScriptingManager.h>
 
 #include <sound.h>
 #include <Faction.h>
@@ -85,7 +86,7 @@ Game::Game(int argc, const char **argv)
             surface = SDL_SetVideoMode(xres, yres, 32, SDL_OPENGL);
         }
         if (!surface) ls_error("error! ");
-        int r,g,b,d,db;
+        int r=0,g=0,b=0,d=0,db=0;
         SDL_GL_GetAttribute( SDL_GL_RED_SIZE, &r );
         SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE, &g );
         SDL_GL_GetAttribute( SDL_GL_BLUE_SIZE, &b );
@@ -175,6 +176,7 @@ Game::Game(int argc, const char **argv)
         addActor(tank);
     }
 
+    io_scripting_manager = new IoScriptingManager(this);
     console = new UI::Console(this, getScreenSurface());
 
     while (clock->catchup(1.0f)) ;
@@ -200,6 +202,8 @@ void Game::run()
         doFrame();
         postFrame();
     }
+    
+    io_scripting_manager = 0;
 }
 
 
@@ -286,6 +290,10 @@ Ptr<SoundMan> Game::getSoundMan() {
 
 Ptr<Environment> Game::getEnvironment() {
     return environment;
+}
+
+Ptr<IoScriptingManager> Game::getIoScriptingManager() {
+	return io_scripting_manager;
 }
 
 void Game::getMouseState(float *mx, float *my, int *buttons)
@@ -500,10 +508,16 @@ void Game::initControls()
 
     r->mapKey(SDLK_F12, true, "debug");
 
-    r->mapKey(SDLK_t, true, "next_target");
-    r->map("next_target", SigC::slot(*this, &Game::nextTarget));
-    r->mapKey(SDLK_g, true, "gunsight_target");
-    r->mapKey(SDLK_h, true, "toggle_gunsight_info");
+    r->mapKey(SDLK_r, true, "previous-target");
+    r->mapKey(SDLK_t, true, "next-target");
+    r->mapKey(SDLK_h, true, "next-hostile-target");
+    r->mapKey(SDLK_f, true, "next-friendly-target");
+    r->mapKey(SDLK_g, true, "gunsight-target");
+    r->mapKey(SDLK_z, true, "nearest-target");
+    
+    //r->map("next_target", SigC::slot(*this, &Game::nextTarget));
+    //r->mapKey(SDLK_g, true, "gunsight_target");
+    //r->mapKey(SDLK_h, true, "toggle_gunsight_info");
 
     r->mapKey(SDLK_F9, true, "faster");
     r->mapKey(SDLK_F10, true, "slower");
@@ -709,15 +723,8 @@ void Game::preFrame()
         }
         */
 
-        typedef ActorList::iterator Iter;
-        for (Iter i=actors.begin(); i!=actors.end(); i++) {
-            if (IActor::DEAD == (*i)->getState()) {
-                actors.erase(i++);
-            }
-        }
-        for (Iter i=actors.begin(); i!=actors.end(); i++) {
-            (*i)->action();
-        }
+        cleanupActors();
+        setupActors();
     }
 
     if (current_view) {
@@ -764,11 +771,7 @@ void Game::doFrame()
     //drawDebugTriangle();
 #endif
 
-    ActorList::iterator i;
-
-    for (i=actors.begin(); i!=actors.end(); i++) {
-        (*i)->draw();
-    }
+	drawActors();
 }
 
 void Game::postFrame()
@@ -895,12 +898,12 @@ void Game::returnView() {
 }
 
 void Game::nextTarget() {
-    typedef const std::list<Ptr<IActor> > List;
+    typedef const std::vector<Ptr<IActor> > List;
     typedef List::const_iterator Iter;
     
     if (!current_view || !current_view->getViewSubject()) return;
     
-    List & list = getActorList();
+    List & list = actors;
     if (list.empty()) return;
     
     Iter current;
@@ -929,15 +932,10 @@ void Game::toggleControlMode() {
 int main(int argc, const char **argv)
 {
     try {
-        ls_message("Number of arguments: %d\n", argc);
-        {
-            Game g(argc, argv);
-            g.run();
-        }
-        ls_message("Finished cleanly. GoodBye!\n");
+        Game *game = new Game(argc, argv);
+        game->run();
     } catch (std::exception & e) {
-        ls_error("Exception: %s\n", e.what());
-
+        ls_error("Uncaught exception: %s\n", e.what());
     }
     return 0;
 }

@@ -1,6 +1,8 @@
 #include <modules/math/Ballistic.h>
 #include <modules/math/Feedback.h>
 #include "ai.h"
+#include <interfaces/ITerrain.h>
+
 
 /////////////////////////////////////////////////////////////////////////////
 // class CruiseControl
@@ -310,7 +312,7 @@ void MaintainPosition::think(TankBrain & brain) {
 
     float dist = delta_p.length();
     float ideal_speed;
-    float max_r = 80.0f, min_r = 5.0f;
+    float max_r = 80.0f, min_r = 15.0f;
     Vector ideal_course;
     if (dist > max_r) {
         ideal_speed = approach_speed;

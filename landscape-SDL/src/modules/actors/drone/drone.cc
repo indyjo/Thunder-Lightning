@@ -11,6 +11,8 @@
 #include <modules/engines/flightengine2.h>
 #include <modules/gunsight/gunsight.h>
 #include <modules/math/SpecialMatrices.h>
+#include <modules/weaponsys/Targeter.h>
+
 #include <remap.h>
 #include <sound.h>
 #include <interfaces/IConfig.h>
@@ -48,7 +50,7 @@ Drone::Drone(Ptr<IGame> thegame)
   control_mode(UNCONTROLLED)
 {
     setTargetInfo(new TargetInfo(
-        "Drone", RADIUS, TargetInfo::CLASS_AIRCRAFT));
+        "Drone", RADIUS, TargetInfo::AIRCRAFT));
 
     drone_controls = new DroneControls;
     engine = new FlightEngine2(thegame);
@@ -63,6 +65,8 @@ Drone::Drone(Ptr<IGame> thegame)
     setActor((IActor*)this);
 
     thegame->getCollisionMan()->add(this);
+    
+    targeter = new Targeter(*thegame,*this);
 
     personality.randomize();
     context = new Context(
@@ -72,6 +76,7 @@ Drone::Drone(Ptr<IGame> thegame)
     	thegame,
     	terrain,
     	this,
+    	targeter,
     	mtasker);
 
     std::string model_file = thegame->getConfig()->query("Drone_model_file");
@@ -96,6 +101,7 @@ Drone::Drone(Ptr<IGame> thegame)
     gunsight->addDebugInfo(thegame, this);
     gunsight->addFlightModules(thegame, flight_info);
     gunsight->addBasicCrosshairs();
+    gunsight->addTargeting(this, targeter);
     
     views.clear();
     Vector pilot_pos(0, 1.5f, 3);
@@ -168,7 +174,27 @@ Drone::Drone(Ptr<IGame> thegame)
             SigC::slot(*this, & Drone::event), FIRE_SECONDARY));
     event_sheet->map("-secondary", SigC::bind(
             SigC::slot(*this, & Drone::event), RELEASE_SECONDARY));
-
+    event_sheet->map("next-target",
+    		SigC::slot(*targeter, &Targeter::selectNextTarget));
+    event_sheet->map("previous-target",
+    		SigC::slot(*targeter, &Targeter::selectPreviousTarget));
+    event_sheet->map("next-hostile-target",
+    		SigC::slot(*targeter, &Targeter::selectNextHostileTarget));
+    event_sheet->map("previous-hostile-target",
+    		SigC::slot(*targeter, &Targeter::selectPreviousHostileTarget));
+    event_sheet->map("next-friendly-target",
+    		SigC::slot(*targeter, &Targeter::selectNextFriendlyTarget));
+    event_sheet->map("previous-friendly-target",
+    		SigC::slot(*targeter, &Targeter::selectPreviousFriendlyTarget));
+    event_sheet->map("nearest-target",
+    		SigC::slot(*targeter, &Targeter::selectNearestTarget));
+    event_sheet->map("nearest-hostile-target",
+    		SigC::slot(*targeter, &Targeter::selectNearestHostileTarget));
+    event_sheet->map("nearest-friendly-target",
+    		SigC::slot(*targeter, &Targeter::selectNearestFriendlyTarget));
+    event_sheet->map("gunsight-target",
+    		SigC::slot(*targeter, &Targeter::selectTargetInGunsight));
+    		
     //event_sheet->map("autopilot", SigC::slot(*this, & Player::toggleAutoPilot));
 }         
 
@@ -222,7 +248,57 @@ void Drone::action() {
         drone_controls->setAileron( thegame->getEventRemapper()->getAxis("aileron") );
         drone_controls->setElevator( -thegame->getEventRemapper()->getAxis("elevator") );
         drone_controls->setThrottle( thegame->getEventRemapper()->getAxis("throttle") );
+        /*
+        char *axes[] = 
+        	{"kbd_throttle",
+        		"js_throttle",
+        		"js_throttle2",
+        		"throttle",
+        		0};
+        char **axis = axes;
+        while (*axis) {
+        	ls_message("%s: %f\n", *axis, thegame->getEventRemapper()->getAxis(*axis));
+        	axis++;
+        }
+        */
     }
+    Vector p = getLocation();
+    /*
+    if (p[1] < terrain->getHeightAt(p[0],p[2]) + 5.0) {
+        p[1] = terrain->getHeightAt(p[0],p[2]) + 5.0;
+        setLocation(p);
+        explode();
+    }
+    */
+   	if (p[1] < terrain->getHeightAt(p[0],p[2])+20) {
+	    Vector wheels[3];
+	    int nwheels = sizeof(wheels)/sizeof(Vector);
+	    wheels[0]=Vector(    0, -3,5);
+	    wheels[1]=Vector(-1.65, -3,-0.965); 
+	    wheels[2]=Vector( 1.65, -3,-0.965);
+	    float forces[3] = { 40000, 30000, 30000 };
+	    float dampings[3] = { 7000, 4000, 4000 };
+	    float drag_long[3] = { 100, 1000, 1000 };
+	    float drag_lat[3] = {1000, 0, 0 };
+	    Vector up,right,front;
+	    getOrientation(&up,&right,&front);
+	    Matrix M(	right[0], up[0], front[0], 0,
+	    			right[1], up[1], front[1], 0,
+	    			right[2], up[2], front[2], 0,
+	    			       0,     0,        0, 1);
+	    for(int i=0; i<nwheels; ++i) {
+	    	Vector w = M * wheels[i] + p;
+	    	Vector v = engine->getVelocityAt(w);
+	    	float h = terrain->getHeightAt(w[0],w[2]);
+	    	if (w[1] < h+1.5 && w[1] > h-1.5) {
+	    		float pressure = (w[1]-h+1.5)/3;
+	    		engine->applyForceAt(forces[i] * pressure * up, w);
+	    		engine->applyForceAt(-dampings[i]  * up * (up*v), w);
+	    		//engine->applyForceAt(-pressure * drag_long[i] * front*(front*v), w);
+	    		engine->applyForceAt(-pressure * drag_lat[i] * right*(right*v), w);
+	    	}
+	    }
+   	}
     SimpleActor::action();
 
     if (primary_reload_time > 0) primary_reload_time -= delta_t;
@@ -245,12 +321,6 @@ void Drone::action() {
         }
     }
 
-    Vector p = getLocation();
-    if (p[1] < terrain->getHeightAt(p[0],p[2]) + 5.0) {
-        p[1] = terrain->getHeightAt(p[0],p[2]) + 5.0;
-        setLocation(p);
-        explode();
-    }
     // Todo : collision detection
 }
 
@@ -297,8 +367,22 @@ void Drone::draw() {
 
     Matrix Mmodel  = Translation * Rotation;
     renderer->setCullMode(JR_CULLMODE_CULL_NEGATIVE);
+    renderer->setAlpha(1);
+    renderer->setColor(Vector(1,1,1));
     model->draw(*renderer, Mmodel, Rotation);
-
+    
+    if (current_idea == patrol_idea) {
+    	typedef std::deque<Vector> Path;
+    	typedef Path::iterator Iter;
+    	Path & path = patrol_idea->getPath();
+    	
+    	renderer->setColor(Vector(0,0,1));
+    	renderer->begin(JR_DRAWMODE_CONNECTED_LINES);
+    	for(Iter i=path.begin(); i!=path.end(); ++i) {
+    		*renderer << *i;
+    	}
+    	renderer->end();
+    }
 }
 
 // Our drone has been hit ...
@@ -428,7 +512,10 @@ void Drone::fireSmartMissile()
         Vector( 3.5, 0, 8.0)
     };
 
-    Ptr<SmartMissile> projectile( new SmartMissile(&*thegame, 0) );
+    Ptr<SmartMissile> projectile(
+    		new SmartMissile(&*thegame, targeter->getCurrentTarget()) );
+    ls_message("Launching smart missile to target: %p\n",
+    	&*targeter->getCurrentTarget());
     Vector start = getLocation()
         + engine->getState().q.rot(launchers[smart_launcher_num++]);
     Vector move(getMovementVector());

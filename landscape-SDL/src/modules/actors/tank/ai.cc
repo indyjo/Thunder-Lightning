@@ -234,10 +234,10 @@ void BallisticCannonControl::think(TankBrain & brain) {
 /////////////////////////////////////////////////////////////////////////////
 
 AdvancedCannonControl::AdvancedCannonControl(TankBrain & brain)
-:   muzzle_vel(900.0f),
-    target(0,0,1000)
-{ }
-
+:   muzzle_vel(900.0f), target(0,0,1000)
+{
+    rendezvous.setVelocity(muzzle_vel);
+}
 
 void AdvancedCannonControl::setTarget(const Vector & target) {
     this->target = target;

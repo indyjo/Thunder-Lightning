@@ -33,6 +33,9 @@ public:
     virtual float getFocus();
     virtual float getAspect();
     
+    virtual const Matrix3 & getOrient();
+    virtual const Matrix3 & getOrientInv();
+    
     void update();
 
 private:

@@ -257,7 +257,7 @@ void smoothen_path(std::deque<Vector> & path) {
     v1 = *it++;
     v2 = *it++;
     do {
-        it[-2] = 0.5f*(v0+v2);
+        it[-2] = 0.25*(v0+2*v1+v1);
         v0 = v1;
         v1 = v2;
         v2 = *it;
@@ -388,7 +388,7 @@ std::string AttackIdea::info() {
                 "course to target %5.2f? current course %5.2f\n"
                 "angle %5.2f dist %7.2f\n"
                 "pitch %5.2f\n",
-                target->getTargetInfo()->getTargetClass().name.c_str(),
+                target->getTargetInfo()->getType().getName(),
                 target->getTargetInfo()->getTargetName().c_str(),
                 target_pos[0], target_pos[1], target_pos[2],
                 p[0], p[1], p[2],
@@ -467,7 +467,7 @@ bool AttackIdea::canSelectTarget() {
 }
 
 void AttackIdea::selectTarget() {
-    typedef IActorStage::ActorList List;
+    typedef IActorStage::ActorVector List;
     typedef List::const_iterator Iter;
     List list;
     ctx.thegame->queryActorsInSphere(
@@ -485,9 +485,8 @@ void AttackIdea::selectTarget() {
         Ptr<IActor> actor = *i;
         if (actor == ctx.actor) continue;
         if(! actor->getTargetInfo() ) continue;
-        const TargetInfo::TargetClass & tclass =
-            actor->getTargetInfo()->getTargetClass();
-        if(!tclass.is_radar_detectable) continue;
+        if(!actor->getTargetInfo()->isA(TargetInfo::DETECTABLE))
+        	continue;
         if(ctx.actor->getFaction()->getAttitudeTowards(actor->getFaction())
             != Faction::HOSTILE) continue;
         Vector d = p - actor->getLocation();
@@ -729,7 +728,8 @@ bool Dogfight::targetInRange(Ptr<IActor> tgt) {
 }
 
 Ptr<IActor> Dogfight::selectNearestTargetInRange(float range) {
-    typedef IActorStage::ActorList List;
+	/*
+    typedef IActorStage::ActorVector List;
     typedef List::const_iterator Iter;
     List list;
     ctx.thegame->queryActorsInSphere(
@@ -743,9 +743,8 @@ Ptr<IActor> Dogfight::selectNearestTargetInRange(float range) {
     	Ptr<IActor> candidate = *i;
     	if (candidate == ctx.actor) continue;
         if(!candidate->getTargetInfo() ) continue;
-        const TargetInfo::TargetClass & tclass =
-            candidate->getTargetInfo()->getTargetClass();
-        if(!tclass.is_radar_detectable) continue;
+        if(!candidate->getTargetInfo()->isA(TargetInfo::DETECTABLE))
+        	continue;
         if(faction->getAttitudeTowards(candidate->getFaction())
         	!= Faction::HOSTILE) continue;
         Vector d = ctx.actor->getLocation() - candidate->getLocation();
@@ -757,17 +756,27 @@ Ptr<IActor> Dogfight::selectNearestTargetInRange(float range) {
         }
     }
     
-    return best_candidate;
+    return best_candidate;*/
+    ctx.targeter->setMaxRange(range);
+    ctx.targeter->selectNearestHostileTarget();
+    return ctx.targeter->getCurrentTarget();
 }	
 
 
 bool Dogfight::positionFavorable() {
-	Vector target_dir = target->getFrontVector();
-	Vector p = ctx.actor->getLocation();
 	Vector target_p = target->getLocation();
-	float dist = (target_p-p).length();
-	bool behind_target = ((target_p-p)*target_dir)>0;
-	return dist > 160 && (behind_target || dist>2000);
+	Vector target_dir = target->getFrontVector();
+	Vector own_p = ctx.actor->getLocation();
+	Vector own_dir = ctx.actor->getFrontVector();
+	
+	Vector d = target_p-own_p;
+	float dist = d.length();
+	d /= dist;
+	
+	bool in_front_of_target = -d*target_dir > std::cos(30*PI/180);
+	bool target_behind = d*own_dir < std::cos(120*PI/180);
+	
+	return dist>2000 || !in_front_of_target && !target_behind;
 }
 
 void Dogfight::aimInDirection(Vector d) {

@@ -9,6 +9,7 @@ class Status;
 class ILoDQuadManager;
 class ISkyBox;
 class IMap;
+class IoScriptingManager;
 namespace UI {
 	class Console;
 }
@@ -38,6 +39,7 @@ public:
     virtual Ptr<IFontMan> getFontMan();
     virtual Ptr<SoundMan> getSoundMan();
     virtual Ptr<Collide::CollisionManager> getCollisionMan();
+    virtual Ptr<IoScriptingManager> getIoScriptingManager();
     virtual void getMouseState(float *mx, float *my, int *buttons);
     virtual double  getTimeDelta();
     virtual double  getTime();
@@ -117,7 +119,7 @@ private:
     Ptr<IDrawable> gunsight;
 #endif
     Ptr<Environment> environment;
-
+	Ptr<IoScriptingManager> io_scripting_manager;
     Ptr<UI::Console> console;
 
     Uint32 ticks_now, ticks_old;

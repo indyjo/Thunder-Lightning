@@ -92,6 +92,15 @@ float Camera::getAspect() {
     return aspect;
 }
 
+const Matrix3 & Camera::getOrient() {
+	return orient;
+}
+
+const Matrix3 & Camera::getOrientInv() {
+	if (dirty) update();
+	return orient_inv;
+}
+
 void Camera::update() {
 	dirty = false;
 	orient_inv = orient;

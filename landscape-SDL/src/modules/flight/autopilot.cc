@@ -20,14 +20,25 @@
 #define PI 3.14159265358979323846
 
 AutoPilot::AutoPilot()
-:	mode(0),
-	pitch_controller(MIN_ELEVATOR / (45 * PI / 180),
-            		 0.4*MIN_ELEVATOR / (45 * PI / 180),
-            		 0.02*MIN_ELEVATOR / (45 * PI / 180)),
+:	speed_target(0),
+    accel_target(0),
+    roll_target(0),
 	roll_controller(MAX_AILERON / (45 * PI / 180),
 				    0.3*MAX_AILERON / (45 * PI / 180),
 				    0.1*MAX_AILERON / (45 * PI / 180)),
-	course_controller(16/PI , 4/PI , 0.1/PI)
+	pitch_target(0),
+    pitch_controller(MIN_ELEVATOR / (45 * PI / 180),
+            		 0.4*MIN_ELEVATOR / (45 * PI / 180),
+            		 0.02*MIN_ELEVATOR / (45 * PI / 180)),
+    height_target(0),
+    altitude_target(0),
+    course_target(0),
+	course_controller(16/PI , 4/PI , 0.1/PI),
+	direction_target(0,0,0),
+	d_direction_target(0,0,0),
+	vector_target(0,0,0),
+	d_vector_target(0,0,0),
+	mode(0)
             		 
 { }
 

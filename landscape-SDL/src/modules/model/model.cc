@@ -1,11 +1,26 @@
 #include "model.h"
 #include <fstream>
+#include <cctype>
+#include <cstdio>
 #include <modules/actors/fx/DebugObject.h>
 
 using namespace std;
 
+namespace {
+	void read_to_eol(istream & in) {
+        char c;
+        do c = in.get();
+        	while(in && c != '\n' && c !='\r');
+        do c = in.get();
+        	while(in && c == '\n' || c =='\r');
+        if (in) in.putback(c);
+	}
+}
+		
+
 void Model::parseObjFile(TextureManager & texman, istream & in, const char *dir)
 {
+	ls_message("Model::parseObjFile in dir %s\n", dir);
     string op;
     //int v_idx=0, n_idx=0, t_idx=0, f_idx=0;
 
@@ -13,7 +28,7 @@ void Model::parseObjFile(TextureManager & texman, istream & in, const char *dir)
     grps.push_back( Group(mtls["Default"]) ); // Add a default group
 
     while (in >> op) {
-        //ls_message("[Model: Operator %s]\n", op.c_str());
+        ls_message("[Model: Operator %s]\n", op.c_str());
 
         if (op == "v") {                // Vertice
             Vector vec;
@@ -26,46 +41,81 @@ void Model::parseObjFile(TextureManager & texman, istream & in, const char *dir)
             //ls_message("[  vn: %f %f %f]\n", vec[0], vec[1], vec[2]);
             vec.normalize();
             n.push_back(vec);
-        } else if ( op == "vt") {       // UVW
+        } else if ( op == "vt") {       // UV(W)
             Vector vec;
-            in >> vec[0] >> vec[1] >> vec[2];
+            in >> vec[0] >> vec[1];
+            char c;
+            do in.get(c); while (isblank(c));
+            if (c=='\r' ||  c=='\n') {
+            	vec[2]=0;
+            } else if (isdigit(c) || c=='+' || c=='-') {
+            	in.unget();
+            	in >> vec[2];
+            }
             //ls_message("[  vt: %f %f %f]\n", vec[0], vec[1], vec[2]);
             t.push_back(vec);
         } else if ( op == "mtllib" ) {  // Load materials
             string filename;
             in >> filename;
             filename = string(dir) + "/" + filename;
-            //ls_message("[  mtllib: %s]\n", filename.c_str());
+            ls_message("[  mtllib: %s]\n", filename.c_str());
             ifstream file(filename.c_str());
             parseMtlFile(texman, file, dir);
         } else if ( op == "usemtl" ) {  // Start new Material+faces group
             string mtlname;
             in >> mtlname;
+            ls_message("[  usemtl: %s]\n", mtlname.c_str());
             grps.push_back( Group(mtls[mtlname]) );
         } else if ( op == "f" ) {       // Face
-            Face face;
-            char sep;
-            for (int i=0; i<3; i++) {
-                if ( n.size() == 0 && t.size() == 0 ) {
-                    in >> face.v[i];
-                } else if (n.size() != 0 && t.size() == 0) {
-                    in >> face.v[i] >> sep >> sep >> face.n[i];
-                } else if (n.size() == 0 && t.size() != 0) {
-                    in >> face.v[i] >> sep >> face.t[i];
-                } else {
-                    in >> face.v[i] >> sep >> face.t[i] >> sep >> face.n[i];
-                }
-                --face.v[i];
-                --face.t[i];
-                --face.n[i];
-                //ls_message("%d/%d/%d%c",
-                //        face.v[i], face.n[i], face.t[i], i<2?' ':'\n');
+        	char line[256];
+        	vector<int> v,t,n;
+        	char c;
+        	
+        	int count=0;
+        	in.getline(line, 256);
+        	//ls_message("line: %s\n",line);
+        	for(char * tok = strtok(line, " ");
+        		tok != NULL;
+        		tok = strtok(NULL, " "))
+        	{
+        		//ls_message("tok: %s\n",tok);
+            	int vv=-1,tt=-1,nn=-1;
+            	if (3==sscanf(tok, "%d/%d/%d", &vv, &tt, &nn)) {
+            	} else if(2==sscanf(tok, "%d//%d", &vv, &nn)) {
+            		tt = 0;
+            	} else if (1==sscanf(tok, "%d", &vv)) {
+            		nn = tt = 0;
+            	} else {
+            		ls_error("Couldn't parse %s\n", tok);
+            	}
+            	v.push_back(vv-1);
+            	t.push_back(tt-1);
+            	n.push_back(nn-1);
+                ++count;
+        	}
+        	
+        	ls_message("read %d-face\n", count);
+            
+            for (int i=0; i<count-2; ++i) {
+	        	Face face;
+	        	face.v[0] = v[0];
+	        	face.n[0] = n[0];
+	        	face.t[0] = t[0];
+            	for (int j=1; j<3; ++j) {
+	            	face.v[j] = v[i+j];
+	            	face.n[j] = n[i+j];
+	            	face.t[j] = t[i+j];
+            	}
+            	grps.back().f.push_back( face );
             }
-            grps.back().f.push_back( face );
+        } else if ( op == "g" ) {
+        	string groupname;
+        	in >> groupname;
+        	ls_message("Group: %s\n", groupname.c_str());
         } else {
             // Unknown operator, ignore till next line
-            while(in.get() != '\n' && in) { }
-            //ls_warning("Operator %s unknown.\n", op.c_str());
+            read_to_eol(in);
+            ls_warning("OBJ Operator %s unknown.\n", op.c_str());
         }
 
         // Read to end of line
@@ -106,10 +156,22 @@ void Model::parseMtlFile(TextureManager & texman, istream & in, const char *dir)
             mtls[mtlname].use_tex = true;
             mtls[mtlname].w = mtls[mtlname].tex.getWidth();
             mtls[mtlname].h = mtls[mtlname].tex.getHeight();
+        } else if ( op == "Kd" ) {
+        	Vector v;
+        	in >> v[0] >> v[1] >> v[2];
+        	mtls[mtlname].Kd = v;
+        } else if ( op == "Ka" ) {
+        	Vector v;
+        	in >> v[0] >> v[1] >> v[2];
+        	mtls[mtlname].Ka = v;
+        } else if ( op == "Ks" ) {
+        	Vector v;
+        	in >> v[0] >> v[1] >> v[2];
+        	mtls[mtlname].Ks = v;
         } else {
             // Unknown operator, ignore till next line
-            while(in.get() != '\n' && in) { }
-            ls_warning("Operator %s unknown.\n", op.c_str());
+            read_to_eol(in);
+            ls_warning("MTL Operator %s unknown.\n", op.c_str());
         }
     }
 }
@@ -119,18 +181,21 @@ void Model::draw(JRenderer & r, const Matrix & Mmodel, const Matrix & Mnormal)
 {
     Vector vtx;
     Vector col(1,1,1);
+    Vector ambient=0.25*Vector(.97,.83,.74);
 
     //r.setCullMode(JR_CULLMODE_NO_CULLING);
+    r.pushMatrix();
+    r.multMatrix(Mmodel);
     for (list<Group>::iterator grp = grps.begin(); grp != grps.end(); grp++) {
         vector<Face> &f=grp->f;
         if (grp->mtl.use_tex) {
+    		r.enableTexturing();
             r.setTexture(grp->mtl.tex);
             r.setVertexMode(JR_VERTEXMODE_GOURAUD_TEXTURE);
         } else {
+    		r.disableTexturing();
         	r.setVertexMode(JR_VERTEXMODE_GOURAUD);
         }
-        r.pushMatrix();
-        r.multMatrix(Mmodel);
         r.begin(JR_DRAWMODE_TRIANGLES);
         r.setAlpha(1.0);
         for (int i=0; i<f.size(); i++) {
@@ -138,7 +203,7 @@ void Model::draw(JRenderer & r, const Matrix & Mmodel, const Matrix & Mnormal)
                 vtx = v[f[i].v[j]];
 
                 //vtx = Mmodel * vtx;
-                col = Vector(1,1,1);
+                col = grp->mtl.Kd;
 
                 if (n.size()) {
                     Vector norm = Mnormal * n[f[i].n[j]];
@@ -146,11 +211,13 @@ void Model::draw(JRenderer & r, const Matrix & Mmodel, const Matrix & Mnormal)
                     to_sun.normalize();
                     float light = to_sun * norm;
                     if (light < 0) light = 0;
-                    light += 0.3; // TODO: ambient light
                     if (light > 1) light = 1;
                     //light = 1.0;
                     col *= light;
                 }
+                
+                for(int i=0;i<3;++i)
+                	col[i] += grp->mtl.Ka[i] * ambient[i];
 
                 if (t.size()) {
                     float u =       t[f[i].t[j]][0];
@@ -163,8 +230,9 @@ void Model::draw(JRenderer & r, const Matrix & Mmodel, const Matrix & Mnormal)
             }
         }
         r.end();
-        r.popMatrix();
     }
+    r.popMatrix();
+    r.disableTexturing();
 }
 
 

@@ -1,6 +1,7 @@
 #include "missileengine.h"
 #include <modules/clock/clock.h>
 #include <modules/actors/fx/DebugObject.h>
+#include <modules/math/SpecialMatrices.h>
 
 ///////////////////////////////////////////////////////////////////////////
 // MissileEngine
@@ -93,7 +94,6 @@ void MissileEngine::setMovementVector(const Vector & new_v) { v = new_v; }
 // SmartMissileEngine
 ///////////////////////////////////////////////////////////////////////////
 
-/*
 void SmartMissileEngine::run() {
     Vector target_dir = target-p;
     if (target_dir.lengthSquare() > 0) {
@@ -115,14 +115,15 @@ void SmartMissileEngine::run() {
         v_rot = std::max( -max_angular_speed, v_rot);
         v_rot = std::min(  max_angular_speed, v_rot);
 
-        Matrix rot = Matrix::RotateAxisMatrix(axis, v_rot*delta_t);
+        Matrix3 rot = RotateAxisMatrix<float>(axis, -v_rot*delta_t);
         setDirection(rot * d);
     }
 
     MissileEngine::run();
 }
-*/
 
+
+/*
 void SmartMissileEngine::run() {
     float delta_t = thegame->getClock()->getStepDelta();
 
@@ -151,7 +152,7 @@ void SmartMissileEngine::run() {
 
     MissileEngine::run();
 }
-
+*/
 
 
 

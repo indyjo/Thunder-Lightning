@@ -28,8 +28,13 @@ LoDQuad::CoordRel LoDQuad::getCoordRelZ(float z)
 float LoDQuad::getHeightAt(float x, float z)
 {
     float height;
-    getHeightAtTriangle(&triangle[0], x, z, &height)
-            || getHeightAtTriangle(&triangle[1], x, z, &height);
+    if (!getHeightAtTriangle(&triangle[0], x, z, &height) &&
+        !getHeightAtTriangle(&triangle[1], x, z, &height))
+    {
+        ls_error("LoDQuad::getHeightAt(%f, %f): could not determine height.\n", x, z);
+        height = 0;
+    }
+        
     return height;
 }
 

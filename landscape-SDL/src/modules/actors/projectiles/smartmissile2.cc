@@ -30,7 +30,7 @@ SmartMissile2::SmartMissile2(Ptr<IGame> thegame, Ptr<IActor> target)
     renderer = thegame->getRenderer();
     terrain = thegame->getTerrain();
     setTargetInfo(new TargetInfo(
-        "Smart missile", 1.0f, TargetInfo::CLASS_GUIDED_MISSILE));
+        "Smart missile", 1.0f, TargetInfo::GUIDED_MISSILE));
 
     float front_area = PI * 0.13f*0.13f;
     float side_area = 3.0f * 0.63f*0.63f;

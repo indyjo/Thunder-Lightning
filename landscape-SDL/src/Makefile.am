@@ -9,7 +9,8 @@ landscape_bin_SOURCES = game.cc game.h landscape.h interfaces.h \
                         mtasker.cc mtasker.h \
                         coroutine.cc coroutine.h \
                         TargetInfo.h TargetInfo.cc \
-                        voidptr.h TypedObject.h \
+                        voidptr.h \
+                        TypedObject.h TypedObject.cc \
                         ActorStage.cc ActorStage.h \
                         Faction.cc Faction.h
 landscape_libs = \
@@ -36,9 +37,11 @@ landscape_libs = \
     modules/skybox/libskybox.a \
     modules/ui/libui.a \
     modules/ai/libai.a \
-    modules/texman/libtexman.a
+    modules/texman/libtexman.a \
+    modules/scripting/libscripting.a \
+    modules/weaponsys/libweaponsys.a
 
 landscape_bin_LDADD = @SDL_LIBS@ @SIGC_LIBS@ $(landscape_libs) @OPENGL_LIBS@  \
-    -L/usr/local/lib -lopenal @LIBPNG_LIBS@
+    @OPENAL_LIBS@ @LIBPNG_LIBS@ @IO_LIBS@
 
-INCLUDES = @SDL_CFLAGS@ @SIGC_CFLAGS@ @OPENGL_CFLAGS@
+INCLUDES = @SDL_CFLAGS@ @SIGC_CFLAGS@ @OPENGL_CFLAGS@ @OPENAL_CFLAGS@ @IO_CFLAGS@

@@ -15,6 +15,7 @@ class JRenderer;
 class FlexibleGunsight;
 class Environment;
 class FlightInfo;
+class Targeter;
 
 class GunsightModule : virtual public Object {
 protected:
@@ -67,6 +68,7 @@ public:
     void addDebugInfo(Ptr<IGame>, Ptr<IActor>);
     void addBasicCrosshairs();
     void addFlightModules(Ptr<IGame>, FlightInfo &);
+    void addTargeting(Ptr<IActor>, Ptr<Targeter>);
     
     // IDrawable implementation
     virtual void draw();

@@ -13,7 +13,7 @@ public:
     : SimpleActor(game)
     {
         setTargetInfo(new TargetInfo(
-            "Aiming helper", 5.0f, TargetInfo::CLASS_AIMINGHELPER));
+            "Aiming helper", 5.0f, TargetInfo::AIMINGHELPER));
     }
     
     virtual void action() { }

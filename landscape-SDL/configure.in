@@ -21,6 +21,17 @@ AC_SUBST(OPENGL_CFLAGS)
 AC_SUBST(OPENGL_LIBS)
 
 AC_ARG_WITH(
+    openal-cflags,
+    [  --with-openal-cflags=PATH    Specify OpenAL cflags],
+    OPENAL_CFLAGS="$withval", OPENAL_CFLAGS="")
+AC_ARG_WITH(
+    openal-libs,
+    [  --with-openal-libs=PATH      Specify OpenAL libs],
+    OPENAL_LIBS="$withval", OPENAL_LIBS="-lopenal")
+AC_SUBST(OPENAL_CFLAGS)
+AC_SUBST(OPENAL_LIBS)
+
+AC_ARG_WITH(
     libpng-cflags,
     [  --with-libpng-cflags=PATH    Specify libPNG cflags],
     LIBPNG_CFLAGS="$withval", LIBPNG_CFLAGS="")
@@ -30,6 +41,18 @@ AC_ARG_WITH(
     LIBPNG_LIBS="$withval", LIBPNG_LIBS="-lpng")
 AC_SUBST(LIBPNG_CFLAGS)
 AC_SUBST(LIBPNG_LIBS)
+
+AC_ARG_WITH(
+    io-cflags,
+    [  --with-io-cflags=PATH    Specify Io cflags],
+    IO_CFLAGS="$withval", IO_CFLAGS="")
+AC_ARG_WITH(
+    io-libs,
+    [  --with-io-libs=PATH      Specify Io libs],
+    IO_LIBS="$withval", IO_LIBS="libIoVM.a")
+AC_SUBST(IO_CFLAGS)
+AC_SUBST(IO_LIBS)
+
 
 dnl Checks for libraries.
 dnl AM_PATH_SIGC(1.0.0,,AC_MSG_ERROR([Cannot find proper SigC++ version]),)
@@ -76,7 +99,9 @@ src/modules/map/Makefile
 src/modules/math/Makefile
 src/modules/model/Makefile
 src/modules/physics/Makefile
+src/modules/scripting/Makefile
 src/modules/skybox/Makefile
 src/modules/texman/Makefile
 src/modules/ui/Makefile
+src/modules/weaponsys/Makefile
 ])

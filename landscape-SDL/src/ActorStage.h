@@ -9,13 +9,18 @@
 class ActorStage : virtual public IActorStage
 {
 protected:
-    ActorList actors;
+    ActorVector actors;
 public:
     virtual void addActor(Ptr<IActor>);
-    virtual const ActorList & getActorList();
-    virtual void queryActorsInSphere(ActorList &, const Vector &, float);
-    virtual void queryActorsInCylinder(ActorList &, const Vector &, float);
-    virtual void queryActorsInBox(ActorList &, const Vector &, const Vector &);
+    virtual void removeActor(Ptr<IActor>);
+    virtual void queryActorsInSphere(ActorVector &, const Vector &, float);
+    virtual void queryActorsInCylinder(ActorVector &, const Vector &, float);
+    virtual void queryActorsInBox(ActorVector &, const Vector &, const Vector &);
+    
+    void cleanupActors();
+    void setupActors();
+    void drawActors();
+    
 };
 
 #endif

@@ -8,6 +8,7 @@
 #include <modules/flight/flightinfo.h>
 #include <modules/flight/autopilot.h>
 #include <modules/math/Rendezvous.h>
+#include <modules/weaponsys/Targeter.h>
 
 struct Rating {
     Rating() : attack(0), defense(0),
@@ -30,6 +31,7 @@ struct Context : public Object {
     Ptr<IGame> thegame;
 	Ptr<ITerrain> terrain;
     Ptr<IActor> actor;
+    Ptr<Targeter> targeter;
     MTasker<> & mtasker;
     
     inline Context(
@@ -39,9 +41,11 @@ struct Context : public Object {
 	    Ptr<IGame> thegame,
 		Ptr<ITerrain> terrain,
 	    Ptr<IActor> actor,
+	    Ptr<Targeter> targeter,
 	    MTasker<> & mtasker)
 	:	fi(fi), ap(ap), controls(controls), thegame(thegame),
-		terrain(terrain), actor(actor), mtasker(mtasker)
+		terrain(terrain), actor(actor), targeter(targeter),
+		mtasker(mtasker)
 	{ }
     	
 };

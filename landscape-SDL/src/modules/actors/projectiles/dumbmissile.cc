@@ -23,7 +23,7 @@ DumbMissile::DumbMissile(Ptr<IGame> thegame)
     this->camera = thegame->getCamera();
     engine = new MissileEngine(thegame);
     setEngine(engine);
-    setTargetInfo(new TargetInfo("Dumb missile", 1.0f, TargetInfo::CLASS_MISSILE));
+    setTargetInfo(new TargetInfo("Dumb missile", 1.0f, TargetInfo::MISSILE));
 }
 
 void DumbMissile::action()

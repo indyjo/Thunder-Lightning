@@ -1,0 +1,5 @@
+#ifndef TARGETING_GUNSIGHT_H
+#define TARGETING_GUNSIGHT_H
+
+
+#endif

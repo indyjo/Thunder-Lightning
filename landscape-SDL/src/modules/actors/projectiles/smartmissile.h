@@ -15,7 +15,7 @@ public:
     : SimpleActor(game)
     {
         setTargetInfo(new TargetInfo(
-            "Target marker", 1.0f, TargetInfo::CLASS_DEBUG));
+            "Target marker", 1.0f, TargetInfo::DEBUG));
     }
     
     virtual void action() { }

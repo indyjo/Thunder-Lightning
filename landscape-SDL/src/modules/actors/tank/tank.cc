@@ -31,13 +31,12 @@ Tank::Tank(Ptr<IGame> thegame)
 : SimpleActor(thegame),
   renderer(thegame->getRenderer()),
   terrain(thegame->getTerrain()), damage(0),
-  age(0)
+  age(0), control_mode(UNCONTROLLED)
 {
     setTargetInfo(new TargetInfo(
-        "Tank", RADIUS, TargetInfo::CLASS_TANK));
+        "Tank", RADIUS, TargetInfo::TANK));
 
     tank_controls = new TankControls();
-    setControlMode(UNCONTROLLED);
     setControlMode(AUTOMATIC);
 
     tank_engine = new TankEngine(thegame, tank_controls);
@@ -199,11 +198,12 @@ void Tank::action() {
         M * Vector( 0,-1, 0));
 
     float v = getMovementVector().length();
-    sound_high->setPitch(1.0f + v/30.0f);
     float gain = 1.0f - std::min(1.0f, v/20.0f);
+    //float gain = 1.0f;
     gain *= gain;
     gain *= gain;
-    sound_high->setGain(0.6f * (1.0f - gain));
+    sound_high->setPitch(0.5f + 1.5*std::min(1.0f,v/30));
+    sound_high->setGain(1);
     sound_low->setGain(0.2f * gain);
     sound_high->setPosition(getLocation());
     sound_low->setPosition(getLocation());

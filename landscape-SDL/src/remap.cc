@@ -2,6 +2,34 @@
 #include <landscape.h>
 #include <remap.h>
 
+SelectAxisByActivityTransform::SelectAxisByActivityTransform(
+	float threshold)
+:	threshold(threshold), value(0), init(true)
+{
+	ls_message("SelectAxisByActivityTransform(%f)\n", threshold);
+}
+	
+float SelectAxisByActivityTransform::operator() (std::vector<float> & inputs) {
+    if (inputs.size() != old_values.size()) {
+        init = true;
+    }
+    
+    if (init) {
+	    old_values = inputs;
+	    init = false;
+    } else {
+		for (int i=0; i<inputs.size(); ++i) {
+			if (std::abs(inputs[i]-old_values[i]) > threshold) {
+			    value = inputs[i];
+			    break;
+			}
+		}
+		old_values=inputs;
+	}
+    
+    return value;
+}
+
 
 EventSheet::~EventSheet() {
     // Delete every ActionSignal instance from the out map
@@ -27,9 +55,11 @@ bool EventSheet::triggerAction(const char * action)
 {
     OutMap::iterator o = outmap.find( action );
     if (o != outmap.end()) {
+        ls_message("emitting action %s.\n", action);
         o->second->emit();
         return true;
     }
+    ls_warning("EventSheet::triggerAction('%s') : no handler found.\n", action);
     return false;
 }
 
@@ -73,7 +103,11 @@ void EventRemapper::addEventSheet(Ptr<EventSheet> sheet) {
 }
 
 void EventRemapper::removeEventSheet(Ptr<EventSheet> sheet) {
+    ls_message("EventRemapper::removeEventSheet(%p)\n", &*sheet);
+    ls_message("  event_sheets.size(): %d\n", event_sheets.size());
+    ls_message("  found sheet:%p\n",&**std::find(event_sheets.begin(), event_sheets.end(), sheet));
     event_sheets.erase(std::find(event_sheets.begin(), event_sheets.end(), sheet));
+    ls_message("  event_sheets.size(): %d\n", event_sheets.size());
 }
 
 
@@ -133,6 +167,11 @@ bool EventRemapper::triggerAction(const char * action)
     for (Iter i=event_sheets.rbegin(); i!=event_sheets.rend(); ++i) {
         if ((*i)->triggerAction(action)) return true;
     }
+    ls_warning("EventRemapper::triggerAction('%s'):\n"
+               "  could not deliver event to any event sheet.\n"
+               "  event_sheets %s empty.\n",
+               action, event_sheets.empty()?"is":"is not");
+    
     return false;
 }
 
@@ -141,7 +180,7 @@ void EventRemapper::keyEvent(SDL_KeyboardEvent & ev)
     int key = ev.keysym.sym;
     bool pressed = (ev.state == SDL_PRESSED);
     KeyState ks(key, pressed);
-
+    
     typedef KeyMap::iterator Iter;
     std::pair<Iter, Iter> range = keymap.equal_range(ks);
     for(KeyMap::iterator i=range.first; i!=range.second; ++i)

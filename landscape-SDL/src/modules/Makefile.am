@@ -1,22 +1,24 @@
 SUBDIRS = \
 	LoDTerrain	\
-        actors          \
-        ai              \
-        camera          \
-        clock           \
-        collide         \
+	actors          \
+	ai              \
+	camera          \
+	clock           \
+	collide         \
 	config          \
-        engines         \
-        environment     \
+	engines         \
+	environment     \
 	flight          \
-        fontman         \
+	fontman         \
 	gunsight	\
-        jogi            \
+	jogi            \
 	map		\
-        math            \
+	math            \
 	model           \
-        physics         \
+	physics         \
+	scripting	\
 	skybox		\
 	texman		\
-        ui
+	ui			\
+	weaponsys
 

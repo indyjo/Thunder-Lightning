@@ -6,35 +6,34 @@
 #include <landscape.h>
 #include <remap.h>
 #include <interfaces/IGame.h>
+#include <modules/scripting/IoScriptingManager.h>
 
 class JRenderer;
 
 namespace UI {
 class Surface;
 
-class ICommandHandler : virtual public Object {
-public:
-    virtual std::string handle(const std::string & cmd) = 0;
-};
-
-class Console : public IEventFilter, virtual public SigObject
+class Console : public IEventFilter, public IoCallbackContext, virtual public SigObject
 {
     typedef std::deque<std::string> Lines;
+    typedef Lines::iterator LinesIter;
 
     IGame * game;
-    Lines lines;
+    Lines lines, command_history;
+    LinesIter history_pointer;
+    std::string command, buffer;
+    int bracecount;
+    size_t cursor_pos;
     Matrix coord_sys;
 
     int max_chars, max_lines;
     bool enabled;
 
-    std::vector<Ptr<ICommandHandler> > cmd_handlers;
-
 public:
     Console(IGame * game,
             const Surface & surface,
             int max_chars = 80,
-            int max_lines = 20);
+            int max_lines = 32);
 
     void putString(const char * str);
     void putChar(char c);
@@ -44,10 +43,11 @@ public:
     void enable();
     void disable();
 
-    void pushCommandHandler(Ptr<ICommandHandler> handler);
-    void popCommandHandler();
-
     virtual bool feedEvent(SDL_Event & ev);
+    
+	virtual void printCallback(const char *);
+	virtual void exceptionCallback(IoException *);
+	virtual void exitCallback();
 }; // class Console
 
 } // namespace UI

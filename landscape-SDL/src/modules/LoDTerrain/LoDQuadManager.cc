@@ -265,10 +265,8 @@ LoDQuad * LoDQuadManager::getQuadAtPoint(float x, float z)
     float dx=quad[0].vx[quad[0].triangle[0].vertex[1]] - qx;
     float dz=quad[0].vz[quad[0].triangle[0].vertex[0]] - qz;
 
-    float uf = (x - qx) / dx;
-    float vf = (z - qz) / dz;
-    int u = (int)uf;
-    int v = (int)vf;
+    int u = (int) floorf((x - qx) / dx);
+    int v = (int) floorf((z - qz) / dz);
 
     if ((u>=0)&&(u<width)&&(v>=0)&&(v<height)) {
         int idx = v*width + u;

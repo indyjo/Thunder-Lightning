@@ -404,7 +404,7 @@ Vector Rendezvous::calculate() {
     float min_t;
     bool found=false;
     for(int i=0; i<n; i++) {
-        if (t[i]>=0 && (t[i]<min_t || !found)) {
+        if (t[i]>=0 && (!found || t[i]<min_t)) {
             min_t = t[i];
             found = true;
         }

@@ -106,6 +106,7 @@ SoundMan::SoundMan(const string & sound_dir)
     alcMakeContextCurrent( context );
     
     alDopplerVelocity(330.0);
+    alDopplerFactor(0);
     play_channels = 32;
 }
 
