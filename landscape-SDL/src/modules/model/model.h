@@ -14,11 +14,11 @@ class Model : virtual public Object {
     struct Face;
     class Group;
 
-    inline Model();              // defined below
-    inline Model(const Model &); // defined below
+    Model();
+    Model(const Model &);
 public:
-    // defined below
-    inline Model(TextureManager & texman, std::istream & in, const char *dir);
+    Model(TextureManager & texman, std::istream & in, const char *dir);
+    virtual ~Model();
 
     void draw(JRenderer &, const Matrix & Mmodel, const Matrix & Mnormal);
     
@@ -59,15 +59,5 @@ public:
 
     Group( Material & mtl ) : mtl(mtl) { }
 };
-
-
-Model::Model() { }
-Model::Model(const Model &) { };
-Model::Model(TextureManager & texman, std::istream & in, const char *dir)
-: path(dir)
-{
-    parseObjFile(texman, in, dir);
-}
-
 
 #endif

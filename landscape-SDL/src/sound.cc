@@ -114,6 +114,7 @@ bool SoundSource::isPlaying() {
 SoundMan::SoundMan(Ptr<IConfig> config)
 :	sound_dir(config->query("SoundMan_sound_dir"))
 {
+    ls_message("Initializing SoundMan... ");
     device = alcOpenDevice( NULL );
     if (device == NULL ) ls_error("Soundman: Couldn't open audio device.");
     context = alcCreateContext( device, NULL );
@@ -123,6 +124,7 @@ SoundMan::SoundMan(Ptr<IConfig> config)
     alDopplerVelocity(config->queryFloat("SoundMan_doppler_velocity",10000.0));
     alDopplerFactor(config->queryFloat("SoundMan_doppler_factor", 1));
     play_channels = config->queryInt("SoundMan_channels", 32);
+    ls_message("done.\n");
 }
 
 SoundMan::~SoundMan() {

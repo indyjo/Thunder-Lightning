@@ -1,13 +1,17 @@
 # The sources directory
 srcdir=.
+# The install destination
+installdir=../Thunder\&Lightning
 
 # Generate target file names from source file names
 SRCS=$(shell cd $(srcdir); find -name \*.cc)
 OBJS=$(subst .cc,.o,$(SRCS))
 
-# The name of the compiler
+# The compiler and other tools
 CXX=i586-mingw32msvc-c++
 LD=$(CXX)
+STRIP=i586-mingw32msvc-strip
+COPY=cp
 
 # You can define additional compiler and linker flags here
 #CXXFLAGS=-g
@@ -57,8 +61,10 @@ clean:
 	@ rm `find -name \*.o` landscape-bin.exe
 
 install: landscape-bin.exe
-	cp landscape-bin.exe ../landscape-install/bin
-	# i586-mingw32msvc-strip ../landscape-install/bin/landscape-bin.exe
+	$(COPY) landscape-bin.exe $(installdir)
+
+install-strip: install
+	$(STRIP) $(installdir)/landscape-bin.exe
 
 debug:
 	@echo SRCS: $(SRCS); echo OBJS: $(OBJS)

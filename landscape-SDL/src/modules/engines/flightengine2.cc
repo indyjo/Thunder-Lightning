@@ -45,7 +45,7 @@ FlightEngine2::FlightEngine2(Ptr<IGame> game,
   wing_area(wing_area),
   controls(new FlightControls)
 {
-    construct(2000, 200000, 250000, 160000);
+    construct(2000, 200000, 160000, 100000);
     clearForces();
 }
 

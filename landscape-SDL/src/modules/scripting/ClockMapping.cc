@@ -10,11 +10,9 @@ namespace {
 	
 	struct ClockMapping : public TemplatedObjectMapping<Clock> {
 		static void addMapping(Ptr<IGame> game, IoState * state) {
-			IoObject *lobby = state->lobby;
 			IoObject * self = proto(state);
 			IoState_registerProtoWithFunc_(state, self, proto);
-			IoObject_setSlot_to_(lobby, IOSTRING("Clock"), self);
-			ls_warning("retargeting clock to %p\n", ptr(game->getClock()));
+			IoObject_setSlot_to_(state->lobby, IOSTRING("Clock"), self);
 			retarget(self, ptr(game->getClock()));
 		}
 	

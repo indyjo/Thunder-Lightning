@@ -21,6 +21,11 @@ typedef XMatrix<3,Interval> IMatrix3;
 
 namespace Collide {
 
+CollisionManager::CollisionManager() {
+	ls_message("Initializing CollisionManager... ");
+	ls_message("done.\n");
+}
+
 CollisionManager::~CollisionManager() {
 	ls_message("Deleting CollisionManager %p with %d refs\n", this, getRefs());
 	Object::backtrace();
@@ -138,6 +143,8 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
         possible.t0 = 0.0f;
         possible.t1 = delta_t;
         for(ContactIter i=possible_contacts.begin(); i!= possible_contacts.end(); i++) {
+        	if (i->first->noCollideWith(i->second))
+        		continue;
             possible.setPartner(0, geom_instances[i->first]);
             possible.setPartner(1, geom_instances[i->second]);
             queue.push(possible);
@@ -196,7 +203,7 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
                             Transform & transform = instance->transforms_0[partner.transform];
                             //ls_message("transform[%d]: quat(%f, %f, %f, %f)\n",
                             //    j, transform.quat().real(),transform.quat().imag()[0],transform.quat().imag()[1],transform.quat().imag()[2]);
-                            visualize_geometry(game, bounding->getRootNode(), instance);
+                            //visualize_geometry(game, bounding->getRootNode(), instance);
                         }
                     }
 

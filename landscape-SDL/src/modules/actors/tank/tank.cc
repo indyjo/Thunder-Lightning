@@ -435,6 +435,7 @@ void Tank::shoot() {
     Ptr<Bullet> bullet = new Bullet(ptr(thegame), this, 2.5f);
     bullet->setTTL(BULLET_TTL);
     bullet->shoot(p_bullet, v_bullet, d_bullet);
+    //bullet->setNoCollideParent(this);
     thegame->addActor(bullet);
 
     Ptr<SoundSource> snd_src = thegame->getSoundMan()->requestSource();

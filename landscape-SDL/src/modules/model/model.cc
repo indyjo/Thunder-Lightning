@@ -18,6 +18,16 @@ namespace {
 }
 		
 
+Model::Model() { }
+Model::Model(const Model &) { };
+Model::Model(TextureManager & texman, std::istream & in, const char *dir)
+: path(dir)
+{
+    parseObjFile(texman, in, dir);
+}
+Model::~Model() { }
+
+
 void Model::parseObjFile(TextureManager & texman, istream & in, const char *dir)
 {
 	//ls_message("Model::parseObjFile in dir %s\n", dir);

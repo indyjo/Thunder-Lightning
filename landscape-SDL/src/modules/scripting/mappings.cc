@@ -11,6 +11,9 @@ struct Faction;
 struct Drone;
 struct Tank;
 struct Environment;
+struct SimpleActor;
+struct IModelMan;
+struct Model;
 
 void addBasicMappings(Ptr<IGame> game, IoState * state) {
 	addMapping<IGame>(game, state);
@@ -30,4 +33,7 @@ void addMappings(Ptr<IGame> game, IoState * state) {
 	addMapping<Drone>(game,state);
 	addMapping<Tank>(game,state);
 	addMapping<Environment>(game,state);
+	addMapping<SimpleActor>(game,state);
+	addMapping<IModelMan>(game,state);
+	addMapping<Model>(game,state);
 }

@@ -190,5 +190,15 @@ struct TemplatedObjectMapping {
 		return child;														\
 	}
 	
+#define TAG_FUNC															\
+	static IoTag *tag(void * state, char * name) {							\
+	    IoTag *tag = IoTag_newWithName_(name);								\
+	    tag->state = state;													\
+	    tag->cloneFunc = (TagCloneFunc *)rawClone;							\
+	    tag->markFunc  = (TagMarkFunc *)mark;								\
+	    tag->freeFunc  = (TagFreeFunc *)free;								\
+	    return tag;															\
+	}
+
 
 #endif

@@ -136,11 +136,14 @@ Game::Game(int argc, const char **argv)
     soundman = new SoundMan(config);
     collisionman = new Collide::CollisionManager();
     clock = new Clock;
-    ls_message("done\n", ptr(clock));
+    ls_message("Done initializing managers\n");
 
     {
+    	ls_message("Querying from config %p:\n", ptr(config));
         string background = config->query("Game_loading_screen");
+        ls_message("Initializing loading screen [%s]:\n", background.c_str());
         LoadingScreen lscr(this, background);
+        ls_message("done.\n");
         Status stat;
         stat.getSignal().connect(SigC::slot(lscr, &LoadingScreen::update));
 

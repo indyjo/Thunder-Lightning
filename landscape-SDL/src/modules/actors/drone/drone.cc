@@ -587,13 +587,14 @@ void Drone::fireBullet()
         Vector( 1.7, +1.0, 10.0)
     };*/
     static const Vector cannon[]={
-        Vector(-0.8575, 0.073, 4.362),
-        Vector(0.8575, 0.073, 4.362),
+        Vector(-0.8575, 0.073, 2.362),
+        Vector(0.8575, 0.073, 2.362),
     };
     static const int ncannons = sizeof(cannon) / sizeof(Vector);
 
     Ptr<Bullet> projectile( new Bullet(ptr(thegame), this) );
     projectile->setTTL(BULLET_TTL);
+    projectile->setNoCollideParent(this);
 
     Vector start = getLocation()
         + engine->getState().q.rot(cannon[cannon_num++]);
@@ -609,8 +610,13 @@ void Drone::fireBullet()
             thegame->getConfig()->query("Drone_cannon_sound")));
     thegame->getSoundMan()->manage(snd_src);
 
+    Vector deviation(0,0,0);
+    for(int i=0; i<3; ++i)
+    	deviation += Vector(RAND2,RAND2,0);
+    deviation /= 2;
+    
     move += engine->getState().q.rot(
-        BULLET_SPEED * (Vector(0,0,1) + 0.00333*Vector(RAND2+RAND2+RAND2,RAND2+RAND2+RAND2,0)));
+        BULLET_SPEED * (Vector(0,0,1) + 0.03*deviation));
 
     thegame->addActor(projectile);
     projectile->shoot(start, move, getFrontVector());

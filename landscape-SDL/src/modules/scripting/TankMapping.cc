@@ -26,6 +26,7 @@ namespace {
 		static IoObject *proto(void *state) {
 			IoMethodTable methodTable[] = {
 				{"asActor", castfunc<Ptr<Tank>, Ptr<IActor> >},
+				{"asSimpleActor", castfunc<Ptr<Tank>, Ptr<SimpleActor> >},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);

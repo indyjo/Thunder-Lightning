@@ -22,19 +22,12 @@ namespace {
 			IoObject_setSlot_to_(lobby, IOSTRING("Drone"), self);
 		}
 		
-		static IoTag *tag(void * state, char * name) {
-		    IoTag *tag = IoTag_newWithName_(name);
-		    tag->state = state;
-		    tag->cloneFunc = (TagCloneFunc *)rawClone;
-		    tag->markFunc  = (TagMarkFunc *)mark;
-		    tag->freeFunc  = (TagFreeFunc *)free;
-		    //tag->writeToStoreFunc  = (TagWriteToStoreFunc *)IoFile_writeToStore_;
-		    //tag->readFromStoreFunc = (TagReadFromStoreFunc *)IoFile_readFromStore_;
-		    return tag;
-		}
+		TAG_FUNC
+		
 		static IoObject *proto(void *state) {
 			IoMethodTable methodTable[] = {
 				{"asActor", castfunc<Ptr<Drone>, Ptr<IActor> >},
+				{"asSimpleActor", castfunc<Ptr<Drone>, Ptr<SimpleActor> >},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
@@ -44,13 +37,7 @@ namespace {
 			return self;
 		}
 	
-		static IoObject * create(Ptr<Drone> faction, IoState *state) 
-		{
-			IoObject *child = IoObject_rawClonePrimitive(
-				IoState_protoWithInitFunction_(state, proto));
-			retarget(child, ptr(faction));
-			return child;
-		}
+		CREATE_FUNC(Drone)
 		
 		static IoObject * rawClone(IoObject *self) 
 		{ 
@@ -71,8 +58,8 @@ void addMapping<Drone>(Ptr<IGame> game, IoState *state) {
 
 template<>
 IoObject * 
-wrapObject<Ptr<Drone> >(Ptr<Drone> faction, IoState * state) {
-	return DroneMapping::create(faction, state);
+wrapObject(Ptr<Drone> drone, IoState * state) {
+	return DroneMapping::create(drone, state);
 }
 
 
