@@ -40,6 +40,8 @@ class CollisionManager : virtual public Object {
     std::map<std::string, Ptr<BoundingGeometry> > bounding_geometries;
 
 public:
+	~CollisionManager();
+
     Ptr<BoundingGeometry> queryGeometry(const std::string & name);
 
     void add(Ptr<Collidable> c);

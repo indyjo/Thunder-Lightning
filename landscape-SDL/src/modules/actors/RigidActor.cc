@@ -13,7 +13,7 @@ RigidActor::RigidActor(Ptr<IGame> game, Ptr<BoundingGeometry> bgeom)
 	gravity(0,0,0)
 {
 	rigid_engine = new RigidEngine(game);
-	setRigidBody(rigid_engine);
+	setRigidBody(&*rigid_engine);
 	setActor(this);
 	game->getCollisionMan()->add(this);
 	setEngine(rigid_engine);
@@ -21,7 +21,8 @@ RigidActor::RigidActor(Ptr<IGame> game, Ptr<BoundingGeometry> bgeom)
 }
 
 RigidActor::~RigidActor() {
-	thegame->getCollisionMan()->remove(this);
+	if(thegame->getCollisionMan())
+		thegame->getCollisionMan()->remove(this);
 }
 
 void RigidActor::action() {

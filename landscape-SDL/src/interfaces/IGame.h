@@ -32,7 +32,7 @@ class IGame : virtual public Object, virtual public IActorStage
 public:
     virtual Ptr<TextureManager> getTexMan()=0;
     virtual JRenderer *getRenderer()=0;
-    virtual EventRemapper *getEventRemapper()=0;
+    virtual Ptr<EventRemapper> getEventRemapper()=0;
     virtual Ptr<IModelMan> getModelMan()=0;
     virtual Ptr<IConfig> getConfig()=0;
     virtual Ptr<ICamera> getCamera()=0;

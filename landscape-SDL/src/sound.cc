@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 
 #include <landscape.h>
 #include <interfaces/IConfig.h>
@@ -45,11 +46,11 @@ SoundSource::SoundSource(Ptr<SoundMan> soundman)
 :   soundman(soundman)
 {
     alGenSources( 1, & source );
-    alSourcef(source, AL_REFERENCE_DISTANCE, 50.0f);
+    setReferenceDistance(50);
 }
 
 SoundSource::~SoundSource() {
-    stop();
+    if (isPlaying()) stop();
     alDeleteSources(1, & source );
 }
 
@@ -73,6 +74,10 @@ void SoundSource::setGain(float gain) {
     alSourcef(source, AL_GAIN, gain );
 }
 
+void SoundSource::setReferenceDistance(float dist) {
+    alSourcef(source, AL_REFERENCE_DISTANCE, dist);
+}
+
 void SoundSource::play(Ptr<Sound> sound) {
     if (!soundman->requestPlayChannel(this)) return;
     ALuint buffer = sound->getResource();
@@ -86,6 +91,7 @@ void SoundSource::pause() {
 
 void SoundSource::stop() {
     alSourceStop(source);
+    soundman->update();
 }
 
 void SoundSource::rewind() {
@@ -113,8 +119,6 @@ SoundMan::SoundMan(Ptr<IConfig> config)
 }
 
 SoundMan::~SoundMan() {
-    flush();
-    alcMakeContextCurrent( NULL );
     alcDestroyContext( context );
     alcCloseDevice( device );
 }
@@ -129,32 +133,33 @@ Ptr<SoundSource> SoundMan::requestSource() {
     return new SoundSource(this);
 }
 
-bool SoundMan::requestPlayChannel(Ptr<SoundSource> source) {
+bool SoundMan::requestPlayChannel(SoundSource *source) {
     if (play_channels == 0) return false;
     play_channels--;
     playing_sources.push_back(source);
     return true;
 }
 
+bool not_playing(SoundSource* s) { return !s->isPlaying(); }
+bool not_playing_ptr(Ptr<SoundSource> s) { return !s->isPlaying(); }
 
 // collects play channels from sound sources which are no longer playing
 void SoundMan::update() {
-    typedef vector<Ptr<SoundSource> >::iterator SI;
-    SI end = playing_sources.end();
-    int deleted=0;
-    int count=0;
-    for(SI i = playing_sources.begin(); i!= end; i++) {
-        if (! (*i)->isPlaying()) {
-            end--;
-            play_channels++;
-            deleted++;
-            if (i==end) break;
-            *i = *(end);
-        }
-    }
-    playing_sources.resize(playing_sources.size()-deleted);
+    typedef vector<SoundSource*>::iterator SI;
+    SI new_end = remove_if(playing_sources.begin(),
+                           playing_sources.end(),
+                           not_playing);
+    playing_sources.resize(new_end - playing_sources.begin());
+    play_channels = playing_sources.size();
+    
+    managed_sources.resize(
+    	remove_if(managed_sources.begin(), managed_sources.end(), not_playing_ptr)
+    	- managed_sources.begin());
 }            
-            
+
+void SoundMan::manage(Ptr<SoundSource> src) {
+	managed_sources.push_back(src);
+}
 
 void SoundMan::setListenerPosition( const Vector & pos ) {
     alListener3f( AL_POSITION, pos[0], pos[1], pos[2]);
@@ -178,3 +183,11 @@ void SoundMan::flush() {
     sounds.clear();
 }
 
+void SoundMan::shutdown() {
+	typedef vector<Ptr<SoundSource> > Sources;
+	typedef Sources::iterator SIter;
+	
+	flush();
+	
+	playing_sources.clear();
+}	

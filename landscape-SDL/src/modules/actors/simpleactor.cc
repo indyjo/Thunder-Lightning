@@ -18,6 +18,7 @@ Ptr<TargetInfo> SimpleActor::getTargetInfo() { return target_info; }
 Ptr<Faction> SimpleActor::getFaction() { return faction; }
 void SimpleActor::setFaction(Ptr<Faction> fac) { faction = fac; }
 void SimpleActor::action() { engine->run(); }
+void SimpleActor::kill() { state = DEAD; }
 IActor::State SimpleActor::getState() { return state; }
 float SimpleActor::getRelativeDamage() { return 0.0f; }
 void SimpleActor::applyDamage(float damage, int domain) { }

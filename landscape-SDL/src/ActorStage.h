@@ -20,6 +20,7 @@ public:
     void cleanupActors();
     void setupActors();
     void drawActors();
+    void removeAllActors();
     
 };
 

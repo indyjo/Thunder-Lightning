@@ -37,6 +37,7 @@ public:
     void setLooping(bool);
     void setPitch(float);
     void setGain(float);
+    void setReferenceDistance(float);
     
     void play(Ptr<Sound> snd);
     void pause();
@@ -54,7 +55,8 @@ protected:
 class SoundMan : virtual public Object
 {
     std::map<std::string, Ptr<Sound> > sounds;
-    std::vector<Ptr<SoundSource> > playing_sources;
+    std::vector<SoundSource*> playing_sources;
+    std::vector<Ptr<SoundSource> > managed_sources;
     
     std::string sound_dir;
     
@@ -62,21 +64,28 @@ class SoundMan : virtual public Object
     void * context;
     int play_channels;
     
+    bool requestPlayChannel(SoundSource *source);
+	
+	friend class SoundSource;
+
 public:
+
     SoundMan(Ptr<IConfig>);
     ~SoundMan();
 
     Ptr<Sound> querySound(const std::string & name);
     Ptr<SoundSource> requestSource();
     
-    bool requestPlayChannel(Ptr<SoundSource> source);
     void update();
+    
+    void manage(Ptr<SoundSource>);
     
     void setListenerPosition( const Vector & pos );
     void setListenerVelocity( const Vector & vel );
     void setListenerOrientation( const Vector & up, const Vector & front );    
     
     void flush();
+    void shutdown();
 protected:
     
 };

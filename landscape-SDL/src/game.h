@@ -26,7 +26,7 @@ public:
 
     virtual Ptr<TextureManager> getTexMan();
     virtual JRenderer *getRenderer();
-    virtual EventRemapper *getEventRemapper();
+    virtual Ptr<EventRemapper> getEventRemapper();
     virtual Ptr<IModelMan> getModelMan();
     virtual Ptr<IConfig> getConfig();
     virtual Ptr<ICamera> getCamera();
@@ -93,7 +93,7 @@ private:
 
     Ptr<TextureManager> texman;
 
-    EventRemapper * event_remapper;
+    Ptr<EventRemapper> event_remapper;
     KeyboardSignal keyboard_sig;
 
     Ptr<IView> current_view;

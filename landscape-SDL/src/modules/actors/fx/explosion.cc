@@ -53,8 +53,10 @@ Explosion::Explosion(Ptr<IGame> thegame, const Vector & pos,
         soundsource->play( soundman->querySound("explosion-01.wav") );
         //soundsource->play( new Sound("/home/jonas/devel/gcc/landscape-SDL/install/share/"
         //        "landscape/sounds/explosion-01.wav"));
-        soundsource->setGain(size_factor);
+        soundsource->setGain(1);
+        soundsource->setReferenceDistance(15*size_factor);
         soundsource->setPosition(getLocation());
+        soundman->manage(soundsource);
     }
 }
 

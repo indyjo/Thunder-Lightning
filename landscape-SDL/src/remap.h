@@ -95,7 +95,7 @@ public:
     bool triggerAction(const char *action);
 };
 
-class EventRemapper : public SigC::Object
+class EventRemapper : public SigObject
 {
 public:
     EventRemapper();

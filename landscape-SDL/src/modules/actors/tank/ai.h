@@ -138,7 +138,7 @@ private:
 struct TankBrain : public Object {
     inline TankBrain(Ptr<IGame>         game,
                      Ptr<Clock>         clock,
-                     Ptr<IActor>        tank,
+                     IActor*            tank,
                      Ptr<TankControls>  controls,
                      Ptr<TankEngine>    engine)
     :   game(game),
@@ -158,7 +158,7 @@ struct TankBrain : public Object {
 
     Ptr<IGame>                  game;
     Ptr<Clock>                  clock;
-    Ptr<IActor>                 tank;
+    IActor                     *tank;
     Ptr<TankControls>           controls;
     Ptr<TankEngine>             engine;
 

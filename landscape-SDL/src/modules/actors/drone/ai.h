@@ -129,7 +129,6 @@ public:
 };
 
 class Dogfight : public Idea, public CoRoutine {
-	Ptr<IActor> target;
 	std::string nfo;
 public:
 	inline Dogfight(Context & ctx)

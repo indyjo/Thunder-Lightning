@@ -84,6 +84,7 @@ public:
 
     // Returns the current velocity of a particle at position r in WCS
     inline Vector getVelocityAt(const Vector & r) const { return omega % (r - x) + v; }
+    inline Vector getMomentumAt(const Vector & r) const { return L % (r - x) + P; }
     inline Vector getLinearVelocity() { return v; }
     inline Vector getAngularVelocity() { return omega; }
 
@@ -91,7 +92,7 @@ public:
     inline void setLinearMomentum(const Vector & P_new) { P = P_new; v = P * M_inv; }
 
     inline const Vector & getAngularMomentum() const { return L; }
-    inline void setAngulatMomentum(const Vector & L_new) { L = L_new; omega = I_inv_wcs * L; }
+    inline void setAngularMomentum(const Vector & L_new) { L = L_new; omega = I_inv_wcs * L; }
 
     inline const RigidBodyState & getState() const { return *this; }
     inline void setState(const RigidBodyState & state) {

@@ -15,10 +15,10 @@
 class FlightEngine2;
 class Idea;
 class PatrolIdea;
-struct Context;
 struct Rating;
 class Targeter;
 struct SoundSource;
+struct Context;
 
 class EventSheet;
 
@@ -34,11 +34,23 @@ struct Personality {
     void randomize();
 };
 
+struct Wheel {
+	Vector pos;
+	float range, force, damping, drag_long, drag_lat;
+};
+
+struct WheelState {
+	bool contact;
+	Vector pos;
+	float pressure;
+};
+
 class Drone : public SimpleActor, public Collide::Collidable, virtual public SigObject {
 public:
     Drone(Ptr<IGame> thegame);
 
     virtual void action();
+    virtual void kill();
 
     virtual void draw();
 
@@ -71,6 +83,8 @@ private:
         RELEASE_SECONDARY
     };
     void event(Event e);
+    void doWheels();
+    void drawWheels();
     
 private:
     JRenderer * renderer;
@@ -78,22 +92,24 @@ private:
     Ptr<SoundSource> engine_sound_src;
 
     // ai stuff
+    Ptr<Context> context;
     Ptr<EventSheet> event_sheet;
     ControlMode control_mode;
-    Ptr<Context> context;
     Personality personality;
     std::list<Ptr<Idea> > ideas;
     Ptr<Idea> current_idea;
     Ptr<PatrolIdea> patrol_idea;
 
     // 3d model
-    Ptr<Model> model;
+    Ptr<Model> outside_model, inside_model;
+    Ptr<Model> wheel_model;
 
     // flight stuff
     Ptr<FlightEngine2> engine;
     FlightInfo flight_info;
     Ptr<DroneControls> drone_controls;
     AutoPilot auto_pilot;
+    WheelState wheel_states[3];
 
     // weapon systems stuff
     Ptr<Targeter> targeter;

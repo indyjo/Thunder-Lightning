@@ -5,9 +5,7 @@
 SelectAxisByActivityTransform::SelectAxisByActivityTransform(
 	float threshold)
 :	threshold(threshold), value(0), init(true)
-{
-	ls_message("SelectAxisByActivityTransform(%f)\n", threshold);
-}
+{ }
 	
 float SelectAxisByActivityTransform::operator() (std::vector<float> & inputs) {
     if (inputs.size() != old_values.size()) {
@@ -55,11 +53,11 @@ bool EventSheet::triggerAction(const char * action)
 {
     OutMap::iterator o = outmap.find( action );
     if (o != outmap.end()) {
-        ls_message("emitting action %s.\n", action);
+        //ls_message("emitting action %s.\n", action);
         o->second->emit();
         return true;
     }
-    ls_warning("EventSheet::triggerAction('%s') : no handler found.\n", action);
+    //ls_warning("EventSheet::triggerAction('%s') : no handler found.\n", action);
     return false;
 }
 
@@ -103,11 +101,11 @@ void EventRemapper::addEventSheet(Ptr<EventSheet> sheet) {
 }
 
 void EventRemapper::removeEventSheet(Ptr<EventSheet> sheet) {
-    ls_message("EventRemapper::removeEventSheet(%p)\n", &*sheet);
-    ls_message("  event_sheets.size(): %d\n", event_sheets.size());
-    ls_message("  found sheet:%p\n",&**std::find(event_sheets.begin(), event_sheets.end(), sheet));
+    //ls_message("EventRemapper::removeEventSheet(%p)\n", &*sheet);
+    //ls_message("  event_sheets.size(): %d\n", event_sheets.size());
+    //ls_message("  found sheet:%p\n",&**std::find(event_sheets.begin(), event_sheets.end(), sheet));
     event_sheets.erase(std::find(event_sheets.begin(), event_sheets.end(), sheet));
-    ls_message("  event_sheets.size(): %d\n", event_sheets.size());
+    //ls_message("  event_sheets.size(): %d\n", event_sheets.size());
 }
 
 
@@ -167,10 +165,10 @@ bool EventRemapper::triggerAction(const char * action)
     for (Iter i=event_sheets.rbegin(); i!=event_sheets.rend(); ++i) {
         if ((*i)->triggerAction(action)) return true;
     }
-    ls_warning("EventRemapper::triggerAction('%s'):\n"
-               "  could not deliver event to any event sheet.\n"
-               "  event_sheets %s empty.\n",
-               action, event_sheets.empty()?"is":"is not");
+    //ls_warning("EventRemapper::triggerAction('%s'):\n"
+    //           "  could not deliver event to any event sheet.\n"
+    //           "  event_sheets %s empty.\n",
+    //           action, event_sheets.empty()?"is":"is not");
     
     return false;
 }

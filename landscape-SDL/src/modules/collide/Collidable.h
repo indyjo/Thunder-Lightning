@@ -18,21 +18,21 @@ struct Contact;
 
 class Collidable : virtual public Object{
     Ptr<BoundingGeometry> bounding;
-    Ptr<IActor> actor;
-    Ptr<RigidBody> rigid;
+    IActor *actor;
+    RigidBody *rigid;
 protected:
     inline Collidable(Ptr<BoundingGeometry> b=0,
-                      Ptr<RigidBody> r=0, Ptr<IActor> a=0)
+                      RigidBody *r=0, IActor *a=0)
     :   bounding(b), rigid(r), actor(a)
     { }
 protected:
     inline void setBoundingGeometry(Ptr<BoundingGeometry> b) {
         this->bounding = b;
     }
-    inline void setRigidBody(Ptr<RigidBody> r) {
+    inline void setRigidBody(RigidBody *r) {
         this->rigid = r;
     }
-    inline void setActor(Ptr<IActor> a) {
+    inline void setActor(IActor *a) {
         this->actor = a;
     }
 public:
@@ -42,11 +42,11 @@ public:
 
     // returns an associated rigid body.
     // Warning: this can be null!
-    inline Ptr<RigidBody> getRigid() { return rigid; }
+    inline RigidBody *getRigid() { return rigid; }
 
     // returns an associated actor.
     // Warning: This can be null!
-    inline Ptr<IActor> getActor() { return actor; }
+    inline IActor *getActor() { return actor; }
 
     // These three methods have to be implemented by the derived class
 

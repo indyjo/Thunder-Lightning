@@ -18,6 +18,7 @@ public:
 
     inline Faction(const char * name)
     : default_attitude(NEUTRAL), name(name) { }
+    ~Faction();
 
     const std::string & getName() { return name; }
 

@@ -72,6 +72,10 @@ public:
         v[4] = v4;
     }
 
+// raw data access
+    inline const T * raw() const { return v; }
+
+
 // Operators
     inline const XVector& operator= (const T * src) // Copy array
     {
@@ -79,7 +83,7 @@ public:
             v[i]=src[i];
         return *this;
     }
-
+    
     inline const T & operator[] (int i) const {        // const element access
         assert((0<=i) && (i<N));
         return v[i];

@@ -3,7 +3,8 @@ SUBDIRS = modules boost interfaces
 bin_PROGRAMS = landscape-bin
 
 landscape_bin_SOURCES = game.cc game.h landscape.h interfaces.h \
-                        Factory.h object.h \
+                        Factory.h \
+                        object.cc object.h \
                         util.h signals.h remap.h remap.cc \
                         sound.cc sound.h \
                         mtasker.cc mtasker.h \

@@ -21,6 +21,17 @@ typedef XMatrix<3,Interval> IMatrix3;
 
 namespace Collide {
 
+CollisionManager::~CollisionManager() {
+	ls_message("Deleting CollisionManager %p with %d refs\n", this, getRefs());
+	Object::backtrace();
+	ls_message("Got %d geometry instances to delete.\n", geom_instances.size());
+	for (GeomIter i=geom_instances.begin(); i!= geom_instances.end(); ++i) {
+		ls_message("deleting geometry instance %p.\n", i->second);
+		delete i->second;
+		ls_message("done\n");
+	}
+	ls_message("Now cleaning up the rest.\n");
+}
 
 Ptr<BoundingGeometry>
 CollisionManager::queryGeometry(const std::string & name) {
@@ -49,10 +60,13 @@ CollisionManager::queryGeometry(const std::string & name) {
 }
 
 void CollisionManager::add(Ptr<Collidable> c) {
-    geom_instances.insert(make_pair(c, new GeometryInstance(c)));
+	GeometryInstance *instance = new GeometryInstance(c);
+    geom_instances.insert(make_pair(c, instance));
+    //ls_message("Added geometry instance %p\n", instance);
 }
 
 void CollisionManager::remove(Ptr<Collidable> c) {
+    //ls_message("Removed geometry instance %p\n", geom_instances[c]);
     delete geom_instances[c];
     geom_instances.erase(c);
     sweep_n_prune.remove(c);

@@ -32,7 +32,7 @@ Bullet::Bullet(IGame *thegame)
     // Prepare collidable
     setBoundingGeometry(new Collide::BoundingGeometry(1,1));
     getBoundingGeometry()->setBoundingRadius(0.01f);
-    setRigidBody(engine);
+    setRigidBody(&*engine);
     setActor(this);
 
     thegame->getCollisionMan()->add(this);

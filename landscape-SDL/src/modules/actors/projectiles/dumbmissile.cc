@@ -1,10 +1,10 @@
+#include <vector>
 #include "dumbmissile.h"
 #include <modules/actors/fx/explosion.h>
 #include <modules/clock/clock.h>
 #include <interfaces/ICamera.h>
 #include <interfaces/ITerrain.h>
 #include <sound.h>
-
 
 #define EARTH_GRAVITY 9.81
 #define MAX_DEVIATION_PER_SECOND 10.0
@@ -49,6 +49,19 @@ void DumbMissile::action()
         //thegame->addActor(
         //        new SmokeColumn(thegame, p, SmokeColumn::Params(), pparams));
         shootSparks();
+        
+        std::vector<Ptr<IActor> > victims;
+        float expl_radius=100;
+        float damage_radius = 40;
+        thegame->queryActorsInSphere(victims, p, expl_radius);
+        for(int i=0; i<victims.size(); ++i) {
+        	if (!victims[i]->getTargetInfo()) continue;
+        	float dist = (victims[i]->getLocation()-p).length()
+        		- victims[i]->getTargetInfo()->getTargetSize();
+        	if (dist < 0) dist = 0;
+        	else if (dist > damage_radius) continue;
+        	victims[i]->applyDamage(10*dist / damage_radius, 0);
+        }
     }
 }
 

@@ -9,5 +9,7 @@ libscripting_a_SOURCES = \
 	ActorMapping.cc \
 	ClockMapping.cc \
 	ConfigMapping.cc \
+	EventMapping.cc \
 	GameMapping.cc \
-	LinalgMapping.cc
+	LinalgMapping.cc \
+	ProviderMapping.cc

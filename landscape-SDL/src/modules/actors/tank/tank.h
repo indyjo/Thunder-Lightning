@@ -21,7 +21,7 @@ public:
 
     virtual void draw();
 
-    virtual void hitTarget(float damage);
+    virtual void applyDamage(float damage, int domain);
     
     virtual void setLocation(const Vector & p);
 

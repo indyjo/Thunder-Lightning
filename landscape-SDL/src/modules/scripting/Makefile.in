@@ -101,7 +101,7 @@ noinst_LIBRARIES = libscripting.a
 
 INCLUDES = -I${top_srcdir}/src @IO_CFLAGS@
 
-libscripting_a_SOURCES =  	IoIncludes.h		IoScriptingManager.h IoScriptingManager.cc 	mappings.h mappings.cc 	ActorMapping.cc 	ClockMapping.cc 	ConfigMapping.cc 	GameMapping.cc 	LinalgMapping.cc
+libscripting_a_SOURCES =  	IoIncludes.h		IoScriptingManager.h IoScriptingManager.cc 	mappings.h mappings.cc 	ActorMapping.cc 	ClockMapping.cc 	ConfigMapping.cc 	EventMapping.cc 	GameMapping.cc 	LinalgMapping.cc 	ProviderMapping.cc
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../../config.h
@@ -116,7 +116,8 @@ LIBS = @LIBS@
 libscripting_a_LIBADD = 
 libscripting_a_OBJECTS =  IoScriptingManager.$(OBJEXT) \
 mappings.$(OBJEXT) ActorMapping.$(OBJEXT) ClockMapping.$(OBJEXT) \
-ConfigMapping.$(OBJEXT) GameMapping.$(OBJEXT) LinalgMapping.$(OBJEXT)
+ConfigMapping.$(OBJEXT) EventMapping.$(OBJEXT) GameMapping.$(OBJEXT) \
+LinalgMapping.$(OBJEXT) ProviderMapping.$(OBJEXT)
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -135,8 +136,9 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/ActorMapping.P .deps/ClockMapping.P \
-.deps/ConfigMapping.P .deps/GameMapping.P .deps/IoScriptingManager.P \
-.deps/LinalgMapping.P .deps/mappings.P
+.deps/ConfigMapping.P .deps/EventMapping.P .deps/GameMapping.P \
+.deps/IoScriptingManager.P .deps/LinalgMapping.P \
+.deps/ProviderMapping.P .deps/mappings.P
 SOURCES = $(libscripting_a_SOURCES)
 OBJECTS = $(libscripting_a_OBJECTS)
 

@@ -10,7 +10,7 @@ libcollide_a_SOURCES =                         \
         Collidable.h Collidable.cc             \
         Contact.h Contact.cc                   \
         ContactPartner.h                       \
-        GeometryInstance.h                     \
+        GeometryInstance.h GeometryInstance.cc \
         PossibleContact.h PossibleContact.cc   \
         Primitive.cc Primitive.h               \
         SweepNPrune.h                          \

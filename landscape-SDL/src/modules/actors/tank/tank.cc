@@ -25,8 +25,8 @@
 #define RAND ((float) rand() / (float) RAND_MAX)
 #define RAND2 ((float) rand() / (float) RAND_MAX * 2.0 - 1.0)
 
-#define MUZZLE_VELOCITY 600.0f
-#define BULLET_RANGE 2000.0f
+#define MUZZLE_VELOCITY 1200.0f
+#define BULLET_RANGE 5000.0f
 #define BULLET_TTL (BULLET_RANGE / MUZZLE_VELOCITY)
 
 struct CannonView: public SimpleView {
@@ -173,7 +173,7 @@ void Tank::action() {
 	        && (target->getLocation()-getLocation()).lengthSquare()
 	            < BULLET_RANGE*BULLET_RANGE);
     } else if (control_mode == MANUAL) {
-    	EventRemapper *remap = thegame->getEventRemapper();
+    	Ptr<EventRemapper> remap = thegame->getEventRemapper();
     	tank_controls->setSteer(remap->getAxis("car_steer"));
     	tank_controls->setThrottle(remap->getAxis("car_throttle"));
     	tank_controls->setBrake(remap->getAxis("car_brake"));
@@ -276,7 +276,8 @@ void Tank::draw() {
 }
 
 // Our tank has been hit ...
-void Tank::hitTarget(float damage) {
+void Tank::applyDamage(float damage, int domain) {
+	damage *= 0.2;
     if (this->damage < 0.7 && this->damage+damage>0.7) {
         SmokeColumn::PuffParams pparams;
         pparams.color = Vector(0.6f, 0.6f, 0.6f);
@@ -285,7 +286,7 @@ void Tank::hitTarget(float damage) {
         smoke->follow(this);
         thegame->addActor(smoke);
     }
-    this->damage += damage*0.1;
+    this->damage += damage;
     if (this->damage > 1.0) explode();
 }
 
@@ -330,7 +331,7 @@ Ptr<IView> Tank::getView(int n) {
     case 0:
     	return new RelativeView(
             this,
-            Vector(0.0f, 1.5f, 1.5f),
+            Vector(0.0f, 3, 1.5f),
             Vector(1,0,0),
             Vector(0,1,0),
             Vector(0,0,1),

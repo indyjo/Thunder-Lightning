@@ -668,7 +668,7 @@ void CRIdea::run() {
 
 Rating Dogfight::rate() {
 	Rating r;
-	Ptr<IActor> tgt = target;
+	Ptr<IActor> tgt = ctx.targeter->getCurrentTarget();
 	if (!tgt || !targetInRange(tgt)) {
 		tgt = selectNearestTargetInRange();
 	}
@@ -704,11 +704,13 @@ std::string Dogfight::info() {
 void Dogfight::run() {
 	for(;;) {
 		nfo="Dogfighting";
-		if (target && !targetInRange(target)) target = 0;
-		if (!target) {
-			target = selectNearestTargetInRange();
+		if (ctx.targeter->getCurrentTarget() &&
+				!targetInRange(ctx.targeter->getCurrentTarget()))
+			ctx.targeter->clearCurrentTarget();
+		if (!ctx.targeter->getCurrentTarget()) {
+			selectNearestTargetInRange();
 		}
-		if (!target) {
+		if (!ctx.targeter->getCurrentTarget()) {
 			yield();
 			continue;
 		}
@@ -764,8 +766,8 @@ Ptr<IActor> Dogfight::selectNearestTargetInRange(float range) {
 
 
 bool Dogfight::positionFavorable() {
-	Vector target_p = target->getLocation();
-	Vector target_dir = target->getFrontVector();
+	Vector target_p = ctx.targeter->getCurrentTarget()->getLocation();
+	Vector target_dir = ctx.targeter->getCurrentTarget()->getFrontVector();
 	Vector own_p = ctx.actor->getLocation();
 	Vector own_dir = ctx.actor->getFrontVector();
 	
@@ -799,18 +801,18 @@ void Dogfight::aimAndShoot() {
 	char buf[1024];
 	nfo = "aiming and shooting";
 	ctx.ap->setMode(AP_SPEED_MASK|AP_COURSE_MASK|AP_PITCH_MASK);
-	while (positionFavorable() && targetInRange(target)) {
+	while (positionFavorable() && targetInRange(ctx.targeter->getCurrentTarget())) {
 		rv.updateSource(
 			ctx.actor->getLocation(),
 			Vector(0,0,0),
 			Vector(0,-9.81,0));
 		rv.updateTarget(
 			ctx.thegame->getClock()->getStepDelta(),
-			target->getLocation(),
-			target->getMovementVector());
+			ctx.targeter->getCurrentTarget()->getLocation(),
+			ctx.targeter->getCurrentTarget()->getMovementVector());
 		Vector p = ctx.actor->getLocation();
 		Vector target_p = rv.calculate();
-		Vector target_v = target->getMovementVector();
+		Vector target_v = ctx.targeter->getCurrentTarget()->getMovementVector();
 		Vector dir_to_target = target_p-p;
 		float dist = dir_to_target.length();
 		dir_to_target.normalize();
@@ -864,10 +866,10 @@ void Dogfight::aimAndShoot() {
 
 void Dogfight::evade() {
 	Vector p_me = ctx.actor->getLocation();
-	Vector p_target = target->getLocation();
+	Vector p_target = ctx.targeter->getCurrentTarget()->getLocation();
 	Vector delta_p = p_target - p_me;
 	Vector v_me = ctx.actor->getMovementVector();
-	Vector v_target = target->getMovementVector();
+	Vector v_target = ctx.targeter->getCurrentTarget()->getMovementVector();
 	
 	bool faster_than_enemy = 
 		v_me.length() > v_target.length();

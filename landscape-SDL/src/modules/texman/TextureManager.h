@@ -34,6 +34,7 @@ public:
             unsigned int hint=0,
             unsigned int compression=0,
             bool mipmap=false);
+    void shutdown();
 private:
     void registerTexture(const char *, Texture *);
     bool unregisterTexture(Texture *);
@@ -43,7 +44,7 @@ class Texture
 {
     int refs;
     jrtxtid_t tex;
-    TextureManager & texman;
+    Ptr<TextureManager> texman;
     JRenderer &renderer;
     int w,h;
     
@@ -51,7 +52,7 @@ protected:
     ~Texture();
     
 public:
-    Texture(TextureManager &, JRenderer &,
+    Texture(Ptr<TextureManager>, JRenderer &,
         const char *, unsigned int, unsigned int, bool);
 
     jrtxtid_t ref();

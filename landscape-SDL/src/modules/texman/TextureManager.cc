@@ -15,7 +15,7 @@ TexPtr TextureManager::query(
     TexIterator i = textures_by_name.find(name);
     if (i==textures_by_name.end()) {
         Texture * nt =
-                new Texture(*this, renderer, name, hint, compression, mipmap);
+                new Texture(this, renderer, name, hint, compression, mipmap);
         TexPtr p(nt);
         return p;
     } else {
@@ -45,6 +45,7 @@ TextureManager::~TextureManager() {
     // deleted
     cache.clear();
     while (!cache_queue.empty()) cache_queue.pop();
+    ls_message("TextureManager finished.\n");
 }
 
 void TextureManager::registerTexture(const char * name, Texture *tex)
@@ -78,12 +79,19 @@ bool TextureManager::unregisterTexture(Texture *tex)
     }
 }
 
-Texture::~Texture()
+void TextureManager::shutdown()
 {
-    if (texman.unregisterTexture(this)) renderer.destroyTexture(tex);
+	cache.clear();
+	while(!cache_queue.empty())
+		cache_queue.pop();
 }
 
-Texture::Texture(TextureManager & texman,
+Texture::~Texture()
+{
+    if (texman->unregisterTexture(this)) renderer.destroyTexture(tex);
+}
+
+Texture::Texture(Ptr<TextureManager> texman,
                  JRenderer & renderer,
                  const char *filename,
                  unsigned int hint,
@@ -105,7 +113,7 @@ Texture::Texture(TextureManager & texman,
         h = spr.sprite.h;
     }
     
-    texman.registerTexture(filename, this);
+    texman->registerTexture(filename, this);
 }
 
 

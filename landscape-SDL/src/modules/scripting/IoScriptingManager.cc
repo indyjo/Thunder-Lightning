@@ -52,19 +52,14 @@ IoScriptingManager::IoScriptingManager(Ptr<IGame> game)
 
 IoScriptingManager::~IoScriptingManager()
 {
-	IoState_exit(main_state);
+	ls_message("Killing Io.\n");
+	IoState_free(main_state);
+	ls_message("Done.\n");
 }
 
 IoState * IoScriptingManager::createNewState() {
 	IoState * state = IoState_new();
 	default_context.connectTo(state);
-
-	addMappings(game, state);
-
-	char buf[256];
-	strncpy(buf,game->getConfig()->query("Io_init_script"),256);
-	IoState_doFile_(state, buf);
-	
 	return state;
 }
 

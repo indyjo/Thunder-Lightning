@@ -97,6 +97,10 @@ public:
     static XMatrix Hom(const XMatrix<N-1,T> & R, const XVector<N-1,T> & x);
     static XMatrix Hom(const XMatrix<N-1,T> & R);
 
+// raw data access
+    inline const T * raw() const { return m; }
+    
+
 // Operators
     // Element access via index operator []
     inline T operator[] (int i) const {
@@ -324,7 +328,12 @@ void XMatrix<N,T>::dump() const {
 }
 
 typedef XMatrix<4, float> Matrix;
-typedef XMatrix<4, float> Matrix4;
+typedef XMatrix<2, float> Matrix2;
 typedef XMatrix<3, float> Matrix3;
+typedef XMatrix<4, float> Matrix4;
+typedef XMatrix<5, float> Matrix5;
+typedef XMatrix<6, float> Matrix6;
+typedef XMatrix<7, float> Matrix7;
+typedef XMatrix<8, float> Matrix8;
 
 #endif

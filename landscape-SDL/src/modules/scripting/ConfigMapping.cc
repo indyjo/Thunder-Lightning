@@ -7,33 +7,19 @@
 
 namespace {
 	
-	struct ConfigMapping {
-		static IoObject * config;
-	
-		static IConfig* getObject(IoObject *a) { return ((IConfig*)a->data); }
-		
+	struct ConfigMapping : public TemplatedObjectMapping<IConfig> {
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject *object = state->mainActor;
 			IoObject *lobby = state->lobby;
 			
-			config = proto(state);
+			IoObject *config = proto(state);
+			IoState_registerProtoWithFunc_(state, config, proto);
 			IoObject_setSlot_to_(lobby,
 				IoState_stringWithCString_(state, "Config"), config);
-			config->data = &*thegame->getConfig();
+			retarget(config, &*thegame->getConfig());
 		}
 		
-		static IoTag *tag(IoState * state, char * name) {
-		    IoTag *tag = IoTag_newWithName_(name);
-		    tag->state = state;
-		    tag->cloneFunc = (TagCloneFunc *)rawClone;
-		    tag->markFunc  = (TagMarkFunc *)mark;
-		    tag->freeFunc  = (TagFreeFunc *)free;
-		    //tag->writeToStoreFunc  = (TagWriteToStoreFunc *)IoFile_writeToStore_;
-		    //tag->readFromStoreFunc = (TagReadFromStoreFunc *)IoFile_readFromStore_;
-		    return tag;
-		}
-	
-		static IoObject *proto(IoState *state) {
+		static IoObject *proto(void *state) {
 			IoMethodTable methodTable[] = {
 				/* standard I/O */
 				{"query", query},
@@ -42,29 +28,11 @@ namespace {
 			};
 			IoObject *self = IoObject_new(state);
 			self->tag = tag(state, "Config");
-			
 			self->data = 0;
-			IoState_registerProtoWithFunc_(state, self,
-				(IoStateProtoFunc*) proto);
-			
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
 		}
 	
-		static void mark(IoObject * self) {
-			if (self->data) getObject(self)->ref();
-		}
-		static void free(IoObject * self) {
-			if (self->data) getObject(self)->unref();
-		}
-		
-		static IoObject *rawClone(IoObject *self) 
-		{ 
-			IoObject *child = IoObject_rawClonePrimitive(self);
-			child->data = self->data;
-			return child;
-		}
-		
 		static IoObject * query
 		(IoObject *self, IoObject *locals, IoMessage *m) {
 			BEGIN_FUNC("Config.query")
@@ -90,8 +58,6 @@ namespace {
 			return self;
 		}
 	};
-	
-	IoObject * ConfigMapping::config;
 }
 
 template<>
@@ -100,9 +66,11 @@ void addMapping<IConfig>(Ptr<IGame> game, IoState *state) {
 }
 
 template<>
-IoObject * wrapObject<Ptr<IConfig> >(Ptr<IConfig> config, IoState *) {
-	IoObject *new_object = ConfigMapping::rawClone(ConfigMapping::config);
-	new_object->data = &*config;
+IoObject * 
+wrapObject<Ptr<IConfig> >(Ptr<IConfig> config, IoState * state) {
+	IoObject *new_object = ConfigMapping::rawClone(
+		IoState_protoWithInitFunction_(state, ConfigMapping::proto));
+	ConfigMapping::retarget(new_object, &*config);
 	return new_object;
 }
 

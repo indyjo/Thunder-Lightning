@@ -14,10 +14,11 @@ Targeter::Targeter(IActorStage &stage, IActor &self)
 
 void Targeter::setMaxRange(float r) {
 	max_range=r;
+	ls_error("Set max range to %f\n", r);
 }
 
 Ptr<IActor> Targeter::getCurrentTarget() {
-	if (current&&current->getState()==IActor::DEAD)
+	if (current&& !current->isAlive())
 		current=0;
 	return current;
 }
@@ -79,6 +80,38 @@ void Targeter::selectTargetInGunsight() {
 	selectTargetInGunsightFrom(actors);
 }	
 
+void Targeter::clearCurrentTarget() {
+	current = 0;
+}
+
+namespace {
+
+bool invalid(Ptr<IActor> & a) {
+	return ! a->getTargetInfo() ||
+	       ! a->getTargetInfo()->isA(TargetInfo::DETECTABLE);
+}
+
+struct not_friendly {
+	Ptr<Faction> faction;
+	not_friendly(Ptr<Faction> f) : faction(f) { }
+	bool operator () (Ptr<IActor> & a) {
+		return invalid(a) || 
+		       faction->getAttitudeTowards(a->getFaction())
+		           != Faction::FRIENDLY;
+	}
+};
+
+struct not_hostile {
+	Ptr<Faction> faction;
+	not_hostile(Ptr<Faction> f) : faction(f) { }
+	bool operator () (Ptr<IActor> & a) {
+		return invalid(a) || 
+		       faction->getAttitudeTowards(a->getFaction())
+		           != Faction::HOSTILE;
+	}
+};
+
+} // namespace
 	
 void Targeter::listTargets(vector<Ptr<IActor> > & actors) {
 	stage.queryActorsInCylinder(
@@ -86,18 +119,8 @@ void Targeter::listTargets(vector<Ptr<IActor> > & actors) {
 		self.getLocation(),
 		max_range<0?1e15:max_range);
 	actors.erase(find(actors.begin(), actors.end(), Ptr<IActor>(&self)));
-	int removed=0;
-	for(int i=0;i<actors.size()-removed;++i) {
-		if (!actors[i]->getTargetInfo() ||
-			!actors[i]->getTargetInfo()->isA(
-				TargetInfo::DETECTABLE))
-		{
-			swap(actors[i],actors[actors.size()-1-removed]);
-			++removed;
-			--i;
-		}
-	}
-	actors.resize(actors.size()-removed);
+	actors.resize(remove_if(actors.begin(),actors.end(),invalid)
+	              - actors.begin());
 }
 
 void Targeter::listHostileTargets(vector<Ptr<IActor> > & actors) {
@@ -109,24 +132,8 @@ void Targeter::listHostileTargets(vector<Ptr<IActor> > & actors) {
 	
 	Ptr<Faction> faction=self.getFaction();
 	
-	int removed=0;
-	for(int i=0;i<actors.size()-removed;++i) {
-		Faction::Attitude attitude =
-			faction->getAttitudeTowards(actors[i]->getFaction());
-		if (attitude != Faction::HOSTILE) {
-			swap(actors[i],actors[actors.size()-1-removed]);
-			++removed;
-			--i;
-		} else if (!actors[i]->getTargetInfo() ||
-			!actors[i]->getTargetInfo()->isA(
-				TargetInfo::DETECTABLE))
-		{
-			swap(actors[i],actors[actors.size()-1-removed]);
-			++removed;
-			--i;
-		}
-	}
-	actors.resize(actors.size()-removed);
+	actors.resize(remove_if(actors.begin(),actors.end(),not_hostile(faction))
+	              - actors.begin());
 }
 
 void Targeter::listFriendlyTargets(vector<Ptr<IActor> > & actors) {
@@ -138,24 +145,8 @@ void Targeter::listFriendlyTargets(vector<Ptr<IActor> > & actors) {
 	
 	Ptr<Faction> faction=self.getFaction();
 	
-	int removed=0;
-	for(int i=0;i<actors.size()-removed;++i) {
-		Faction::Attitude attitude =
-			faction->getAttitudeTowards(actors[i]->getFaction());
-		if (attitude != Faction::FRIENDLY) {
-			swap(actors[i],actors[actors.size()-1-removed]);
-			++removed;
-			--i;
-		} else if (!actors[i]->getTargetInfo() ||
-			!actors[i]->getTargetInfo()->isA(
-				TargetInfo::DETECTABLE))
-		{
-			swap(actors[i],actors[actors.size()-1-removed]);
-			++removed;
-			--i;
-		}
-	}
-	actors.resize(actors.size()-removed);
+	actors.resize(remove_if(actors.begin(),actors.end(),not_friendly(faction))
+	              - actors.begin());
 }
 
 void Targeter::selectNextFrom(vector<Ptr<IActor> > & actors) {

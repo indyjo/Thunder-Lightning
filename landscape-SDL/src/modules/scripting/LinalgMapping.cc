@@ -8,31 +8,96 @@
 	if (!(expr))    \
 		IoState_error_description_(state, NULL, "Io.Assertion", message);
 
-template<>
-IoObject * wrapObject<Vector>(Vector v, IoState * state) {
-	IoObject * lobby = state->lobby;
+namespace {
+template<class T>
+IoObject * wrap_raw(const T *v, int rows, int cols, IoState * state) {
 	IoObject *matrix = IoObject_rawClone(
-		IoObject_getSlot_(lobby,
+		IoObject_getSlot_(state->lobby,
 			IoState_stringWithCString_(state, "Matrix")));
 
-	IoObject_initClone_(lobby, lobby, NULL, matrix);
+	IoObject_initClone_(state->lobby, state->lobby, NULL, matrix);
 	
 	IoMessage *dimMessage = IoMessage_newWithName_(state,
 		IoState_stringWithCString_(state, "dim"));
-	IoMessage_setCachedArg_toInt_(dimMessage, 0, 3); ///< 3 rows
-	IoMessage_setCachedArg_toInt_(dimMessage, 1, 1); ///< 1 column
-	IoObject *result = IoMessage_locals_performOn_(dimMessage,lobby,matrix);
+	IoMessage_setCachedArg_toInt_(dimMessage, 0, rows);
+	IoMessage_setCachedArg_toInt_(dimMessage, 1, cols);
+	IoMessage_locals_performOn_(dimMessage,state->lobby,matrix);
 	
 	IoMessage *setMessage = IoMessage_newWithName_(state,
 		IoState_stringWithCString_(state, "set"));
-	IoMessage_setCachedArg_to_(setMessage, 0,
-		IoNumber_newWithDouble_(state, v[0]));
-	IoMessage_setCachedArg_to_(setMessage, 1,
-		IoNumber_newWithDouble_(state, v[1]));
-	IoMessage_setCachedArg_to_(setMessage, 2,
-		IoNumber_newWithDouble_(state, v[2]));
-	result = IoMessage_locals_performOn_(setMessage,lobby,matrix);
+	for(int i=0; i<rows; ++i) for(int j=0; j<cols; ++j) {
+		IoMessage_setCachedArg_to_(setMessage, i*cols+j, 
+			IoNumber_newWithDouble_(state, v[j*rows+i]));
+	}
+	IoMessage_locals_performOn_(setMessage,state->lobby,matrix);
 	
 	return matrix;
 }	
-	
+
+template<class T>
+void unwrap_raw(IoObject *self, T *out, int rows, int cols) {
+	IoObject *matrix = IoObject_getSlot_(IOSTATE->lobby, IOSTRING("Matrix"));
+	IoState * state = (IoState*) self->tag->state;
+	IOASS(matrix, "Could not find Matrix proto.")
+	IOASS(IoObject_rawHasProto_(self, matrix), "Not a Matrix object")
+	IOASS(IoNumber_asInt(IoObject_getSlot_(self,IOSTRING("rows"))) == rows
+	   && IoNumber_asInt(IoObject_getSlot_(self,IOSTRING("columns"))) == cols,
+	                  "Wrong dimension")
+	IoObject *entries = IoObject_getSlot_(IOSTATE->lobby, IOSTRING("entries"));
+	IOASS(entries && ISLIST(entries), "entries not found or invalid")
+	IOASS(IoList_rawCount(entries) == 3, "Inconsistent Matrix")
+	for (int i=0; i<rows*cols; ++i)
+		out[i] = IoNumber_asDouble(IoList_rawAt_(entries,i));
+}
+
+} // namespace
+
+template<> IoObject * wrapObject(Vector2 v, IoState * state)
+{ return wrap_raw(v.raw(), 2, 1, state); }
+template<> IoObject * wrapObject(Vector3 v, IoState * state)
+{ return wrap_raw(v.raw(), 3, 1, state); }
+template<> IoObject * wrapObject(Vector4 v, IoState * state)
+{ return wrap_raw(v.raw(), 4, 1, state); }
+
+template<> IoObject * wrapObject(Matrix2 M, IoState * state)
+{ return wrap_raw(M.raw(), 2, 2, state); }
+template<> IoObject * wrapObject(Matrix3 M, IoState * state)
+{ return wrap_raw(M.raw(), 3, 3, state); }
+template<> IoObject * wrapObject(Matrix4 M, IoState * state)
+{ return wrap_raw(M.raw(), 4, 4, state); }
+
+template<> Vector2 unwrapObject<Vector2>(IoObject *self) {
+	float v[2];
+	unwrap_raw(self, v, 2, 1);
+	return Vector2(v);
+}
+
+template<> Vector3 unwrapObject<Vector3>(IoObject *self) {
+	float v[3];
+	unwrap_raw(self, v, 3, 1);
+	return Vector3(v);
+}
+
+template<> Vector4 unwrapObject<Vector4>(IoObject *self) {
+	float v[4];
+	unwrap_raw(self, v, 4, 1);
+	return Vector4(v);
+}
+
+template<> Matrix2 unwrapObject(IoObject *self) {
+	float v[2*2];
+	unwrap_raw(self, v, 2, 2);
+	return Matrix2::Array(v);
+}
+
+template<> Matrix3 unwrapObject(IoObject *self) {
+	float v[3*3];
+	unwrap_raw(self, v, 3, 3);
+	return Matrix3::Array(v);
+}
+
+template<> Matrix4 unwrapObject(IoObject *self) {
+	float v[4*4];
+	unwrap_raw(self, v, 4, 4);
+	return Matrix4::Array(v);
+}

@@ -32,6 +32,11 @@ Faction::BasicFactions::BasicFactions() {
 
 const Faction::BasicFactions Faction::basic_factions;
 
+Faction::~Faction() {
+	ls_message("Bye bye faction %s\n", name.c_str());
+  	Object::backtrace();
+}
+
 void Faction::setAttitudeTowards(Ptr<Faction> f, Attitude a) {
     attitudes.insert(std::make_pair(f,a));
 }

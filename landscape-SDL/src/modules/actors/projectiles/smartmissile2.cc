@@ -55,7 +55,7 @@ SmartMissile2::SmartMissile2(Ptr<IGame> thegame, Ptr<IActor> target)
     // Prepare collidable
     setBoundingGeometry(new Collide::BoundingGeometry(1,1));
     getBoundingGeometry()->setBoundingRadius(0.0f * l);
-    setRigidBody(engine);
+    setRigidBody(&*engine);
     setActor(this);
     
     engine_sound_src = thegame->getSoundMan()->requestSource();

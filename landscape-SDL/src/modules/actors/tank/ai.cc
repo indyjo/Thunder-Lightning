@@ -375,7 +375,7 @@ void MoveToExposedPoint::onEnabled(TankBrain & brain) {
     } while (best_candidate_point[1] > best_point[1]);
     
     exposed_point = best_point;
-    ls_error("exposed point: "); exposed_point.dump();
+    //ls_error("exposed point: "); exposed_point.dump();
 }
 
 

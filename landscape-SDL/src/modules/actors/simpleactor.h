@@ -51,6 +51,7 @@ public:
     virtual void setFaction(Ptr<Faction>);
     virtual void action();
     virtual State getState();
+    virtual void kill();
     virtual float getRelativeDamage();
     virtual void applyDamage(float damage, int domain);
     virtual int getNumViews();

@@ -11,7 +11,7 @@ CarEngine::CarEngine(Ptr<IGame> game,
       controls(controls),
       CarParams(params)
 {
-    ls_message("CarEngine::Carengine. thegame->getTerrain()=%p\n", &*thegame->getTerrain());
+    //ls_message("CarEngine::Carengine. thegame->getTerrain()=%p\n", &*thegame->getTerrain());
     terrain = thegame->getTerrain();
     p = Vector(0,0,0);
     v = 0.0f;

@@ -65,8 +65,8 @@ Drone::Drone(Ptr<IGame> thegame)
     setBoundingGeometry(
         thegame->getCollisionMan()->queryGeometry(
             cfg->query("Drone_model_bounds")));
-    setRigidBody(engine);
-    setActor((IActor*)this);
+    setRigidBody(&*engine);
+    setActor(this);
 
     thegame->getCollisionMan()->add(this);
     
@@ -83,10 +83,11 @@ Drone::Drone(Ptr<IGame> thegame)
     	targeter,
     	mtasker);
 
-    std::string model_file = cfg->query("Drone_model_file");
-    std::string model_path = cfg->query("Drone_model_path");
-    model = thegame->getModelMan()->query(model_file);
-    //model = new Model(*thegame->getTexMan(), objfile, model_path.c_str());
+    std::string inside_model_file = cfg->query("Drone_inside_model_file");
+    inside_model = thegame->getModelMan()->query(inside_model_file);
+
+    std::string outside_model_file = cfg->query("Drone_outside_model_file");
+    outside_model = thegame->getModelMan()->query(outside_model_file);
 
     patrol_idea =  new PatrolIdea(*context,Vector(0,0,0), 10000);
     ideas.push_back(patrol_idea);
@@ -165,6 +166,8 @@ Drone::Drone(Ptr<IGame> thegame)
 }         
 
 void Drone::action() {
+	if (!isAlive()) return;
+	
     float delta_t = thegame->getClock()->getStepDelta();
     std::string info;
     char buf[1024];
@@ -236,48 +239,8 @@ void Drone::action() {
         explode();
     }
     */
-   	if (p[1] < terrain->getHeightAt(p[0],p[2])+20 && this==&*thegame->getCurrentlyControlledActor()) {
-	    Vector wheels[3];
-	    int nwheels = sizeof(wheels)/sizeof(Vector);
-	    //wheels[0]=Vector(    0, -3,5);
-	    //wheels[1]=Vector(-1.65, -3,-0.965); 
-	    //wheels[2]=Vector( 1.65, -3,-0.965);
-	    wheels[0]=Vector(    0, -1.7, 2.92);
-	    wheels[1]=Vector(-1.55, -1.4,-2.63); 
-	    wheels[2]=Vector( 1.55, -1.4,-2.63); 
-	    float forces[3] = { 100000, 100000, 100000 };
-	    float dampings[3] = { 7000, 4000, 4000 };
-	    float drag_long[3] = { 500, 500, 500 };
-	    float drag_lat[3] = {100000, 100000, 100000 };
-	    Matrix3 M,M_inv;
-	    engine->getState().q.toMatrix(M);
-	    M_inv = M;
-	    M_inv.transpose();
-	    
-	    Vector up,right,front;
-	    getOrientation(&up,&right,&front);
-	    for(int i=0; i<nwheels; ++i) {
-	    	Vector w = M * wheels[i] + p;
-	    	Vector v = engine->getVelocityAt(w);
-	    	float h = terrain->getHeightAt(w[0],w[2]);
-	    	if (w[1] < h+1 /*&& w[1] > h-1*/) {
-	    		float pressure = -(w[1]-h-1)/2;
-	    		/*
-	    		ls_message("M:\n");M.dump();
-	    		ls_message("M_inv:\n");M_inv.dump();
-	    		ls_message("up:"); up.dump();
-	    		ls_message("M_inv*up:");(M_inv*up).dump();
-	    		ls_message("wheel %d pressure: %f\n", i, pressure);
-	    		ls_message("force:");(M_inv * (forces[i] * pressure * up)).dump();
-	    		ls_message("at:");(M_inv*(w-p)).dump();
-	    		*/
-	    		engine->applyForceAt(forces[i] * pressure * up, w);
-	    		engine->applyForceAt(-dampings[i]  * up * (up*v), w);
-	    		engine->applyForceAt(-pressure * drag_long[i] * front*(front*v), w);
-	    		engine->applyForceAt(-pressure * drag_lat[i] * right*(right*v), w);
-	    	}
-	    }
-   	}
+    
+    doWheels();
     SimpleActor::action();
     
     engine_sound_src->setPosition(getLocation());
@@ -309,11 +272,19 @@ void Drone::action() {
     // Todo : collision detection
 }
 
+void Drone::kill() {
+    thegame->getCollisionMan()->remove(this);
+	targeter->clearCurrentTarget();
+	ideas.clear();
+	current_idea=0;
+	patrol_idea=0;
+}
 
 #define MAX_MODEL_DISTANCE 3000.0f
 #define MAX_POINT_DISTANCE 10000.0f
 
 void Drone::draw() {
+	if (!isAlive()) return;
     renderer->enableSmoothShading();
 
     float frustum[6][4];
@@ -354,7 +325,19 @@ void Drone::draw() {
     renderer->setCullMode(JR_CULLMODE_CULL_NEGATIVE);
     renderer->setAlpha(1);
     renderer->setColor(Vector(1,1,1));
+    
+    Ptr<Model> model = outside_model;
+    if (dist < 20) {
+    	Vector pilot_pos = thegame->getConfig()->queryVector(
+			"Drone_pilot_pos", Vector(0,0,0));
+		pilot_pos = Mmodel * pilot_pos;
+		Vector cam_pos = thegame->getCamera()->getLocation();
+		
+    	if ((pilot_pos-cam_pos).lengthSquare()<1)
+    		model = inside_model;
+    }
     model->draw(*renderer, Mmodel, Rotation);
+    drawWheels();
     
     if (current_idea == patrol_idea) {
     	typedef std::deque<Vector> Path;
@@ -415,7 +398,7 @@ Ptr<IView> Drone::getView(int n) {
     case 1:
     	return new RelativeView(
             this,
-            Vector(0, 10, 30),
+            Vector(0, 2, 7),
             Vector(-1,0,0),
             Vector(0,1,0),
             Vector(0,0,-1));
@@ -440,13 +423,20 @@ Ptr<IView> Drone::getView(int n) {
             Vector(1,0,0),
             Vector(0,1,0),
             Vector(0,0,1));
-    case 5:
+    /*case 5:
     	return new RelativeView(
             this,
             Vector(0, -3, 15),
             Vector(-1,0,0),
             Vector(0,1,0),
-            Vector(0,0,-1));
+            Vector(0,0,-1));*/
+    case 5:
+    	return new RelativeView(
+            this,
+            Vector(-6, 0, 1),
+            Vector(0,0,-1),
+            Vector(0,1,0),
+            Vector(1,0,0));
     default:
     	return 0;
 	}
@@ -468,7 +458,7 @@ void Drone::explode() {
         double time = RAND * MAX_EXPLOSION_AGE;
         thegame->addActor(new Explosion(thegame, v, size, time));
     }
-    thegame->getCollisionMan()->remove(this);
+    kill();
 
     // HACK: create new drone somewhere
     Ptr<Drone> drone = new Drone(thegame);
@@ -495,12 +485,19 @@ void Drone::update(float delta_t, const Transform * new_transforms) {
 
 void Drone::fireBullet()
 {
-    static const Vector cannon[4]={
+    /*static const Vector cannon[4]={
         Vector(-1.7, -1.0, 10.0),
         Vector( 1.7, -1.0, 10.0),
         Vector(-1.7, +1.0, 10.0),
         Vector( 1.7, +1.0, 10.0)
+    };*/
+    static const Vector cannon[]={
+        Vector(-0.684, -0.236, 4.0),
+        Vector( 0.684, -0.236, 4.0),
+        Vector(-0.72, -0.2, 4.0),
+        Vector( 0.72, -0.2, 4.0),
     };
+    static const int ncannons = sizeof(cannon) / sizeof(Vector);
 
     Ptr<Bullet> projectile( new Bullet(&*thegame) );
     projectile->setTTL(BULLET_TTL);
@@ -509,7 +506,7 @@ void Drone::fireBullet()
         + engine->getState().q.rot(cannon[cannon_num++]);
     Vector move(getMovementVector());
 
-    if (cannon_num==4) cannon_num=0;
+    if (cannon_num==ncannons) cannon_num=0;
 
     Ptr<SoundSource> snd_src = thegame->getSoundMan()->requestSource();
     snd_src->setPosition(start);
@@ -522,6 +519,8 @@ void Drone::fireBullet()
 
     thegame->addActor(projectile);
     projectile->shoot(start, move, getFrontVector());
+    
+    //engine->applyImpulseAt(-BULLET_SPEED*0.05*getFrontVector(), start);
 }
 
 void Drone::fireDumbMissile()
@@ -653,4 +652,92 @@ void Drone::event(Event event) {
     default:
         ls_error("Drone::event: Unknown event %d\n", event);
     }
+}
+
+void Drone::doWheels() {
+    Vector p = getLocation();
+   	if (p[1] < terrain->getHeightAt(p[0],p[2])+20 && this==&*thegame->getCurrentlyControlledActor()) {
+	    Vector wheels[3];
+	    int nwheels = sizeof(wheels)/sizeof(Vector);
+	    //wheels[0]=Vector(    0, -3,5);
+	    //wheels[1]=Vector(-1.65, -3,-0.965); 
+	    //wheels[2]=Vector( 1.65, -3,-0.965);
+	    wheels[0]=Vector(    0, -1.7, 2.92);
+	    wheels[1]=Vector(-1.55, -1.4,-2.63); 
+	    wheels[2]=Vector( 1.55, -1.4,-2.63); 
+	    float range[3] = {1,1,1};
+	    float forces[3] = { 250000, 250000, 250000 };
+	    float dampings[3] = { 7000, 7000, 7000 };
+	    float drag_long[3] = { 500, 500, 500 };
+	    float drag_lat[3] = {100000, 100000, 100000 };
+	    Matrix3 M,M_inv;
+	    engine->getState().q.toMatrix(M);
+	    M_inv = M;
+	    M_inv.transpose();
+	    
+	    Vector up,right,front;
+	    getOrientation(&up,&right,&front);
+	    //ls_message("-----\n");
+	    for(int i=0; i<nwheels; ++i) {
+	    	Vector w = M * wheels[i] + p;
+	    	Vector v = engine->getVelocityAt(w);
+	    	Vector x;
+	    	wheel_states[i].contact =
+	    		terrain->lineCollides(w+range[i]*up, w, &x);
+	    	if (!wheel_states[i].contact)
+	    		wheel_states[i].pos = w;
+	    	if (wheel_states[i].contact) {
+	    		float pressure = (x-w).length() / (range[i]);
+	    		wheel_states[i].pos = x;
+	    		wheel_states[i].pressure = pressure;
+	    		
+	    		/*
+	    		ls_message("wheel %d pressure: %f\n", i, pressure);
+	    		ls_message("normal wheel pos:  "); w.dump();
+	    		ls_message("current wheel pos: "); x.dump();
+	    		*/
+	    		/*
+	    		ls_message("M:\n");M.dump();
+	    		ls_message("M_inv:\n");M_inv.dump();
+	    		ls_message("up:"); up.dump();
+	    		ls_message("M_inv*up:");(M_inv*up).dump();
+	    		ls_message("force:");(M_inv * (forces[i] * pressure * up)).dump();
+	    		ls_message("at:");(M_inv*(w-p)).dump();
+	    		*/
+	    		engine->applyForceAt(forces[i] * pressure * up, x);
+	    		engine->applyForceAt(-dampings[i]  * up * (up*v), x);
+	    		engine->applyForceAt(-pressure * drag_long[i] * front*(front*v), x);
+	    		engine->applyForceAt(-pressure * drag_lat[i] * right*(right*v), x);
+	    		//float h1 = terrain->getHeightAt(
+	    		//Vector P_lat = right * (right*engine->getMomentumAt(w));
+	    		//engine->apply
+	    	}
+	    }
+   	}
+}
+
+void Drone::drawWheels() {
+	if (flight_info.getCurrentHeight() > 20) return;
+	if (!wheel_model) {
+		Ptr<IConfig> cfg = thegame->getConfig();
+	    std::string model_file = cfg->query("Drone_wheel_model_file");
+	    wheel_model = thegame->getModelMan()->query(model_file);
+	}
+	
+    Vector right, up, front;
+    getOrientation(&up, &right, &front);
+    Matrix Rotation    = Matrix::Hom(
+        MatrixFromColumns(right, up, front));
+
+    renderer->setCullMode(JR_CULLMODE_CULL_NEGATIVE);
+    renderer->setAlpha(1);
+    renderer->setColor(Vector(1,1,1));
+    
+	for(int i=0; i<3; ++i) {
+		//if (!wheel_states[i].contact) continue;
+    	Matrix Translation =
+    		TranslateMatrix<4,float>(wheel_states[i].pos);
+    	Matrix Mmodel  = Translation * Rotation;
+    	wheel_model->draw(*renderer, Mmodel, Rotation);
+	}
 }

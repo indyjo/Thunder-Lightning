@@ -17,7 +17,7 @@ public:
     RigidEngine(Ptr<IGame> game);
 
     //IEngine
-    inline void run();
+    virtual void run();
 
     // IPositionProvider
     virtual Vector getLocation();

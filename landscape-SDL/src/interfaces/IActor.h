@@ -23,7 +23,10 @@ public:
     virtual void setFaction(Ptr<Faction>)=0;
 
     virtual void action()=0;
+    
+    virtual void kill()=0;
     virtual State getState()=0;
+    inline bool isAlive() { return getState()==ALIVE; }
 
     virtual float getRelativeDamage()=0;
     virtual void applyDamage(float damage, int domain=0)=0;

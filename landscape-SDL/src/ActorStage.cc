@@ -28,7 +28,7 @@ void ActorStage::queryActorsInCylinder(ActorVector & out,
     r *= r;
     Vector y;
     for(Iter i=actors.begin(); i!=actors.end(); ++i) {
-        y = (*i)->getLocation();
+        y = x - (*i)->getLocation();
         if(y[0]*y[0]+y[2]*y[2] <= r)
             out.push_back(*i);
     }
@@ -59,6 +59,7 @@ void ActorStage::cleanupActors() {
 		} else if (removed>0) actors[i-removed]=a;
 	}
 	actors.resize(actors.size()-removed);
+	//if (removed>0) ls_message("ActorStage: %d actors removed\n", removed);
 }
 
 void ActorStage::setupActors() {
@@ -69,4 +70,10 @@ void ActorStage::setupActors() {
 void ActorStage::drawActors() {
 	for(int i=0; i<actors.size(); ++i)
 		actors[i]->draw();
+}
+
+void ActorStage::removeAllActors() {
+	for(int i=0; i<actors.size(); ++i)
+		actors[i]->kill();
+	actors.clear();
 }

@@ -31,7 +31,7 @@ Map::Map(IGame *thegame)
 
     env = thegame->getEnvironment();
 
-    EventRemapper *r = thegame->getEventRemapper();
+    Ptr<EventRemapper> r = thegame->getEventRemapper();
     r->map("map_magnify", SigC::slot(*this, & Map::magnify));
     r->map("map_demagnify", SigC::slot(*this, & Map::demagnify));
     ls_message("end Map::Map\n");

@@ -24,6 +24,7 @@
 #include <modules/ui/Console.h>
 #include <modules/ui/Surface.h>
 #include <modules/scripting/IoScriptingManager.h>
+#include <modules/scripting/mappings.h>
 
 #include <modules/actors/RigidActor.h>
 
@@ -50,6 +51,12 @@ Game::Game(int argc, const char **argv)
     config->feedArguments(argc, argv);
     ls_message("Continuing initialization from Io language:\n");
     io_scripting_manager = new IoScriptingManager(this);
+    addBasicMappings(this, io_scripting_manager->getMainState());
+    {
+		char buf[256];
+		strncpy(buf,config->query("Io_init_script"),256);
+		IoState_doFile_(io_scripting_manager->getMainState(), buf);
+    }
     ls_message("done.\n");
 
     ls_message("Initializing SDL: ");
@@ -147,7 +154,6 @@ Game::Game(int argc, const char **argv)
     Ptr<SmokeTrail> smoke;
 
     for(int i=0; i<5; i++) {
-        ls_message("create drone.\n");
         drone = new Drone(this);
         Vector p = Vector(
             1000.0f*RAND,
@@ -163,9 +169,7 @@ Game::Game(int argc, const char **argv)
         else if (3*r<2) drone->setFaction(Faction::basic_factions.faction_b);
         else drone->setFaction(Faction::basic_factions.faction_c);
 
-        ls_message("add drone.\n");
         addActor( drone );
-        ls_message("done.\n");
         //smoke = new SmokeTrail(this);
         //smoke->follow(drone);
         //addActor( smoke );
@@ -174,9 +178,15 @@ Game::Game(int argc, const char **argv)
     setCurrentView(drone->getView(0));
     setCurrentlyControlledActor(drone);
 
-    for(int i=0; i<5; ++i) {
+    for(int i=0; i<25; ++i) {
         Ptr<Tank> tank = new Tank(this);
-        tank->setLocation(Vector(RAND*5000,0,RAND*5000));
+        
+        float r = RAND;
+        if (3*r<1) tank->setFaction(Faction::basic_factions.faction_a);
+        else if (3*r<2) tank->setFaction(Faction::basic_factions.faction_b);
+        else tank->setFaction(Faction::basic_factions.faction_c);
+        
+        tank->setLocation(Vector(RAND*15000,0,RAND*15000));
         addActor(tank);
     }
     
@@ -197,6 +207,12 @@ Game::Game(int argc, const char **argv)
     addActor(a);
 
     console = new UI::Console(this, getScreenSurface());
+    addMappings(this, io_scripting_manager->getMainState());
+    {
+		char buf[256];
+		strncpy(buf,config->query("Io_init_script_2"),256);
+		IoState_doFile_(io_scripting_manager->getMainState(), buf);
+    }
 
     while (clock->catchup(1.0f)) ;
 }
@@ -205,7 +221,7 @@ Game::~Game()
 {
     the_game = 0;
 
-    delete event_remapper;
+    event_remapper = 0;
     ls_message("Exiting SDL.\n");
     SDL_Quit();
     ls_message("Exiting game.\n");
@@ -213,6 +229,7 @@ Game::~Game()
 
 void Game::run()
 {
+	Ptr<IGame> guard = this;
     game_done=false;
 
     doEvents();
@@ -222,7 +239,40 @@ void Game::run()
         postFrame();
     }
     
+    //Object::debug();
+    
     io_scripting_manager = 0;
+    removeAllActors();
+    current_view = 0;
+    current_actor = 0;
+    texman->shutdown();
+    texman = 0;
+
+    event_remapper = 0;
+
+    camera = 0;
+    clock = 0;
+    config = 0;
+    fontman = 0;
+	soundman->shutdown();
+    soundman = 0;
+    modelman = 0;
+    collisionman = 0;
+#if ENABLE_LOD_TERRAIN
+    quadman = 0;
+#endif
+#if ENABLE_SKYBOX
+    skybox = 0;
+#endif
+#if ENABLE_MAP
+    map = 0;
+#endif
+#if ENABLE_GUNSIGHT
+    gunsight = 0;
+#endif
+    ls_message("exiting with %d references left.\n", getRefs());
+    SDL_WM_GrabInput(SDL_GRAB_OFF);
+    SDL_ShowCursor(SDL_ENABLE);
 }
 
 
@@ -235,7 +285,7 @@ JRenderer *Game::getRenderer()
     return renderer;
 }
 
-EventRemapper *Game::getEventRemapper()
+Ptr<EventRemapper> Game::getEventRemapper()
 {
     return event_remapper;
 }
@@ -415,75 +465,33 @@ namespace {
 
 void Game::initControls()
 {
-    EventRemapper *r = getEventRemapper();
-    r->mapKey(SDLK_ESCAPE, true, "endgame");
+    Ptr<EventRemapper> r = getEventRemapper();
     r->map("endgame", SigC::slot(*this, & Game::endGame));
 
-    r->mapKey(SDLK_TAB, true,  "map_magnify");
-    r->mapKey(SDLK_TAB, false, "map_demagnify");
-
-    r->mapKey(SDLK_w, true,  "+strafe_forward");
-    r->mapKey(SDLK_w, false, "-strafe_forward");
-    r->mapKey(SDLK_s, true,  "+strafe_backward");
-    r->mapKey(SDLK_s, false, "-strafe_backward");
-    r->mapKey(SDLK_a, true,  "+strafe_left");
-    r->mapKey(SDLK_a, false, "-strafe_left");
-    r->mapKey(SDLK_d, true,  "+strafe_right");
-    r->mapKey(SDLK_d, false, "-strafe_right");
-
-    r->mapKey(SDLK_UP, true, "+forward");
-    r->mapKey(SDLK_UP, false, "-forward");
-    r->mapKey(SDLK_DOWN, true, "+backward");
-    r->mapKey(SDLK_DOWN, false, "-backward");
-    r->mapKey(SDLK_LEFT, true, "+left");
-    r->mapKey(SDLK_LEFT, false, "-left");
-    r->mapKey(SDLK_RIGHT, true, "+right");
-    r->mapKey(SDLK_RIGHT, false, "-right");
-
-    r->mapKey(SDLK_1, true, "throttle0");
     r->map("throttle0", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.0f));
-    r->mapKey(SDLK_2, true, "throttle1");
     r->map("throttle1", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.11f));
-    r->mapKey(SDLK_3, true, "throttle2");
     r->map("throttle2", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.22f));
-    r->mapKey(SDLK_4, true, "throttle3");
     r->map("throttle3", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.33f));
-    r->mapKey(SDLK_5, true, "throttle4");
     r->map("throttle4", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.44f));
-    r->mapKey(SDLK_6, true, "throttle5");
     r->map("throttle5", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.55f));
-    r->mapKey(SDLK_7, true, "throttle6");
     r->map("throttle6", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.66f));
-    r->mapKey(SDLK_8, true, "throttle7");
     r->map("throttle7", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.77f));
-    r->mapKey(SDLK_9, true, "throttle8");
     r->map("throttle8", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.88f));
-    r->mapKey(SDLK_0, true, "throttle9");
     r->map("throttle9", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 1.0f));
 
-    r->mapKey(SDLK_HOME, true, "autopilot");
     r->map("autopilot", SigC::slot(*this, &Game::toggleControlMode));
 
-    r->mapKey(SDLK_p, true, "pause");
     r->map("pause", SigC::slot(*this, & Game::togglePauseMode));
-    r->mapKey(SDLK_CARET, true, "toggle-console");
-
-    r->mapKey(SDLK_F1, true, "view0");
-    r->mapKey(SDLK_F2, true, "view1");
-    r->mapKey(SDLK_F3, true, "view2");
-    r->mapKey(SDLK_F4, true, "view3");
-    r->mapKey(SDLK_F5, true, "view4");
-    r->mapKey(SDLK_F6, true, "view5");
     r->map("view0", SigC::bind(
     	SigC::slot(*this, &Game::setView), 0));
     r->map("view1", SigC::bind(
@@ -496,65 +504,15 @@ void Game::initControls()
     	SigC::slot(*this, &Game::setView), 4));
     r->map("view5", SigC::bind(
     	SigC::slot(*this, &Game::setView), 5));
-    r->mapKey(SDLK_n, true, "next-view-subject");
     r->map("next-view-subject", SigC::slot(*this, &Game::nextTarget));
-    r->mapKey(SDLK_v, true, "external-view");
     r->map("external-view", SigC::slot(*this, &Game::externalView));
 
-    r->mapKey(SDLK_BACKSPACE, true, "cycle-primary");
-    r->mapKey(SDLK_RETURN,    true, "cycle-secondary");
-    r->mapKey(SDLK_LCTRL, true,  "+primary");
-    r->mapKey(SDLK_LCTRL, false, "-primary");
-    r->mapKey(SDLK_SPACE, true,  "+secondary");
-    r->mapKey(SDLK_SPACE, false, "-secondary");
-    r->mapKey(SDLK_RCTRL, true,  "+tertiary");
-    r->mapKey(SDLK_RCTRL, false, "-tertiary");
-    
-    r->mapMouseButton(1, true,  "+primary");
-    r->mapMouseButton(1, false, "-primary");
-    r->mapMouseButton(3, true,  "+secondary");
-    r->mapMouseButton(3, false, "-secondary");
-    r->mapMouseButton(2, true,  "+tertiary");
-    r->mapMouseButton(2, false, "-tertiary");
-    r->mapMouseButton(4, true,  "cycle-secondary");
-    r->mapMouseButton(5, true,  "cycle-secondary");
-    r->mapJoystickButton(0, 0, true,  "+primary");
-    r->mapJoystickButton(0, 0, false, "-primary");
-    r->mapJoystickButton(0, 1, true,  "+secondary");
-    r->mapJoystickButton(0, 1, false, "-secondary");
-    r->mapJoystickButton(0, 2, true,  "gunsight_target");
-    r->mapJoystickButton(0, 3, true,  "cycle-secondary");
-    
-
-    r->mapKey(SDLK_F12, true, "debug");
-
-    r->mapKey(SDLK_r, true, "previous-target");
-    r->mapKey(SDLK_t, true, "next-target");
-    r->mapKey(SDLK_h, true, "next-hostile-target");
-    r->mapKey(SDLK_f, true, "next-friendly-target");
-    r->mapKey(SDLK_g, true, "gunsight-target");
-    r->mapKey(SDLK_z, true, "nearest-target");
-    
-    //r->map("next_target", SigC::slot(*this, &Game::nextTarget));
-    //r->mapKey(SDLK_g, true, "gunsight_target");
-    //r->mapKey(SDLK_h, true, "toggle_gunsight_info");
-
-    r->mapKey(SDLK_F9, true, "faster");
-    r->mapKey(SDLK_F10, true, "slower");
     r->map("faster", SigC::slot(*this, &Game::accelerateSpeed));
     r->map("slower", SigC::slot(*this, &Game::decelerateSpeed));
-
-    r->mapJoystickAxis(0,0,"js_aileron");
-    r->mapJoystickAxis(0,1,"js_elevator");
-    r->mapJoystickAxis(0,2,"js_rudder");
-    r->mapJoystickAxis(0,3,"js_throttle");
     
     r->addAxisManipulator(
         AxisManipulator(new LinearAxisTransform(-0.5f, 0.5f), "js_throttle2")
         .input("js_throttle"));
-
-    r->mapRelativeMouseAxes("mouse_rel_x", "mouse_rel_y");
-    r->mapAbsoluteMouseAxes("mouse_abs_x", "mouse_abs_y");
 
     r->addAxisManipulator(
         AxisManipulator(new LinearAxisTransform(1.0f/5, 0.0f), "mouse_aileron")
