@@ -23,7 +23,7 @@
 //#define FOG_COLOR_GREEN 255.0f
 //#define FOG_COLOR_BLUE  0.0f
 
-#define CLIP_MIN_RANGE     2.0f
+#define CLIP_MIN_RANGE     0.2f
 #define CLIP_MAX_RANGE 20000.0f
 
 #define GROUND_FOG_MIN      0.0f

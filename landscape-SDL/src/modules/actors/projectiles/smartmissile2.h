@@ -11,6 +11,8 @@
 
 
 class MissileEngine2;
+class RigidEngine;
+class SoundSource;
 
 class SmartMissile2: public SimpleActor, public Collide::Collidable
 {
@@ -29,6 +31,10 @@ public:
     virtual void update(float delta_t, const Transform * new_transforms);
     virtual void collide(const Collide::Contact & c);
 
+    virtual int getNumViews();
+    virtual Ptr<IView> getView(int n);
+
+
 private:
     void explode();
 
@@ -39,8 +45,10 @@ private:
     Ptr<ITerrain> terrain;
     Rendezvous rendezvous;
     float damage;
-    Ptr<MissileEngine2> engine;
+    //Ptr<MissileEngine2> engine;
+    Ptr<RigidEngine> engine;
     Vector d_error_old, omega_error_old;
+    Ptr<SoundSource> engine_sound_src;
 };
 
 

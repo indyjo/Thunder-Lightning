@@ -45,7 +45,7 @@ void MissileEngine::run() {
     Vector drag_force_f = - d * (cw_f * v2 * frontal_area * rho / 2.0);
 
     // side
-    const static float cw_s = 1.2;
+    const static float cw_s = 5;
     Vector v_s = v - v_f; // side component of velocity
     v2 = v_s.lengthSquare();
     v_s.normalize();
@@ -160,6 +160,7 @@ void SmartMissileEngine::run() {
 // MissileEngine2
 ///////////////////////////////////////////////////////////////////////////
 
+/*
 void MissileEngine2::run() {
     // air density
     const static float rho = 1.293;
@@ -172,6 +173,42 @@ void MissileEngine2::run() {
     Vector vs = getVelocityAt(p);
     vs = vs - d * (vs*d);
     applyForceAt(-0.01f * vs * vs.length(), p);
+
+    // frontal drag coefficient
+    const static float cw_f = 0.3;
+    Vector v_f = d * (v*d); // frontal component of velocity
+    float v2 = v_f.lengthSquare();
+    Vector drag_force_f = - d * (cw_f * v2 * front_area * rho / 2.0);
+
+    // side drag coefficient
+    const static float cw_s = 1.2;
+    Vector v_s = v - v_f; // side component of velocity
+    v2 = v_s.lengthSquare();
+    v_s.normalize();
+    Vector drag_force_s = - v_s * (cw_s * v2 * side_area * rho / 2.0);
+
+    applyForce(drag_force_f + drag_force_s);
+    applyLinearAcceleration(Vector(0,-9.81,0));
+
+    RigidEngine::run();
+}
+*/
+
+void MissileEngine2::run() {
+    // air density
+    const static float rho = 1.293;
+
+    Vector d = getFrontVector();
+    Vector v = getMovementVector();
+
+    // stabilizing torque
+    Vector omega = getAngularVelocity();
+    Vector omega_z = d * (omega*d);
+    Vector omega_xy = omega - omega_z;
+    Vector v_z = d * (v*d);
+    Vector v_xy = v - v_z;
+    applyTorque(-300 * rho * omega_z.length()*omega_z);
+    applyTorque(-100 * rho * omega_xy.length()*omega_xy);
 
     // frontal drag coefficient
     const static float cw_f = 0.3;

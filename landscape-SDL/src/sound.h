@@ -8,6 +8,8 @@
 #include <object.h>
 #include <modules/math/Vector.h>
 
+struct IConfig;
+
 class Sound : virtual public Object
 {
     ALuint buffer;
@@ -61,7 +63,7 @@ class SoundMan : virtual public Object
     int play_channels;
     
 public:
-    SoundMan(const std::string & sound_dir);
+    SoundMan(Ptr<IConfig>);
     ~SoundMan();
 
     Ptr<Sound> querySound(const std::string & name);

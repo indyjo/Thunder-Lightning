@@ -102,7 +102,7 @@ noinst_LIBRARIES = libcollide.a
 
 INCLUDES = -I${top_srcdir}/src
 
-libcollide_a_SOURCES =          BoundingBox.cc BoundingBox.h               Primitive.cc Primitive.h                   SweepNPrune.h                              CollisionManager.cc CollisionManager.h
+libcollide_a_SOURCES =          BoundingBox.cc BoundingBox.h                   BoundingGeometry.cc BoundingGeometry.h         BoundingNode.cc BoundingNode.h                 Collidable.h Collidable.cc                     Contact.h Contact.cc                           ContactPartner.h                               GeometryInstance.h                             PossibleContact.h PossibleContact.cc           Primitive.cc Primitive.h                       SweepNPrune.h                                  CollisionManager.cc CollisionManager.h
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../../config.h
@@ -115,7 +115,9 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libcollide_a_LIBADD = 
-libcollide_a_OBJECTS =  BoundingBox.$(OBJEXT) Primitive.$(OBJEXT) \
+libcollide_a_OBJECTS =  BoundingBox.$(OBJEXT) BoundingGeometry.$(OBJEXT) \
+BoundingNode.$(OBJEXT) Collidable.$(OBJEXT) Contact.$(OBJEXT) \
+PossibleContact.$(OBJEXT) Primitive.$(OBJEXT) \
 CollisionManager.$(OBJEXT)
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -134,8 +136,9 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/BoundingBox.P .deps/CollisionManager.P \
-.deps/Primitive.P
+DEP_FILES =  .deps/BoundingBox.P .deps/BoundingGeometry.P \
+.deps/BoundingNode.P .deps/Collidable.P .deps/CollisionManager.P \
+.deps/Contact.P .deps/PossibleContact.P .deps/Primitive.P
 SOURCES = $(libcollide_a_SOURCES)
 OBJECTS = $(libcollide_a_OBJECTS)
 

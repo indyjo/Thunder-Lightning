@@ -102,7 +102,8 @@ SUBDIRS =      drone           fx              projectiles     tank
 
 noinst_LIBRARIES = libactors.a
 
-libactors_a_SOURCES = simpleactor.cc simpleactor.h
+libactors_a_SOURCES = simpleactor.cc simpleactor.h 	PassiveActor.h PassiveActor.cc 	RelativeView.h RelativeView.cc 	RigidActor.h RigidActor.cc 	SimpleView.h SimpleView.cc
+
 
 INCLUDES = -I${top_srcdir}/src
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -116,7 +117,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libactors_a_LIBADD = 
-libactors_a_OBJECTS =  simpleactor.$(OBJEXT)
+libactors_a_OBJECTS =  simpleactor.$(OBJEXT) PassiveActor.$(OBJEXT) \
+RelativeView.$(OBJEXT) RigidActor.$(OBJEXT) SimpleView.$(OBJEXT)
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -134,7 +136,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/simpleactor.P
+DEP_FILES =  .deps/PassiveActor.P .deps/RelativeView.P \
+.deps/RigidActor.P .deps/SimpleView.P .deps/simpleactor.P
 SOURCES = $(libactors_a_SOURCES)
 OBJECTS = $(libactors_a_OBJECTS)
 

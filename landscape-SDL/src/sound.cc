@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <landscape.h>
+#include <interfaces/IConfig.h>
 #include "sound.h"
 
 #include <AL/alu.h>
@@ -44,7 +45,7 @@ SoundSource::SoundSource(Ptr<SoundMan> soundman)
 :   soundman(soundman)
 {
     alGenSources( 1, & source );
-    alSourcef(source, AL_REFERENCE_DISTANCE, 300.0f);
+    alSourcef(source, AL_REFERENCE_DISTANCE, 50.0f);
 }
 
 SoundSource::~SoundSource() {
@@ -97,17 +98,18 @@ bool SoundSource::isPlaying() {
     return state == AL_PLAYING;
 }
 
-SoundMan::SoundMan(const string & sound_dir)
-: sound_dir(sound_dir) {
+SoundMan::SoundMan(Ptr<IConfig> config)
+:	sound_dir(config->query("SoundMan_sound_dir"))
+{
     device = alcOpenDevice( NULL );
     if (device == NULL ) ls_error("Soundman: Couldn't open audio device.");
     context = alcCreateContext( device, NULL );
     if (context == NULL ) ls_error("Soundman: Couldn't open audio context.");
     alcMakeContextCurrent( context );
     
-    alDopplerVelocity(330.0);
-    alDopplerFactor(0);
-    play_channels = 32;
+    alDopplerVelocity(config->queryFloat("SoundMan_doppler_velocity",10000.0));
+    alDopplerFactor(config->queryFloat("SoundMan_doppler_factor", 1));
+    play_channels = config->queryInt("SoundMan_channels", 32);
 }
 
 SoundMan::~SoundMan() {

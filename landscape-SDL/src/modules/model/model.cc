@@ -28,7 +28,7 @@ void Model::parseObjFile(TextureManager & texman, istream & in, const char *dir)
     grps.push_back( Group(mtls["Default"]) ); // Add a default group
 
     while (in >> op) {
-        ls_message("[Model: Operator %s]\n", op.c_str());
+        //ls_message("[Model: Operator %s]\n", op.c_str());
 
         if (op == "v") {                // Vertice
             Vector vec;
@@ -58,13 +58,13 @@ void Model::parseObjFile(TextureManager & texman, istream & in, const char *dir)
             string filename;
             in >> filename;
             filename = string(dir) + "/" + filename;
-            ls_message("[  mtllib: %s]\n", filename.c_str());
+            //ls_message("[  mtllib: %s]\n", filename.c_str());
             ifstream file(filename.c_str());
             parseMtlFile(texman, file, dir);
         } else if ( op == "usemtl" ) {  // Start new Material+faces group
             string mtlname;
             in >> mtlname;
-            ls_message("[  usemtl: %s]\n", mtlname.c_str());
+            //ls_message("[  usemtl: %s]\n", mtlname.c_str());
             grps.push_back( Group(mtls[mtlname]) );
         } else if ( op == "f" ) {       // Face
         	char line[256];
@@ -94,7 +94,7 @@ void Model::parseObjFile(TextureManager & texman, istream & in, const char *dir)
                 ++count;
         	}
         	
-        	ls_message("read %d-face\n", count);
+        	//ls_message("read %d-face\n", count);
             
             for (int i=0; i<count-2; ++i) {
 	        	Face face;
@@ -111,11 +111,11 @@ void Model::parseObjFile(TextureManager & texman, istream & in, const char *dir)
         } else if ( op == "g" ) {
         	string groupname;
         	in >> groupname;
-        	ls_message("Group: %s\n", groupname.c_str());
+        	//ls_message("Group: %s\n", groupname.c_str());
         } else {
             // Unknown operator, ignore till next line
             read_to_eol(in);
-            ls_warning("OBJ Operator %s unknown.\n", op.c_str());
+            //ls_warning("OBJ Operator %s unknown.\n", op.c_str());
         }
 
         // Read to end of line

@@ -25,6 +25,9 @@ public:
     
     virtual void setLocation(const Vector & p);
 
+    virtual int getNumViews();
+    virtual Ptr<IView> getView(int n);
+
     void explode();
 
     void shoot();
@@ -36,9 +39,6 @@ private:
     JRenderer * renderer;
     Ptr<ITerrain> terrain;
 
-    // special views
-    Ptr<RelativeView> cannon_view, turret_view;
-    
     // 3d models
     Ptr<Model> base, turret, cannon;
 

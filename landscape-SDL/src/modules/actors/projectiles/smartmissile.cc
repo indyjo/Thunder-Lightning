@@ -2,6 +2,7 @@
 #include <modules/actors/fx/explosion.h>
 #include <modules/engines/missileengine.h>
 #include <interfaces/ICamera.h>
+#include <interfaces/IConfig.h>
 #include <interfaces/ITerrain.h>
 #include <sound.h>
 
@@ -31,6 +32,14 @@ SmartMissile::SmartMissile(Ptr<IGame> thegame, Ptr<IActor> target)
         thegame->addActor(marker);
     }
 
+    engine_sound_src = thegame->getSoundMan()->requestSource();
+    engine_sound_src->setPosition(getLocation());
+    engine_sound_src->setVelocity(getMovementVector());
+    engine_sound_src->setLooping(true);
+    //engine_sound_src->setGain(0.01);
+    engine_sound_src->play(thegame->getSoundMan()->querySound(
+            thegame->getConfig()->query("Missile_engine_sound")));
+
 }
 
 
@@ -55,6 +64,12 @@ void SmartMissile::action()
     Vector p = getLocation();
     Vector v = getMovementVector();
     Vector d = engine->getDirection();
+    engine_sound_src->setPosition(getLocation());
+    engine_sound_src->setVelocity(getMovementVector());
+    if (age < BLAST_BEGIN) {
+    	engine_sound_src->setGain(age/BLAST_BEGIN);
+    	//engine_sound_src->setPitch(0.2 + 0.8* age/BLAST_BEGIN);
+    }
 
     // Aiming
     if (target) {
@@ -72,10 +87,20 @@ void SmartMissile::action()
 
         rendezvous.updateSource(p, Vector(0,0,0), Vector(0,0,0));
         rendezvous.updateTarget(delta_t, target_pos, target_speed);
-        rendezvous.setVelocity(1000.0f);
+        rendezvous.setVelocity(v.length());
         Vector rendezvous_point;
         if (v.length() > MIN_INTERCEPT_SPEED) {
             rendezvous_point = rendezvous.calculate();
+            float dist = (target_pos-p).length();
+            float d1 = 3000;
+            float d2 = 1500;
+            if (dist>d1) {
+            	rendezvous_point = target_pos;
+            } else if (dist>d2) {
+            	float t = (dist-d2) / (d1-d2);
+            	t*t;
+            	rendezvous_point = (1-t)*rendezvous_point + t*target_pos;
+            }
         } else {
             rendezvous_point = target_pos;
         }
@@ -96,7 +121,7 @@ void SmartMissile::action()
 
     if(age > BLAST_BEGIN && age < BLAST_END) engine->setThrust(BLAST_THRUST);
     else engine->setThrust(0);
-
+    
     Vector p_old = p;
     SimpleActor::action();
     p = getLocation();
@@ -209,7 +234,7 @@ void SmartMissile::shoot(
     Ptr<SoundSource> soundsource = soundman->requestSource();
     if (soundsource) {
         soundsource->setPosition(pos);
-        soundsource->play( soundman->querySound("missile-shoot-1.wav") );
+        //soundsource->play( soundman->querySound("missile-shoot-1.wav") );
     }
     
     if (target) {
@@ -246,5 +271,6 @@ void SmartMissile::explode()
         damage *= MAX_DAMAGE;
         target->applyDamage(damage);
     }
+    engine_sound_src->stop();
 }
     

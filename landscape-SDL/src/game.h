@@ -79,7 +79,7 @@ private:
     void decelerateSpeed();
     
     void setView(int);
-    void returnView();
+    void externalView();
     
     void nextTarget();
     void toggleControlMode();

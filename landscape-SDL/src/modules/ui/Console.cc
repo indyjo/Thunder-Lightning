@@ -60,8 +60,10 @@ void Console::putChar(char c) {
         break;
     default:
         if (lines.back().size() == max_chars)
-            return;
+            lines.push_back("");
         lines.back().append(1,c);
+        if (lines.size() > max_lines)
+            lines.pop_front();
     }
 }
 
@@ -148,6 +150,10 @@ bool Console::feedEvent(SDL_Event & ev) {
         		   && cursor_pos<command.size())
         {
         	cursor_pos++;
+        } else if (ev.key.keysym.sym == SDLK_HOME) {
+        	cursor_pos=0;
+        } else if (ev.key.keysym.sym == SDLK_END) {
+        	cursor_pos=command.size();
         } else if (unicode == '\r') {
         	if (bracecount == 0) putString("# ");
         	else 				 putString("> ");

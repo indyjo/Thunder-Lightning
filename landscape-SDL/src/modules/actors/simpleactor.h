@@ -14,12 +14,9 @@
 class SimpleActor : virtual public IActor
 {
 protected:
-    class RelativeView;
-
     Ptr<IGame> thegame;
     Ptr<IEngine> engine;
     State state;
-    std::vector<Ptr<IView> > views;
     Ptr<TargetInfo> target_info;
     Ptr<Faction> faction;
 public:
@@ -63,45 +60,6 @@ public:
 
     // IDrawable
     virtual void draw();
-};
-
-class SimpleActor::RelativeView : virtual public IView {
-    IActor &subject;
-    Vector p,up,right,front;
-    Ptr<IDrawable> gunsight;
-public:
-    inline RelativeView(IActor & subject,
-        const Vector & p,
-        const Vector & right,
-        const Vector & up,
-        const Vector & front,
-        Ptr<IDrawable> gunsight=0)
-    :   subject(subject),
-        p(p),
-        up(up), right(right), front(front),
-        gunsight(gunsight)
-    { }
-    
-    void SimpleActor::RelativeView::set(
-        const Vector & p,
-        const Vector & right,
-        const Vector & up,
-        const Vector & front);
-    
-
-    // IPositionProvider
-    virtual Vector getLocation();
-    virtual Vector getFrontVector();
-    virtual Vector getRightVector();
-    virtual Vector getUpVector();
-    virtual void getOrientation(Vector * up, Vector * right, Vector * front);
-    
-    // IMovementProvider
-    virtual Vector getMovementVector();
-    
-    // IView
-    virtual Ptr<IActor> getViewSubject();
-    virtual Ptr<IDrawable> getGunsight();
 };
 
 #endif

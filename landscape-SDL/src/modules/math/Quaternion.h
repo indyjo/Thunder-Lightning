@@ -59,7 +59,8 @@ public:
     inline XVector<3,T> rot(const XVector<3,T> & v) const
     { return ((*this) * XQuaternion(0, v) * conj()).imag(); }
 
-    inline void toMatrix(XMatrix<4,T> & m) {
+    inline void toMatrix(XMatrix<4,T> & m) const {
+    	/*
         T ww = u*u;
         T xx = v[0]*v[0];
         T yy = v[1]*v[1];
@@ -90,10 +91,16 @@ public:
         m(0,3) = 0;
         m(1,3) = 0;
         m(2,3) = 0;
-        m(3,3) = ww + xx + yy + zz;
+        m(3,3) = ww + xx + yy + zz;*/
+        
+        m = XMatrix<4,T>::Hom(MatrixFromColumns(
+        	rot(Vector(1,0,0)),
+        	rot(Vector(0,1,0)),
+        	rot(Vector(0,0,1))));
     }
 
-    inline void toMatrix(XMatrix<3,T> & m) {
+    inline void toMatrix(XMatrix<3,T> & m) const {
+    	/*
         T ww = u*u;
         T xx = v[0]*v[0];
         T yy = v[1]*v[1];
@@ -116,7 +123,11 @@ public:
 
         m(0,2) = xz2 - wy2;
         m(1,2) = yz2 + wx2;
-        m(2,2) = ww - xx - yy + zz;
+        m(2,2) = ww - xx - yy + zz;*/
+        m = MatrixFromColumns(
+        	rot(Vector(1,0,0)),
+        	rot(Vector(0,1,0)),
+        	rot(Vector(0,0,1)));
     }
 
     inline void fromMatrix(const XMatrix<3,T> & M) {

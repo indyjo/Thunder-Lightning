@@ -7,6 +7,8 @@
 #include <modules/actors/simpleactor.h>
 
 class SmartMissileEngine;
+class SoundSource;
+
 
 class TargetMarker : public SimpleActor
 {
@@ -49,4 +51,5 @@ private:
     Rendezvous rendezvous;
     float damage;
     Ptr<SmartMissileEngine> engine;
+    Ptr<SoundSource> engine_sound_src;
 };

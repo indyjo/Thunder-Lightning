@@ -18,6 +18,7 @@ class PatrolIdea;
 struct Context;
 struct Rating;
 class Targeter;
+struct SoundSource;
 
 class EventSheet;
 
@@ -46,12 +47,16 @@ public:
 
     virtual void integrate(float delta_t, Transform * transforms);
     virtual void update(float delta_t, const Transform * new_transforms);
+    
+    virtual int getNumViews();
+    virtual Ptr<IView> getView(int n);
 
     void explode();
 
     void fireBullet();
-    void fireSmartMissile();
     void fireDumbMissile();
+    void fireSmartMissile();
+    void fireSmartMissile2();
     
     virtual bool hasControlMode(ControlMode);
     virtual void setControlMode(ControlMode);
@@ -70,6 +75,7 @@ private:
 private:
     JRenderer * renderer;
     Ptr<ITerrain> terrain;
+    Ptr<SoundSource> engine_sound_src;
 
     // ai stuff
     Ptr<EventSheet> event_sheet;

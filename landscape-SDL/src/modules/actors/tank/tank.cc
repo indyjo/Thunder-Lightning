@@ -15,6 +15,8 @@
 #include <interfaces/ITerrain.h>
 #include <sound.h>
 #include <remap.h>
+#include <modules/actors/SimpleView.h>
+#include <modules/actors/RelativeView.h>
 
 #define PI 3.14159265358979323846
 
@@ -26,6 +28,53 @@
 #define MUZZLE_VELOCITY 600.0f
 #define BULLET_RANGE 2000.0f
 #define BULLET_TTL (BULLET_RANGE / MUZZLE_VELOCITY)
+
+struct CannonView: public SimpleView {
+	Ptr<TankEngine> engine;
+	
+	CannonView::CannonView(
+		Ptr<IActor> subject,
+		Ptr<TankEngine> engine,
+		Ptr<IDrawable> gunsight=0)
+	:	SimpleView(subject,gunsight),
+		engine(engine)
+	{ }
+	
+	virtual void getPositionAndOrientation(Vector*pos, Matrix3 *orient)
+	{
+	    Vector right,up,front;
+	    engine->getOrientation(&up,&right,&front);
+	    *orient =
+	    	MatrixFromColumns(right,up,front)
+	        * RotateYMatrix<float>(engine->getTurretAngle())
+	    	* RotateXMatrix<float>(-engine->getCannonAngle());
+	    *pos = subject->getLocation() + (*orient) * Vector(0,6,-3);
+	}
+};
+
+struct TurretView: public SimpleView {
+	Ptr<TankEngine> engine;
+	
+	TurretView::TurretView(
+		Ptr<IActor> subject,
+		Ptr<TankEngine> engine,
+		Ptr<IDrawable> gunsight=0)
+	:	SimpleView(subject,gunsight),
+		engine(engine)
+	{ }
+	
+	virtual void getPositionAndOrientation(Vector*pos, Matrix3 *orient)
+	{
+	    Vector right,up,front;
+	    engine->getOrientation(&up,&right,&front);
+	    *orient =
+	    	MatrixFromColumns(right,up,front)
+	        * RotateYMatrix<float>(engine->getTurretAngle());
+	    *pos = subject->getLocation() + (*orient) * Vector(0,15,-30);
+	}
+};
+
+
 
 Tank::Tank(Ptr<IGame> thegame)
 : SimpleActor(thegame),
@@ -64,64 +113,23 @@ Tank::Tank(Ptr<IGame> thegame)
     turret = thegame->getModelMan()->query(turret_file);
     cannon = thegame->getModelMan()->query(cannon_file);
 
-    Ptr<FlexibleGunsight> gunsight1 = new FlexibleGunsight(thegame);
-    gunsight1->addBasicCrosshairs();
-    gunsight1->addDebugInfo(thegame, this);
-    
-    Ptr<FlexibleGunsight> gunsight2 = new FlexibleGunsight(thegame);
-    gunsight2->addDebugInfo(thegame, this);
-    
-    views.clear();
-    views.push_back(new RelativeView(
-            *this,
-            Vector(0.0f, 1.5f, 1.5f),
-            Vector(1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,1),
-            gunsight2));
-    cannon_view = new RelativeView(
-            *this,
-            Vector(0.0f, 2.413f, 0.424f),
-            Vector(1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,1),
-            gunsight1);
-    views.push_back(cannon_view);
-    views.push_back(new RelativeView(
-            *this,
-            Vector(0,8,-12),
-            Vector(1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,1),
-            gunsight2));
-    views.push_back(new RelativeView(
-            *this,
-            Vector(0,10,18),
-            Vector(-1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,-1),
-            gunsight2));
-    turret_view = new RelativeView(
-            *this,
-            Vector(0,15,-30),
-            Vector(1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,1),
-            gunsight1);
-    views.push_back(turret_view);
-
     sound_low = thegame->getSoundMan()->requestSource();
     sound_low->setPosition(p);
     sound_low->setLooping(true);
+    sound_low->setGain(0.0001);
+    /*
     sound_low->play(thegame->getSoundMan()->querySound(
             thegame->getConfig()->query("Tank_engine_sound_low")));
+    */
 
     sound_high = thegame->getSoundMan()->requestSource();
     sound_high->setPosition(p);
     sound_high->setLooping(true);
+    sound_high->setGain(0.0001);
+    /*
     sound_high->play(thegame->getSoundMan()->querySound(
             thegame->getConfig()->query("Tank_engine_sound_high")));
-
+	*/
 
     event_sheet = new EventSheet;
     thegame->getEventRemapper()->map("+primary",
@@ -175,40 +183,20 @@ void Tank::action() {
 
     //setTargetInfo(main_idea->getInfo());
     SimpleActor::action();
-
-    Matrix3 M = MatrixFromColumns(
-            Vector(-1, 0, 0),
-            Vector( 0, 0,-1),
-            Vector( 0, 1, 0));
-    M = M *
-        RotateZMatrix<float>(-tank_engine->getTurretAngle());
-
-    turret_view->set(
-        M * Vector(0, 30, 15),
-        M * Vector(-1, 0, 0),
-        M * Vector( 0, 0, 1),
-        M * Vector( 0,-1, 0));
-
-    M = M * RotateXMatrix<float>(-tank_engine->getCannonAngle());
-
-    cannon_view->set(
-        M * Vector(0, 3, 6),
-        M * Vector(-1, 0, 0),
-        M * Vector( 0, 0, 1),
-        M * Vector( 0,-1, 0));
+    sound_high->setPosition(getLocation());
+    sound_high->setVelocity(getMovementVector());
+    sound_low->setPosition(getLocation());
+    sound_low->setVelocity(getMovementVector());
 
     float v = getMovementVector().length();
-    float gain = 1.0f - std::min(1.0f, v/20.0f);
+    //float gain = 1.0f - std::min(1.0f, v/20.0f);
     //float gain = 1.0f;
-    gain *= gain;
-    gain *= gain;
-    sound_high->setPitch(0.5f + 1.5*std::min(1.0f,v/30));
-    sound_high->setGain(1);
-    sound_low->setGain(0.2f * gain);
-    sound_high->setPosition(getLocation());
-    sound_low->setPosition(getLocation());
-    sound_high->setVelocity(getMovementVector());
-    sound_low->setVelocity(getMovementVector());
+    //gain *= gain;
+    //gain *= gain;
+    //sound_high->setPitch(0.5f + 1.5*std::min(1.0f,v/30));
+    sound_high->setGain(1000.0000);
+    //sound_low->setGain(0.000001 * 0.2f * gain);
+    sound_low->setGain(0.00000);
 }
 
 
@@ -325,6 +313,52 @@ void Tank::setControlMode(ControlMode m) {
     }
 }
 
+int Tank::getNumViews() {
+	return 5;
+}
+
+Ptr<IView> Tank::getView(int n) {
+
+    Ptr<FlexibleGunsight> gunsight1 = new FlexibleGunsight(thegame);
+    gunsight1->addBasicCrosshairs();
+    gunsight1->addDebugInfo(thegame, this);
+    
+    Ptr<FlexibleGunsight> gunsight2 = new FlexibleGunsight(thegame);
+    gunsight2->addDebugInfo(thegame, this);
+    
+    switch(n) {
+    case 0:
+    	return new RelativeView(
+            this,
+            Vector(0.0f, 1.5f, 1.5f),
+            Vector(1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,1),
+            gunsight2);
+    case 1:
+    	return new CannonView(this, tank_engine, gunsight1);
+    case 2:
+    	return new RelativeView(
+            this,
+            Vector(0,8,-12),
+            Vector(1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,1),
+            gunsight2);
+    case 3:
+    	return new RelativeView(
+            this,
+            Vector(0,10,18),
+            Vector(-1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,-1),
+            gunsight2);
+    case 4:
+    	return new TurretView(this, tank_engine, gunsight1);
+    default:
+    	return 0;
+    }
+}
 
 #define MAX_EXPLOSION_SIZE 6.0
 #define MIN_EXPLOSION_SIZE 1.0

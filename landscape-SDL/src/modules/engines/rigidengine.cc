@@ -14,12 +14,10 @@ RigidEngine::RigidEngine(Ptr<IGame> thegame)
 };
 
 void RigidEngine::run() {
-    const Matrix3 & I = getBase().I_inv;
-
     float delta_t = thegame->getClock()->getStepDelta();
     struct RigidBodyState state = getState();
     struct RigidBodyState derivative = getDerivative();
-
+    
     state.P += delta_t * derivative.P;
     state.L += delta_t * derivative.L;
 

@@ -25,6 +25,8 @@
 #include <modules/ui/Surface.h>
 #include <modules/scripting/IoScriptingManager.h>
 
+#include <modules/actors/RigidActor.h>
+
 #include <sound.h>
 #include <Faction.h>
 #include "game.h"
@@ -43,9 +45,11 @@ Game::Game(int argc, const char **argv)
 {
     the_game = this;
 
-    ls_message("Initializing configuration system: ");
+    ls_message("Initializing configuration system:\n");
     config= new Config;
     config->feedArguments(argc, argv);
+    ls_message("Continuing initialization from Io language:\n");
+    io_scripting_manager = new IoScriptingManager(this);
     ls_message("done.\n");
 
     ls_message("Initializing SDL: ");
@@ -120,7 +124,7 @@ Game::Game(int argc, const char **argv)
     event_remapper = new EventRemapper();
     modelman = new ModelMan(texman);
     fontman = new FontMan(this);
-    soundman = new SoundMan(config->query("SoundMan_sound_dir"));
+    soundman = new SoundMan(config);
     collisionman = new Collide::CollisionManager();
     clock = new Clock;
     ls_message("done.\n");
@@ -175,8 +179,23 @@ Game::Game(int argc, const char **argv)
         tank->setLocation(Vector(RAND*5000,0,RAND*5000));
         addActor(tank);
     }
+    
+    Ptr<RigidActor> a = new RigidActor(
+    	this,
+    	collisionman->queryGeometry(
+        	(std::string()+config->query("model_dir")+
+    			"/asteroid/asteroid.bounds").c_str()
+        ));
+    a->setModel(modelman->query(
+    	(std::string()+config->query("model_dir")+
+    		"/asteroid/asteroid.obj").c_str()));
+    a->setLocation(Vector(0, 500, 5000));
+    a->getEngine()->construct(100000, 10000, 10000, 5000);
+    //a->getEngine()->applyAngularImpulse(Vector(10000,100,5000));
+    Ptr<TargetInfo> ti = new TargetInfo("Asteroid", 50, TargetInfo::AIRCRAFT);
+    a->setTargetInfo(ti);
+    addActor(a);
 
-    io_scripting_manager = new IoScriptingManager(this);
     console = new UI::Console(this, getScreenSurface());
 
     while (clock->catchup(1.0f)) ;
@@ -477,9 +496,10 @@ void Game::initControls()
     	SigC::slot(*this, &Game::setView), 4));
     r->map("view5", SigC::bind(
     	SigC::slot(*this, &Game::setView), 5));
+    r->mapKey(SDLK_n, true, "next-view-subject");
+    r->map("next-view-subject", SigC::slot(*this, &Game::nextTarget));
     r->mapKey(SDLK_v, true, "external-view");
-    r->mapKey(SDLK_v, true, "return-view");
-    r->map("return-view", SigC::slot(*this, &Game::returnView));
+    r->map("external-view", SigC::slot(*this, &Game::externalView));
 
     r->mapKey(SDLK_BACKSPACE, true, "cycle-primary");
     r->mapKey(SDLK_RETURN,    true, "cycle-secondary");
@@ -889,12 +909,14 @@ void Game::setView(int n) {
 	setCurrentView(current_view->getViewSubject()->getView(n));
 }
 
-void Game::returnView() {
-	if (!current_actor)
-		return;
-	if (current_view &&  current_view->getViewSubject() == current_actor)
-		return;
-	setCurrentView(current_actor->getView(0));
+void Game::externalView() {
+	if (current_view) {
+		setCurrentView(0);
+	} else {
+		if (!current_actor)
+			return;
+		setCurrentView(current_actor->getView(0));
+	}
 }
 
 void Game::nextTarget() {
@@ -920,11 +942,13 @@ void Game::nextTarget() {
 }
 
 void Game::toggleControlMode() {
-    if (current_actor) {
+	if (!current_view || !current_view->getViewSubject()) {
+		current_actor = 0;
+		return;
+	}
+    if (current_actor && current_actor == current_view->getViewSubject()) {
         setCurrentlyControlledActor(0);
     } else {
-        if (!current_view || !current_view->getViewSubject())
-            return;
         setCurrentlyControlledActor(current_view->getViewSubject());
     }
 }

@@ -1,7 +1,10 @@
+#include <cstring>
 #include <landscape.h>
+#include <interfaces/IConfig.h>
 #include <interfaces/IGame.h>
 
 #include "IoScriptingManager.h"
+#include "mappings.h"
 
 namespace {
 	typedef IoCallbackContext Ctx;
@@ -21,8 +24,10 @@ namespace {
 		}
 		virtual void exceptionCallback(IoException * e) {
 			ls_error("Io Exception: %s - %s\n",
-				IoException_name(e), 
-				IoException_description(e));
+				IoString_asCString(IoException_name(e)), 
+				IoString_asCString(IoException_description(e)));
+			ls_error("%s\n",
+				IoString_asCString(IoException_backTraceString(e, NULL, NULL)));
 		}
 		virtual void exitCallback() {
 			ls_warning("Io has called exit - ignored.\n");
@@ -41,7 +46,7 @@ void IoCallbackContext::connectTo(IoState *state) {
 }
 
 IoScriptingManager::IoScriptingManager(Ptr<IGame> game)
-: main_state(createNewState())
+: game(game), main_state(createNewState())
 {
 }
 
@@ -51,14 +56,14 @@ IoScriptingManager::~IoScriptingManager()
 }
 
 IoState * IoScriptingManager::createNewState() {
-	ls_message("Creating new state.\n");
 	IoState * state = IoState_new();
-	ls_message("Done creating new state.\n");
 	default_context.connectTo(state);
-	
-	//TODO: export C++ classes
-	//IoObject *lobby = IoState_lobby(state);
-	//IoObject_clone(lobby
+
+	addMappings(game, state);
+
+	char buf[256];
+	strncpy(buf,game->getConfig()->query("Io_init_script"),256);
+	IoState_doFile_(state, buf);
 	
 	return state;
 }

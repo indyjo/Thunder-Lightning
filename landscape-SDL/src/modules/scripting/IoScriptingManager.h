@@ -22,6 +22,7 @@ public:
 	inline IoState * getMainState() { return main_state; }
 	IoState * createNewState();
 private:
+	Ptr<IGame> game;
 	IoState * main_state;
 };
 

@@ -7,6 +7,7 @@
 #include <modules/actors/projectiles/bullet.h>
 #include <modules/actors/projectiles/dumbmissile.h>
 #include <modules/actors/projectiles/smartmissile.h>
+#include <modules/actors/projectiles/smartmissile2.h>
 #include <modules/clock/clock.h>
 #include <modules/engines/flightengine2.h>
 #include <modules/gunsight/gunsight.h>
@@ -22,6 +23,7 @@
 
 #include "drone.h"
 #include "ai.h"
+#include <modules/actors/RelativeView.h>
 
 #define PI 3.14159265358979323846
 
@@ -49,8 +51,10 @@ Drone::Drone(Ptr<IGame> thegame)
   mtasker(64*1024),
   control_mode(UNCONTROLLED)
 {
+	Ptr<IConfig> cfg = thegame->getConfig();
     setTargetInfo(new TargetInfo(
-        "Drone", RADIUS, TargetInfo::AIRCRAFT));
+        "Drone", cfg->queryFloat("Drone_target_radius",15),
+        TargetInfo::AIRCRAFT));
 
     drone_controls = new DroneControls;
     engine = new FlightEngine2(thegame);
@@ -60,7 +64,7 @@ Drone::Drone(Ptr<IGame> thegame)
     // Prepare collidable
     setBoundingGeometry(
         thegame->getCollisionMan()->queryGeometry(
-            thegame->getConfig()->query("Drone_model_bounds")));
+            cfg->query("Drone_model_bounds")));
     setRigidBody(engine);
     setActor((IActor*)this);
 
@@ -79,8 +83,8 @@ Drone::Drone(Ptr<IGame> thegame)
     	targeter,
     	mtasker);
 
-    std::string model_file = thegame->getConfig()->query("Drone_model_file");
-    std::string model_path = thegame->getConfig()->query("Drone_model_path");
+    std::string model_file = cfg->query("Drone_model_file");
+    std::string model_path = cfg->query("Drone_model_path");
     model = thegame->getModelMan()->query(model_file);
     //model = new Model(*thegame->getTexMan(), objfile, model_path.c_str());
 
@@ -97,52 +101,6 @@ Drone::Drone(Ptr<IGame> thegame)
     damage = 0;
     primary_reload_time = secondary_reload_time = 0;
 
-    Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
-    gunsight->addDebugInfo(thegame, this);
-    gunsight->addFlightModules(thegame, flight_info);
-    gunsight->addBasicCrosshairs();
-    gunsight->addTargeting(this, targeter);
-    
-    views.clear();
-    Vector pilot_pos(0, 1.5f, 3);
-    views.push_back(new RelativeView(
-            *this,
-            pilot_pos,
-            Vector(1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,1),
-            gunsight));
-    views.push_back(new RelativeView(
-            *this,
-            Vector(0, 10, 30),
-            Vector(-1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,-1)));
-    views.push_back(new RelativeView(
-            *this,
-            Vector(-30,0,15),
-            Vector(0,0,-1),
-            Vector(0,1,0),
-            Vector(1,0,0)));
-    views.push_back(new RelativeView(
-            *this,
-            Vector(30,0,15),
-            Vector(0,0,1),
-            Vector(0,1,0),
-            Vector(-1,0,0)));
-    views.push_back(new RelativeView(
-            *this,
-            Vector(0, 10, -30),
-            Vector(1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,1)));
-    views.push_back(new RelativeView(
-            *this,
-            Vector(0, -10, 30),
-            Vector(-1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,-1)));
-            
     event_sheet = new EventSheet;
     /*
     event_sheet->map("+strafe_forward", SigC::bind(
@@ -196,6 +154,14 @@ Drone::Drone(Ptr<IGame> thegame)
     		SigC::slot(*targeter, &Targeter::selectTargetInGunsight));
     		
     //event_sheet->map("autopilot", SigC::slot(*this, & Player::toggleAutoPilot));
+    
+    engine_sound_src = thegame->getSoundMan()->requestSource();
+    engine_sound_src->setPosition(getLocation());
+    engine_sound_src->setVelocity(getMovementVector());
+    engine_sound_src->setLooping(true);
+    engine_sound_src->setGain(cfg->queryFloat("Drone_engine_gain"));
+    engine_sound_src->play(thegame->getSoundMan()->querySound(
+            cfg->query("Drone_engine_sound")));
 }         
 
 void Drone::action() {
@@ -270,36 +236,52 @@ void Drone::action() {
         explode();
     }
     */
-   	if (p[1] < terrain->getHeightAt(p[0],p[2])+20) {
+   	if (p[1] < terrain->getHeightAt(p[0],p[2])+20 && this==&*thegame->getCurrentlyControlledActor()) {
 	    Vector wheels[3];
 	    int nwheels = sizeof(wheels)/sizeof(Vector);
-	    wheels[0]=Vector(    0, -3,5);
-	    wheels[1]=Vector(-1.65, -3,-0.965); 
-	    wheels[2]=Vector( 1.65, -3,-0.965);
-	    float forces[3] = { 40000, 30000, 30000 };
+	    //wheels[0]=Vector(    0, -3,5);
+	    //wheels[1]=Vector(-1.65, -3,-0.965); 
+	    //wheels[2]=Vector( 1.65, -3,-0.965);
+	    wheels[0]=Vector(    0, -1.7, 2.92);
+	    wheels[1]=Vector(-1.55, -1.4,-2.63); 
+	    wheels[2]=Vector( 1.55, -1.4,-2.63); 
+	    float forces[3] = { 100000, 100000, 100000 };
 	    float dampings[3] = { 7000, 4000, 4000 };
-	    float drag_long[3] = { 100, 1000, 1000 };
-	    float drag_lat[3] = {1000, 0, 0 };
+	    float drag_long[3] = { 500, 500, 500 };
+	    float drag_lat[3] = {100000, 100000, 100000 };
+	    Matrix3 M,M_inv;
+	    engine->getState().q.toMatrix(M);
+	    M_inv = M;
+	    M_inv.transpose();
+	    
 	    Vector up,right,front;
 	    getOrientation(&up,&right,&front);
-	    Matrix M(	right[0], up[0], front[0], 0,
-	    			right[1], up[1], front[1], 0,
-	    			right[2], up[2], front[2], 0,
-	    			       0,     0,        0, 1);
 	    for(int i=0; i<nwheels; ++i) {
 	    	Vector w = M * wheels[i] + p;
 	    	Vector v = engine->getVelocityAt(w);
 	    	float h = terrain->getHeightAt(w[0],w[2]);
-	    	if (w[1] < h+1.5 && w[1] > h-1.5) {
-	    		float pressure = (w[1]-h+1.5)/3;
+	    	if (w[1] < h+1 /*&& w[1] > h-1*/) {
+	    		float pressure = -(w[1]-h-1)/2;
+	    		/*
+	    		ls_message("M:\n");M.dump();
+	    		ls_message("M_inv:\n");M_inv.dump();
+	    		ls_message("up:"); up.dump();
+	    		ls_message("M_inv*up:");(M_inv*up).dump();
+	    		ls_message("wheel %d pressure: %f\n", i, pressure);
+	    		ls_message("force:");(M_inv * (forces[i] * pressure * up)).dump();
+	    		ls_message("at:");(M_inv*(w-p)).dump();
+	    		*/
 	    		engine->applyForceAt(forces[i] * pressure * up, w);
 	    		engine->applyForceAt(-dampings[i]  * up * (up*v), w);
-	    		//engine->applyForceAt(-pressure * drag_long[i] * front*(front*v), w);
+	    		engine->applyForceAt(-pressure * drag_long[i] * front*(front*v), w);
 	    		engine->applyForceAt(-pressure * drag_lat[i] * right*(right*v), w);
 	    	}
 	    }
    	}
     SimpleActor::action();
+    
+    engine_sound_src->setPosition(getLocation());
+    engine_sound_src->setVelocity(getMovementVector());
 
     if (primary_reload_time > 0) primary_reload_time -= delta_t;
     if (secondary_reload_time > 0) secondary_reload_time -= delta_t;
@@ -318,6 +300,9 @@ void Drone::action() {
         case 1:
             fireSmartMissile();
             break;
+        case 2:
+        	fireSmartMissile2();
+        	break;
         }
     }
 
@@ -404,6 +389,69 @@ float Drone::getRelativeDamage() {
     return std::max(0.0f, std::min(1.0f, this->damage));
 }
 
+int Drone::getNumViews() {
+	return 6;
+}
+
+Ptr<IView> Drone::getView(int n) {
+	Vector pilot_pos = thegame->getConfig()->queryVector(
+		"Drone_pilot_pos", Vector(0,0,0));
+	switch(n) {
+    case 0:
+    	{
+		    Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
+		    gunsight->addDebugInfo(thegame, this);
+		    gunsight->addFlightModules(thegame, flight_info);
+		    gunsight->addBasicCrosshairs();
+		    gunsight->addTargeting(this, targeter);
+	    	return new RelativeView(
+	            this,
+	            pilot_pos,
+	            Vector(1,0,0),
+	            Vector(0,1,0),
+	            Vector(0,0,1),
+	            gunsight);
+    	}
+    case 1:
+    	return new RelativeView(
+            this,
+            Vector(0, 10, 30),
+            Vector(-1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,-1));
+    case 2:
+    	return new RelativeView(
+            this,
+            pilot_pos,
+            Vector(0,0,1),
+            Vector(0,1,0),
+            Vector(-1,0,0));
+    case 3:
+    	return new RelativeView(
+            this,
+            pilot_pos,
+            Vector(0,0,-1),
+            Vector(0,1,0),
+            Vector(1,0,0));
+    case 4:
+    	return new RelativeView(
+            this,
+            Vector(0, 3, -15),
+            Vector(1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,1));
+    case 5:
+    	return new RelativeView(
+            this,
+            Vector(0, -3, 15),
+            Vector(-1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,-1));
+    default:
+    	return 0;
+	}
+}
+
 #define MAX_EXPLOSION_SIZE 6.0
 #define MIN_EXPLOSION_SIZE 1.0
 #define MAX_EXPLOSION_DISTANCE 40.0
@@ -465,8 +513,9 @@ void Drone::fireBullet()
 
     Ptr<SoundSource> snd_src = thegame->getSoundMan()->requestSource();
     snd_src->setPosition(start);
+    snd_src->setGain(0.0001);
     snd_src->play(thegame->getSoundMan()->querySound(
-            thegame->getConfig()->query("Player_cannon_sound")));
+            thegame->getConfig()->query("Drone_cannon_sound")));
 
     move += engine->getState().q.rot(
         BULLET_SPEED * Vector(0,0,1));
@@ -529,6 +578,32 @@ void Drone::fireSmartMissile()
     projectile->shoot(start, move, getFrontVector());
 }
 
+void Drone::fireSmartMissile2()
+{
+    static const Vector launchers[4]={
+        Vector(-3.0, 0, 8.0),
+        Vector( 3.0, 0, 8.0),
+        Vector(-3.5, 0, 8.0),
+        Vector( 3.5, 0, 8.0)
+    };
+
+    Ptr<SmartMissile2> projectile(
+    		new SmartMissile2(&*thegame, targeter->getCurrentTarget()) );
+    ls_message("Launching smart missile to target: %p\n",
+    	&*targeter->getCurrentTarget());
+    Vector start = getLocation()
+        + engine->getState().q.rot(launchers[smart_launcher_num++]);
+    Vector move(getMovementVector());
+
+    if (smart_launcher_num==4) smart_launcher_num=0;
+
+    move += engine->getState().q.rot(
+        DUMBMISSILE_SPEED * Vector(0,0,1));
+
+    thegame->addActor(projectile);
+    projectile->shoot(start, move, getFrontVector());
+}
+
 
 bool Drone::hasControlMode(ControlMode) {
   return true;
@@ -561,7 +636,7 @@ void Drone::event(Event event) {
         break;
     case CYCLE_SECONDARY:
         drone_controls->setSecondary(
-            (drone_controls->getSecondary()+1) % 2);
+            (drone_controls->getSecondary()+1) % 3);
         break;
     case FIRE_PRIMARY:
         drone_controls->setFirePrimary(true);

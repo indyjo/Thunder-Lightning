@@ -1,10 +1,13 @@
 #include "smartmissile2.h"
 #include <modules/actors/fx/explosion.h>
+#include <modules/actors/RelativeView.h>
 #include <modules/clock/clock.h>
 #include <modules/engines/missileengine.h>
 #include <interfaces/ICamera.h>
+#include <interfaces/IConfig.h>
 #include <interfaces/ITerrain.h>
 #include <sound.h>
+#include <remap.h>
 
 #define BLAST_BEGIN 1.0
 #define BLAST_END 2.5
@@ -12,7 +15,7 @@
 #define MIN_EXPLOSION_AGE 1.5f
 #define MAX_LIFETIME 30.0f
 #define PI 3.14159265358979323846264338327f
-#define SCAN_ANGLE (70.0 * PI / 180.0)
+#define SCAN_ANGLE (120 * PI / 180.0)
 #define MIN_INTERCEPT_SPEED 250.0
 #define MAX_INTERCEPT_SPEED 500.0
 
@@ -37,12 +40,14 @@ SmartMissile2::SmartMissile2(Ptr<IGame> thegame, Ptr<IActor> target)
     float m = 85.5f;  // wheight in kg
     float l = 2.89f;  // length in m
     float r = 0.065f; // radius in m
-    float Iz = 0.5f*m*r*r;
-    float Ix = m*(l*l/12 + r*r/4);
+    float Iz = 0.5f*m*r*r; 			//  0.18062
+    float Ix = m*(l*l/12 + r*r/4);  // 59.59902
 
     engine = new MissileEngine2(thegame, front_area, side_area);
-    engine->construct(m, Ix, Ix, Iz);
+    //engine = new RigidEngine(thegame);
+    //engine->construct(m, Ix, Ix, Iz);
     //engine->construct(m, Ix, Ix, Ix);
+    engine->construct(m, 60, 60, 20);
     setEngine(engine);
 
     d_error_old = omega_error_old = Vector(0,0,0);
@@ -52,6 +57,14 @@ SmartMissile2::SmartMissile2(Ptr<IGame> thegame, Ptr<IActor> target)
     getBoundingGeometry()->setBoundingRadius(0.0f * l);
     setRigidBody(engine);
     setActor(this);
+    
+    engine_sound_src = thegame->getSoundMan()->requestSource();
+    engine_sound_src->setPosition(getLocation());
+    engine_sound_src->setVelocity(getMovementVector());
+    engine_sound_src->setLooping(true);
+    //engine_sound_src->setGain(0.01);
+    engine_sound_src->play(thegame->getSoundMan()->querySound(
+            thegame->getConfig()->query("Missile_engine_sound")));
 
     thegame->getCollisionMan()->add(this);
 }
@@ -76,6 +89,8 @@ void SmartMissile2::action()
     Vector p = getLocation();
     Vector v = getMovementVector();
     Vector d = Vector(v).normalize();
+    engine_sound_src->setPosition(getLocation());
+    engine_sound_src->setVelocity(getMovementVector());
 
     // Aiming
     if (target) {
@@ -99,11 +114,16 @@ void SmartMissile2::action()
         }
 
 
+		// FIXME
+		rendezvous_point = target_pos;
         Vector target_direction = (rendezvous_point-p).normalize();
+        
 
         //d = (0.6*getFrontVector() + 0.4*d).normalize();
         if ((target_pos-p).normalize() * getFrontVector() > cos(SCAN_ANGLE)) {
-            const static float Ka = 20, Kb = 3, Kc = 4, Kd = 0.005;
+        	/*
+            //const static float Ka = 20, Kb = 3, Kc = 4, Kd = 0.005;
+            const static float Ka = 20, Kb = 0, Kc = 10, Kd = 20;
 
             float cos_angle = d * target_direction;
             cos_angle = std::max(-1.0f, std::min(1.0f, cos_angle));
@@ -139,7 +159,7 @@ void SmartMissile2::action()
             //    omega_dt[0],omega_dt[1],omega_dt[2]);
             engine->applyTorque(omega_dt);
             //engine->applyAngularAcceleration(0.5f * (Vector(0,1,0)-engine->getAngularVelocity()));
-
+            */
         } else {
             if (age>MIN_EXPLOSION_AGE) {
                 ls_message("killed when target got out of SCAN_ANGLE.\n");
@@ -148,9 +168,32 @@ void SmartMissile2::action()
             }
         }
     }
+    
+    {
+            Vector target_direction=Vector(1,0,0);
+            Vector ortho = d % target_direction;
+            Vector axis = ortho.normalize();
+            Vector omega = engine->getAngularVelocity();
+            Vector omega_radial = axis * (axis * omega);
+            Vector omega_tangential = omega - omega_radial;
+            Ptr<IConfig> config = thegame->getConfig();
+            engine->applyTorque(
+            	config->queryFloat("Missile_Ka",100)*ortho
+            	+config->queryFloat("Missile_Kb",-100)*omega_tangential
+            	+config->queryFloat("Missile_Kc",-50)*omega_radial);
+    }
 
-    if(age > BLAST_BEGIN && age < BLAST_END)
+	/*
+	EventRemapper *remap = thegame->getEventRemapper();
+	float x = remap->getAxis("aileron");
+	float y = remap->getAxis("elevator");
+    engine->applyAngularAcceleration(
+    	engine->getState().q.rot(10*Vector(-y,x,0)));
+    */
+    
+    if(age > BLAST_BEGIN && age < BLAST_END) {
         engine->applyForce(getFrontVector()*BLAST_THRUST);
+    }
 
     Vector p_old = p;
     SimpleActor::action();
@@ -240,33 +283,22 @@ void SmartMissile2::draw()
     }
     renderer->end();
 
-
-    p -= 1.4f * front;
-    Vector vs = engine->getVelocityAt(p);
+    Vector vs = engine->getVelocityAt(p+1.4*front) - getMovementVector();
     renderer->begin(JR_DRAWMODE_CONNECTED_LINES);
     renderer->setAlpha(1);
     renderer->setColor(Vector(1,0,0));
     *renderer << p << p+vs;
     renderer->end();
 
-    vs = vs - front * (vs*front);
-    renderer->begin(JR_DRAWMODE_CONNECTED_LINES);
-    renderer->setAlpha(1);
-    renderer->setColor(Vector(1,1,0));
-    *renderer << p << p+vs;
-    renderer->end();
-
-    //applyForceAt(-0.001f * vs * vs.length(), p);
-
     if (!target) return;
     Vector d = (getMovementVector()).normalize();
-    Vector target_direction = (target->getLocation()-getLocation()).normalize();
+    Vector target_direction = (target->getLocation()-p).normalize();
     Vector d_error = acos(d * target_direction) *
         (d % target_direction).normalize();
     renderer->begin(JR_DRAWMODE_CONNECTED_LINES);
     renderer->setAlpha(1);
     renderer->setColor(Vector(0,0,1));
-    *renderer << getLocation() << (getLocation()+100*d_error);
+    *renderer << p << (p+10*d_error);
     renderer->end();
 }
 
@@ -292,7 +324,7 @@ void SmartMissile2::shoot(
     Ptr<SoundSource> soundsource = soundman->requestSource();
     if (soundsource) {
         soundsource->setPosition(pos);
-        soundsource->play( soundman->querySound("missile-shoot-1.wav") );
+        //soundsource->play( soundman->querySound("missile-shoot-1.wav") );
     }
 
     if (target) {
@@ -303,6 +335,51 @@ void SmartMissile2::shoot(
                 Vector(0,0,0));
     }
 }
+
+int SmartMissile2::getNumViews() { return 5; }
+
+Ptr<IView> SmartMissile2::getView(int n) { 
+	switch(n) {
+	case 0:
+		return new RelativeView(
+            this,
+            Vector(0,0,0),
+            Vector(1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,1));
+    case 1:
+    	return new RelativeView(
+            this,
+            Vector(0,0,0),
+            Vector(-1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,-1));
+    case 2:
+    	return new RelativeView(
+            this,
+            Vector(0,0,0),
+            Vector(0,0,1),
+            Vector(0,1,0),
+            Vector(-1,0,0));
+    case 3:
+    	return new RelativeView(
+            this,
+            Vector(0,0,0),
+            Vector(0,0,-1),
+            Vector(0,1,0),
+            Vector(1,0,0));
+	case 4:
+		return new RelativeView(
+            this,
+            Vector(0,5,-25),
+            Vector(1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,1));
+    default:
+    	return 0;
+	}
+}
+
 
 void SmartMissile2::hitTarget(float damage)
 {

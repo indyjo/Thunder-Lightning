@@ -1,6 +1,7 @@
 #include "simpleactor.h"
 #include <modules/engines/newtonianengine.h>
 #include <Faction.h>
+#include "RelativeView.h"
 
 SimpleActor::SimpleActor( Ptr<IGame> game)
 :   thegame(game), state(ALIVE)
@@ -9,31 +10,6 @@ SimpleActor::SimpleActor( Ptr<IGame> game)
     faction = Faction::basic_factions.none;
     target_info = new TargetInfo(
         "<unnamed SimpleActor>", 1.0f, TargetInfo::NONE);
-
-    views.push_back(new RelativeView(
-            *this,
-            Vector(0,0,0),
-            Vector(1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,1)));
-    views.push_back(new RelativeView(
-            *this,
-            Vector(0,0,0),
-            Vector(-1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,-1)));
-    views.push_back(new RelativeView(
-            *this,
-            Vector(0,0,0),
-            Vector(0,0,1),
-            Vector(0,1,0),
-            Vector(-1,0,0)));
-    views.push_back(new RelativeView(
-            *this,
-            Vector(0,0,0),
-            Vector(0,0,-1),
-            Vector(0,1,0),
-            Vector(1,0,0)));
 }
 
 
@@ -45,8 +21,44 @@ void SimpleActor::action() { engine->run(); }
 IActor::State SimpleActor::getState() { return state; }
 float SimpleActor::getRelativeDamage() { return 0.0f; }
 void SimpleActor::applyDamage(float damage, int domain) { }
-int SimpleActor::getNumViews() { return views.size(); }
-Ptr<IView> SimpleActor::getView(int n) { return views[n]; }
+
+int SimpleActor::getNumViews() { return 4; }
+
+Ptr<IView> SimpleActor::getView(int n) { 
+	switch(n) {
+	case 0:
+		return new RelativeView(
+            this,
+            Vector(0,0,0),
+            Vector(1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,1));
+    case 1:
+    	return new RelativeView(
+            this,
+            Vector(0,0,0),
+            Vector(-1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,-1));
+    case 2:
+    	return new RelativeView(
+            this,
+            Vector(0,0,0),
+            Vector(0,0,1),
+            Vector(0,1,0),
+            Vector(-1,0,0));
+    case 3:
+    	return new RelativeView(
+            this,
+            Vector(0,0,0),
+            Vector(0,0,-1),
+            Vector(0,1,0),
+            Vector(1,0,0));
+    default:
+    	return 0;
+	}
+}
+
 bool SimpleActor::hasControlMode(ControlMode m) {
   return m==UNCONTROLLED;
 }
@@ -81,63 +93,3 @@ void SimpleActor::setMovementVector(const Vector & v) {
 // IDrawable
 void SimpleActor::draw() { }
 
-// SimpleActor::RelativeView
-void SimpleActor::RelativeView::set(
-    const Vector & p,
-    const Vector & right,
-    const Vector & up,
-    const Vector & front)
-{
-    this->subject = subject;
-    this->p = p;
-    this->up = up;
-    this->right = right;
-    this->front = front;
-}
-
-Vector SimpleActor::RelativeView::getLocation() {
-    Vector r, u, f;
-    subject.getOrientation(&u, &r, &f);
-    Matrix3 M = MatrixFromColumns<float>(r,u,f);
-    return subject.getLocation() + M*p;
-}
-Vector SimpleActor::RelativeView::getFrontVector() {
-    Vector r, u, f;
-    subject.getOrientation(&u, &r, &f);
-    Matrix3 M = MatrixFromColumns<float>(r,u,f);
-    return M*front;
-}
-
-Vector SimpleActor::RelativeView::getRightVector() {
-    Vector r, u, f;
-    subject.getOrientation(&u, &r, &f);
-    Matrix3 M = MatrixFromColumns<float>(r,u,f);
-    return M*right;
-}
-Vector SimpleActor::RelativeView::getUpVector() {
-    Vector r, u, f;
-    subject.getOrientation(&u, &r, &f);
-    Matrix3 M = MatrixFromColumns<float>(r,u,f);
-    return M*up;
-}
-void SimpleActor::RelativeView::getOrientation
-        (Vector *up, Vector *right, Vector *front) {
-    Vector r, u, f;
-    subject.getOrientation(&u, &r, &f);
-    Matrix3 M = MatrixFromColumns<float>(r,u,f);
-    *up = M*this->up;
-    *right = M*this->right;
-    *front = M*this->front;
-}
-
-Vector SimpleActor::RelativeView::getMovementVector() {
-	return subject.getMovementVector();
-}
-
-Ptr<IActor> SimpleActor::RelativeView::getViewSubject() {
-    return &subject;
-}
-
-Ptr<IDrawable> SimpleActor::RelativeView::getGunsight() {
-    return gunsight;
-}
