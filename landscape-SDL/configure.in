@@ -1,0 +1,86 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(src/game.cc)
+AM_INIT_AUTOMAKE(landscape,0.0.1)
+AM_CONFIG_HEADER(config.h)
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_CXX
+AM_PROG_LIBTOOL
+
+dnl Conditionals
+AC_ARG_WITH(
+    opengl-cflags,
+    [  --with-opengl-cflags=PATH    Specify OpenGL cflags],
+    OPENGL_CFLAGS="$withval", OPENGL_CFLAGS="")
+AC_ARG_WITH(
+    opengl-libs,
+    [  --with-opengl-libs=PATH      Specify OpenGL libs],
+    OPENGL_LIBS="$withval", OPENGL_LIBS="-lGL -lpthread")
+AC_SUBST(OPENGL_CFLAGS)
+AC_SUBST(OPENGL_LIBS)
+
+AC_ARG_WITH(
+    libpng-cflags,
+    [  --with-libpng-cflags=PATH    Specify libPNG cflags],
+    LIBPNG_CFLAGS="$withval", LIBPNG_CFLAGS="")
+AC_ARG_WITH(
+    libpng-libs,
+    [  --with-libpng-libs=PATH      Specify libPNG libs],
+    LIBPNG_LIBS="$withval", LIBPNG_LIBS="-lpng")
+AC_SUBST(LIBPNG_CFLAGS)
+AC_SUBST(LIBPNG_LIBS)
+
+dnl Checks for libraries.
+dnl AM_PATH_SIGC(1.0.0,,AC_MSG_ERROR([Cannot find proper SigC++ version]),)
+PKG_CHECK_MODULES(SIGC, sigc++-1.2)
+CXXFLAGS="$CXXFLAGS $SIGC_CFLAGS"
+
+AM_PATH_SDL(1.2.0, , AC_MSG_ERROR([SDL verion 1.2.0+ needed]))
+
+dnl Checks for header files.
+AC_CHECK_HEADERS(sys/time.h unistd.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_HEADER_TIME
+
+dnl Checks for library functions.
+AC_CHECK_FUNCS(gettimeofday)
+
+AC_OUTPUT([
+Makefile
+scripts/Makefile
+scripts/landscape
+scripts/landscape-debug
+src/Makefile
+src/boost/Makefile
+src/modules/Makefile
+src/modules/LoDTerrain/Makefile
+src/modules/actors/Makefile
+src/modules/actors/drone/Makefile
+src/modules/actors/fx/Makefile
+src/modules/actors/projectiles/Makefile
+src/modules/actors/tank/Makefile
+src/modules/ai/Makefile
+src/modules/camera/Makefile
+src/modules/clock/Makefile
+src/modules/collide/Makefile
+src/modules/config/Makefile
+src/modules/engines/Makefile
+src/modules/environment/Makefile
+src/modules/flight/Makefile
+src/modules/fontman/Makefile
+src/modules/gunsight/Makefile
+src/modules/horizon/Makefile
+src/modules/jogi/Makefile
+src/modules/map/Makefile
+src/modules/math/Makefile
+src/modules/model/Makefile
+src/modules/physics/Makefile
+src/modules/player/Makefile
+src/modules/sky/Makefile
+src/modules/skybox/Makefile
+src/modules/terrain/Makefile
+src/modules/ui/Makefile
+])

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+exec_dir=`dirname $0`
+source $exec_dir/landscape-vars
+
+bname=`basename $0`
+tmpname=`mktemp /tmp/$bname-gdb-commands.XXXXXX`
+echo Creating temporary file $tmpname:
+cat > $tmpname <<EOF
+set environment LD_LIBRARY_PATH=$JOGI_LIBDIR
+set environment LANDSCAPE_PRELOAD=$lib_dir/config.so
+set args $param
+EOF
+cat $tmpname
+ddd --command=$tmpname $bin_dir/landscape-bin
+echo Removing temporary file $tmpname
+rm $tmpname
+xset r on

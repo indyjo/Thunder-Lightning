@@ -1,0 +1,24 @@
+<script>               ::= <statements>
+<statements>           ::= <statements> <statement> | <statement>
+<statement>            ::= <assignment_statement>
+                         | <with_statement>
+                         | <on_statement>
+                         | <expr_statement>
+                         | <passto_statement>
+                         | <print_statement>
+<statements_block>     ::= BLOCK_BEGIN <statements> BLOCK_END
+
+<assignment_statement> ::= <expr> <assignment_operator> <expr>
+<assignment_operator>  ::= = | += | -= | *= | /= | %= | ^=
+
+<with_statement>       ::= with <expr> : <statements_block>
+                         | with <expr> VARNAME : <statements_block>
+                         
+<on_statement>         ::= on CLASSNAME VARNAME : <on_statements_block>
+<on_statements_block>  ::= BLOCK_BEGIN <statements> BLOCK_END
+                         | BLOCK_BEGIN <statements> <passto_expr> BLOCK_END
+<expr_statement>       ::= <expr>
+<expr>                 ::= <call_expr>
+                         | <new_expr>
+                         | <op_expr>
+<new_expr>             ::= new CLASSNAME

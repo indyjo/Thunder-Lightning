@@ -1,0 +1,46 @@
+#include "Faction.h"
+
+Faction::BasicFactions::BasicFactions() {
+    none = new Faction("None");
+    privateer = new Faction("Privateer");
+
+    rogue = new Faction("Rogue");
+    rogue->setDefaultAttitude(HOSTILE);
+
+    aggressive_faction = new Faction("Aggressive");
+    aggressive_faction->setDefaultAttitude(HOSTILE);
+    aggressive_faction->setAttitudeTowards(aggressive_faction, FRIENDLY);
+
+    neutral_faction = new Faction("Neutral");
+    neutral_faction->setAttitudeTowards(neutral_faction, FRIENDLY);
+
+    faction_a = new Faction("A");
+    faction_a->setAttitudeTowards(faction_a, FRIENDLY);
+    faction_a->setAttitudeTowards(faction_b, HOSTILE);
+    faction_a->setAttitudeTowards(faction_c, HOSTILE);
+
+    faction_b = new Faction("B");
+    faction_b->setAttitudeTowards(faction_a, HOSTILE);
+    faction_b->setAttitudeTowards(faction_b, FRIENDLY);
+    faction_b->setAttitudeTowards(faction_c, HOSTILE);
+
+    faction_c = new Faction("C");
+    faction_c->setAttitudeTowards(faction_a, HOSTILE);
+    faction_c->setAttitudeTowards(faction_b, HOSTILE);
+    faction_c->setAttitudeTowards(faction_c, FRIENDLY);
+};
+
+const Faction::BasicFactions Faction::basic_factions;
+
+void Faction::setAttitudeTowards(Ptr<Faction> f, Attitude a) {
+    attitudes.insert(std::make_pair(f,a));
+}
+
+Faction::Attitude Faction::getAttitudeTowards(Ptr<Faction> f) {
+    std::map<Ptr<Faction>, Attitude>::iterator i = attitudes.find(f);
+    if (i==attitudes.end())
+        return default_attitude;
+    else
+        return i->second;
+}
+

@@ -1,0 +1,10 @@
+# KDE Config File
+[Breakpoint 0]
+Enabled=true
+Temporary=false
+File=LoDTerrain.cc
+Line=188
+[General]
+WorkingDirectory=
+FileVersion=1
+ProgramArgs=

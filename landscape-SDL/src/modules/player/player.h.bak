@@ -1,0 +1,45 @@
+#include <cstdlib>
+#include <landscape.h>
+
+class Player: public IPlayer, public SigObject
+{
+public:
+    Player(IGame *thegame);
+
+    virtual void action();
+
+    virtual void getCamera(JCamera *camera);
+    virtual void getPosition(jpoint_t *position);
+    virtual void getViewVec(jpoint_t *viewvec);
+    virtual void getFrontBackPlane(float *plane);
+    virtual void getFrustumPlanes(float plane[6][4]);
+    
+    // IPositionProvider methods
+    virtual void getLocation(float location[3]);
+    virtual void getOrientation(float front[3], float right[3]);
+    
+    //IMovementProvider methods
+    virtual Vector getMovementVector();
+    
+private:
+    void doFlight();
+
+    void strifeForward(bool);
+    void strifeBackward(bool);
+    void strifeLeft(bool);
+    void strifeRight(bool);
+    
+    Vector getStrifeVector(const Vector & front, const Vector & right);
+
+private:
+    IGame *thegame;
+    Ptr<ITerrain> terrain;
+    JRenderer *renderer;
+    JPoint position;
+    JPoint rotation;
+    float roll;
+    float speed;
+    struct {
+        bool forward, backward, right, left;
+    } strife;
+};

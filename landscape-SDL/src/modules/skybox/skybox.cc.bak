@@ -1,0 +1,292 @@
+#include "skybox.h"
+
+SkyBox::SkyBox(IGame *thegame)
+{
+    ifstream in;
+    JSprite spr;
+    char filename[255];
+    const char *texpath;
+    
+    this->thegame=thegame;
+    renderer=thegame->getRenderer();
+    config=thegame->getConfig();
+    cam=thegame->getCamera();
+    
+    texpath=config->query("SkyBox_texture_path");
+    sprintf(filename, "%s/front.spr", texpath);
+    in.open(filename);
+    if (!in) ls_error("SkyBox: Couldn't open %s\n", texpath);
+    spr.load(in);
+    in.close();
+    renderer->createTexture(&spr.sprite,JR_HINT_FULLOPACITY,0,false,&tex_front);
+
+    sprintf(filename, "%s/left.spr", texpath);
+    in.open(filename);
+    if (!in) ls_error("SkyBox: Couldn't open %s\n", texpath);
+    spr.load(in);
+    in.close();
+    renderer->createTexture(&spr.sprite,JR_HINT_FULLOPACITY,0,false,&tex_left);
+
+    sprintf(filename, "%s/right.spr", texpath);
+    if (!in) ls_error("SkyBox: Couldn't open %s\n", texpath);
+    in.open(filename);
+    spr.load(in);
+    in.close();
+    renderer->createTexture(&spr.sprite,JR_HINT_FULLOPACITY,0,false,&tex_right);
+
+    sprintf(filename, "%s/back.spr", texpath);
+    in.open(filename);
+    if (!in) ls_error("SkyBox: Couldn't open %s\n", texpath);
+    spr.load(in);
+    in.close();
+    renderer->createTexture(&spr.sprite,JR_HINT_FULLOPACITY,0,false,&tex_back);
+
+    sprintf(filename, "%s/up.spr", texpath);
+    in.open(filename);
+    if (!in) ls_error("SkyBox: Couldn't open %s\n", texpath);
+    spr.load(in);
+    in.close();
+    renderer->createTexture(&spr.sprite,JR_HINT_FULLOPACITY,0,false,&tex_up);
+
+    sprintf(filename, "%s/down.spr", texpath);
+    in.open(filename);
+    if (!in) ls_error("SkyBox: Couldn't open %s\n", texpath);
+    spr.load(in);
+    in.close();
+    renderer->createTexture(&spr.sprite,JR_HINT_FULLOPACITY,0,false,&tex_down);
+}
+
+void SkyBox::draw()
+{
+    jBool restore_fog;
+    jvertex_coltxt v[4];
+    jpoint_t pos;
+    int i;
+
+    float a_pos[3];
+    cam->getLocation(a_pos);
+    pos.x = a_pos[0];
+    pos.y = a_pos[1];
+    pos.z = a_pos[2];
+
+    restore_fog=renderer->fogEnabled();
+    renderer->disableFog();
+    renderer->setCullMode(JR_CULLMODE_NO_CULLING);
+    renderer->setVertexMode(JR_VERTEXMODE_GOURAUD_TEXTURE);
+    renderer->disableZBuffer();
+    
+    v[0].txt.x=0.0;
+    v[0].txt.y=0.0;
+    v[1].txt.x=511.5;
+    v[1].txt.y=0.5;
+    v[2].txt.x=511.5;
+    v[2].txt.y=511.5;
+    v[3].txt.x=0.5;
+    v[3].txt.y=511.5;
+    
+    for (i=0; i<4; i++) {
+        v[i].col.r=255.0;
+        v[i].col.g=255.0;
+        v[i].col.b=255.0;
+    }
+    
+    float D = thegame->getEnvironment()->getClipMax() / 1.75;
+
+    // Front
+    v[0].p.x=-D;
+    v[0].p.y=D;
+    v[0].p.z=D;
+    
+    v[1].p.x=D;
+    v[1].p.y=D;
+    v[1].p.z=D;
+    
+    v[2].p.x=D;
+    v[2].p.y=-D;
+    v[2].p.z=D;
+    
+    v[3].p.x=-D;
+    v[3].p.y=-D;
+    v[3].p.z=D;
+    for (i=0; i<4; i++) {
+        v[i].p.x+=pos.x;
+        v[i].p.y+=pos.y;
+        v[i].p.z+=pos.z;
+    }
+    
+    renderer->setTexture(tex_front);
+    renderer->begin(JR_DRAWMODE_TRIANGLES);
+        renderer->addVertex(&v[2]);
+        renderer->addVertex(&v[1]);
+        renderer->addVertex(&v[0]);
+        renderer->addVertex(&v[3]);
+        renderer->addVertex(&v[2]);
+        renderer->addVertex(&v[0]);
+    renderer->end();
+
+    // Right
+    v[0].p.x=D;
+    v[0].p.y=D;
+    v[0].p.z=D;
+    
+    v[1].p.x=D;
+    v[1].p.y=D;
+    v[1].p.z=-D;
+    
+    v[2].p.x=D;
+    v[2].p.y=-D;
+    v[2].p.z=-D;
+    
+    v[3].p.x=D;
+    v[3].p.y=-D;
+    v[3].p.z=D;
+    for (i=0; i<4; i++) {
+        v[i].p.x+=pos.x;
+        v[i].p.y+=pos.y;
+        v[i].p.z+=pos.z;
+    }
+    
+    renderer->setTexture(tex_right);
+    renderer->begin(JR_DRAWMODE_TRIANGLES);
+        renderer->addVertex(&v[2]);
+        renderer->addVertex(&v[1]);
+        renderer->addVertex(&v[0]);
+        renderer->addVertex(&v[3]);
+        renderer->addVertex(&v[2]);
+        renderer->addVertex(&v[0]);
+    renderer->end();
+    
+    // Back
+    v[0].p.x=D;
+    v[0].p.y=D;
+    v[0].p.z=-D;
+    
+    v[1].p.x=-D;
+    v[1].p.y=D;
+    v[1].p.z=-D;
+    
+    v[2].p.x=-D;
+    v[2].p.y=-D;
+    v[2].p.z=-D;
+    
+    v[3].p.x=D;
+    v[3].p.y=-D;
+    v[3].p.z=-D;
+    for (i=0; i<4; i++) {
+        v[i].p.x+=pos.x;
+        v[i].p.y+=pos.y;
+        v[i].p.z+=pos.z;
+    }
+    
+    renderer->setTexture(tex_back);
+    renderer->begin(JR_DRAWMODE_TRIANGLES);
+        renderer->addVertex(&v[2]);
+        renderer->addVertex(&v[1]);
+        renderer->addVertex(&v[0]);
+        renderer->addVertex(&v[3]);
+        renderer->addVertex(&v[2]);
+        renderer->addVertex(&v[0]);
+    renderer->end();
+    
+    // Left
+    v[0].p.x=-D;
+    v[0].p.y=D;
+    v[0].p.z=-D;
+    
+    v[1].p.x=-D;
+    v[1].p.y=D;
+    v[1].p.z=D;
+    
+    v[2].p.x=-D;
+    v[2].p.y=-D;
+    v[2].p.z=D;
+    
+    v[3].p.x=-D;
+    v[3].p.y=-D;
+    v[3].p.z=-D;
+    for (i=0; i<4; i++) {
+        v[i].p.x+=pos.x;
+        v[i].p.y+=pos.y;
+        v[i].p.z+=pos.z;
+    }
+    
+    renderer->setTexture(tex_left);
+    renderer->begin(JR_DRAWMODE_TRIANGLES);
+        renderer->addVertex(&v[2]);
+        renderer->addVertex(&v[1]);
+        renderer->addVertex(&v[0]);
+        renderer->addVertex(&v[3]);
+        renderer->addVertex(&v[2]);
+        renderer->addVertex(&v[0]);
+    renderer->end();
+    
+    // Up
+    v[0].p.x=-D;
+    v[0].p.y=D;
+    v[0].p.z=-D;
+    
+    v[1].p.x=D;
+    v[1].p.y=D;
+    v[1].p.z=-D;
+    
+    v[2].p.x=D;
+    v[2].p.y=D;
+    v[2].p.z=D;
+    
+    v[3].p.x=-D;
+    v[3].p.y=D;
+    v[3].p.z=D;
+    for (i=0; i<4; i++) {
+        v[i].p.x+=pos.x;
+        v[i].p.y+=pos.y;
+        v[i].p.z+=pos.z;
+    }
+    
+    renderer->setTexture(tex_up);
+    renderer->begin(JR_DRAWMODE_TRIANGLES);
+        renderer->addVertex(&v[2]);
+        renderer->addVertex(&v[1]);
+        renderer->addVertex(&v[0]);
+        renderer->addVertex(&v[3]);
+        renderer->addVertex(&v[2]);
+        renderer->addVertex(&v[0]);
+    renderer->end();
+    
+    // Down
+    v[0].p.x=-D;
+    v[0].p.y=-D;
+    v[0].p.z=D;
+    
+    v[1].p.x=D;
+    v[1].p.y=-D;
+    v[1].p.z=D;
+    
+    v[2].p.x=D;
+    v[2].p.y=-D;
+    v[2].p.z=-D;
+    
+    v[3].p.x=-D;
+    v[3].p.y=-D;
+    v[3].p.z=-D;
+    for (i=0; i<4; i++) {
+        v[i].p.x+=pos.x;
+        v[i].p.y+=pos.y;
+        v[i].p.z+=pos.z;
+    }
+    
+    renderer->setTexture(tex_down);
+    renderer->begin(JR_DRAWMODE_TRIANGLES);
+        renderer->addVertex(&v[2]);
+        renderer->addVertex(&v[1]);
+        renderer->addVertex(&v[0]);
+        renderer->addVertex(&v[3]);
+        renderer->addVertex(&v[2]);
+        renderer->addVertex(&v[0]);
+    renderer->end();
+    
+    renderer->flush();
+    if (restore_fog) {
+        renderer->enableFog();
+    }
+    renderer->enableZBuffer();
+}

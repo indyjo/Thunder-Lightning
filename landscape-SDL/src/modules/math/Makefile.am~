@@ -1,0 +1,19 @@
+noinst_LIBRARIES = libmath.a
+noinst_PROGRAMS = test_solver test_quat test_ballist
+
+INCLUDES = -I${top_srcdir}/src
+
+libmath_a_SOURCES =                     \
+        Collide.cc Collide.h            \
+        Line.cc Line.h                  \
+	Matrix.cc Matrix.h              \
+        Plane.h                         \
+        Polynomial.cc Polynomial.h      \
+        Quaternion.h                    \
+        Rendezvous.cc Rendezvous.h      \
+        Solve.cc Solve.h                \
+	Vector.h
+
+test_solver_SOURCES = test_solver.cc Solve.cc Solve.h
+test_quat_SOURCES = test_quat.cc
+test_ballist_SOURCES = Ballistic.cc Ballistic.h Solve.h Solve.cc test_ballist.cc

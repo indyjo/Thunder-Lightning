@@ -1,0 +1,560 @@
+#include "game.h"
+#include <typeinfo>
+
+
+void Game::init(int argc, const char **argv)
+{
+    this->argc=argc;
+    this->argv=argv;
+    int dummy_argc=1;
+    char *dummy_argv[]={"Landscape"};
+    char **dummy_argv2=dummy_argv;
+
+    JGTKGLAreaFramework *myframework=new JGTKGLAreaFramework();
+    ls_message("Initing framework\n");
+    myframework->init(800,600,&dummy_argc, &dummy_argv2);
+    ls_message("Done\n");
+    framework=myframework;
+    jcolor3_t fog_col={FOG_COLOR_RED,FOG_COLOR_GREEN,FOG_COLOR_BLUE};
+    jcolor3_t sky_col={SKY_COLOR_RED,SKY_COLOR_GREEN,SKY_COLOR_BLUE};
+
+
+    myaccum=0.0f;
+    mxaccum=0.0f;
+    mbuttons=0;
+
+    renderer=framework->getRenderer();
+    renderer->setClipRange(CLIP_MIN_RANGE, CLIP_RANGE);
+    renderer->setFogColor(&fog_col);
+    //renderer->setFogType(JR_FOGTYPE_FARAWAY,0.0f);
+    //renderer->setFogType(JR_FOGTYPE_LINEAR,0.0f);
+    renderer->setFogType(JR_FOGTYPE_EXP_SQUARE, 0.25);
+    renderer->enableFog();
+    renderer->setBackgroundColor(&sky_col);
+    renderer->show();
+
+    mouse=framework->getMouse();
+    mouse->setMode(JMOUSE_MODE_RELATIVE_TO_LAST);
+
+    timeaccum=0.0;
+
+    timeval tval;
+    gettimeofday(&tval,0);
+    timenow=((float)tval.tv_sec)*1000.0+((float)tval.tv_usec)/1000.0;
+    timeold=timenow;
+
+    key_tab_old=false;
+
+    texman = new TextureManager(*renderer);
+    keyboard_remapper = new KeyboardRemapper(keyboard_sig);
+
+    ls_message("<initModules>\n");
+    initModules();
+    ls_message("</initModules>\n");
+    ls_message("<initControls>\n");
+    initControls();
+    ls_message("</initControls>\n");
+    buildLightColorTable();
+    
+    cam_pos = Ptr<IPositionProvider>(player);
+    
+    keyboard_sig.connect(SigC::slot(this, & Game::onKeyboardSignal));
+    
+    ifstream deb_in("/tmp/model/debug.obj");
+    debug_model = new Model(*texman, deb_in, "/tmp/model");
+    //debug_model->dump();
+}
+
+void Game::done()
+{
+    ls_error("<Game::done()>\n");
+    delete keyboard_remapper;
+    delete texman;
+    delete framework;
+    ls_error("</Game::done()>\n");
+}
+
+void Game::run()
+{
+    game_done=false;
+    
+    while (!game_done) {
+        preFrame();
+        doFrame();
+        postFrame();
+
+        if (mbuttons & JMOUSE_BUTTON2) game_done=true;
+    }
+}
+
+
+TextureManager *Game::getTexMan() {
+    return texman;
+}
+
+JFramework *Game::getFramework()
+{
+    return framework;
+}
+
+JRenderer *Game::getRenderer()
+{
+    return renderer;
+}
+
+KeyboardRemapper *Game::getKeyboardRemapper()
+{
+    return keyboard_remapper;
+}
+
+Ptr<IConfig> Game::getConfig()
+{
+    return config;
+}
+
+Ptr<ICamera> Game::getCamera()
+{
+    return camera;
+}
+
+Ptr<ITerrain> Game::getTerrain()
+{
+#if ENABLE_LOD_TERRAIN
+    return quadman;
+#endif
+#if ENABLE_TERRAIN
+    return terrain;
+#endif
+}
+
+Ptr<IPlayer> Game::getPlayer()
+{
+    return player;
+}
+
+#if ENABLE_SKY
+Ptr<ISky> Game::getSky() {
+    return sky;
+}
+#endif
+
+
+void Game::getMouseState(float *mx, float *my, int *buttons)
+{
+    *mx=mxaccum;
+    *my=myaccum;
+    *buttons=mbuttons;
+}
+
+double Game::getTimeDelta()
+{
+    return timeaccum;
+}
+
+double Game::getTime()
+{
+    return timenow;
+}
+
+void Game::initModules()
+{
+    config= new Config;
+    config->feedArguments(argc, argv);
+
+    camera = new Camera(this);
+#if ENABLE_TERRAIN
+    terrain = new Terrain(this);
+    //Terrain *terrain = new Terrain(this);
+    ls_message("Game@%p drawing Terrain@%p\n", this, &*terrain);
+    terrain->draw();
+#endif
+#if ENABLE_LOD_TERRAIN
+    quadman = new LoDQuadManager(this);
+#endif
+    player = new Player(this);
+#if ENABLE_SKY
+    sky = new Sky(this);
+#endif
+#if ENABLE_SKYBOX
+    skybox = new SkyBox(this);
+#endif
+#if ENABLE_HORIZON
+    horizon = new Horizon(this);
+#endif
+#if ENABLE_MAP
+    map = new Map(this);
+#endif
+#if ENABLE_GUNSIGHT
+    gunsight = new Gunsight(this);
+#endif
+}
+
+void Game::initControls()
+{
+    KeyboardRemapper *r = getKeyboardRemapper();
+    r->map(JK_a, true, "action");
+    r->map("action", SigC::slot(this, & Game::onActionSignal));
+    
+    r->map(JK_Escape, true, "endgame");
+    r->map("endgame", SigC::slot(this, & Game::endGame));
+
+    r->map(JK_F10, true, "+gamma");
+    r->map(JK_F9, true, "-gamma");
+    r->map("+gamma", SigC::slot(this, & Game::increaseGamma));
+    r->map("-gamma", SigC::slot(this, & Game::decreaseGamma));
+    
+    r->map(JK_Tab, true,  "map_magnify");
+    r->map(JK_Tab, false, "map_demagnify");
+    
+    r->map(JK_w, true,  "+forward");
+    r->map(JK_w, false, "-forward");
+    r->map(JK_s, true,  "+backward");
+    r->map(JK_s, false, "-backward");
+    r->map(JK_a, true,  "+left");
+    r->map(JK_a, false, "-left");
+    r->map(JK_d, true,  "+right");
+    r->map(JK_d, false, "-right");
+}
+
+void Game::doInput()
+{
+    jkeyevent_t event;
+    jmousestate_t tmpstate;
+    JKeyboard *keyboard;
+    int dummy;
+    bool fire_dumbmissile=false;
+    static bool fire_bullet=false;
+
+    mouse->getState(&tmpstate);
+    mxaccum=(float)(mxaccum*(MOUSE_ACCUM-1)+tmpstate.x)/MOUSE_ACCUM;
+    myaccum=(float)(myaccum*(MOUSE_ACCUM-1)+tmpstate.y)/MOUSE_ACCUM;
+    mbuttons=tmpstate.buttons;
+    /*ls_message("tmpstate.x=%d tmpstate.y=%d tmpstate.button=%d\n",
+     tmpstate.x,tmpstate.y,tmpstate.buttons);*/
+
+    
+    keyboard=framework->getKeyboard();
+    while(keyboard->eventsPending()) {
+        keyboard->getEvent(&event);
+        keyboard_sig.emit(event.keyval, event.pressed);
+        if (event.pressed) {
+            switch (event.keyval) {
+            case JK_space:
+                ls_message("Space pressed.\n");
+                fire_dumbmissile=true;
+                break;
+            case JK_Control_L:
+                ls_message("Ctrl pressed.\n");
+                fire_bullet=true;
+                break;
+            }
+        } else { // key released
+            switch(event.keyval) {
+            case JK_Control_L:
+                ls_message("Ctrl released\n");
+                fire_bullet=false;
+                break;
+            }
+            
+        }
+    }
+    if (fire_dumbmissile) {
+        ls_message("<launcDumbMissile()>\n");
+        launchDumbMissile();
+        ls_message("</launcDumbMissile()>\n");
+    }
+    if (fire_bullet) {
+        ls_message("<launcBullet()>\n");
+        launchBullet();
+        ls_message("</launcBullet()>\n");
+    }
+}
+
+void Game::doTime()
+{
+    timeval tval;
+    double timedelta;
+
+    gettimeofday(&tval,0);
+    timeold=timenow;
+    //ls_message("Gettimeofday: %d.%d\n", tval.tv_sec, tval.tv_usec);
+    timenow=(tval.tv_sec)*1000.0+(tval.tv_usec)/1000.0;
+    //ls_message("Current timenow: %f\n", timenow);
+    timedelta=timenow-timeold;
+    timeaccum=(timeaccum*(TIME_ACCUM-1.0)+timedelta)/TIME_ACCUM;
+    //ls_message("Time since last frame (accum): %f (real): %f\n",timeaccum,timedelta);
+}
+
+void Game::preFrame()
+{
+    JCamera jcamera;
+    
+    framework->processEvents();
+    doTime();
+    doInput();
+    
+    player->action();
+    
+    camera->alignWith(&(*cam_pos));
+    camera->getCamera(&jcamera);
+    renderer->setCamera(&jcamera.cam);
+
+#if ENABLE_HORIZON
+    horizon->draw();
+#endif
+    
+#if ENABLE_SKYBOX
+    skybox->draw();
+#endif
+
+#if ENABLE_TERRAIN
+    ls_message("Drawing terrain\n");
+    terrain->draw();
+    ls_message("/Drawing terrain\n");
+#endif
+
+#if ENABLE_LOD_TERRAIN
+    quadman->draw();
+#endif
+
+#if ENABLE_DEBUG_TRIANGLE
+    drawDebugTriangle();
+#endif
+}
+
+#include <modules/actors/fx/explosion.h>
+
+void Game::doFrame()
+{
+    ActorList::iterator i;
+    
+    for (i=actors.begin(); i!=actors.end(); i++) {
+        if (IActor::DEAD == (*i)->getState()) {
+            Explosion * pe;
+            if (pe = dynamic_cast<Explosion*> (&**i)) {
+                ls_warning("Deleting Explosion reference at %p\n", pe);
+            }
+            actors.erase(i++);
+        }
+    }
+    for (i=actors.begin(); i!=actors.end(); i++) {
+        (*i)->action();
+    }
+    for (i=actors.begin(); i!=actors.end(); i++) {
+        (*i)->draw();
+    }
+}
+
+void Game::postFrame()
+{
+    jcolor3_t sky_col;
+
+#if ENABLE_SKY
+    sky->draw();
+#endif
+
+#if ENABLE_GUNSIGHT
+    gunsight->draw();
+#endif
+
+#if ENABLE_MAP
+    map->draw();
+#endif
+
+#if ENABLE_SKY
+    sky->getSkyColor(&sky_col);
+    renderer->setBackgroundColor(&sky_col);
+#endif
+    renderer->show();
+}
+
+void Game::drawDebugTriangle()
+{
+    jvertex_col v1={{ 0.0f,INITIAL_ALTITUDE+0.4,15.0f},{255.0f,255.0f,255.0f}};
+    jvertex_col v2={{ 0.4f,INITIAL_ALTITUDE-0.3,15.0f},{128.0f,128.0f,128.0f}};
+    jvertex_col v3={{-0.4f,INITIAL_ALTITUDE-0.3,15.0f},{0.0f,0.0f,0.0f}};
+
+    renderer->flush();
+
+    renderer->setCullMode(JR_CULLMODE_CULL_NEGATIVE);
+    renderer->enableAlphaBlending();
+    renderer->setVertexMode(JR_VERTEXMODE_GOURAUD);
+    renderer->begin(JR_DRAWMODE_TRIANGLES);
+    renderer->setAlpha(255.0);
+    renderer->addVertex(&v1);
+    renderer->setAlpha(0.0);
+    renderer->addVertex(&v2);
+    renderer->setAlpha(128.0);
+    renderer->addVertex(&v3);
+    renderer->end();
+    renderer->flush();
+    renderer->disableAlphaBlending();
+    
+    static float angle = 0;
+    Matrix Mnormal = Matrix::RotateYMatrix(angle+=0.1);
+    Mnormal = Mnormal * Matrix::RotateXMatrix(angle * 7.0/13.0);
+    Mnormal = Mnormal * Matrix::RotateXMatrix(-90);
+    Matrix Mmodel = Matrix::TranslateMatrix(0, INITIAL_ALTITUDE, 0) * Mnormal;
+    Mmodel = Mmodel * Matrix::ScaleMatrix(0.1, 0.1, 0.1);
+    Mmodel = Mmodel * Matrix::TranslateMatrix(0, 50, 0);
+    //debug_model->debugTextures(*renderer, Matrix::TranslateMatrix(0, INITIAL_ALTITUDE, 0));
+    debug_model->draw(*renderer, Mmodel, Mnormal);
+}
+
+#define REL_SIZE 1.0
+void Game::drawDebugTriangleAt(const Vector & p)
+{
+    jvertex_col v1={{ 0.0f * REL_SIZE,0.4f * REL_SIZE,0.0f},{255.0f,255.0f,255.0f}};
+    jvertex_col v2={{ 0.4f * REL_SIZE,-0.3f * REL_SIZE,0.0f},{128.0f,128.0f,128.0f}};
+    jvertex_col v3={{-0.4f * REL_SIZE,-0.3f * REL_SIZE,0.0f},{0.0f,0.0f,0.0f}};
+
+    renderer->flush();
+    v1.p.x += p[0]; v1.p.y += p[1]; v1.p.z += p[2];
+    v2.p.x += p[0]; v2.p.y += p[1]; v2.p.z += p[2];
+    v3.p.x += p[0]; v3.p.y += p[1]; v3.p.z += p[2];
+
+    renderer->setCullMode(JR_CULLMODE_CULL_NEGATIVE);
+    renderer->enableAlphaBlending();
+    renderer->setVertexMode(JR_VERTEXMODE_GOURAUD);
+    renderer->begin(JR_DRAWMODE_TRIANGLES);
+    renderer->setAlpha(255.0);
+    renderer->addVertex(&v1);
+    renderer->setAlpha(0.0);
+    renderer->addVertex(&v2);
+    renderer->setAlpha(128.0);
+    renderer->addVertex(&v3);
+    renderer->end();
+    renderer->flush();
+    renderer->disableAlphaBlending();
+}
+
+void Game::buildLightColorTable()
+{
+    int i;
+    float j;
+    for (i=0;i<256;i++)
+    {
+        j=(float) i;
+        light_cols[i].r=j;
+        light_cols[i].g=j;
+        light_cols[i].b=j;//*(1.0f-0.3f*(j*j/(255.0f*255.0f)));
+        /*light_cols[i].r=j*(sqrt(j/255.0f));
+        light_cols[i].g=j*(sqrt(j/255.0f));
+        light_cols[i].b=j;*/
+    }
+}
+
+jcolor3_t *Game::getLightColorTable()
+{
+    return light_cols;
+}
+
+void Game::addActor(Ptr<IActor> actor) {
+    actors.insert(actors.end(), actor);
+}
+
+void Game::increaseGamma()
+{
+    float gamma=getRenderer()->getGammaCorrectionValue();
+
+    gamma*=1.05;
+    getRenderer()->setGammaCorrectionValue(gamma);
+}
+
+void Game::decreaseGamma()
+{
+    float gamma=getRenderer()->getGammaCorrectionValue();
+
+    gamma/=1.05;
+    getRenderer()->setGammaCorrectionValue(gamma);
+}
+
+#define BULLET_SPEED_METERS_PER_SECOND 2000.0f
+void Game::launchBullet()
+{
+    static int cannon_num=0;
+    float pos[3],vec[3], rvec[3];
+    float cannon[4][3]={
+        {-3.0, -1.5, -2.0},
+        { 3.0, -1.5, -2.0},
+        {-3.5, -1.5, -2.0},
+        { 3.5, -1.5, -2.0},
+    };
+    float speed;
+
+    Ptr<Bullet> projectile( new Bullet(this) );
+    player->getOrientation(vec, rvec);
+    player->getLocation(pos);
+    Vector move(player->getMovementVector());
+    
+    Vector start(pos), front(vec), right(rvec), up(front % right);
+    start += cannon[cannon_num][0] * right;
+    start += cannon[cannon_num][1] * up;
+    start += cannon[cannon_num][2] * front;
+    if (++cannon_num==4) cannon_num=0;
+    for (int i=0; i<3; i++) pos[i]=start[i];
+    
+    move += BULLET_SPEED_METERS_PER_SECOND * front;
+    
+    actors.insert(actors.end(), projectile);
+    
+    projectile->shoot(pos, move, front);
+}
+
+#define DUMBMISSILE_SPEED_METERS_PER_SECOND 0.0f
+void Game::launchDumbMissile()
+{
+    static int cannon_num=0;
+    float pos[3],vec[3], rvec[3];
+    float cannon[4][3]={
+        {-3.0, -1.5, -2.0},
+        { 3.0, -1.5, -2.0},
+        {-3.5, -1.5, -2.0},
+        { 3.5, -1.5, -2.0},
+    };
+    float speed;
+
+    Ptr<DumbMissile> projectile( new DumbMissile(this) );
+    player->getOrientation(vec, rvec);
+    player->getLocation(pos);
+    Vector move(player->getMovementVector());
+    
+    Vector start(pos), front(vec), right(rvec), up(front % right);
+    start += cannon[cannon_num][0] * right;
+    start += cannon[cannon_num][1] * up;
+    start += cannon[cannon_num][2] * front;
+    if (++cannon_num==4) cannon_num=0;
+    for (int i=0; i<3; i++) pos[i]=start[i];
+    
+    move += DUMBMISSILE_SPEED_METERS_PER_SECOND * front;
+    
+    actors.insert(actors.end(), projectile);
+    
+    projectile->shoot(pos, move, front);
+}
+
+void Game::onKeyboardSignal(int keycode, bool pressed)
+{
+    ls_message("Received Keyboard Signal %d (%s)\n", keycode,
+            pressed?"pressed":"released");
+}
+
+void Game::onActionSignal()
+{
+    ls_message("Received Action Signal.\n");
+}
+
+void Game::endGame()
+{
+    game_done=true;
+}
+
+int main(int argc, const char **argv)
+{
+    Game g;
+    ls_message("Number of arguments: %d\n", argc);
+    g.init(argc,argv);
+    g.run();
+    g.done();
+    return 0;
+}

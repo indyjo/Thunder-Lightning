@@ -1,0 +1,958 @@
+#include "LoDTerrain.h"
+#include <algorithm>
+
+#define ENABLE_DYNAMIC_LOD 1
+
+#define ERROR_FACTOR 200.0
+//#define MAX_ERROR 0.005
+//#define MAX_ERROR 1.0
+#define MAX_ERROR 0.001
+
+#define USE_Z_METRIC 0
+#define USE_DISTANCE_METRIC 1
+#define USE_ANGULAR_METRIC 0
+#define USE_EDGE_METRIC 0
+
+#define DETAIL_LAYERS 3
+#define DETAIL_SCALE 40.0
+#define DETAIL_TEX_MAX_RANGE 10000.0
+#define DETAIL_TEX_MIN_RANGE 1500.0
+#define ENABLE_DETAIL_TEX 0
+
+
+#define LEFT 0
+#define RIGHT 1
+#define TOP 2
+#define BOTTOM 2
+
+typedef struct {
+	char magic[4];
+	ju32 triangles;
+	ju32 vertices;
+} LoDQuadFileHeader;
+
+
+
+// BEGIN: LoDQuad methods
+
+LoDQuad::LoDQuad()
+{
+}
+
+LoDQuad::~LoDQuad()
+{
+}
+
+
+void LoDQuad::init (IGame * the_game, std::istream & in, LoDQuad ** neighbor,
+                    TexPtr main_tex, TexPtr detail_tex)
+{
+    LoDQuadFileHeader header;
+    LoDTriangleFileStruct ftriangle;
+    int i;
+    Vector v0, v1, v2;
+    
+    game=the_game;
+    
+    this->main_tex=main_tex;
+    this->detail_tex=detail_tex;
+    
+    in.read((char*) &header, sizeof (LoDQuadFileHeader));
+    
+    triangles=header.triangles;
+    vertices=header.vertices;
+    
+    triangle = new LoDTriangle[triangles];
+    ls_warning("Init %p: (vertices=%d)\n", this, vertices);
+    vx = new float[vertices];
+    vy = new float[vertices];
+    vz = new float[vertices];
+    
+    for (i=0; i<triangles; i++) {
+        in.read((char*) &ftriangle, sizeof(LoDTriangleFileStruct));
+
+        triangle[i].error = ftriangle.error;
+        triangle[i].flags = ftriangle.flags;
+        
+        if (triangle[i].flags & TFLAG_HAS_CHILDREN) {
+            triangle[i].child[0] = &triangle[ftriangle.child[0]];
+            triangle[i].child[1] = &triangle[ftriangle.child[1]];
+        } else {
+            triangle[i].child[0] = 0;
+            triangle[i].child[1] = 0;
+        }
+        
+        triangle[i].vertex[0] = ftriangle.vertex[0];
+        triangle[i].vertex[1] = ftriangle.vertex[1];
+        triangle[i].vertex[2] = ftriangle.vertex[2];
+    }
+    
+    in.read((char*) vx, sizeof(float) * vertices);
+    in.read((char*) vz, sizeof(float) * vertices);
+    in.read((char*) vy, sizeof(float) * vertices);
+    
+    for (i=0; i<vertices; i++) {
+        vz[i]=-vz[i];
+        //vy[i]/=3.0;
+        //vy[i]*=3.0;
+    }
+    
+    for (i=0; i<triangles; i++) {
+        triangle[i].radius = calcRadius( &triangle[i] );
+        /*if (i % 1000 == 0) {
+            ls_message("radius for tri #%d is %f\n", i, triangle[i].radius);
+        }*/
+        v0 = Vector(vx[triangle[i].vertex[0]],
+                vy[triangle[i].vertex[0]],
+                vz[triangle[i].vertex[0]]);
+        v1 = Vector(vx[triangle[i].vertex[1]], 
+                vy[triangle[i].vertex[1]], 
+                vz[triangle[i].vertex[1]]);
+        v2 = Vector(vx[triangle[i].vertex[2]], 
+                vy[triangle[i].vertex[2]], 
+                vz[triangle[i].vertex[2]]);
+        triangle[i].normal= ((v2 - v0) % (v1 - v0)).normalize();
+    }
+    
+    this->neighbor[0]=neighbor[0];
+    this->neighbor[1]=neighbor[1];
+    this->neighbor[2]=neighbor[2];
+    this->neighbor[3]=neighbor[3];
+}
+
+void LoDQuad::done()
+{
+    delete[] vx;
+    delete[] vy;
+    delete[] vz;
+    delete[] triangle;
+}
+
+
+void LoDQuad::connect()
+{
+    if (neighbor[QN_WEST]) {
+        triangle[0].neighbor[0] = &neighbor[QN_WEST]->triangle[1];
+    } else {
+        triangle[0].neighbor[0] = 0;
+    }
+
+    if (neighbor[QN_NORTH]) {
+        triangle[0].neighbor[1] = &neighbor[QN_NORTH]->triangle[1];
+    } else {
+        triangle[0].neighbor[1] = 0;
+    }
+
+    if (neighbor[QN_EAST]) {
+        triangle[1].neighbor[0] = &neighbor[QN_EAST]->triangle[0];
+    } else {
+        triangle[1].neighbor[0] = 0;
+    }
+
+    if (neighbor[QN_SOUTH]) {
+        triangle[1].neighbor[1] = &neighbor[QN_SOUTH]->triangle[0];
+    } else {
+        triangle[1].neighbor[1] = 0;
+    }
+
+    triangle[0].neighbor[2] = &triangle[1];
+    triangle[1].neighbor[2] = &triangle[0];
+}
+
+void LoDQuad::setup(Vector &pos, const float planes[6][4])
+{
+    triangle[0].flags |= TFLAG_ENABLED;
+    triangle[1].flags |= TFLAG_ENABLED;
+    
+    evaluator = Evaluator(pos, planes, vx, vy, vz);
+
+    setupRecursive(&triangle[0], pos, 1, MAX_ERROR);
+    setupRecursive(&triangle[1], pos, 1, MAX_ERROR);
+}
+
+void LoDQuad::draw(JRenderer *renderer)
+{
+    renderer->setCullMode(JR_CULLMODE_CULL_POSITIVE);
+    drawRecursive(renderer,&triangle[0]);
+    drawRecursive(renderer,&triangle[1]);
+}
+
+void LoDQuad::drawWire(JRenderer *renderer)
+{
+    renderer->setCullMode(JR_CULLMODE_NO_CULLING);
+    BorderSet bdrs_left  = {true, true, true};
+    BorderSet bdrs_right = {true, true, false};
+    drawWireRecursive(renderer,&triangle[0], bdrs_left);
+    drawWireRecursive(renderer,&triangle[1], bdrs_right);
+}
+
+// -------------------------- Private methods ---------------------------- //
+
+void LoDQuad::drawRecursive(JRenderer *r, LoDTriangle *tri)
+{
+    jvertex_coltxt v;
+    int i;
+    
+    if (tri->flags & TFLAG_ENABLED) {
+        r->setVertexMode(JR_VERTEXMODE_GOURAUD_TEXTURE);
+        r->setTexture(main_tex);
+        v.col.r=255.0;
+        v.col.g=255.0;
+        v.col.b=255.0;
+        /* Debug code for coloring special triangle types
+        if (tri->flags & TFLAG_HAS_CHILDREN) {
+            v.col.g=0.0;
+        }*/
+        //if (tri->flags & TFLAG_DEBUG) {
+        //    v.col.b=0.0;
+        //}
+
+        r->begin(JR_DRAWMODE_TRIANGLES);
+        for (i=0; i<3; i++) {
+            v.p.x = vx[ tri->vertex[i] ];
+            v.p.y = vy[ tri->vertex[i] ];
+            v.p.z = vz[ tri->vertex[i] ];
+
+            v.txt.x=(v.p.x - 36000.0) / 72000.0 * 512.0;
+            v.txt.y=512.0 - (v.p.z - 36000.0) / 72000.0 * 512.0;
+
+            // Debug code for GeoMorphing
+            if (i==2) {
+                float m0 = tri->morph;
+                float m1=1, m2=1, m3=1;
+                LoDTriangle * t1 = tri->neighbor[RIGHT];
+                LoDTriangle * t2 = tri->neighbor[LEFT];
+                if( t1 && t1->neighbor[LEFT] == tri) m1 = t1->morph;
+                if( t2 && t2->neighbor[RIGHT] == tri) {
+                    m2 = t2->morph;
+                    LoDTriangle *t3 = t2->neighbor[LEFT];
+                    if (t3 && t3->neighbor[RIGHT] == t2) m3 = t3->morph;
+                }
+                float morph = max(max(m0,m1),max(m2,m3));
+                v.col.g = v.col.r = 255 * morph;
+            }
+            //if (tri->morph < 0.0 || tri->morph > 1.0)
+            //    ls_error("morph:%f\n", tri->morph);
+            
+            r->addVertex(&v);
+        }
+        r->end();
+#if ENABLE_DETAIL_TEX
+        r->setTexture(detail_tex);
+        r->setZBufferFunc(JR_ZBFUNC_EQUAL);
+        r->enableAlphaBlending();
+        r->begin(JR_DRAWMODE_TRIANGLES);
+        for (int x = 2<<(DETAIL_LAYERS-1); x >= 1; x/=2) {
+            for (i=0; i<3; i++) {
+                v.p.x = vx[ tri->vertex[i] ];
+                v.p.y = vy[ tri->vertex[i] ];
+                v.p.z = vz[ tri->vertex[i] ];
+
+                v.txt.x=v.p.x * DETAIL_SCALE / (float)x;
+                v.txt.y=-v.p.z * DETAIL_SCALE / (float)x;
+
+                r->setAlpha(0.5);
+                r->addVertex(&v);
+            }
+        }
+        r->end();
+        r->disableAlphaBlending();
+        r->setZBufferFunc(JR_ZBFUNC_LEQUAL);
+#endif
+    } else {
+        drawRecursive(r, tri->child[0]);
+        drawRecursive(r, tri->child[1]);
+    }
+}
+
+void LoDQuad::drawWireBorder(JRenderer *r, LoDTriangle *tri, int i0, int i1)
+{
+    jvertex_coltxt v;
+    
+    v.col.r = 0.0;
+    v.col.g = 0.0;
+    v.col.b = 0.0;
+    
+    v.p.x = vx[ tri->vertex[i0] ];
+    v.p.y = vy[ tri->vertex[i0] ];
+    v.p.z = vz[ tri->vertex[i0] ];
+    r->addVertex(&v);
+
+    v.p.x = vx[ tri->vertex[i1] ];
+    v.p.y = vy[ tri->vertex[i1] ];
+    v.p.z = vz[ tri->vertex[i1] ];
+    r->addVertex(&v);
+}
+    
+        
+void LoDQuad::drawWireRecursive(JRenderer *r, LoDTriangle *tri, BorderSet bdrs)
+{
+    int i;
+    
+    if (tri->flags & TFLAG_ENABLED) {
+        r->setVertexMode(JR_VERTEXMODE_GOURAUD);
+        
+        r->begin(JR_DRAWMODE_LINES);
+        
+        if (bdrs.left) drawWireBorder(r,tri,0,2);
+        if (bdrs.right) drawWireBorder(r,tri,1,2);
+        if (bdrs.bottom) drawWireBorder(r,tri,0,1);
+        
+        r->end();
+    } else {
+        BorderSet child_bdrs[2];
+        
+        child_bdrs[0].left = true;
+        child_bdrs[0].right = bdrs.bottom;
+        child_bdrs[0].bottom = bdrs.left;
+        
+        child_bdrs[1].right = false;
+        child_bdrs[1].left = bdrs.bottom;
+        child_bdrs[1].bottom = bdrs.right;
+        
+        drawWireRecursive(r, tri->child[0], child_bdrs[0]);
+        drawWireRecursive(r, tri->child[1], child_bdrs[1]);
+    }
+}
+
+
+float LoDQuad::calcRadius(const LoDTriangle *tri)
+{
+    JPoint center, distance;
+    
+    distance.set( vx[tri->vertex[0]], vy[tri->vertex[0]], vz[tri->vertex[0]] );
+    center.set( &distance.point );
+    center.add( vx[tri->vertex[1]], vy[tri->vertex[1]], vz[tri->vertex[1]] );
+    center.scale(0.5);
+    distance.sub( &center.point );
+    
+    return distance.getLength();
+}
+
+void LoDQuad::split2(LoDTriangle *tri)
+{
+    /*ls_message("Splitting triangle %d (%f,%f,%f) (%f,%f,%f) (%f,%f,%f)\n",
+        tri_idx,
+        
+        );*/
+    tri->flags &= (0xffffffff ^ TFLAG_ENABLED);
+    tri->child[0]->flags |= TFLAG_ENABLED;
+    tri->child[1]->flags |= TFLAG_ENABLED;
+    
+    tri->child[LEFT]->neighbor[BOTTOM] = tri->neighbor[LEFT];
+    tri->child[RIGHT]->neighbor[BOTTOM] = tri->neighbor[RIGHT];
+    
+    tri->child[LEFT]->neighbor[LEFT] = tri->child[RIGHT];
+    tri->child[RIGHT]->neighbor[RIGHT] = tri->child[LEFT];
+    
+    if (tri->neighbor[LEFT]) {
+        if (tri == tri->neighbor[LEFT]->neighbor[BOTTOM] ) {
+            tri->neighbor[LEFT]->neighbor[BOTTOM] = tri->child[LEFT];
+        } else if (tri == tri->neighbor[LEFT]->neighbor[RIGHT] ) {
+            tri->neighbor[LEFT]->neighbor[RIGHT] = tri->child[LEFT];
+        } else {
+            tri->neighbor[LEFT]->neighbor[LEFT] = tri->child[LEFT];
+        }
+    }
+    
+    if (tri->neighbor[RIGHT]) {
+        if (tri == tri->neighbor[RIGHT]->neighbor[BOTTOM] ) {
+            tri->neighbor[RIGHT]->neighbor[BOTTOM] = tri->child[RIGHT];
+        } else if (tri == tri->neighbor[RIGHT]->neighbor[RIGHT] ) {
+            tri->neighbor[RIGHT]->neighbor[RIGHT] = tri->child[RIGHT];
+        } else {
+            tri->neighbor[RIGHT]->neighbor[LEFT] = tri->child[RIGHT];
+        }
+    }
+}
+
+void LoDQuad::split(LoDTriangle *tri)
+{
+    // Don't split triangles that have already been split
+    if ((tri->flags & TFLAG_ENABLED) == 0) {
+        return;
+    }
+    
+    if (tri->neighbor[BOTTOM]) {
+        if (tri != tri->neighbor[BOTTOM]->neighbor[BOTTOM]) {
+            split(tri->neighbor[BOTTOM]);
+        }
+        split2(tri);
+        split2(tri->neighbor[BOTTOM]);
+        
+        tri->child[LEFT]->neighbor[RIGHT]=
+            tri->neighbor[BOTTOM]->child[RIGHT];
+        tri->child[RIGHT]->neighbor[LEFT]=
+            tri->neighbor[BOTTOM]->child[LEFT];
+        tri->neighbor[BOTTOM]->child[LEFT]->neighbor[RIGHT]=
+            tri->child[RIGHT];
+        tri->neighbor[BOTTOM]->child[RIGHT]->neighbor[LEFT]=
+            tri->child[LEFT];
+    } else {
+        split2(tri);
+        tri->child[LEFT]->neighbor[RIGHT]=0;
+        tri->child[RIGHT]->neighbor[LEFT]=0;
+    }
+}
+
+
+LoDQuad::Evaluator::Evaluator(const Vector & p, const float plane[6][4],
+        const float * vx, const float * vy, const float * vz)
+: pos(p), vx(vx), vy(vy), vz(vz)
+{
+    for(int i=0; i<6; i++) for (int j=0; j<4; j++)
+        this->plane[i][j] = plane[i][j];
+}
+
+float LoDQuad::Evaluator::evaluate(LoDTriangle * tri)
+{
+    float error=tri->error;
+    Vector midpoint =
+            Vector(vx[tri->vertex[0]], vy[tri->vertex[0]], vz[tri->vertex[0]])
+            + Vector(vx[tri->vertex[1]], vy[tri->vertex[1]], vz[tri->vertex[1]]);
+    midpoint /= 2.0;
+    float dist=calcDistance(midpoint, plane[PLANE_MINUS_Z]);
+
+    if (error < MAX_ERROR) error = MAX_ERROR;
+#if USE_Z_METRIC
+    error = error *
+        (ERROR_FACTOR*ERROR_FACTOR) /
+        (dist*dist);
+#endif
+
+#if USE_DISTANCE_METRIC
+    {
+        Vector c0(vx[tri->vertex[0]], vy[tri->vertex[0]], vz[tri->vertex[0]]);
+        Vector c1(vx[tri->vertex[1]], vy[tri->vertex[1]], vz[tri->vertex[1]]);
+        Vector c2(vx[tri->vertex[2]], vy[tri->vertex[2]], vz[tri->vertex[2]]);
+        Vector c2c0 = c0 - c2;
+        Vector c2c1 = c1 - c2;
+        Vector c2pos = pos - c2;
+        float a = (c2c0 * c2pos) / (c2c0.lengthSquare());
+        float b = (c2c1 * c2pos) / (c2c1.lengthSquare());
+        float dist2;
+        if (a>=0 && b>=0 && a+b<=1) { // over triangle
+            dist2 = ((pos-c0) * tri->normal);
+        } else {
+            float d0 = (pos-c0).length();
+            float d1 = (pos-c1).length();
+            float d2 = (pos-c2).length();
+            dist2 = min( min(d0,d1), d2 );
+        }
+        //float dist2 = (Vector(vx[tri->vertex[2]], vy[tri->vertex[2]], vz[tri->vertex[2]])
+        //    - pos).length();
+        error = error *
+            (ERROR_FACTOR*ERROR_FACTOR) /
+            (dist2 * dist2);
+    }
+#endif
+
+#if USE_ANGULAR_METRIC
+    // We take into account that the error is perceived as smaller if
+    // we look onto a triangle directly from top
+    Vector v0(vx[tri->vertex[0]],
+            vy[tri->vertex[0]],
+            vz[tri->vertex[0]]);
+    float scalar_prod = pow(abs(tri->normal * (v0 - pos).normalize()), 0.01);
+
+    error *= scalar_prod;
+    //ls_error("scalar_prod: %f\n", scalar_prod);
+
+#endif
+
+#if USE_EDGE_METRIC
+    // Lets give highly visible edges more detail
+    {
+        Vector v(vx[tri->vertex[2]],vy[tri->vertex[2]],vz[tri->vertex[2]]);
+        v-=pos;
+        if (v * tri->normal < 0) {
+            for(int i=0; i<3; i++) {
+                if (tri->neighbor[i]) {
+                    LoDTriangle * n = tri->neighbor[i];
+                    v = Vector(
+                            vx[n->vertex[2]],
+                            vy[n->vertex[2]],
+                            vz[n->vertex[2]]);
+                    v-=pos;
+                    if( v * tri->neighbor[i]->normal > 0)
+                    {
+                        error *= 3.0;
+                        tri->flags |= TFLAG_DEBUG;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+#endif // USE_EDGE_METRIC
+    return error;
+}
+
+LoDQuad::Evaluator::FrustumView
+LoDQuad::Evaluator::checkAgainstFrustum( const LoDTriangle * tri )
+{
+    Vector midpoint =
+            Vector(vx[tri->vertex[0]], vy[tri->vertex[0]], vz[tri->vertex[0]])
+            + Vector(vx[tri->vertex[1]], vy[tri->vertex[1]], vz[tri->vertex[1]]);
+    midpoint /= 2.0;
+    float dist;
+    int out_partially_flags = 0;
+    /*
+      We iterate through the 6 view planes, the "minus-z"-plane
+      comes last. This way we can just reuse the calculated dist
+      for the level of detail calculations.
+    */
+    for (int i=5; i >= 0; i--) {
+        dist=calcDistance(midpoint, plane[i]);
+        if (dist < tri->radius) {
+            out_partially_flags |= 2 << i;
+        }
+        if (dist < -tri->radius) return OUTSIDE;
+    }
+
+    if (out_partially_flags == 0) {
+        // the sphere lies completely inside the viewing frustum
+        // so we won't need any further checks for the child triangles
+        return INSIDE;
+    }
+    return PARTIAL;
+}
+
+float LoDQuad::Evaluator::calcDistance(const Vector & point, const float *plane)
+{
+    return
+        point[0]*plane[0] +
+        point[1]*plane[1] +
+        point[2]*plane[2] +
+        plane[3];
+}
+
+
+#define OUTMASK_MINUS_X  ( 2 << PLANE_MINUS_X )
+#define OUTMASK_PLUS_X   ( 2 << PLANE_PLUS_X  )
+#define OUTMASK_MINUS_Y  ( 2 << PLANE_MINUS_Y )
+#define OUTMASK_PLUS_Y   ( 2 << PLANE_PLUS_Y  )
+#define OUTMASK_MINUS_Z  ( 2 << PLANE_MINUS_Z )
+#define OUTMASK_PLUS_Z   ( 2 << PLANE_PLUS_Z  )
+
+
+void LoDQuad::setupRecursive
+    (LoDTriangle *tri,
+     Vector &pos,
+     int partially_obscured,
+     float parent_error)
+{
+#ifdef ENABLE_DYNAMIC_LOD
+    float error;
+    Evaluator::FrustumView frustum_view;
+    
+    if ((tri->flags & TFLAG_ENABLED) == 0) {
+        error = evaluator.evaluate(tri);
+        if (error < 0) error = 1000000.0;
+        tri->morph = (MAX_ERROR - error) / (parent_error - error);
+        setupRecursive(tri->child[0], pos, 1, error);
+        setupRecursive(tri->child[1], pos, 1, error);
+        
+        //tri->morph = 0;
+        //setupRecursive(tri->child[0], pos, 1, MAX_ERROR);
+        //setupRecursive(tri->child[1], pos, 1, MAX_ERROR);
+        
+    } else {
+    
+        if (partially_obscured) {
+            frustum_view = evaluator.checkAgainstFrustum(tri);
+            partially_obscured = (frustum_view == Evaluator::PARTIAL);
+        } else {
+            frustum_view = Evaluator::INSIDE;
+        }
+        
+        /*
+        We clear the TFLAG_DETAIL_TEX which might still be set from the
+        previous setup.
+        If the distance from the viewer to the triangle is near enough
+        it gets set again later
+        */
+        tri->flags &= ~TFLAG_DETAIL_TEX;
+        tri->flags &= ~TFLAG_DEBUG;
+        
+        if (frustum_view == Evaluator::OUTSIDE) {
+            tri->flags |= TFLAG_ENABLED;
+            tri->flags |= TFLAG_DEBUG;
+        } else {
+
+            error = evaluator.evaluate(tri);
+            //ls_message("error: %f\n", error);
+            if (error < 0) error = 1000000.0;
+
+            if ((error > MAX_ERROR) &&
+                ((tri->flags & TFLAG_HAS_CHILDREN) != 0))
+            {
+                split(tri);
+                tri->morph = 1;
+                setupRecursive(tri->child[0], pos, partially_obscured, error);
+                setupRecursive(tri->child[1], pos, partially_obscured, error);
+            } else {
+                tri->morph = (MAX_ERROR - error) / (parent_error - error);
+                //ls_message("MAX_ERROR=%7.5f parent_error=%7.5f error=%7.5f"
+                //        " morph=%7.5f\n",
+                //        MAX_ERROR, parent_error, error, tri->morph);
+                tri->morph = min(1.0f, max(0.0f, tri->morph));
+                tri->flags |= TFLAG_ENABLED;
+                //if ( dist < DETAIL_TEX_MAX_RANGE ) {
+                //    tri->flags |= TFLAG_DETAIL_TEX;
+                //}
+            }
+            
+        }
+    
+    }
+#else // ENABLE_DYNAMIC_LOD
+    if (tri->flags & TFLAG_HAS_CHILDREN) {
+        if (tri->flags & TFLAG_ENABLED) {
+            split(tri);
+        }
+        setupRecursive(tri->child[0], pos, plane,1);
+        setupRecursive(tri->child[1], pos, plane,1);
+    }
+    
+    /*
+    if (tri->flags & TFLAG_HAS_CHILDREN) {
+        tri->flags &= 0xffffffff ^ TFLAG_ENABLED;
+        setupRecursive(tri->child[0], plane);
+        setupRecursive(tri->child[1], plane);
+    } else tri->flags |= TFLAG_ENABLED;
+    */
+
+#endif
+}
+
+LoDQuad::CoordRel LoDQuad::getCoordRelX(float x)
+{
+    float vmin, vmax;
+    
+    vmin = vx[triangle[0].vertex[0]];
+    vmax = vx[triangle[0].vertex[1]];
+    
+    if (x < vmin) return BELOW;
+    else if (x > vmax) return ABOVE;
+    else return INSIDE;
+}
+
+LoDQuad::CoordRel LoDQuad::getCoordRelZ(float z)
+{
+    float vmin, vmax;
+    
+    vmin = vz[triangle[0].vertex[0]];
+    vmax = vz[triangle[0].vertex[1]];
+    
+    if (z < vmin) return BELOW;
+    else if (z > vmax) return ABOVE;
+    else return INSIDE;
+}
+
+float LoDQuad::getHeightAt(float x, float z)
+{
+    float height;
+    getHeightAtTriangle(&triangle[0], x, z, &height)
+            || getHeightAtTriangle(&triangle[1], x, z, &height);
+    return height;
+}
+
+
+#define VSCALAR(x1,y1,x2,y2) ((x1)*(x2)+(y1)*(y2))
+// Returns false if (x/z) is not inside
+// Our triangle looks like this:
+//             2 p2
+//        v2,-'\
+//      2,-'    \ 1 v1
+//    ,-'        \
+// 0 -------------- 1
+// p0      0 v0     p1
+
+bool LoDQuad::getHeightAtTriangle(LoDTriangle *tri, float x, float z, float *height)
+{
+    float px[3], py[3], pz[3]; // the triangle corners
+    float vx[3], vz[3];        // Direction vectors of the tri edges
+    float nx[3], nz[3];        // Normal vectors of the tri edges
+    float d[3];                // Distance of (x,z) to the according edge
+    float dp[3];               // Distance of a corner point to the opposing edge
+    bool all_positive;
+    // Copy the triangle corner points
+    for(int i=0; i<3; i++) {
+        px[i]=this->vx[tri->vertex[i]];
+        py[i]=this->vy[tri->vertex[i]];
+        pz[i]=this->vz[tri->vertex[i]];
+        //ls_warning("px[%d] = %f\tpz[%d] = %f\n", i, px[i], i, pz[i]);
+    }
+    
+    // Calculate the edge direction vectors
+    for(int i=0; i<3; i++) {
+        vx[i] = px[(i+1)%3] - px[i];
+        vz[i] = pz[(i+1)%3] - pz[i];
+        //ls_message("vx[%d] = %f\tvz[%d] = %f\n", i, vx[i], i, vz[i]);
+    }
+    
+    // Calculate the edge normals. They should point towards the triangle.
+    // Our triangles are counter-clockwise (LEFT, RIGHT, TOP)
+    // So our normals should be the direction vectors rotated counter-clockwise
+    // By 90 degrees
+    for (int i=0; i<3; i++) {
+        nx[i] = -vz[i];
+        nz[i] =  vx[i];
+    }
+    
+    // Calculate the distance between (x,z) to every edge. This need not be
+    // normalized because at this time we are just interested in the sign of
+    // the distance.
+    all_positive=true;
+    for (int i=0; i<3; i++) {
+        d[i] = VSCALAR(nx[i], nz[i], x-px[i], z-pz[i]);
+        if (d[i]<0) all_positive=false;
+    }
+    
+    //ls_error("d: [%f, %f, %f]\n", d[0], d[1], d[2]);
+    
+    // If not all edge distances are positive, we are done, because the point
+    // Is not inside this triangle
+    if (!all_positive) return false;
+    
+    // Now, if the triangle has children, pass the test to them. Else, we have
+    // to calculate the interpolated y value (height) of the tri at (x,z)
+    if (tri->flags & TFLAG_HAS_CHILDREN) {
+        return getHeightAtTriangle(tri->child[0], x, z, height)
+                || getHeightAtTriangle(tri->child[1], x, z, height);
+    } else {
+        dp[1] = VSCALAR(nx[2], nz[2], px[1]-px[2], pz[1]-pz[2]);
+        dp[0] = VSCALAR(nx[1], nz[1], px[0]-px[2], pz[0]-pz[2]);
+        *height = py[2]
+                + ((py[1] - py[2]) * d[2]) / dp[1]
+                + ((py[0] - py[2]) * d[1]) / dp[0];
+        return true;
+    }
+}
+        
+
+// BEGIN: LoDQuadManager methods
+
+LoDQuadManager::LoDQuadManager(IGame *the_game)
+{
+    int        u,v;
+    char       buf[256];
+    ifstream   in;
+    LoDQuad*   (neighbor[4]);
+    TexPtr     main_tex;
+    TexPtr     detail_tex;
+    JSprite    spr;
+
+    string terrain_prefix;
+    string texture_prefix;
+    int quads_w;
+    int quads_h;
+    string detail_tex_name;
+        
+    game=the_game;
+    cfg = Ptr<IConfig>();
+    cfg    = game->getConfig();
+    camera = game->getCamera();
+    renderer = game->getRenderer();
+    
+    // Get the terrain and texture paths from the config
+    terrain_prefix=cfg->query("LoDQuadManager_terrain_prefix");
+    texture_prefix=cfg->query("LoDQuadManager_texture_prefix");
+    detail_tex_name=cfg->query("LoDQuadManager_detail_tex_name");
+    
+    // Get the texture grid size from the config
+    quads_w=atoi(cfg->query("LoDQuadManager_quads_w"));
+    quads_h=atoi(cfg->query("LoDQuadManager_quads_h"));
+    
+    // First load the detail texture
+    detail_tex = game->getTexMan()->query(
+            detail_tex_name.c_str(), JR_HINT_GREYSCALE, 0, true);
+    
+    width=quads_w;
+    height=quads_h;
+    quad=new LoDQuad[width*height];
+    
+    for (v=0; v<height; v++) {
+        for (u=0; u<width; u++) {
+            if (v>0) {
+                neighbor[QN_NORTH]=&quad[(v-1)*width + u];
+            } else {
+                neighbor[QN_NORTH]=0;
+            }
+            
+            if (v<(height-1)) {
+                neighbor[QN_SOUTH]=&quad[(v+1)*width + u];
+            } else {
+                neighbor[QN_SOUTH]=0;
+            }
+            
+            if (u>0) {
+                neighbor[QN_WEST]=&quad[v*width + u-1];
+            } else {
+                neighbor[QN_WEST]=0;
+            }
+            
+            if (u<(width-1)) {
+                neighbor[QN_EAST]=&quad[v*width + u+1];
+            } else {
+                neighbor[QN_EAST]=0;
+            }
+            
+            sprintf(buf,"%s-%d-%d.spr", texture_prefix.c_str(), u, v);
+            main_tex = game->getTexMan()->query(
+                    buf, JR_HINT_FULLOPACITY, 0, true);
+            
+            sprintf(buf,"%s-%d-%d.qad", terrain_prefix.c_str(), u, v);
+            in.open(buf);
+            if (!in) ls_error("LoDTerrain: Couldn't open %s\n", buf);
+            quad[u*width + v].init(the_game, in, neighbor, main_tex, detail_tex);
+            in.close();
+        }
+    }
+
+    for (v=0; v<height; v++) {
+        for (u=0; u<width; u++) {
+            quad[u*width + v].connect();
+        }
+    }
+    counter=0;
+    
+    game->getKeyboardRemapper()->map("debug",
+            SigC::slot(this, &LoDQuadManager::toggleDebugMode));
+    debug_mode = false;
+}
+
+LoDQuadManager::~LoDQuadManager()
+{
+    for (int i=0; i<(width*height); i++) {
+        quad[i].done();
+    }
+    delete[] quad;
+}
+
+void LoDQuadManager::toggleDebugMode()
+{
+    debug_mode = !debug_mode;
+}
+
+// Begin: IDrawable method
+void LoDQuadManager::draw()
+{
+    int i;
+    float planes[6][4];
+    float pos_a[3];
+    
+    camera->getFrustumPlanes(planes);
+    camera->getLocation(pos_a);
+    Vector pos(pos_a);
+    
+    
+    for (i=0; i<(width*height); i++) {
+        quad[i].setup(pos, planes);
+    }
+    for (i=0; i<(width*height); i++) {
+        if (debug_mode) quad[i].drawWire(renderer);
+        else quad[i].draw(renderer);
+    }
+    counter++;
+}
+
+
+// BEGIN: ITerrain method
+float LoDQuadManager::getHeightAt(float x, float z)
+{
+    LoDQuad *q = getQuadAtPoint(x,z);
+    if (q) {
+        return q->getHeightAt(x,z);
+    } else return 0.0;
+}
+
+#define EPSILON 0.000001
+bool LoDQuadManager::lineCollides(Vector a, Vector b, Vector * x)
+{
+    float h_a = getHeightAt(a[0], a[2]);
+    float h_b = getHeightAt(b[0], b[2]);
+    
+    if (h_a < a[1] && h_b < b[1]) return false;
+    if (h_a >= a[1] && h_b >= b[1]) {
+        *x=a;
+        return true;
+    }
+    
+    float delta = (a-b).length();
+    while(delta >= EPSILON) {
+        Vector m = (a + b) / 2;
+        float h_m = getHeightAt(m[0], m[2]);
+        if (h_a >= a[1]) {
+            if (h_m >= m[1]) {
+                a = m;
+                h_a = h_m;
+            } else {
+                b = m;
+                h_b = h_m;
+            }
+        } else {
+            if (h_m >= m[1]) {
+                b = m;
+                h_b = h_m;
+            } else {
+                a = m;
+                h_a = h_m;
+            }
+        }
+        delta /= 2;
+    }
+    
+    *x = a;
+    return true;
+}
+
+// Returns the quad that lies under the given X/Z-Pair. Returns 0 there is none
+LoDQuad * LoDQuadManager::getQuadAtPoint(float x, float z)
+{
+    int u=width/2;
+    int v=height/2;
+    LoDQuad * current_quad = &quad[v*width+u];
+    LoDQuad::CoordRel coord_rel;
+    
+    while (current_quad &&
+            LoDQuad::INSIDE != (coord_rel = current_quad->getCoordRelX(x))) {
+        switch(coord_rel) {
+            case LoDQuad::ABOVE:
+                u--;
+                break;
+            case LoDQuad::BELOW:
+                u++;
+                break;
+            default:
+                break;
+        }
+        if (u<0 || u>=width) {
+            current_quad = 0;
+        } else {
+            current_quad = &quad[v*width+u];
+        }
+    }
+    
+    while (current_quad &&
+            LoDQuad::INSIDE != (coord_rel = current_quad->getCoordRelZ(z))) {
+        switch(coord_rel) {
+            case LoDQuad::ABOVE:
+                v--;
+                break;
+            case LoDQuad::BELOW:
+                v++;
+                break;
+            default:
+                break;
+        }
+        if (v<0 || v>=height) {
+            current_quad = 0;
+        } else {
+            current_quad = &quad[v*width+u];
+        }
+    }
+
+    return current_quad;
+}
