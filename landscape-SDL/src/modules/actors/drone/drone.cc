@@ -89,6 +89,7 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer)
   control_mode(UNCONTROLLED),
   io_peer(io_peer)
 {
+	ls_message("Creating drone.\n");
 	Ptr<IConfig> cfg = thegame->getConfig();
     setTargetInfo(new TargetInfo(
         "Drone", cfg->queryFloat("Drone_target_radius",15),

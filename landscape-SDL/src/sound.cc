@@ -18,12 +18,19 @@ Sound::Sound( const string & filename ) {
     ALsizei size, freq, bits;
     ALenum format;
     ALvoid *data;
-    ALboolean err;
+    ALboolean loop, err;
 
-    err = alutLoadWAV(filename.c_str(), &data, &format, &size, &bits, &freq);
+    //err = alutLoadWAV(filename.c_str(), &data, &format, &size, &bits, &freq);
+    /*
     if(err == AL_FALSE) {
         ls_error("Sound: Could not load %s\n", filename.c_str());
     }
+    */
+    #ifdef MACINTOSH_AL
+    alutLoadWAVFile((ALbyte*)filename.c_str(), &format, &data, &size, &freq);
+    #else
+    alutLoadWAVFile((ALbyte*)filename.c_str(), &format, &data, &size, &freq, &loop);
+    #endif
 
     alBufferData(buffer, format, data, size, freq);
     ALenum e;
@@ -111,7 +118,7 @@ SoundMan::SoundMan(Ptr<IConfig> config)
     if (device == NULL ) ls_error("Soundman: Couldn't open audio device.");
     context = alcCreateContext( device, NULL );
     if (context == NULL ) ls_error("Soundman: Couldn't open audio context.");
-    alcMakeContextCurrent( context );
+    alcMakeContextCurrent( (ALCcontext*) context );
     
     alDopplerVelocity(config->queryFloat("SoundMan_doppler_velocity",10000.0));
     alDopplerFactor(config->queryFloat("SoundMan_doppler_factor", 1));
@@ -119,7 +126,7 @@ SoundMan::SoundMan(Ptr<IConfig> config)
 }
 
 SoundMan::~SoundMan() {
-    alcDestroyContext( context );
+    alcDestroyContext( (ALCcontext*) context );
     alcCloseDevice( device );
 }
 

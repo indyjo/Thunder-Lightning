@@ -12,13 +12,17 @@ TexPtr TextureManager::query(
             unsigned int compression,
             bool mipmap)
 {
+    //ls_message("querying texture %s\n", name);
     TexIterator i = textures_by_name.find(name);
     if (i==textures_by_name.end()) {
+    	//ls_message("  --> not found, creating:\n");
         Texture * nt =
                 new Texture(this, renderer, name, hint, compression, mipmap);
+        //ls_message("      done.\n");
         TexPtr p(nt);
         return p;
     } else {
+    	//ls_message("  --> found!\n");
         TexPtr p(i->second);
         return p;
     }
@@ -99,7 +103,7 @@ Texture::Texture(Ptr<TextureManager> texman,
                  bool mipmap)
     : texman(texman), renderer(renderer), refs(0)
 {
-    ifstream in(filename);
+    ifstream in(filename, ios::binary|ios::in);
     JSprite spr;
     
     if(!in) {

@@ -13,7 +13,8 @@ landscape_bin_SOURCES = game.cc game.h landscape.h interfaces.h \
                         voidptr.h \
                         TypedObject.h TypedObject.cc \
                         ActorStage.cc ActorStage.h \
-                        Faction.cc Faction.h
+                        Faction.cc Faction.h \
+                        debug.h debug.cc
 landscape_libs = \
     modules/scripting/libscripting.a \
     modules/LoDTerrain/libLoDTerrain.a \

@@ -1,6 +1,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#ifdef __MINGW32__
+#include <windows.h>
+#endif
 #include <GL/gl.h>
 #include "jogi.h"
 #include "JOpenGLRenderer.h"
@@ -97,10 +100,10 @@ void JOpenGLRenderer::setCullMode(jrcullmode_t mode)
     }
 }
 
-void JOpenGLRenderer::setClipRange(float near, float far)
+void JOpenGLRenderer::setClipRange(float cnear, float cfar)
 {
-    view_frustum[JGL_FRUSTUM_NEAR] = near;
-    view_frustum[JGL_FRUSTUM_FAR] = far;
+    view_frustum[JGL_FRUSTUM_NEAR] = cnear;
+    view_frustum[JGL_FRUSTUM_FAR] = cfar;
     initProjectionMatrix();
     /*
     glMatrixMode(GL_PROJECTION);
@@ -534,16 +537,16 @@ void JOpenGLRenderer::resize(int new_width, int new_height)
 /* --------------------- Private Functions -------------------------------- */
 
 void JOpenGLRenderer::initProjectionMatrix() {
-    float near = view_frustum[JGL_FRUSTUM_NEAR];
-    float far = view_frustum[JGL_FRUSTUM_FAR];
+    float dnear = view_frustum[JGL_FRUSTUM_NEAR];
+    float dfar = view_frustum[JGL_FRUSTUM_FAR];
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glFrustum(
-        (view_frustum[JGL_FRUSTUM_LEFT]/camera.cam.focus)*near,
-        (view_frustum[JGL_FRUSTUM_RIGHT]/camera.cam.focus)*near,
-        (view_frustum[JGL_FRUSTUM_BOTTOM]/camera.cam.focus)*near,
-        (view_frustum[JGL_FRUSTUM_TOP]/camera.cam.focus)*near,
-        near, far);
+        (view_frustum[JGL_FRUSTUM_LEFT]/camera.cam.focus)*dnear,
+        (view_frustum[JGL_FRUSTUM_RIGHT]/camera.cam.focus)*dnear,
+        (view_frustum[JGL_FRUSTUM_BOTTOM]/camera.cam.focus)*dnear,
+        (view_frustum[JGL_FRUSTUM_TOP]/camera.cam.focus)*dnear,
+        dnear, dfar);
     glMatrixMode(GL_MODELVIEW);
 }
 

@@ -1,0 +1,64 @@
+# The sources directory
+srcdir=.
+
+# Generate target file names from source file names
+SRCS=$(shell cd $(srcdir); find -name \*.cc)
+OBJS=$(subst .cc,.o,$(SRCS))
+
+# The name of the compiler
+CXX=i586-mingw32msvc-c++
+LD=$(CXX)
+
+# You can define additional compiler and linker flags here
+#CXXFLAGS=-g
+#CXXFLAGS=-mcpu=i686 -march=i686
+#LDFLAGS=
+
+SIGC_CFLAGS=-I../libsigc-install/include/sigc++-1.2 -I../libsigc-install/lib/sigc++-1.2/include
+SIGC_LIBS=../libsigc-install/lib/libsigc-1.2.dll.a
+
+IO_CFLAGS=-I../IoVM-2004-09-26/
+IO_LIBS=../IoVM-2004-09-26/IoVM/_libs/libIoVM.a
+
+#SDL_CFLAGS=`sdl-config --cflags`
+SDL_CFLAGS=-I../SDL-1.2.7/include -I../SDL-1.2.7/include/SDL -D_REENTRANT
+#SDL_LIBS=`sdl-config --libs`
+SDL_LIBS=-L../SDL-1.2.7/lib/ -lmingw32 -lSDLmain -lSDL -mwindows -mconsole
+
+AL_CFLAGS=-I../OpenAL/Include
+AL_LIBS=../OpenAL/libs/ALut.lib ../OpenAL/libs/OpenAL32.lib
+
+GL_CFLAGS=
+GL_LIBS=-lopengl32
+
+PNG_CFLAGS=-I../libpng/include -I../libz
+PNG_LIBS=../libpng/lib/libpng10.a ../libz/libz.a
+
+ALL_CXXFLAGS=$(CXXFLAGS) -I$(srcdir) $(SIGC_CFLAGS) $(IO_CFLAGS) $(SDL_CFLAGS) $(AL_CFLAGS) $(GL_CFLAGS) $(PNG_CFLAGS)
+ALL_LDFLAGS=$(LDFLAGS) $(SIGC_LIBS) $(IO_LIBS) $(SDL_LIBS) $(AL_LIBS) $(GL_LIBS) $(PNG_LIBS)
+
+all: landscape-bin.exe
+
+.PHONY: all clean install debug
+
+landscape-bin.exe: $(OBJS)
+	@ echo Linking $@
+	@ $(LD) -Wl,--allow-multiple-definition \
+		-Wl,--start-group $(OBJS) -Wl,--end-group \
+		$(ALL_LDFLAGS) \
+		-o landscape-bin.exe
+
+%.o:
+	@ echo Compiling $@
+	@ if [ ! -d $(shell dirname $@) ] ; then mkdirhier $(shell dirname $@); fi; $(CXX) -c $(ALL_CXXFLAGS) $(srcdir)/$*.cc -o $@
+
+clean:
+	@ echo Cleaning
+	@ rm `find -name \*.o` landscape-bin.exe
+
+install: landscape-bin.exe
+	cp landscape-bin.exe ../landscape-install/bin
+	# i586-mingw32msvc-strip ../landscape-install/bin/landscape-bin.exe
+
+debug:
+	@echo SRCS: $(SRCS); echo OBJS: $(OBJS)

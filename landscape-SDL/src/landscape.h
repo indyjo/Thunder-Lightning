@@ -6,30 +6,7 @@
 #include "signals.h"
 #include <modules/math/SpecialMatrices.h>
 
-#ifdef  __GNUC__
-#define ls_message(format, args...) do {\
-  printf("\033[0;32m");                 \
-  printf(format, ##args);               \
-  printf("\033[0;39m");                 \
-  fflush(stdout);                       \
-  } while(0)
-#define ls_warning(format, args...) do {\
-  printf("\033[1;33m");                 \
-  printf(format, ##args);               \
-  printf("\033[0;39m");                 \
-  fflush(stdout);                       \
-  } while(0)
-#define ls_error(format, args...) do {  \
-  printf("\033[1;31m");                 \
-  printf(format, ##args);               \
-  printf("\033[0;39m");                 \
-  fflush(stdout);                       \
-  } while(0)
-#else   /* !__GNUC__ */
-#define ls_message printf
-#define ls_warning printf
-#define ls_error printf
-#endif
+#include "debug.h"
 
 #define ENABLE_LOD_TERRAIN 1
 #define ENABLE_SKYBOX 1

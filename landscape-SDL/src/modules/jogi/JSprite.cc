@@ -3,6 +3,7 @@
 #include <cstring>
 #include <png.h>
 #include "jogi.h"
+#include <landscape.h>
 
 using namespace std;
 
@@ -56,7 +57,6 @@ jError JSprite::load(istream &in)
     } else if (0 == png_sig_cmp((png_bytep)sample, 0, 4)) {
         return loadPNG(in);
     } else return JERR_FILEFORMAT;
-
 }
 
 jError JSprite::loadSPR(istream & in)

@@ -55,7 +55,7 @@ namespace {
 		setControlledActor(IoObject *self, IoObject *locals, IoMessage *m) {
 			BEGIN_FUNC("Game.setControlledActor")
 			IOASSERT(IoMessage_argCount(m) == 1,"Expected one argument")
-			IoObject *arg = IoMessage_locals_objectArgAt_(m, locals, 0);
+			IoObject *arg = IoMessage_locals_valueArgAt_(m, locals, 0);
 			Ptr<IActor> a = unwrapObject<Ptr<IActor> >(arg);
 			getObject(self)->setCurrentlyControlledActor( a );
 			return self;
@@ -66,9 +66,9 @@ namespace {
 			BEGIN_FUNC("Game.setView")
 			IOASSERT(IoMessage_argCount(m) == 2,"Expected two arguments")
 			Ptr<IActor> a = unwrapObject<Ptr<IActor> >(
-				IoMessage_locals_objectArgAt_(m, locals, 0));
+				IoMessage_locals_valueArgAt_(m, locals, 0));
 		    int view = unwrapObject<int>(
-				IoMessage_locals_objectArgAt_(m, locals, 1));
+				IoMessage_locals_valueArgAt_(m, locals, 1));
 			getObject(self)->setCurrentView(a->getView(view));
 			return self;
 		}

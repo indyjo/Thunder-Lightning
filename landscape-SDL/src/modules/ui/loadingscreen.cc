@@ -14,6 +14,7 @@ LoadingScreen::LoadingScreen(IGame *thegame, const string & bgtex_name)
     ls_message("LoadingScreen: loading texture %s\n", bgtex_name.c_str());
     background = thegame->getTexMan()->
             query(bgtex_name.c_str(), JR_HINT_FULLOPACITY);
+    ls_message("done\n");
     fontman = thegame->getFontMan();
 }
 

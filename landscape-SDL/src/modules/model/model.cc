@@ -45,7 +45,7 @@ void Model::parseObjFile(TextureManager & texman, istream & in, const char *dir)
             Vector vec;
             in >> vec[0] >> vec[1];
             char c;
-            do in.get(c); while (isblank(c));
+            do in.get(c); while (c==' ' || c=='\t');
             if (c=='\r' ||  c=='\n') {
             	vec[2]=0;
             } else if (isdigit(c) || c=='+' || c=='-') {

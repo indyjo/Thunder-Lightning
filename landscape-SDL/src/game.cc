@@ -62,8 +62,9 @@ Game::Game(int argc, const char **argv)
 
     ls_message("Initializing SDL: ");
     if (-1 == SDL_Init( SDL_INIT_VIDEO |
-                        SDL_INIT_JOYSTICK /*|
-                        SDL_INIT_NOPARACHUTE*/ )  )
+                        SDL_INIT_JOYSTICK |
+                        (config->queryBool("Game_enable_SDL_parachute", true)?
+                        	0:SDL_INIT_NOPARACHUTE) )  )
     {
         const char * err = SDL_GetError();
         ls_error("error: %s", err);
@@ -941,10 +942,10 @@ void Game::toggleControlMode() {
     }
 }
 
-int main(int argc, const char **argv)
+int main(int argc, char *argv[])
 {
     try {
-        Game *game = new Game(argc, argv);
+        Game *game = new Game(argc, (const char**)argv);
         game->run();
     } catch (std::exception & e) {
         ls_error("Uncaught exception: %s\n", e.what());

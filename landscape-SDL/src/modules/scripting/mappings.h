@@ -92,7 +92,7 @@ extern "C" {
 	IoObject *self, IoObject *locals, IoMessage *m) {	\
 		IOASSERT(IoMessage_argCount(m) == 1,			\
 			"Expected one argument")					\
-		IoObject *arg = IoMessage_locals_objectArgAt_(	\
+		IoObject *arg = IoMessage_locals_valueArgAt_(	\
 			m, locals, 0);								\
 		getObject(self)-> funcname (					\
 			unwrapObject<Vector>(arg));					\
@@ -102,7 +102,7 @@ extern "C" {
 #define SETTER(type, funcname)							\
 	static IoObject * funcname(IoObject *self, IoObject *locals, IoMessage *m){	\
 		IOASSERT(IoMessage_argCount(m) == 1, "Expected one argument")			\
-		IoObject *arg = IoMessage_locals_objectArgAt_(m,locals,0);				\
+		IoObject *arg = IoMessage_locals_valueArgAt_(m,locals,0);				\
 		getObject(self)-> funcname( unwrapObject<type>(arg) );					\
 		return self;															\
 	}

@@ -2,6 +2,230 @@
 #include <stdio.h>
 #include <iostream>
 
+#include <landscape.h>
+
+#ifdef __MINGW32__
+
+template<class EventKey, class EventVal>
+MTasker<EventKey,EventVal>::MTasker(size_t stacksize)
+: d_stacksize(stacksize)
+{
+  	// HACK
+  	// HACK
+  	// HACK
+  	// EVIL HACK THAT IS BOUND TO GET ME KILLED SOMETIME
+  	// this assumes that ALL MTaskers are created in the same Fiber
+  	static bool inited=false;
+  	if (!inited) {
+  		ConvertThreadToFiber(NULL);
+  		//ls_message("Converting Thread to fiber.\n");
+  		inited=true;
+  	}
+  	
+  	d_kernel = GetCurrentFiber();
+  	if (!d_kernel) {
+  		//ls_message("Converting Thread to fiber.\n");
+  		d_kernel = ConvertThreadToFiber(NULL);
+  	}
+    d_maxtid=0;
+}
+
+template<class EventKey, class EventVal>int MTasker<EventKey,EventVal>::waitEvent(const EventKey &key, EventVal *val, unsigned int timeout)
+{
+  Waiter w;
+  w.fiber=GetCurrentFiber();
+  w.ttd= timeout ? time(0)+timeout : 0;
+  w.tid=d_tid;
+  
+  d_waiters[key]=w;
+
+  SwitchToFiber(d_kernel);
+  if(val && d_waitstatus==Answer) 
+    *val=d_waitval;
+  d_tid=w.tid;
+  return d_waitstatus;
+}
+
+//! yields control to the kernel or other threads
+/** Hands over control to the kernel, allowing other processes to run, or events to arrive */
+
+template<class Key, class Val>void MTasker<Key,Val>::yield()
+{
+  d_runQueue.push(d_tid);
+  //ls_message("Switching to kernel: %p\n", d_kernel);
+  SwitchToFiber(d_kernel);          // give control to the kernel
+  //ls_message("Resuming in: %d\n", d_tid);
+}
+
+//! reports that an event took place for which threads may be waiting
+/** From the kernel loop, sendEvent can be called to report that something occured for which there may be waiters.
+    \param key Key of the event for which threads may be waiting
+    \param val If non-zero, pointer to the content of the event
+    \return Returns -1 in case of error, 0 if there were no waiters, 1 if a thread was woken up.
+*/
+template<class EventKey, class EventVal>int MTasker<EventKey,EventVal>::sendEvent(const EventKey& key, const EventVal* val)
+{
+  if(!d_waiters.count(key)) {
+    return 0;
+  }
+  
+  d_waitstatus=Answer;
+  if(val)
+    d_waitval=*val;
+  
+  LPVOID userspace=d_waiters[key].fiber;
+  d_tid=d_waiters[key].tid;         // set tid 
+  
+  d_waiters.erase(key);             // removes the waitpoint 
+  SwitchToFiber(userspace);         // swaps back to the above point 'A'
+  
+  return 1;
+}
+
+//! launches a new thread
+/** The kernel can call this to make a new thread, which starts at the function start and gets passed the val void pointer.
+    \param start Pointer to the function which will form the start of the thread
+    \param val A void pointer that can be used to pass data to the thread
+*/
+template<class Key, class Val>void MTasker<Key,Val>::makeThread(tfunc_t *start, void* val)
+{
+  ThreadParam *param = new ThreadParam;
+
+  param->tf = start;
+  param->self = this;
+  param->tid = d_maxtid;
+  param->val = val;
+
+  LPVOID uc = CreateFiber(d_stacksize, threadWrapper, param);
+
+  d_threads[d_maxtid]=uc;
+  d_runQueue.push(d_maxtid++); // will run at next schedule invocation
+}
+
+
+//! needs to be called periodically so threads can run and housekeeping can be performed
+/** The kernel should call this function every once in a while. It makes sense
+    to call this function if you:
+    - reported an event
+    - called makeThread
+    - want to have threads running waitEvent() to get a timeout if enough time passed 
+    
+    \return Returns if there is more work scheduled and recalling schedule now would be useful
+      
+*/
+template<class Key, class Val>bool MTasker<Key,Val>::schedule()
+{
+
+  if(!d_runQueue.empty()) {
+    d_tid=d_runQueue.front();
+    SwitchToFiber(d_threads[d_tid]);
+    d_runQueue.pop();
+    return true;
+  }
+  if(!d_zombiesQueue.empty()) {
+    DeleteFiber(d_threads[d_zombiesQueue.front()]);
+    d_threads.erase(d_zombiesQueue.front());
+    d_zombiesQueue.pop();
+    return true;
+  }
+  if(!d_waiters.empty()) {
+    time_t now=time(0);
+    for(typename waiters_t::const_iterator i=d_waiters.begin();i!=d_waiters.end();++i) {
+      if(i->second.ttd && i->second.ttd<now) {
+	d_waitstatus=TimeOut;
+	SwitchToFiber(i->second.fiber);
+	d_waiters.erase(i->first);                  // removes the waitpoint 
+      }
+    }
+  }
+  return false;
+}
+
+
+template<class Key, class Val>void MTasker<Key,Val>::scheduleAll()
+{
+  int n = d_runQueue.size();
+  for(int i=0; i<n; ++i) {
+    d_tid=d_runQueue.front();
+    //ls_message("Kernel %p switching to fiber %d at %p\n", d_kernel, d_tid, d_threads[d_tid]);
+    SwitchToFiber(d_threads[d_tid]);
+    //ls_message("back!\n");
+    //ls_message("Kernel %p returned from fiber %d at %p\n", d_kernel, d_tid, d_threads[d_tid]);
+    d_runQueue.pop();
+  }
+  n = d_zombiesQueue.size();
+  for(int i=0; i<n; ++i) {
+    DeleteFiber(d_threads[d_zombiesQueue.front()]);
+    d_threads.erase(d_zombiesQueue.front());
+    d_zombiesQueue.pop();
+  }
+  if(!d_waiters.empty()) {
+    time_t now=time(0);
+    for(typename waiters_t::const_iterator i=d_waiters.begin();i!=d_waiters.end();++i) {
+      if(i->second.ttd && i->second.ttd<now) {
+        d_waitstatus=TimeOut;
+        SwitchToFiber(i->second.fiber);
+        //delete i->second.context;              
+        d_waiters.erase(i->first);                  // removes the waitpoint 
+      }
+    }
+  }
+}
+
+//! returns true if there are no processes
+/** Call this to check if no processes are running anymore
+    \return true if no processes are left
+ */
+template<class Key, class Val>bool MTasker<Key,Val>::noProcesses()
+{
+  return d_threads.empty();
+}
+
+//! gives access to the list of Events threads are waiting for
+/** The kernel can call this to get a list of Events threads are waiting for. This is very useful
+    to setup 'select' or 'poll' or 'aio' events needed to satisfy these requests.
+    getEvents clears the events parameter before filling it.
+
+    \param events Vector which is to be filled with keys threads are waiting for
+*/
+template<class Key, class Val>void MTasker<Key,Val>::getEvents(std::vector<Key>& events)
+{
+  events.clear();
+  for(typename waiters_t::const_iterator i=d_waiters.begin();i!=d_waiters.end();++i) {
+    events.push_back(i->first);
+  }
+}
+
+
+//! Returns the current Thread ID (tid)
+/** Processes can call this to get a numerical representation of their current thread ID.
+    This can be useful for logging purposes.
+*/
+template<class Key, class Val>int MTasker<Key,Val>::getTid()
+{
+  return d_tid;
+}
+
+#include <cstring>
+
+template<class Key, class Val>
+VOID WINAPI MTasker<Key,Val>::threadWrapper(LPVOID lpFiberParameter)
+{
+  ThreadParam *param = (ThreadParam *) lpFiberParameter;
+
+  tfunc_t *tf = param->tf;
+
+  tf(param->val);
+
+  MTasker *self = param->self;
+  self->d_zombiesQueue.push(param->tid);
+  delete param;
+
+  SwitchToFiber(self->d_kernel);
+}
+
+#else
+
 /** \mainpage
     Simple system for implementing cooperative multitasking of functions, with 
     support for waiting on events which can return values.
@@ -126,6 +350,14 @@ int main()
 \endcode
 
 */
+
+
+template<class EventKey, class EventVal>
+MTasker<EventKey,EventVal>::MTasker(size_t stacksize)
+: d_stacksize(stacksize)
+{
+    d_maxtid=0;
+}
 
 
 //! puts a thread to sleep waiting until a specified event arrives
@@ -336,7 +568,7 @@ template<class Key, class Val>int MTasker<Key,Val>::getTid()
   return d_tid;
 }
 
-
+#endif
 
 //! Explicit instanciation
 template class MTasker<int,int>;

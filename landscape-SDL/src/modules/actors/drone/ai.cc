@@ -716,8 +716,10 @@ void Dogfight::run() {
 		}
 		
 		if (positionFavorable()) {
+			nfo +="\nposition favorable\n";
 			aimAndShoot();
 		} else {
+			nfo +="\nposition not favorable\n";
 			evade();
 		}
 		
@@ -730,35 +732,6 @@ bool Dogfight::targetInRange(Ptr<IActor> tgt) {
 }
 
 Ptr<IActor> Dogfight::selectNearestTargetInRange(float range) {
-	/*
-    typedef IActorStage::ActorVector List;
-    typedef List::const_iterator Iter;
-    List list;
-    ctx.thegame->queryActorsInSphere(
-    	list, ctx.actor->getLocation(), range);
-    Ptr<Faction> faction = ctx.actor->getFaction();
-    
-    Ptr<IActor> best_candidate;
-    float best_dist=0;
-    
-    for(Iter i=list.begin(); i!=list.end(); ++i) {
-    	Ptr<IActor> candidate = *i;
-    	if (candidate == ctx.actor) continue;
-        if(!candidate->getTargetInfo() ) continue;
-        if(!candidate->getTargetInfo()->isA(TargetInfo::DETECTABLE))
-        	continue;
-        if(faction->getAttitudeTowards(candidate->getFaction())
-        	!= Faction::HOSTILE) continue;
-        Vector d = ctx.actor->getLocation() - candidate->getLocation();
-        float dist = d.length();
-        
-        if (best_dist==0 || dist < best_dist) {
-        	best_candidate = candidate;
-        	best_dist = dist;
-        }
-    }
-    
-    return best_candidate;*/
     ctx.targeter->setMaxRange(range);
     ctx.targeter->selectNearestHostileTarget();
     return ctx.targeter->getCurrentTarget();
@@ -778,7 +751,7 @@ bool Dogfight::positionFavorable() {
 	bool in_front_of_target = -d*target_dir > std::cos(30*PI/180);
 	bool target_behind = d*own_dir < std::cos(120*PI/180);
 	
-	return dist>2000 || !in_front_of_target && !target_behind;
+	return dist>100 || !in_front_of_target && !target_behind;
 }
 
 void Dogfight::aimInDirection(Vector d) {
@@ -797,7 +770,7 @@ void Dogfight::aimInDirection(Vector d) {
 
 void Dogfight::aimAndShoot() {
 	char buf[1024];
-	nfo = "aiming and shooting";
+	nfo += "aiming and shooting";
 	ctx.ap->setMode(AP_SPEED_MASK|AP_COURSE_MASK|AP_PITCH_MASK);
 	while (positionFavorable() && targetInRange(ctx.targeter->getCurrentTarget())) {
 		Vector p = ctx.actor->getLocation();
@@ -844,7 +817,7 @@ void Dogfight::aimAndShoot() {
 			ctx.actor->getFrontVector()[0],ctx.actor->getFrontVector()[1],ctx.actor->getFrontVector()[2],
 			tan_error,
 			50/dist);
-		nfo = buf;
+		nfo += buf;
 		
 	    yield();
 	}
@@ -924,7 +897,7 @@ void Dogfight::gainSpeedAndStabilize() {
 			ctx.fi->getCurrentRoll(),
 			ctx.fi->getCurrentPitch(),
 			ctx.fi->getCurrentSpeed());
-		nfo = buf;
+		nfo += buf;
 			
 		//nfo = "Gaining speed and stabilizing";
 		yield();
@@ -936,7 +909,7 @@ void Dogfight::gainSpeedAndStabilize() {
 }
 
 void Dogfight::stabilize() {
-	nfo = "Stabilizing";
+	nfo += "\nStabilizing";
 	ctx.controls->setAileronAndRudder(0);
 	ctx.controls->setElevator(0);
 	ctx.ap->setMode(AP_PITCH_MASK|AP_ROLL_MASK);
@@ -951,7 +924,7 @@ void Dogfight::stabilize() {
 }
 
 void Dogfight::flyLooping() {
-	nfo = "Looping";
+	nfo += "\nLooping";
 	ctx.controls->setAileronAndRudder(0);
 	ctx.controls->setElevator(-1);
 	
@@ -964,7 +937,7 @@ void Dogfight::flyLooping() {
 }
 
 void Dogfight::flyScissors() {
-	nfo="Scissors";
+	nfo+="\nScissors";
 	char buf[1024];
 	
 	ctx.ap->setMode(AP_HEIGHT_MASK|AP_COURSE_MASK);
@@ -1009,7 +982,7 @@ void Dogfight::flyScissors() {
 
 
 void Dogfight::flyImmelmann() {
-	nfo = "Immelmann pulling up.";
+	nfo += "\nImmelmann pulling up.";
 	ctx.ap->setMode(AP_PITCH_MASK|AP_ROLL_MASK);
 	ctx.ap->setTargetRoll(0);
 	ctx.ap->setTargetPitch(85*PI/180);
@@ -1019,7 +992,7 @@ void Dogfight::flyImmelmann() {
 		yield();
 	} while (ctx.fi->getCurrentPitch() < 80*PI/180);
 	
-	nfo = "Immelmann rotating.";
+	nfo += "\nImmelmann rotating.";
 	ctx.ap->reset();
 	float dest_course = 2*PI*RAND;
 	float course;
@@ -1037,7 +1010,7 @@ void Dogfight::flyImmelmann() {
 	    if (error > PI) error -= 2*PI;
 	} while (std::abs(error) > 5*PI/180);
 	
-	nfo = "Immelmann breaking out.";
+	nfo += "\nImmelmann breaking out.";
 	ctx.controls->setAileron(0);
 	ctx.controls->setElevator(-1);
 	ctx.controls->setThrottle(0);

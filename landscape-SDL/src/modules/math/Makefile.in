@@ -98,19 +98,11 @@ STRIP = @STRIP@
 VERSION = @VERSION@
 
 noinst_LIBRARIES = libmath.a
-noinst_PROGRAMS = test_solver test_quat test_ballist test_interval test_xvec test_quat_interval
 
 INCLUDES = -I${top_srcdir}/src
 
 libmath_a_SOURCES =          Ballistic.cc Ballistic.h                Collide.cc Collide.h            	Feedback.cc Feedback.h		        Interval.cc Interval.h                  Line.cc Line.h                  	Matrix.h SpecialMatrices.h MatrixVector.h 		PIDController.h PIDController.cc         Plane.h                                 Polynomial.cc Polynomial.h              Quaternion.h                            Rendezvous.cc Rendezvous.h              Solve.cc Solve.h                        Transform.h                     	Vector.cc Vector.h
 
-
-test_solver_SOURCES = test_solver.cc Solve.cc Solve.h
-test_quat_SOURCES = test_quat.cc
-test_interval_SOURCES = test_interval.cc Interval.cc
-test_quat_interval_SOURCES = test_quat_interval.cc Interval.cc Vector.cc
-test_xvec_SOURCES = test_xvec.cc Vector.h Matrix.h Vector.cc Interval.cc
-test_ballist_SOURCES = Ballistic.cc Ballistic.h Solve.h Solve.cc test_ballist.cc
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../../config.h
 CONFIG_CLEAN_FILES = 
@@ -126,38 +118,6 @@ libmath_a_OBJECTS =  Ballistic.$(OBJEXT) Collide.$(OBJEXT) \
 Feedback.$(OBJEXT) Interval.$(OBJEXT) Line.$(OBJEXT) \
 PIDController.$(OBJEXT) Polynomial.$(OBJEXT) Rendezvous.$(OBJEXT) \
 Solve.$(OBJEXT) Vector.$(OBJEXT)
-noinst_PROGRAMS =  test_solver$(EXEEXT) test_quat$(EXEEXT) \
-test_ballist$(EXEEXT) test_interval$(EXEEXT) test_xvec$(EXEEXT) \
-test_quat_interval$(EXEEXT)
-PROGRAMS =  $(noinst_PROGRAMS)
-
-test_solver_OBJECTS =  test_solver.$(OBJEXT) Solve.$(OBJEXT)
-test_solver_LDADD = $(LDADD)
-test_solver_DEPENDENCIES = 
-test_solver_LDFLAGS = 
-test_quat_OBJECTS =  test_quat.$(OBJEXT)
-test_quat_LDADD = $(LDADD)
-test_quat_DEPENDENCIES = 
-test_quat_LDFLAGS = 
-test_ballist_OBJECTS =  Ballistic.$(OBJEXT) Solve.$(OBJEXT) \
-test_ballist.$(OBJEXT)
-test_ballist_LDADD = $(LDADD)
-test_ballist_DEPENDENCIES = 
-test_ballist_LDFLAGS = 
-test_interval_OBJECTS =  test_interval.$(OBJEXT) Interval.$(OBJEXT)
-test_interval_LDADD = $(LDADD)
-test_interval_DEPENDENCIES = 
-test_interval_LDFLAGS = 
-test_xvec_OBJECTS =  test_xvec.$(OBJEXT) Vector.$(OBJEXT) \
-Interval.$(OBJEXT)
-test_xvec_LDADD = $(LDADD)
-test_xvec_DEPENDENCIES = 
-test_xvec_LDFLAGS = 
-test_quat_interval_OBJECTS =  test_quat_interval.$(OBJEXT) \
-Interval.$(OBJEXT) Vector.$(OBJEXT)
-test_quat_interval_LDADD = $(LDADD)
-test_quat_interval_DEPENDENCIES = 
-test_quat_interval_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -177,11 +137,9 @@ TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/Ballistic.P .deps/Collide.P .deps/Feedback.P \
 .deps/Interval.P .deps/Line.P .deps/PIDController.P .deps/Polynomial.P \
-.deps/Rendezvous.P .deps/Solve.P .deps/Vector.P .deps/test_ballist.P \
-.deps/test_interval.P .deps/test_quat.P .deps/test_quat_interval.P \
-.deps/test_solver.P .deps/test_xvec.P
-SOURCES = $(libmath_a_SOURCES) $(test_solver_SOURCES) $(test_quat_SOURCES) $(test_ballist_SOURCES) $(test_interval_SOURCES) $(test_xvec_SOURCES) $(test_quat_interval_SOURCES)
-OBJECTS = $(libmath_a_OBJECTS) $(test_solver_OBJECTS) $(test_quat_OBJECTS) $(test_ballist_OBJECTS) $(test_interval_OBJECTS) $(test_xvec_OBJECTS) $(test_quat_interval_OBJECTS)
+.deps/Rendezvous.P .deps/Solve.P .deps/Vector.P
+SOURCES = $(libmath_a_SOURCES)
+OBJECTS = $(libmath_a_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -245,39 +203,6 @@ libmath.a: $(libmath_a_OBJECTS) $(libmath_a_DEPENDENCIES)
 	-rm -f libmath.a
 	$(AR) cru libmath.a $(libmath_a_OBJECTS) $(libmath_a_LIBADD)
 	$(RANLIB) libmath.a
-
-mostlyclean-noinstPROGRAMS:
-
-clean-noinstPROGRAMS:
-	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-
-distclean-noinstPROGRAMS:
-
-maintainer-clean-noinstPROGRAMS:
-
-test_solver$(EXEEXT): $(test_solver_OBJECTS) $(test_solver_DEPENDENCIES)
-	@rm -f test_solver$(EXEEXT)
-	$(CXXLINK) $(test_solver_LDFLAGS) $(test_solver_OBJECTS) $(test_solver_LDADD) $(LIBS)
-
-test_quat$(EXEEXT): $(test_quat_OBJECTS) $(test_quat_DEPENDENCIES)
-	@rm -f test_quat$(EXEEXT)
-	$(CXXLINK) $(test_quat_LDFLAGS) $(test_quat_OBJECTS) $(test_quat_LDADD) $(LIBS)
-
-test_ballist$(EXEEXT): $(test_ballist_OBJECTS) $(test_ballist_DEPENDENCIES)
-	@rm -f test_ballist$(EXEEXT)
-	$(CXXLINK) $(test_ballist_LDFLAGS) $(test_ballist_OBJECTS) $(test_ballist_LDADD) $(LIBS)
-
-test_interval$(EXEEXT): $(test_interval_OBJECTS) $(test_interval_DEPENDENCIES)
-	@rm -f test_interval$(EXEEXT)
-	$(CXXLINK) $(test_interval_LDFLAGS) $(test_interval_OBJECTS) $(test_interval_LDADD) $(LIBS)
-
-test_xvec$(EXEEXT): $(test_xvec_OBJECTS) $(test_xvec_DEPENDENCIES)
-	@rm -f test_xvec$(EXEEXT)
-	$(CXXLINK) $(test_xvec_LDFLAGS) $(test_xvec_OBJECTS) $(test_xvec_LDADD) $(LIBS)
-
-test_quat_interval$(EXEEXT): $(test_quat_interval_OBJECTS) $(test_quat_interval_DEPENDENCIES)
-	@rm -f test_quat_interval$(EXEEXT)
-	$(CXXLINK) $(test_quat_interval_LDFLAGS) $(test_quat_interval_OBJECTS) $(test_quat_interval_LDADD) $(LIBS)
 .cc.o:
 	$(CXXCOMPILE) -c $<
 .cc.obj:
@@ -404,7 +329,7 @@ install-am: all-am
 install: install-am
 uninstall-am:
 uninstall: uninstall-am
-all-am: Makefile $(LIBRARIES) $(PROGRAMS)
+all-am: Makefile $(LIBRARIES)
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
@@ -421,30 +346,27 @@ distclean-generic:
 
 maintainer-clean-generic:
 mostlyclean-am:  mostlyclean-noinstLIBRARIES mostlyclean-compile \
-		mostlyclean-libtool mostlyclean-noinstPROGRAMS \
-		mostlyclean-tags mostlyclean-depend mostlyclean-generic
+		mostlyclean-libtool mostlyclean-tags mostlyclean-depend \
+		mostlyclean-generic
 
 mostlyclean: mostlyclean-am
 
-clean-am:  clean-noinstLIBRARIES clean-compile clean-libtool \
-		clean-noinstPROGRAMS clean-tags clean-depend \
-		clean-generic mostlyclean-am
+clean-am:  clean-noinstLIBRARIES clean-compile clean-libtool clean-tags \
+		clean-depend clean-generic mostlyclean-am
 
 clean: clean-am
 
 distclean-am:  distclean-noinstLIBRARIES distclean-compile \
-		distclean-libtool distclean-noinstPROGRAMS \
-		distclean-tags distclean-depend distclean-generic \
-		clean-am
+		distclean-libtool distclean-tags distclean-depend \
+		distclean-generic clean-am
 	-rm -f libtool
 
 distclean: distclean-am
 
 maintainer-clean-am:  maintainer-clean-noinstLIBRARIES \
 		maintainer-clean-compile maintainer-clean-libtool \
-		maintainer-clean-noinstPROGRAMS maintainer-clean-tags \
-		maintainer-clean-depend maintainer-clean-generic \
-		distclean-am
+		maintainer-clean-tags maintainer-clean-depend \
+		maintainer-clean-generic distclean-am
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
@@ -454,16 +376,15 @@ maintainer-clean: maintainer-clean-am
 clean-noinstLIBRARIES maintainer-clean-noinstLIBRARIES \
 mostlyclean-compile distclean-compile clean-compile \
 maintainer-clean-compile mostlyclean-libtool distclean-libtool \
-clean-libtool maintainer-clean-libtool mostlyclean-noinstPROGRAMS \
-distclean-noinstPROGRAMS clean-noinstPROGRAMS \
-maintainer-clean-noinstPROGRAMS tags mostlyclean-tags distclean-tags \
-clean-tags maintainer-clean-tags distdir mostlyclean-depend \
-distclean-depend clean-depend maintainer-clean-depend info-am info \
-dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
-install-exec install-data-am install-data install-am install \
-uninstall-am uninstall all-redirect all-am all installdirs \
-mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+clean-libtool maintainer-clean-libtool tags mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir \
+mostlyclean-depend distclean-depend clean-depend \
+maintainer-clean-depend info-am info dvi-am dvi check check-am \
+installcheck-am installcheck install-exec-am install-exec \
+install-data-am install-data install-am install uninstall-am uninstall \
+all-redirect all-am all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

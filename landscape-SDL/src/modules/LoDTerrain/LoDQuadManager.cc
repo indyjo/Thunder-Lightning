@@ -86,7 +86,7 @@ LoDQuadManager::LoDQuadManager(IGame *the_game, Status & stat)
                     buf, JR_HINT_FULLOPACITY, 0, true);
 
             sprintf(buf,"%s-%d-%d.qad", terrain_prefix.c_str(), u, v);
-            in.open(buf);
+            in.open(buf, std::ios::binary|std::ios::in);
             if (!in) ls_error("LoDTerrain: Couldn't open %s\n", buf);
             sprintf(buf,"%s-%d-%d.tga", texmap_prefix.c_str(), u, v);
             char lbuf[256];

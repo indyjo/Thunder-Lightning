@@ -23,7 +23,7 @@ Map::Map(IGame *thegame)
     magnified=false;
     t=0.0f;
 
-    in.open(texture_file);
+    in.open(texture_file, ios::binary|ios::in);
     if (!in) ls_error("Map: Couldn't open %s\n", texture_file);
     spr.load(in);
     in.close();
