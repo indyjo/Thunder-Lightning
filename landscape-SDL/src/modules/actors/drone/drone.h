@@ -65,7 +65,7 @@ public:
     virtual int getNumViews();
     virtual Ptr<IView> getView(int n);
 
-    void explode();
+    void explode(bool deadly=true);
 
     void fireBullet();
     void fireDumbMissile();

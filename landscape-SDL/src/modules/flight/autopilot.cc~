@@ -1,0 +1,353 @@
+#include <algorithm>
+#include <modules/math/Feedback.h>
+#include "autopilot.h"
+
+
+#define MAX_AILERON   1.0f
+#define MIN_AILERON  -1.0f
+#define EMERGENCY_PITCH  1.0f
+#define MAX_PITCH     1.0f
+#define MIN_PITCH    -1.0f
+#define MAX_ELEVATOR  1.0f
+#define MIN_ELEVATOR -1.0f
+#define MAX_ROLL      1.0f
+#define MIN_ROLL     -1.0f
+#define MAX_RUDDER    1.0f
+#define MIN_RUDDER   -1.0f
+#define MIN_ACCEL    (9.81f * -2.0f)
+#define MAX_ACCEL    (9.81f *  3.0f)
+
+#define PI 3.14159265358979323846
+
+AutoPilot::AutoPilot()
+:	mode(0),
+	pitch_controller(MIN_ELEVATOR / (45 * PI / 180),
+            		 0.4*MIN_ELEVATOR / (45 * PI / 180),
+            		 0.02*MIN_ELEVATOR / (45 * PI / 180)),
+	roll_controller(MAX_AILERON / (45 * PI / 180),
+				    0.3*MAX_AILERON / (45 * PI / 180),
+				    0.1*MAX_AILERON / (45 * PI / 180)),
+	course_controller(16/PI , 4/PI , 0.1/PI)
+            		 
+{ }
+
+void AutoPilot::reset()
+{
+	mode = 0;
+	pitch_controller.reset();
+	roll_controller.reset();
+	course_controller.reset();	
+}
+void AutoPilot::fly( float dt, const FlightInfo & fi, FlightControls & ctrls ) {
+    if (isEnabled(AP_VECTOR)) handleVector(fi, ctrls);
+    if (isEnabled(AP_DIRECTION)) handleDirection(fi, ctrls);
+    if (isEnabled(AP_SPEED)) handleSpeed(fi, ctrls);
+    if (isEnabled(AP_COURSE)) handleCourse(dt, fi, ctrls);
+    if (isEnabled(AP_ROLL)) handleRoll(dt, fi, ctrls);
+    if (isEnabled(AP_HEIGHT)) handleHeight(fi, ctrls);
+    if (isEnabled(AP_ALTITUDE)) handleAltitude(fi, ctrls);
+    if (isEnabled(AP_PITCH)) handlePitch(dt, fi, ctrls);
+    if (isEnabled(AP_ACCEL)) handleAccel(fi, ctrls);
+}
+
+#define NUM_MODES 9
+bool AutoPilot::setMode( int m ) {
+    reset();
+    for(int i=0; i<NUM_MODES; i++) {
+        if ( m & (2<<i) ) {
+            int new_mode = implies(i);
+            if (mode & new_mode) {
+                mode = 0;
+                ls_warning("AutoPilot: Illegal mode %d!\n", mode);
+                return false;
+            }
+            mode |= new_mode;
+        }
+    }
+    return true;
+}
+
+bool AutoPilot::enable( int module ) {
+    if (mode & (2<<module)) {
+        ls_warning("AutoPilot: Cannot enable module %d!\n", module);
+        return false;
+    }
+    mode |= 2<<module;
+    return true;
+}
+
+int AutoPilot::implies( int module ) {
+    switch(module) {
+        case AP_SPEED: return AP_SPEED_MASK | AP_ACCEL_MASK;
+        case AP_ACCEL: return AP_ACCEL_MASK;
+        case AP_ROLL: return AP_ROLL_MASK;
+        case AP_PITCH: return AP_PITCH_MASK;
+        case AP_HEIGHT: return AP_HEIGHT_MASK | AP_PITCH_MASK; 
+        case AP_ALTITUDE: return AP_ALTITUDE_MASK | AP_PITCH_MASK;
+        case AP_COURSE: return AP_COURSE_MASK | AP_ROLL_MASK;
+        case AP_DIRECTION: return
+        	AP_DIRECTION_MASK
+        	| AP_COURSE_MASK | AP_ROLL_MASK
+        	| AP_PITCH_MASK;
+        case AP_VECTOR: return
+        	AP_VECTOR_MASK
+        	| AP_DIRECTION_MASK
+        	| AP_COURSE_MASK | AP_ROLL_MASK
+        	| AP_PITCH_MASK;
+    }
+    return 0;
+}
+
+
+// #define SPEED_TOLERANCE 0.05
+// #define LERP(u,v,t,a,b) (u + v * ((t-a)/(b-a)))
+// void AutoPilot::handleSpeed( const FlightInfo & fi, FlightControls & ctrls ) {
+//     float speed = fi.getCurrentSpeed();
+//     float min_band = speed_target * 0.8;
+//     float max_band = speed_target * 1.2;
+//     float min_tolerance = speed_target - SPEED_TOLERANCE;
+//     float max_tolerance = speed_target + SPEED_TOLERANCE;
+//     float accel_target;
+//     
+//     if (speed < min_band) accel_target = MAX_ACCEL;
+//     else if (speed > max_band) accel_target = MIN_ACCEL;
+//     else if (speed < min_tolerance)
+//         accel_target = LERP(MAX_ACCEL, 0, speed, min_band, min_tolerance);
+//     else if (speed > max_tolerance)
+//         accel_target = LERP(0, MIN_ACCEL, speed, max_tolerance, max_band);
+//     else accel_target = 0.0f;
+//     
+//     //ls_message("handleSpeed: speed=%f speed_target=%f -> accel_target=%f\n",
+//     //        speed, speed_target, accel_target);
+//     
+//     setTargetAccel(accel_target);
+// }
+
+void AutoPilot::handleSpeed( const FlightInfo & fi, FlightControls & ctrls ) {
+    float x = fi.getCurrentSpeed();
+    float dx = fi.getCurrentAccel();
+    FeedbackController<float> controller(
+            speed_target,
+            MAX_ACCEL / 100.0f,
+            -MAX_ACCEL / 50.0f);
+    float r = controller.control(x, dx);
+    setTargetAccel(r);
+}
+
+void AutoPilot::handleAccel( const FlightInfo & fi, FlightControls & ctrls ) {
+    float accel = fi.getCurrentAccel();
+    float accel_error = accel_target - accel;
+    float throttle_adj = ctrls.getThrottle() + accel_error*0.001;
+    throttle_adj = std::max(0.0f, std::min(1.0f, throttle_adj));
+    //ls_message("handleAccel: accel=%f accel_target=%f -> trottle=%f\n",
+    //        accel, accel_target, throttle_adj);
+    ctrls.setThrottle(throttle_adj);
+}
+
+// #define ROLL_TOLERANCE 0.5f
+// void AutoPilot::handleRoll( const FlightInfo & fi, FlightControls & ctrls ) {
+//     float roll_error = roll_target - fi.getCurrentRoll();
+//     while (roll_error >  PI) roll_error-=PI;
+//     while (roll_error < -PI) roll_error+=PI;
+//     float min_band = -PI/8.0f;
+//     float min_tolerance = -ROLL_TOLERANCE;
+//     float max_band = PI/8.0f;
+//     float max_tolerance = ROLL_TOLERANCE;
+//     float aileron_adj;
+//     
+//     if (roll_error < min_band) aileron_adj = MAX_AILERON;
+//     else if (roll_error > max_band) aileron_adj = MIN_AILERON;
+//     else if (roll_error < min_tolerance)
+//         aileron_adj = LERP(MAX_AILERON, 0.0f, roll_error, min_band, min_tolerance);
+//     else if (roll_error > max_tolerance)
+//         aileron_adj = LERP(0.0f, MIN_AILERON, roll_error, max_tolerance, max_band);
+//     else aileron_adj = 0.0f;
+//     
+//     //ls_message("handleRoll: roll=%f roll_target=%f roll_error=%f -> aileron=%f\n",
+//     //        fi.getCurrentRoll() * 180.0 / PI,
+//     //        roll_target * 180.0 / PI,
+//     //        roll_error * 180.0 / PI,
+//     //        aileron_adj);
+//     
+//     //ls_warning("current_roll = %f roll_error= %f\n", fi.getCurrentRoll(), roll_error);
+//     
+//     ctrls.setAileron(-aileron_adj);
+//     //if (roll_error > 0) ctrls.setAileronAndRudder(1);
+//     //else ctrls.setAileronAndRudder(-1);
+// }
+
+void AutoPilot::handleRoll( float dt, const FlightInfo & fi, FlightControls & ctrls ) {
+    float r = roll_controller.control(
+    	roll_target - fi.getCurrentRoll(), dt);
+    if (r > MAX_AILERON) r = MAX_AILERON;
+    else if (r < MIN_AILERON) r = MIN_AILERON;
+//     cerr << "AutoPilot: roll_target: " << roll_target << endl;
+//     cerr << "AutoPilot: current_roll: " << x << endl;
+//     cerr << "AutoPilot: current_roll_speed: " << dx << endl;
+//     cerr << "AutoPilot: Setting aileron to " << r << endl;
+    ctrls.setAileron(r);
+}    
+
+// void AutoPilot::handlePitch( const FlightInfo & fi, FlightControls & ctrls ) {
+//     //ls_message("pitch: %f\n",fi.getCurrentPitch());
+//     float pitch_error = pitch_target - fi.getCurrentPitch();
+//     while (pitch_error >  PI) pitch_error-=PI;
+//     while (pitch_error < -PI) pitch_error+=PI;
+//     float elevator_adj = std::max(-0.7f, std::min( 0.7f, -pitch_error));
+//     ctrls.setElevator(elevator_adj);
+// }
+
+/*void AutoPilot::handlePitch( const FlightInfo & fi, FlightControls & ctrls ) {
+    float x = fi.getCurrentPitch();
+    float dx = fi.getCurrentPitchSpeed();
+    FeedbackController<float> controller(
+            pitch_target,
+            MIN_ELEVATOR / (45 * PI / 180),
+            MAX_ELEVATOR / (45 * PI / 180));
+    float r = controller.control(x, dx);
+    float elevator_adj = std::max(-0.7f, std::min( 0.7f, r));
+    if (2*std::abs(fi.getCurrentRoll()) > PI) {
+    	elevator_adj = -elevator_adj;
+    }
+    ctrls.setElevator(elevator_adj);
+}*/
+
+void AutoPilot::handlePitch( float dt, 
+							 const FlightInfo & fi,
+							 FlightControls & ctrls )
+{
+    float r = pitch_controller.control(
+    	pitch_target - fi.getCurrentPitch(), dt);
+    float elevator_adj = std::max(-0.7f, std::min( 0.7f, r));
+    if (2*std::abs(fi.getCurrentRoll()) > PI) {
+    	elevator_adj = -elevator_adj;
+    }
+    ctrls.setElevator(elevator_adj);
+}
+
+
+// void AutoPilot::handleHeight( const FlightInfo & fi, FlightControls & ctrls ) {
+//     float ground_altitude = fi.getCurrentAltitude() - fi.getCurrentHeight();
+//     setTargetAltitude(height_target + ground_altitude);
+// }
+
+void AutoPilot::handleHeight( const FlightInfo & fi, FlightControls & ctrls ) {
+    float x = fi.getCurrentHeight();
+    float dx = fi.getCurrentDHeight();
+    FeedbackController<float> controller(
+            height_target,
+            MAX_PITCH / 100.0f,
+            MIN_PITCH / 100.0f);
+    float r = controller.control(x, dx);
+    if (r > MAX_PITCH) r = MAX_PITCH;
+    else if (r < MIN_PITCH) r = MIN_PITCH;
+    setTargetPitch(r);
+}
+
+
+// void AutoPilot::handleAltitude( const FlightInfo & fi, FlightControls & ctrls ) {
+//     float altitude_error = altitude_target - fi.getCurrentAltitude();
+//     float e = altitude_error;
+//     altitude_error *= std::abs(altitude_error*altitude_error);
+//     float dec_height = std::min(0.0f, std::min(fi.getCurrentHeight(), 100.0f));
+//     altitude_error /= dec_height*dec_height*dec_height*MAX_PITCH;
+//     float pitch_adj = std::max(MIN_PITCH, std::min(MAX_PITCH, altitude_error));
+//     ls_message("Altitude error: %4.2f (target: %4.2f) "
+//             "==> pitch target: %3.2f\n",
+//             e, altitude_target, pitch_adj);
+//     setTargetPitch(pitch_adj);
+// }
+
+// void AutoPilot::handleAltitude( const FlightInfo & fi, FlightControls & ctrls ) {
+//     float altitude_error = altitude_target - fi.getCurrentAltitude();
+//     float e = altitude_error;
+//     altitude_error *= abs(altitude_error*altitude_error);
+//     float dec_height = max(0.0f, min(fi.getCurrentHeight(), 100.0f));
+//     altitude_error /= dec_height*dec_height*dec_height*MAX_PITCH;
+//     float pitch_adj = max(MIN_PITCH, min(MAX_PITCH, altitude_error));
+//     ls_message("Altitude error: %4.2f (target: %4.2f) "
+//             "==> pitch target: %3.2f\n",
+//             e, altitude_target, pitch_adj);
+//     setTargetPitch(pitch_adj);
+// }
+
+void AutoPilot::handleAltitude( const FlightInfo & fi, FlightControls & ctrls ) {
+    float band_max = altitude_target + 200.0f;
+    float ground_altitude = fi.getCurrentAltitude() - fi.getCurrentHeight();
+    float band_min = std::max(altitude_target - 200.0f, ground_altitude + 100.0f);
+
+    float altitude = fi.getCurrentAltitude();
+    float pitch;
+
+    if (fi.collisionWarning()) pitch = EMERGENCY_PITCH;
+    else if (altitude > band_max) pitch = MIN_PITCH;
+    else if (altitude < band_min) pitch = MAX_PITCH;
+    else if (altitude < altitude_target) {
+        float target = std::max(altitude_target - 10.0f, altitude);
+        pitch =  MAX_PITCH;
+        pitch *= (altitude - band_min) / (target - band_min);
+    } else {
+        float target = std::min(altitude_target + 10.0f, altitude);
+        pitch = MIN_PITCH;
+        pitch *= (altitude - target) / (band_max - target);
+    }
+
+    setTargetPitch(pitch);
+}
+
+void AutoPilot::handleCourse( float dt, const FlightInfo & fi, FlightControls & ctrls ) {
+    float course_error = course_target - fi.getCurrentCourse();
+    while (course_error >  PI) course_error -= 2.0*PI;
+    while (course_error < -PI) course_error += 2.0*PI;
+    float r = course_controller.control(course_error, dt);
+    r = std::min(1.0f, std::max(-1.0f, r));
+    setTargetRoll(MAX_ROLL * r);
+    ctrls.setRudder(MAX_RUDDER * r);
+}
+
+void AutoPilot::handleDirection(const FlightInfo & fi, FlightControls & ctrls ) {
+	Vector dir = fi.getCurrentFront();
+	if (dir * direction_target < 0.7) {
+		Vector a = direction_target;
+		a[1] = 0;
+		a.normalize();
+		mode |= AP_COURSE_MASK | AP_PITCH_MASK;
+		setTargetCourse( std::atan2(a[0], a[2]) );
+		setTargetPitch( std::asin(direction_target[1]) );
+	} else {
+		mode &= ~(AP_COURSE_MASK | AP_PITCH_MASK);
+		setTargetRoll(0);
+		
+		Vector up = fi.getCurrentUp();
+		Vector right = fi.getCurrentRight();
+		Vector omega = fi.getCurrentOmega();
+		
+		float horiz_error = right * direction_target;
+		float vert_error = - up * direction_target;
+		
+		// The derivatives of the errors are gained by applying
+		// the product rule of derivation
+		// The derivative of a vector under angular velocity omega is
+		// omega cross vector
+		float d_horiz_error = (omega % right) * direction_target
+			+ right * d_direction_target;
+		float d_vert_error = - (omega % up) * direction_target
+			+ up * d_direction_target;
+		
+		FeedbackController<float> c_elev(0.0f, -4.0f, -2.0f);
+		FeedbackController<float> c_rudd(0.0f, -4.0f, -2.0f);
+		
+		float r = c_elev.control(vert_error, d_vert_error);
+		r = std::max(MIN_ELEVATOR, std::min(MAX_ELEVATOR, r));
+		ctrls.setElevator(r);
+		
+		r = c_rudd.control(horiz_error, d_horiz_error);
+		r = std::max(MIN_RUDDER, std::min(MAX_RUDDER, r));
+		ctrls.setRudder(r);
+	}
+}
+
+
+void AutoPilot::handleVector( const FlightInfo & fi, FlightControls & ctrls ) {
+	setTargetDirection(vector_target);
+}

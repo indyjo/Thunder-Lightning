@@ -286,13 +286,17 @@ void Drone::action() {
         */
     }
     Vector p = getLocation();
-    /*
-    if (p[1] < terrain->getHeightAt(p[0],p[2]) + 5.0) {
-        p[1] = terrain->getHeightAt(p[0],p[2]) + 5.0;
+    if (p[1] < terrain->getHeightAt(p[0],p[2])) {
+        p[1] = terrain->getHeightAt(p[0],p[2]);
         setLocation(p);
         explode();
     }
-    */
+    
+    if (damage > 0.7) {
+    	drone_controls->setRudder(1);
+    	drone_controls->setAileron(-1);
+    	drone_controls->setElevator(-0.2);
+    }
     
     doWheels();
     SimpleActor::action();
@@ -453,11 +457,20 @@ void Drone::applyDamage(float damage, int domain, Ptr<IProjectile> projectile) {
 		if (src->getFaction()->getAttitudeTowards(getFaction()) != Faction::FRIENDLY)
 			targeter->setCurrentTarget(src);
 	}
-    if (this->damage < 0.7 && this->damage+damage>0.7) {
+    if (this->damage < 0.5 && this->damage+damage>0.5) {
+    	explode(false);
         SmokeColumn::Params params;
-        params.interval=0.1;
+        params.interval=0.01;
+        params.ttl=1.2;
+        SmokeColumn::PuffParams puffparams;
+        puffparams.start_size=0.5f;
+        puffparams.end_size=1.5f;
+        puffparams.color=Vector(0.4,0.4,0.4);
+        puffparams.ttl=Interval(3,5);
+        puffparams.pos_deviation=0.2;
+        puffparams.direction_deviation=0.5;
         Ptr<FollowingSmokeColumn> smoke =
-                new FollowingSmokeColumn(thegame, params);
+                new FollowingSmokeColumn(thegame, params, puffparams);
         smoke->follow(this);
         thegame->addActor(smoke);
     }
@@ -535,13 +548,13 @@ Ptr<IView> Drone::getView(int n) {
 	}
 }
 
-#define MAX_EXPLOSION_SIZE 6.0
+#define MAX_EXPLOSION_SIZE 4.0
 #define MIN_EXPLOSION_SIZE 1.0
-#define MAX_EXPLOSION_DISTANCE 40.0
+#define MAX_EXPLOSION_DISTANCE 15.0
 #define NUM_EXPLOSIONS 15
 #define MAX_EXPLOSION_AGE -2.0
-void Drone::explode() {
-	kill();
+void Drone::explode(bool deadly) {
+	if (deadly) kill();
     Vector p = getLocation();
     for(int i=0; i<NUM_EXPLOSIONS; i++) {
         Vector v = p + RAND * MAX_EXPLOSION_DISTANCE *
@@ -549,7 +562,9 @@ void Drone::explode() {
         float size = MIN_EXPLOSION_SIZE +
                 RAND * (MAX_EXPLOSION_SIZE - MIN_EXPLOSION_SIZE);
         double time = RAND * MAX_EXPLOSION_AGE;
-        thegame->addActor(new Explosion(thegame, v, size, time));
+        Ptr<Explosion> explosion = new Explosion(thegame, v, size, time);
+        explosion->setMovementVector((0.9 + 0.1*RAND)*getMovementVector());
+        thegame->addActor(explosion);
     }
 }
 
@@ -587,9 +602,11 @@ void Drone::fireBullet()
 
     Ptr<SoundSource> snd_src = thegame->getSoundMan()->requestSource();
     snd_src->setPosition(start);
-    snd_src->setGain(0.0001);
+    snd_src->setVelocity(getMovementVector());
+    snd_src->setGain(0.1);
     snd_src->play(thegame->getSoundMan()->querySound(
             thegame->getConfig()->query("Drone_cannon_sound")));
+    thegame->getSoundMan()->manage(snd_src);
 
     move += engine->getState().q.rot(
         BULLET_SPEED * (Vector(0,0,1) + 0.00333*Vector(RAND2+RAND2+RAND2,RAND2+RAND2+RAND2,0)));

@@ -84,8 +84,9 @@ bool intersectTriangleSphere(const Vector * triangle,
     hints.triangle_sphere.must_divide_time = false;
     // transformed triangle coords
     IVector tri[3];
+    /*
     ls_message("Performing triangle sphere test for triangle:\n");
-    for(int i=0; i<3; ++i) triangle[i].dump();
+    for(int i=0; i<3; ++i) triangle[i].dump();*/
     for(int i=0; i<3; i++) tri[i] = T1((IVector) triangle[i]);
     IVector normal = (tri[1]-tri[0]) % (tri[2]-tri[0]);
     try {

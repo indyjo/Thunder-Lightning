@@ -221,6 +221,10 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
                 }
             }
         }
+        
+        if (iters_left==0) {
+        	ls_warning("Aborted collision detection!\n");
+        }
 
         // If there was no collision we integrate up to delta_t and break
         if (found_contacts == 0) {

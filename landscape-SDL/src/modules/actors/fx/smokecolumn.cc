@@ -1,6 +1,7 @@
 #include "smokecolumn.h"
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
+#include <modules/clock/clock.h>
 
 #define max(x,y) ((x)>(y)?(x):(y))
 
@@ -9,18 +10,18 @@
 // A random value between -1.0 and 1.0
 #define RAND2 (-1.0 + 2.0 * ((float) rand() / (float) RAND_MAX))
 #define PI 3.141593
+#define RANDVEC Vector(RAND2, RAND2, RAND2)
 
 SmokeColumn::SmokePuff::SmokePuff(
         const Vector &p,
         float opacity,
         const PuffParams & params)
 {
-    this->dead = false;
-    this->v = Vector(params.direction_vector) + params.direction_deviation
-            * Vector(RAND2, RAND2, RAND2);
-    this->p = p + params.pos_deviation * Vector(RAND2, RAND2, RAND2);
-    this->ttl = params.ttl + params.ttl_deviation * RAND2;
-    this->age = 0.0;
+    this->v = params.direction_vector + params.direction_deviation * RANDVEC;
+    this->p = p + params.pos_deviation * RANDVEC;
+    this->ttl = params.ttl.a + params.ttl.length() * RAND2;
+    this->age = 0;
+    this->omega = params.omega.a + params.omega.length() * RAND2;
     this->opacity = opacity;
 }
 
@@ -29,70 +30,39 @@ void SmokeColumn::SmokePuff::action(IGame *game,
         const PuffParams & params)
 {
     p += v * time_passed;
-    v += (Vector(params.wind_vector) - v) * params.wind_influence * time_passed;
+    v += (params.wind_vector - v) * params.wind_influence * time_passed;
     age += time_passed;
-    if (age > ttl) dead = true;
 }
 
 void SmokeColumn::SmokePuff::draw(JRenderer *r,
         const Vector &right, const Vector &up, const Vector &front,
         const PuffParams & params)
 {
-    jvertex_coltxt puffy_v[4] = {
-        {{ 0, 0, 0}, {255, 255, 255}, { 0,  0,  0}},
-        {{ 0, 0, 0}, {255, 255, 255}, {64,  0,  0}},
-        {{ 0, 0, 0}, {255, 255, 255}, {64, 64,  0}},
-        {{ 0, 0, 0}, {255, 255, 255}, { 0, 64,  0}}
-    };
-    Vector v[2][2];
     float size = params.start_size + (age / ttl) *
             (params.end_size - params.start_size);
     Matrix3 M2 = MatrixFromColumns<float>(right, up, front)
-                * RotateZMatrix<float>(params.rotations_in_life * age/ttl * PI);
+                * RotateZMatrix<float>(omega * age);
     Matrix M = TranslateMatrix<4,float>(p)
             * Matrix::Hom(M2);
-    for (int i=0; i<2; i++) {
-        for (int j=0; j<2; j++) {
-            v[i][j]  = M * Vector(
-                    ((float) i - 0.5) * size,
-                    ((float) j - 0.5) * size,
-                    0.0);
-        }
-    }
-
-    for (int i=0; i<4; i++) {
-        puffy_v[i].col.r = params.color[0];
-        puffy_v[i].col.g = params.color[1];
-        puffy_v[i].col.b = params.color[2];
-    }
-
-    puffy_v[0].p.x = v[0][0][0];
-    puffy_v[0].p.y = v[0][0][1];
-    puffy_v[0].p.z = v[0][0][2];
-
-    puffy_v[1].p.x = v[1][0][0];
-    puffy_v[1].p.y = v[1][0][1];
-    puffy_v[1].p.z = v[1][0][2];
-
-    puffy_v[2].p.x = v[1][1][0];
-    puffy_v[2].p.y = v[1][1][1];
-    puffy_v[2].p.z = v[1][1][2];
-
-    puffy_v[3].p.x = v[0][1][0];
-    puffy_v[3].p.y = v[0][1][1];
-    puffy_v[3].p.z = v[0][1][2];
 
     float alpha;
     if (age < 0.3) alpha = age/0.3;
     else alpha = 1.0 - (age-0.3)/(ttl-0.3);
     alpha *= opacity;
+    
     r->setAlpha(alpha);
-    r->addVertex(&puffy_v[0]);
-    r->addVertex(&puffy_v[1]);
-    r->addVertex(&puffy_v[2]);
-    r->addVertex(&puffy_v[2]);
-    r->addVertex(&puffy_v[3]);
-    r->addVertex(&puffy_v[0]);
+    r->setColor(params.color);
+    r->pushMatrix();
+    r->multMatrix(M);
+    r->begin(JR_DRAWMODE_TRIANGLE_FAN);
+    
+    r->setUVW(Vector(1,1,0)); *r << size*Vector(1,1,0);
+    r->setUVW(Vector(1,0,0)); *r << size*Vector(1,-1,0);
+    r->setUVW(Vector(0,0,0)); *r << size*Vector(-1,-1,0);
+    r->setUVW(Vector(0,1,0)); *r << size*Vector(-1,1,0);
+    
+    r->end();
+    r->popMatrix();
 }
 
 
@@ -112,7 +82,7 @@ SmokeColumn::SmokeColumn(Ptr<IGame> thegame, const Vector &pos,
 
 void SmokeColumn::action()
 {
-    double time_delta = thegame->getTimeDelta() / 1000.0;
+    double time_delta = thegame->getClock()->getStepDelta();
     age +=time_delta;
     if (age > params.ttl && smokelist.size()==0) { state = DEAD; return; }
 
@@ -176,7 +146,7 @@ void FollowingSmokeColumn::follow(Ptr<IActor> t)
 #define INTERP(a, b, t, t0, t1) ((a) + ((b)-(a)) * ((t) - (t0)) / ((t1) - (t0)))
 void FollowingSmokeColumn::action()
 {
-    double time_delta = thegame->getTimeDelta() / 1000.0;
+    double time_delta = thegame->getClock()->getStepDelta();
     // Save old position for interpolation
     Vector p0 = getLocation();
 

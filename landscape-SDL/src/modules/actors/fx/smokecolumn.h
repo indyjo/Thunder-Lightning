@@ -4,6 +4,7 @@
 #include <list>
 #include <landscape.h>
 #include <modules/actors/simpleactor.h>
+#include <modules/math/Interval.h>
 #include <modules/texman/TextureManager.h>
 #include <interfaces/IFollower.h>
 
@@ -20,19 +21,19 @@ public:
     struct PuffParams
     {
         PuffParams() 
-                : ttl(40), ttl_deviation(20),
+                : ttl(20,60),
                 pos_deviation(3),direction_deviation(2),
                 start_size(15), end_size(200),
-                rotations_in_life(15),
+                omega(-0.2,0.2),
                 direction_vector(0,10,0),
                 wind_vector(10,4,0), wind_influence(0.1),
-                color(200, 200, 200)
+                color(200./255, 200./255, 200./255)
         { }
-        double ttl, ttl_deviation;
+        Interval ttl;
         float pos_deviation;
         float direction_deviation;
         float start_size, end_size;
-        float rotations_in_life;
+        Interval omega;
         Vector direction_vector;
         Vector wind_vector;
         float wind_influence;
@@ -43,13 +44,14 @@ public:
         friend class SmokeColumn;
         
         Vector p, v;    // the puff coords and direction
-        double age, ttl; // time to live
+        float omega;    // angular speed
+        float ttl; // time to live
+        float age;
         float opacity;
-        bool dead;
         
     public:
         SmokePuff(const Vector &p, float opacity, const PuffParams & params);
-        inline bool isDead() { return dead; };
+        inline bool isDead() { return ttl<age; };
         void action(IGame *game, double time_passed, const PuffParams & params);
         void draw(JRenderer *r,
                 const Vector &right, const Vector &up, const Vector &front,

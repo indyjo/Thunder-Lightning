@@ -54,10 +54,10 @@ void CruiseControl::calcError(TankBrain & brain) {
 /////////////////////////////////////////////////////////////////////////////
 
 CourseControl::CourseControl(TankBrain & brain)
-:   error(0.0f), last_error(0.0f), target_course(0.0f, 1.0f)
+:   error(0.0f), last_error(0.0f), target_course(0.0f, 0.0f, 1.0f)
 { }
 
-void CourseControl::setTargetCourse(const Vector2 & course) {
+void CourseControl::setTargetCourse(const Vector & course) {
     target_course = course;
 }
 
@@ -87,14 +87,8 @@ void CourseControl::act(TankBrain & brain) {
 }
 
 void CourseControl::calcError(TankBrain & brain) {
-	Vector2 right(
-		brain.tank->getRightVector()[0],
-		brain.tank->getRightVector()[2]);
-	Vector2 front(
-		brain.tank->getFrontVector()[0],
-		brain.tank->getFrontVector()[2]);
-    error = right * target_course;
-    if (front * target_course < 0.0f) {
+    error = brain.tank->getRightVector() * target_course;
+    if (brain.tank->getFrontVector() * target_course < 0.0f) {
         if (error >= 0.0f) error = 1.0f;
         else error = -1.0f;
     }
@@ -240,10 +234,10 @@ void BallisticCannonControl::think(TankBrain & brain) {
 /////////////////////////////////////////////////////////////////////////////
 
 AdvancedCannonControl::AdvancedCannonControl(TankBrain & brain)
-:   muzzle_vel(900.0f), target(0,0,1000)
-{
-    rendezvous.setVelocity(muzzle_vel);
-}
+:   muzzle_vel(900.0f),
+    target(0,0,1000)
+{ }
+
 
 void AdvancedCannonControl::setTarget(const Vector & target) {
     this->target = target;
@@ -274,12 +268,14 @@ void AdvancedCannonControl::think(TankBrain & brain) {
 
 MaintainPosition::MaintainPosition(TankBrain & brain)
 :   approach_speed(16.0f),
-    target_p(0,0), target_v(0,0)
+    target_p(0,0,0), target_v(0,0,0)
 { }
 
 void MaintainPosition::setTarget(const Vector & p, const Vector & v) {
-    target_p = Vector2(p[0],p[2]);
-    target_v = Vector2(v[0],v[2]);
+    target_p = p;
+    target_v = v;
+    target_p[1] = 0;
+    target_v[1] = 0;
 }
 
 void MaintainPosition::setApproachSpeed(float s) {
@@ -288,10 +284,10 @@ void MaintainPosition::setApproachSpeed(float s) {
 
 
 namespace {
-    //inline float normalize(float t, float min, float max) { return (t-min)/(max-min); }
-    //inline float linterp(float t, float a, float b) { return a + t * (b-a); }
-    inline Vector2 linterp(float t, Vector2 a, Vector2 b) { return a + t * (b-a); }
-    inline Vector2 norm(const Vector2 & v, const Vector2 & def) {
+    inline float normalize(float t, float min, float max) { return (t-min)/(max-min); }
+    inline float linterp(float t, float a, float b) { return a + t * (b-a); }
+    inline Vector linterp(float t, Vector a, Vector b) { return a + t * (b-a); }
+    inline Vector norm(const Vector & v, const Vector & def) {
         float v2 = v.lengthSquare();
         if (v2 > 0) return v / sqrt(v2);
         else return def;
@@ -299,80 +295,44 @@ namespace {
 }
 
 void MaintainPosition::think(TankBrain & brain) {
-    Vector2 p(
-    	brain.tank->getLocation()[0],
-    	brain.tank->getLocation()[2]);
-    	
-    // The minimum distance at which an intercept course
-    // is chosen. Below that distance, we will gradually
-    // choose a parallel course.
-    float min_intercept_radius=50;
-    float tolerance_radius=2;
-    
-    float dist2target = (target_p - p).length();
-    Vector2 dir2target = norm(target_p - p, Vector2(1,0));
-    // target velocity parallel
-    Vector2 tvpa = dir2target * (dir2target * target_v);
-    // target direction parallel
-    Vector2 tdpa = norm(tvpa, Vector2(1,0));
-    // target velocity perpendicular
-    Vector2 tvpe = target_v - tvpa;
-    // target direction perpendicular
-    Vector2 tdpe = norm(tvpe, Vector2(tdpa[0],-tdpa[1]));
+    Vector p = brain.tank->getLocation();
+    Vector v = brain.tank->getMovementVector();
+    Vector front = brain.tank->getFrontVector();
+    Vector right = brain.tank->getRightVector();
 
-    if (tvpe.lengthSquare() >= approach_speed*approach_speed) {
-    	
-	    brain.course_control.setTargetCourse(tdpe);
-	    brain.cruise_control.setTargetSpeed(approach_speed);
-	    activate(brain.cruise_control);
-	    activate(brain.course_control);
-	    return;
-    }
-    	
-   	Vector2 intercept_v =
-   		tvpe+dir2target*sqrt(
-   			approach_speed*approach_speed
-   			- tvpe.lengthSquare());
-    Vector2 desired_v;
-    
-    if (dist2target >= min_intercept_radius) {
-    	desired_v = intercept_v;
-    } else if ( dist2target >= tolerance_radius) {
-    	float t = (dist2target-tolerance_radius)
-    		/ (min_intercept_radius-tolerance_radius);
-    	desired_v = linterp(t, tvpa, intercept_v);
+    p[1] = 0;
+    v[1] = 0;
+    front[1] = 0;
+    right[1] = 0;
+    front = norm(front, Vector(0,0,1));
+    right = norm(right, Vector(1,0,0));
+
+    Vector delta_p = target_p - p;
+    Vector delta_v = target_v - v;
+
+    float dist = delta_p.length();
+    float ideal_speed;
+    float max_r = 80.0f, min_r = 15.0f;
+    Vector ideal_course;
+    if (dist > max_r) {
+        ideal_speed = approach_speed;
+        ideal_course = delta_p;
+    } else if (dist > min_r) {
+        float t = normalize(dist, min_r, max_r);
+        ideal_speed = linterp(t, target_v.length(), approach_speed);
+        Vector target_course = norm(target_v, front);
+        ideal_course = linterp(t, target_course, front);
     } else {
-    	desired_v = tvpa;
+        ideal_speed = target_v.length();
+        ideal_course = norm(target_v, front);
     }
-    
-    char buf[1024];
-    snprintf(buf, 1024, "Tank at % 7.1f, % 7.1f, target at % 7.1f, % 7.1f\n",
-    	p[0],p[1], target_p[0], target_p[1]);
-    brain.info += buf;
-    snprintf(buf, 1024, "      v % 7.1f, % 7.1f,         v % 7.1f, % 7.1f\n",
-    	brain.tank->getMovementVector()[0],
-    	brain.tank->getMovementVector()[2],
-    	target_v[0], target_v[1]);
-    brain.info += buf;
-    snprintf(buf, 1024, "   --> dir2target: % 7.4f, % 7.4f [%7.1f]\n",
-    	dir2target[0], dir2target[1], dist2target);
-    brain.info += buf;
-    snprintf(buf, 1024, "   --> tvpa: % 7.1f, % 7.1f\n",
-    	tvpa[0], tvpa[1]);
-    brain.info += buf;
-    snprintf(buf, 1024, "   --> tvpe: % 7.1f, % 7.1f\n",
-    	tvpe[0], tvpe[1]);
-    brain.info += buf;
-    snprintf(buf, 1024, "   --> intercept: % 7.1f, % 7.1f\n",
-    	intercept_v[0], intercept_v[1]);
-    brain.info += buf;
-    snprintf(buf, 1024, "   --> course: % 7.1f, % 7.1f\n",
-    	desired_v[0], desired_v[1]);
-    brain.info += buf;
-    
-    brain.cruise_control.setTargetSpeed(desired_v.length());
-    brain.course_control.setTargetCourse(
-    	norm(desired_v, norm(target_v, dir2target)));
+
+
+    //Vector ideal_course = front - (d_lat / 30.0f) * right;
+    //ideal_course = delta_p;
+    ideal_course = norm(ideal_course, front);
+    brain.course_control.setTargetCourse(ideal_course);
+    brain.cruise_control.setTargetSpeed(ideal_speed);
 
     activate(brain.cruise_control);
     activate(brain.course_control);
@@ -415,7 +375,7 @@ void MoveToExposedPoint::onEnabled(TankBrain & brain) {
     } while (best_candidate_point[1] > best_point[1]);
     
     exposed_point = best_point;
-    //ls_error("exposed point: "); exposed_point.dump();
+    ls_error("exposed point: "); exposed_point.dump();
 }
 
 

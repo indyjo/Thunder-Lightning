@@ -68,6 +68,7 @@ void Explosion::action() {
     double delta_t = thegame->getTimeDelta() / 1000.0;
     age+=delta_t;
     rot += rot_speed * delta_t;
+    SimpleActor::action();
 }
 
 IActor::State Explosion::getState() {

@@ -119,12 +119,10 @@ void DumbMissile::shootSparks()
     
     // Setup smoke puff parameters so that their time to live is shorter
     // and they are much smaller then the default
-    puff_params.ttl = 2.0;
-    puff_params.ttl_deviation = 1.0;
+    puff_params.ttl = Interval(1,3);
     puff_params.pos_deviation = 0.5;
     puff_params.start_size = 4.0;
     puff_params.end_size = 20.0;
-    puff_params.rotations_in_life = 1.5;
     
     thegame->addActor(new Explosion(thegame, getLocation(), 10.0));
     for (i=0; i<NUM_SPARKS; i++) {

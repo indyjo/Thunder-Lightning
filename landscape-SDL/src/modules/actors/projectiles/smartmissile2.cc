@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "smartmissile2.h"
 #include <modules/actors/fx/explosion.h>
 #include <modules/actors/RelativeView.h>
@@ -273,6 +275,7 @@ Vector SmartMissile2::getDesiredDirection() {
     Vector target_vrel = target_v - target_dir*(target_dir*target_v);
     float target_vrel2 = target_vrel.lengthSquare();
     float v2 = v.lengthSquare();
+    v2 = std::max(v2, 500.f*500.f);
     if (target_vrel2 > v2) target_vrel2 = v2;
     Vector desired_v = target_vrel + target_dir * sqrt(v2 - target_vrel2);
     //return (desired_v).normalize();

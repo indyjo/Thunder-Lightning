@@ -11,7 +11,7 @@
 class Bullet: public IProjectile, public SimpleActor, public Collide::Collidable
 {
 public:
-    Bullet(IGame *thegame, Ptr<IActor> source=0, float factor=0);
+    Bullet(IGame *thegame, Ptr<IActor> source=0, float factor=1);
 
     virtual void action();
 
