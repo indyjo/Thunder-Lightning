@@ -2,6 +2,7 @@
 #include <modules/math/Matrix.h>
 #include <modules/math/Vector.h>
 #include <modules/environment/environment.h>
+#include <interfaces/IConfig.h>
 
 Camera::Camera(IGame *thegame)
 {

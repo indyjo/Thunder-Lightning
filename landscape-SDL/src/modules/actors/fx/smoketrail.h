@@ -1,9 +1,11 @@
 #ifndef SMOKETRAIL_H
 #define SMOKETRAIL_H
 
+#include <deque>
 #include <landscape.h>
 #include <modules/actors/simpleactor.h>
-#include <cstdio>
+#include <modules/texman/TextureManager.h>
+#include <interfaces/IFollower.h>
 
 #define SMOKE_TRAIL_BUFFER 200
 

@@ -20,6 +20,8 @@
 #define PI 3.14159265358979323846
 
 void AutoPilot::fly( const FlightInfo & fi, FlightControls & ctrls ) {
+    if (isEnabled(AP_VECTOR)) handleVector(fi, ctrls);
+    if (isEnabled(AP_DIRECTION)) handleDirection(fi, ctrls);
     if (isEnabled(AP_SPEED)) handleSpeed(fi, ctrls);
     if (isEnabled(AP_COURSE)) handleCourse(fi, ctrls);
     if (isEnabled(AP_ROLL)) handleRoll(fi, ctrls);
@@ -29,7 +31,7 @@ void AutoPilot::fly( const FlightInfo & fi, FlightControls & ctrls ) {
     if (isEnabled(AP_ACCEL)) handleAccel(fi, ctrls);
 }
 
-#define NUM_MODES 7
+#define NUM_MODES 9
 bool AutoPilot::setMode( int m ) {
     mode = 0;
     for(int i=0; i<NUM_MODES; i++) {
@@ -64,6 +66,15 @@ int AutoPilot::implies( int module ) {
         case AP_HEIGHT: return AP_HEIGHT_MASK | AP_PITCH_MASK; 
         case AP_ALTITUDE: return AP_ALTITUDE_MASK | AP_PITCH_MASK;
         case AP_COURSE: return AP_COURSE_MASK | AP_ROLL_MASK;
+        case AP_DIRECTION: return
+        	AP_DIRECTION_MASK
+        	| AP_COURSE_MASK | AP_ROLL_MASK
+        	| AP_PITCH_MASK;
+        case AP_VECTOR: return
+        	AP_VECTOR_MASK
+        	| AP_DIRECTION_MASK
+        	| AP_COURSE_MASK | AP_ROLL_MASK
+        	| AP_PITCH_MASK;
     }
     return 0;
 }
@@ -181,6 +192,9 @@ void AutoPilot::handlePitch( const FlightInfo & fi, FlightControls & ctrls ) {
             MAX_ELEVATOR / (45 * PI / 180));
     float r = controller.control(x, dx);
     float elevator_adj = std::max(-0.7f, std::min( 0.7f, r));
+    if (2*std::abs(fi.getCurrentRoll()) > PI) {
+    	elevator_adj = -elevator_adj;
+    }
     ctrls.setElevator(elevator_adj);
 }
 
@@ -266,4 +280,51 @@ void AutoPilot::handleCourse( const FlightInfo & fi, FlightControls & ctrls ) {
     r = std::min(1.0f, std::max(-1.0f, r));
     setTargetRoll(MAX_ROLL * r);
     ctrls.setRudder(MAX_RUDDER * r);
+}
+
+void AutoPilot::handleDirection(const FlightInfo & fi, FlightControls & ctrls ) {
+	Vector dir = fi.getCurrentFront();
+	if (dir * direction_target < 0.7) {
+		Vector a = direction_target;
+		a[1] = 0;
+		a.normalize();
+		mode |= AP_COURSE_MASK | AP_PITCH_MASK;
+		setTargetCourse( std::atan2(a[0], a[2]) );
+		setTargetPitch( std::acos(direction_target[1]) );
+	} else {
+		mode &= ~(AP_COURSE_MASK | AP_PITCH_MASK);
+		setTargetRoll(0);
+		
+		Vector up = fi.getCurrentUp();
+		Vector right = fi.getCurrentRight();
+		Vector omega = fi.getCurrentOmega();
+		
+		float horiz_error = right * direction_target;
+		float vert_error = - up * direction_target;
+		
+		// The derivatives of the errors are gained by applying
+		// the product rule of derivation
+		// The derivative of a vector under angular velocity omega is
+		// omega cross vector
+		float d_horiz_error = (omega % right) * direction_target
+			+ right * d_direction_target;
+		float d_vert_error = - (omega % up) * direction_target
+			+ up * d_direction_target;
+		
+		FeedbackController<float> c_elev(0.0f, -4.0f, -2.0f);
+		FeedbackController<float> c_rudd(0.0f, -4.0f, -2.0f);
+		
+		float r = c_elev.control(vert_error, d_vert_error);
+		r = std::max(MIN_ELEVATOR, std::min(MAX_ELEVATOR, r));
+		ctrls.setElevator(r);
+		
+		r = c_rudd.control(horiz_error, d_horiz_error);
+		r = std::max(MIN_RUDDER, std::min(MAX_RUDDER, r));
+		ctrls.setRudder(r);
+	}
+}
+
+
+void AutoPilot::handleVector( const FlightInfo & fi, FlightControls & ctrls ) {
+	setTargetDirection(vector_target);
 }

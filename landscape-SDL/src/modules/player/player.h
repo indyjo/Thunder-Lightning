@@ -7,6 +7,8 @@
 #include <modules/model/model.h>
 #include <modules/actors/simpleactor.h>
 #include <modules/collide/CollisionManager.h>
+#include <interfaces/IPlayer.h>
+
 
 class FlightEngine2;
 

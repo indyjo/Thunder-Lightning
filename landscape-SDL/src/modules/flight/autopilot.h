@@ -12,6 +12,8 @@
 #define AP_HEIGHT       4
 #define AP_ALTITUDE     5
 #define AP_COURSE       6
+#define AP_DIRECTION    7
+#define AP_VECTOR       8
 
 #define AP_SPEED_MASK       (2<<AP_SPEED)
 #define AP_ACCEL_MASK       (2<<AP_ACCEL)
@@ -20,6 +22,8 @@
 #define AP_HEIGHT_MASK      (2<<AP_HEIGHT)
 #define AP_ALTITUDE_MASK    (2<<AP_ALTITUDE)
 #define AP_COURSE_MASK      (2<<AP_COURSE)
+#define AP_DIRECTION_MASK   (2<<AP_DIRECTION)
+#define AP_VECTOR_MASK      (2<<AP_VECTOR)
 
 class AutoPilot : virtual public SigObject {
     float speed_target;
@@ -29,6 +33,8 @@ class AutoPilot : virtual public SigObject {
     float height_target;
     float altitude_target;
     float course_target;
+    Vector direction_target, d_direction_target;
+    Vector vector_target, d_vector_target;
     
     int mode;
     
@@ -65,6 +71,22 @@ public:
     void setTargetCourse(float target) { course_target = target; }
     float getTargetCourse() { return course_target; }
     
+    void setTargetDirection(const Vector & dir,
+                            const Vector & deriv=Vector(0,0,0))
+    {
+    	direction_target = dir;
+    	d_direction_target = deriv;
+    }
+    Vector getTargetDirection() { return direction_target; }
+    
+    void setTargetVector(const Vector & vec,
+                         const Vector & deriv=Vector(0,0,0))
+    {
+    	vector_target = vec;
+    	d_vector_target = deriv;
+    }
+    Vector getTargetVector() { return vector_target; }
+    
     void fly( const FlightInfo & fi, FlightControls & ctrls );
 
 protected:
@@ -76,6 +98,8 @@ protected:
     void handleHeight( const FlightInfo & fi, FlightControls & ctrls );
     void handleAltitude( const FlightInfo & fi, FlightControls & ctrls );
     void handleCourse( const FlightInfo & fi, FlightControls & ctrls );
+    void handleDirection( const FlightInfo & fi, FlightControls & ctrls );
+    void handleVector( const FlightInfo & fi, FlightControls & ctrls );
 };
 
 #endif

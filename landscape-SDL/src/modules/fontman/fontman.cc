@@ -1,6 +1,7 @@
 #include <fstream>
 #include <cstdio>
 #include "fontman.h"
+#include <interfaces/IConfig.h>
 
 
 using namespace std;

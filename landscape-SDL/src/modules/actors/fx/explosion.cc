@@ -3,6 +3,11 @@
 #include <cstdlib>
 #include <cmath>
 #include "explosion.h"
+#include <interfaces/ICamera.h>
+#include <interfaces/IConfig.h>
+#include <modules/jogi/jogi.h>
+#include <sound.h>
+
 
 #define RAND ((float) rand() / (float) RAND_MAX)
 #define RAND2 (-1.0 + 2.0 * ((float) rand() / (float) RAND_MAX))

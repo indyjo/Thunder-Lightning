@@ -3,8 +3,11 @@
 
 #include <landscape.h>
 
+class ITerrain;
+class IMovementProvider;
+
 class FlightInfo {
-    Vector p,velocity,acceleration;
+    Vector p,velocity,acceleration,up,right,front,omega;
     float speed, accel, roll, d_roll, pitch, d_pitch;
     float height, d_height, altitude, d_altitude, course, d_course, aoa;
     bool collision_warning;
@@ -14,9 +17,14 @@ public:
       height(0), d_height(0),
       altitude(0), d_altitude(0), course(0), d_course(0),
       collision_warning(false), aoa(0), p(0,0,0),
-      velocity(0,0,0), acceleration(0,0,0)
+      velocity(0,0,0), acceleration(0,0,0),
+      up(0,0,0), right(0,0,0), front(0,0,0), omega(0,0,0)
     { }
     inline const Vector & getCurrentLocation() const { return p; }
+    inline const Vector & getCurrentUp() const { return up; }
+    inline const Vector & getCurrentRight() const { return right; }
+    inline const Vector & getCurrentFront() const { return front; }
+    inline const Vector & getCurrentOmega() const { return omega; }
     inline float getCurrentSpeed()       const { return speed; }
     inline float getCurrentAccel()       const { return accel; }
     inline float getCurrentRoll()        const { return roll; }

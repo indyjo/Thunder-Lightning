@@ -5,9 +5,11 @@
 #include <string>
 #include <landscape.h>
 #include <remap.h>
+#include <interfaces/IGame.h>
+
+class JRenderer;
 
 namespace UI {
-
 class Surface;
 
 class ICommandHandler : virtual public Object {

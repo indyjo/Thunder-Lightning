@@ -3,11 +3,11 @@
 
 #include <deque>
 #include <landscape.h>
+#include <coroutine.h>
 #include <modules/engines/controls.h>
 #include <modules/flight/flightinfo.h>
 #include <modules/flight/autopilot.h>
 #include <modules/math/Rendezvous.h>
-
 
 struct Rating {
     Rating() : attack(0), defense(0),
@@ -23,21 +23,35 @@ struct Rating {
 };
 
 
-struct Personality {
-    Personality() : confidence(.25), obedience(.25),
-            experience(.25), cautiousness(.25) { }
-    float confidence;
-    float obedience;
-    float experience;
-    float cautiousness;
+struct Context : public Object {
+	FlightInfo *fi;
+	AutoPilot *ap;
+	Ptr<DroneControls> controls;
+    Ptr<IGame> thegame;
+	Ptr<ITerrain> terrain;
+    Ptr<IActor> actor;
+    MTasker<> & mtasker;
     
-    float evaluate(const Rating & r);
-    void randomize();
+    inline Context(
+		FlightInfo *fi,
+		AutoPilot *ap,
+		Ptr<DroneControls> controls,
+	    Ptr<IGame> thegame,
+		Ptr<ITerrain> terrain,
+	    Ptr<IActor> actor,
+	    MTasker<> & mtasker)
+	:	fi(fi), ap(ap), controls(controls), thegame(thegame),
+		terrain(terrain), actor(actor), mtasker(mtasker)
+	{ }
+    	
 };
-        
 
-class Idea : virtual public Object {
-public:
+
+struct Idea : virtual public Object {
+	Context & ctx;
+	std::string name;
+	inline Idea(Context & ctx, const std::string & name="Idea")
+	: ctx(ctx), name(name) { }
     virtual Rating rate()=0;
     virtual void realize()=0;
     virtual void postpone()=0;
@@ -45,19 +59,14 @@ public:
 };
 
 class PatrolIdea : public Idea {
-    AutoPilot * ap;
-    FlightInfo * fi;
     Vector area;
     std::deque<Vector> path;
-    Ptr<ITerrain> terrain;
     float radius;
 public:
     PatrolIdea(
-        AutoPilot *,
-        FlightInfo *,
-        const Vector & area,
-        float radius,
-        Ptr<ITerrain>);
+    	Context & ctx,
+    	const Vector & area,
+        float radius);
     virtual Rating rate();
     virtual void realize();
     virtual void postpone();
@@ -68,27 +77,16 @@ protected:
 };
 
 class AttackIdea : public Idea {
-    AutoPilot *ap;
-    FlightInfo *fi;
-    Ptr<IActor> source;
-    Ptr<IGame> thegame;
     Ptr<IActor> target;
     Rendezvous rendezvous;
-    Vector p, v, front;
-    Vector target_rendezvous;
-    Ptr<DroneControls> controls;
     double last_target_select;
     double last_missile;
     double last_bullet;
     double delta_t;
-    double target_angle;
-    double target_dist;
+    Vector d,v,p,front,target_rendezvous;
+    float target_dist,target_angle;
 public:
-    AttackIdea(Ptr<IGame>,
-               Ptr<IActor> source,
-               AutoPilot *ap,
-               FlightInfo *fi,
-               Ptr<DroneControls> controls);
+    AttackIdea(Context & ctx);
     virtual Rating rate();
     virtual void realize();
     virtual void postpone();
@@ -104,22 +102,54 @@ protected:
     void followTarget();
 };
 
-class EvadeTerrainIdea : public Idea {
-    AutoPilot * ap;
-    FlightInfo * fi;
-public:
-    EvadeTerrainIdea( AutoPilot *, FlightInfo * );
+struct EvadeTerrainIdea : public Idea {
+	bool triggered;
+	inline EvadeTerrainIdea(Context & ctx) : Idea(ctx,"Evade"), triggered(false) { }
     virtual Rating rate();
     virtual void realize();
     virtual void postpone();
     virtual std::string info();
 };
 
-// 
-// class ShootIdea : public Idea {
-// public:
-//     virtual Rating rate();
-// 	virtual void realize();
-// };
+class CRIdea : public Idea, public CoRoutine {
+    std::string nfo;
+public:
+	inline CRIdea(Context & ctx)
+	:	CoRoutine(ctx.mtasker), Idea(ctx,"CRIdea")
+	{ }
+    virtual Rating rate();
+    virtual void realize();
+    virtual void postpone();
+    virtual std::string info();
+    virtual void run();
+};
+
+class Dogfight : public Idea, public CoRoutine {
+	Ptr<IActor> target;
+	std::string nfo;
+public:
+	inline Dogfight(Context & ctx)
+	:	CoRoutine(ctx.mtasker), Idea(ctx, "Dogfight")
+	{ }
+    virtual Rating rate();
+    virtual void realize();
+    virtual void postpone();
+    virtual std::string info();
+    virtual void run();
+private:
+	bool targetInRange(Ptr<IActor>);
+	Ptr<IActor> selectNearestTargetInRange(float range=5000);
+	bool positionFavorable();
+	void aimInDirection(Vector);
+	void aimAndShoot();
+	void evade();
+	void flyLooping();
+	void flyScissors();
+	void flyImmelmann();
+	void flyImmelmannTurn();
+	void flySplitS();
+	void gainSpeedAndStabilize();
+	void stabilize();
+};
 
 #endif

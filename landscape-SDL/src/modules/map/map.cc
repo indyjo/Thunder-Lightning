@@ -1,3 +1,8 @@
+#include <fstream>
+#include <interfaces/ICamera.h>
+#include <interfaces/IConfig.h>
+#include <modules/jogi/jogi.h>
+#include <remap.h>
 #include "map.h"
 
 #define MAP_SIZE 0.15

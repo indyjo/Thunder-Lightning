@@ -1,6 +1,8 @@
 #include <modules/math/Ballistic.h>
 #include <modules/math/Feedback.h>
 #include "ai.h"
+#include <interfaces/ITerrain.h>
+
 
 /////////////////////////////////////////////////////////////////////////////
 // class CruiseControl

@@ -42,11 +42,11 @@ dnl Checks for header files.
 AC_CHECK_HEADERS(sys/time.h unistd.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-AC_HEADER_TIME
+dnl AC_C_CONST
+dnl AC_HEADER_TIME
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(gettimeofday)
+dnl AC_CHECK_FUNCS(gettimeofday)
 
 AC_OUTPUT([
 Makefile
@@ -55,6 +55,7 @@ scripts/landscape
 scripts/landscape-debug
 src/Makefile
 src/boost/Makefile
+src/interfaces/Makefile
 src/modules/Makefile
 src/modules/LoDTerrain/Makefile
 src/modules/actors/Makefile
@@ -72,15 +73,13 @@ src/modules/environment/Makefile
 src/modules/flight/Makefile
 src/modules/fontman/Makefile
 src/modules/gunsight/Makefile
-src/modules/horizon/Makefile
 src/modules/jogi/Makefile
 src/modules/map/Makefile
 src/modules/math/Makefile
 src/modules/model/Makefile
 src/modules/physics/Makefile
 src/modules/player/Makefile
-src/modules/sky/Makefile
 src/modules/skybox/Makefile
-src/modules/terrain/Makefile
+src/modules/texman/Makefile
 src/modules/ui/Makefile
 ])

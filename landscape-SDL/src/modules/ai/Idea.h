@@ -2,6 +2,8 @@
 #define AI_IDEA_H
 
 #include <list>
+#include <string>
+#include <vector>
 #include <landscape.h>
 
 namespace AI {

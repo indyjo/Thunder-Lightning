@@ -2,6 +2,7 @@
 #define ENVIRONMENT_H
 
 #include <landscape.h>
+#include <interfaces/IPositionProvider.h>
 
 class Environment : public Object {
     Vector fog_color;

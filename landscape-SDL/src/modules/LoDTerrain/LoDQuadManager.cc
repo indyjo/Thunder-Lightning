@@ -1,4 +1,7 @@
 #include "LoDTerrain.h"
+#include <interfaces/IConfig.h>
+#include <interfaces/ICamera.h>
+#include <remap.h>
 
 // BEGIN: LoDQuadManager methods
 

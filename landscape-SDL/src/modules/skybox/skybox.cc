@@ -1,4 +1,9 @@
+#include <cstdio>
+#include <cmath>
+#include <fstream>
 #include "skybox.h"
+#include <interfaces/ICamera.h>
+#include <interfaces/IConfig.h>
 
 static const char * tex_names[6] = {
     "front.png", "left.png", "right.png", "back.png", "up.png", "down.png"
@@ -33,7 +38,7 @@ static const int indices[6][4] = {
 
 SkyBox::SkyBox(IGame *thegame)
 {
-    ifstream in;
+    std::ifstream in;
     char filename[255];
     const char *texpath;
     this->thegame=thegame;

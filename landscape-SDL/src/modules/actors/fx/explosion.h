@@ -3,6 +3,7 @@
 
 #include <landscape.h>
 #include <modules/actors/simpleactor.h>
+#include <modules/texman/TextureManager.h>
 
 class Explosion: public SimpleActor
 {

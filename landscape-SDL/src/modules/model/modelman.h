@@ -5,6 +5,7 @@
 #include <string>
 
 #include <landscape.h>
+#include <interfaces/IModelMan.h>
 #include "model.h"
 
 class ModelMan : virtual public IModelMan {

@@ -1,6 +1,8 @@
 #include "bullet.h"
 #include <modules/actors/fx/explosion.h>
 #include <modules/engines/rigidengine.h>
+#include <interfaces/ICamera.h>
+#include <interfaces/ITerrain.h>
 
 #define EARTH_GRAVITY 9.81
 #define MAX_DEVIATION_PER_SECOND 10.0

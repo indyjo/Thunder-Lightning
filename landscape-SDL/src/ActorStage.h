@@ -4,6 +4,7 @@
 
 #include <list>
 #include <landscape.h>
+#include <interfaces/IActorStage.h>
 
 class ActorStage : virtual public IActorStage
 {

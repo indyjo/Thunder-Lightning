@@ -1,4 +1,5 @@
 #include <modules/clock/clock.h>
+#include <interfaces/ITerrain.h>
 
 #include "carengine.h"
 

@@ -1,6 +1,10 @@
 #include "dumbmissile.h"
 #include <modules/actors/fx/explosion.h>
 #include <modules/clock/clock.h>
+#include <interfaces/ICamera.h>
+#include <interfaces/ITerrain.h>
+#include <sound.h>
+
 
 #define EARTH_GRAVITY 9.81
 #define MAX_DEVIATION_PER_SECOND 10.0

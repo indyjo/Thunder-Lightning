@@ -1,4 +1,6 @@
 #include "spark.h"
+#include <interfaces/ITerrain.h>
+#include <modules/jogi/jogi.h>
 
 #define EARTH_GRAVITY 9.81
 #define MAX_DEVIATION_PER_SECOND 1.0

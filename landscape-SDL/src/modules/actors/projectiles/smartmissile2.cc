@@ -2,6 +2,9 @@
 #include <modules/actors/fx/explosion.h>
 #include <modules/clock/clock.h>
 #include <modules/engines/missileengine.h>
+#include <interfaces/ICamera.h>
+#include <interfaces/ITerrain.h>
+#include <sound.h>
 
 #define BLAST_BEGIN 1.0
 #define BLAST_END 2.5

@@ -2,7 +2,9 @@
 #include <string>
 #include <modules/math/Vector.h>
 #include <landscape.h>
-    
+#include <interfaces/IFontMan.h>
+#include <modules/texman/TextureManager.h>
+#include <interfaces/IGame.h>
 
 class FontMan : virtual public Object, public IFontMan {
 public:

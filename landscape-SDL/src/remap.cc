@@ -1,4 +1,5 @@
 #include <landscape.h>
+#include <remap.h>
 
 EventRemapper::EventRemapper()
 {
@@ -125,10 +126,6 @@ void EventRemapper::mouseButtonEvent(SDL_MouseButtonEvent & ev)
     bool pressed = (ev.state == SDL_PRESSED);
     MouseButtonState bs(button, pressed);
 
-    ls_message("Mouse button %d %s.\n",
-        button,
-        pressed?"pressed":"released");
-
     MouseButtonMap::iterator i = mouse_button_map.find(bs);
     if (i != mouse_button_map.end())
         triggerAction(i->second.c_str());
@@ -136,8 +133,6 @@ void EventRemapper::mouseButtonEvent(SDL_MouseButtonEvent & ev)
 
 void EventRemapper::mouseMotionEvent(SDL_MouseMotionEvent & ev)
 {
-    ls_message("Mouse motion: %d (%+d) %d (%+d)\n",
-        ev.x, ev.xrel, ev.y, ev.yrel);
     x_accum += ev.xrel;
     y_accum += ev.yrel;
     axismap[abs_mouse_x] = ev.x;
@@ -152,11 +147,6 @@ void EventRemapper::joyButtonEvent(SDL_JoyButtonEvent & ev)
     bool pressed = (ev.state == SDL_PRESSED);
     JoystickButtonState js(std::make_pair(joy, button), pressed);
 
-    ls_message("Joystick %d button %d %s.\n",
-        joy,
-        button,
-        pressed?"pressed":"released");
-
     JoystickButtonMap::iterator i = joystick_button_map.find(js);
     if (i != joystick_button_map.end())
         triggerAction(i->second.c_str());
@@ -167,10 +157,12 @@ void EventRemapper::joyAxisEvent(SDL_JoyAxisEvent & ev)
     JoystickAxis jaxis(ev.which, ev.axis);
     float value = (float) ev.value / 32768.0f;
 
+    /*
     ls_message("Joystick %d axis %d: %f.\n",
         jaxis.first,
         jaxis.second,
         value);
+    */
 
     JoystickAxisMap::iterator i = joystick_axis_map.find(jaxis);
     if (i != joystick_axis_map.end()) {
@@ -206,3 +198,7 @@ float EventRemapper::getAxis(const char * axis)
     else return 0.0f;
 }
 
+void EventRemapper::setAxis(const char * axis, float val)
+{
+	axismap[axis] = val;
+}

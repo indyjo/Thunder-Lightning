@@ -2,6 +2,7 @@
 #include <string>
 #include <cstdio>
 #include <landscape.h>
+#include <interfaces/IConfig.h>
 
 class Config: public IConfig
 {

@@ -52,7 +52,7 @@ Ptr<IPositionProvider> SimpleActor::getView(int n) { return views[n]; }
 Vector SimpleActor::getLocation() { return engine->getLocation(); }
 Vector SimpleActor::getFrontVector() { return engine->getFrontVector(); }
 Vector SimpleActor::getRightVector() { return engine->getRightVector(); }
-Vector SimpleActor::getUpVector() { return engine->getRightVector(); }
+Vector SimpleActor::getUpVector() { return engine->getUpVector(); }
 void SimpleActor::getOrientation(Vector *up, Vector *right, Vector *front) {
     engine->getOrientation(up, right, front);
 }

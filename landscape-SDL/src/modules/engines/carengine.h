@@ -4,6 +4,8 @@
 #include <landscape.h>
 #include "engine.h"
 #include "controls.h"
+#include <interfaces/IGame.h>
+
 
 struct CarParams {
     float mass, max_accel, max_brake, max_rot_per_meter;

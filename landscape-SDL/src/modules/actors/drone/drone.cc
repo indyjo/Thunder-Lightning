@@ -1,4 +1,3 @@
-#include "drone.h"
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -9,10 +8,23 @@
 #include <modules/actors/projectiles/smartmissile.h>
 #include <modules/clock/clock.h>
 #include <modules/engines/flightengine2.h>
+#include <modules/math/SpecialMatrices.h>
+#include <sound.h>
+#include <interfaces/IConfig.h>
+#include <interfaces/ICamera.h>
+#include <interfaces/IGunsight.h>
+#include <interfaces/IModelMan.h>
+#include <interfaces/ITerrain.h>
+
+
+#include "drone.h"
+#include "ai.h"
 
 #define PI 3.14159265358979323846
 
 #define RADIUS 10.0f
+
+#define CURRENT_IDEA_BONUS 0.05f
 
 #define BULLET_SPEED 900.0f
 #define DUMBMISSILE_SPEED 200.0f
@@ -30,7 +42,8 @@
 Drone::Drone(Ptr<IGame> thegame)
 : SimpleActor(thegame),
   renderer(thegame->getRenderer()),
-  terrain(thegame->getTerrain()), damage(0)
+  terrain(thegame->getTerrain()), damage(0),
+  mtasker(64*1024)
 {
     setTargetInfo(new TargetInfo(
         "Drone", RADIUS, TargetInfo::CLASS_AIRCRAFT));
@@ -50,18 +63,26 @@ Drone::Drone(Ptr<IGame> thegame)
     thegame->getCollisionMan()->add(this);
 
     personality.randomize();
+    context = new Context(
+    	&flight_info,
+    	&auto_pilot,
+    	drone_controls,
+    	thegame,
+    	terrain,
+    	this,
+    	mtasker);
 
     std::string model_file = thegame->getConfig()->query("Drone_model_file");
     std::string model_path = thegame->getConfig()->query("Drone_model_path");
     model = thegame->getModelMan()->query(model_file);
     //model = new Model(*thegame->getTexMan(), objfile, model_path.c_str());
 
-    patrol_idea =  new PatrolIdea(&auto_pilot, &flight_info,
-            Vector(0,0,0), 10000, terrain);
+    patrol_idea =  new PatrolIdea(*context,Vector(0,0,0), 10000);
     ideas.push_back(patrol_idea);
-    ideas.push_back( new AttackIdea(thegame, this, &auto_pilot, &flight_info,
-                                    drone_controls));
-    ideas.push_back( new EvadeTerrainIdea(&auto_pilot, &flight_info) );
+    //ideas.push_back( new AttackIdea(*context));
+    ideas.push_back( new EvadeTerrainIdea(*context) );
+    //ideas.push_back( new CRIdea(*context));
+    ideas.push_back( new Dogfight(*context));
 
     drone_controls->setThrottle(1);
     drone_controls->setElevator(0);
@@ -113,10 +134,13 @@ Drone::Drone(Ptr<IGame> thegame)
 
 void Drone::action() {
     float delta_t = thegame->getClock()->getStepDelta();
+    std::string info;
+    char buf[1024];
+    
 
     flight_info.update(delta_t, *this, *terrain);
 
-    float best_value=0;
+    float best_value=-1, current_value=0;
     Ptr<Idea> best_idea;
     for(std::list<Ptr<Idea> >::iterator i=ideas.begin(); i!=ideas.end(); i++) {
         Rating r = (*i)->rate();
@@ -125,17 +149,29 @@ void Drone::action() {
 //                 r.attack, r.defense, r.order, r.opportunity,
 //                 r.necessity, r.danger);
         float value = personality.evaluate(r);
+        snprintf(buf,1024, "%s: %.2f\n", (*i)->name.c_str(), value);
+        info += buf;
 //         ls_message("value = %f\n", value);
+        if (*i == current_idea) {
+            current_value = value;
+        }
         if (value > best_value) {
             best_value = value;
             best_idea = *i;
         }
     }
-    if (current_idea && best_idea != current_idea) current_idea->postpone();
-    current_idea = best_idea;
+    if (current_idea && best_value > current_value + CURRENT_IDEA_BONUS) {
+        current_idea->postpone();
+        current_idea = best_idea;
+    } else if (!current_idea) {
+        current_idea = best_idea;
+    }
+    
+    current_idea->realize();
+    mtasker.scheduleAll();
+    
     if (current_idea) {
-        current_idea->realize();
-        getTargetInfo()->setTargetInfo(current_idea->info());
+        getTargetInfo()->setTargetInfo(info+current_idea->info());
     }
 
     //flight_info.dump();
@@ -176,26 +212,7 @@ void Drone::action() {
 #define MAX_POINT_DISTANCE 10000.0f
 
 void Drone::draw() {
-    std::deque<Vector> & path = patrol_idea->getPath();
-    std::deque<Vector>::iterator it = path.begin();
-
     renderer->enableSmoothShading();
-    renderer->disableTexturing();
-    renderer->disableFog();
-    renderer->begin(JR_DRAWMODE_CONNECTED_LINES);
-    renderer->setColor(Vector(0,1,0));
-    renderer->setAlpha(1);
-    while (it != path.end()) {
-        Vector v = *it;
-        //v[1] = getLocation()[1];
-        //v[1] = terrain->getHeightAt(v[0], v[2]) + 400.0f;
-        ++it;
-        *renderer << v;
-    }
-    renderer->end();
-    renderer->enableFog();
-
-
 
     float frustum[6][4];
     float dist = 0.0;

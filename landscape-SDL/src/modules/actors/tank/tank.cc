@@ -7,6 +7,14 @@
 #include <sigc++/bind.h>
 #include "tank.h"
 #include "ai.h"
+#include <interfaces/ICamera.h>
+#include <interfaces/IConfig.h>
+#include <interfaces/IGunsight.h>
+#include <interfaces/IMap.h>
+#include <interfaces/IModelMan.h>
+#include <interfaces/ITerrain.h>
+#include <sound.h>
+#include <remap.h>
 
 #define PI 3.14159265358979323846
 

@@ -4,6 +4,7 @@
 #include <landscape.h>
 #include "engine.h"
 #include "rigidengine.h"
+#include <interfaces/IGame.h>
 
 class MissileEngine : public IEngine {
 protected:

@@ -9,6 +9,12 @@
 #include <unistd.h>
 
 #include <landscape.h>
+#include <interfaces/ILoDQuadManager.h>
+#include <interfaces/IGame.h>
+
+#include <modules/jogi/jogi.h>
+#include <modules/texman/TextureManager.h>
+
 #include <modules/environment/environment.h>
 #include <modules/math/Vector.h>
 #include <modules/ui/status.h>

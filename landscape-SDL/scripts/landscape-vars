@@ -27,6 +27,8 @@ setv sounds_dir			      $data_dir/sounds
 #setv Game_fullscreen	              0
 setv Game_xres			      1024
 setv Game_yres			      768
+#setv Game_xres			      1280
+#setv Game_yres			      1024
 setv Game_fullscreen	              1
 setv Game_loading_screen              $texture_dir/loading-screen.spr
 

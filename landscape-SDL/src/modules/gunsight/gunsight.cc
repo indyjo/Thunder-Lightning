@@ -4,6 +4,12 @@
 #include <Faction.h>
 #include <modules/ui/Surface.h>
 #include <typeinfo>
+#include <interfaces/ICamera.h>
+#include <interfaces/IConfig.h>
+#include <interfaces/IPlayer.h>
+#include <interfaces/ITerrain.h>
+#include <interfaces/IFontMan.h>
+#include <remap.h>
 
 #define PI 3.14159265358979323846264338327
 
@@ -200,13 +206,17 @@ void Gunsight::drawFlightInfo() {
                        "time factor: %3.2f\n"
                        "%s\n"
                        "Speed: %4.0f km/h\n"
-                       "AoA: %4.1f°\n"
+                       "AoA: %4.1f?\n"
+                       "Roll: %4.1f\n"
+                       "Pitch: %4.1f\n"
                        "Height: %5.0f m",
             1.0/real_delta_t,
             time_factor,
             fi.collisionWarning()? "PULL UP!" : "",
             fi.getCurrentSpeed() * 3.6,
-            fi.getCurrentAoA()*180.0/PI,
+            fi.getCurrentAoA()*180/PI,
+            fi.getCurrentRoll()*180/PI,
+            fi.getCurrentPitch()*180/PI,
             fi.getCurrentHeight());
     fontman->print(buf);
 }
@@ -286,6 +296,22 @@ void Gunsight::drawTargetInfo() {
         fontman->setAlpha(1.0);
         fontman->print("\n\n\n\n");
         fontman->print(current_target->getFaction()->getName().c_str());
+        Faction::Attitude attitude = player->getFaction()->
+        	getAttitudeTowards(current_target->getFaction());
+        switch (attitude) {
+        case Faction::FRIENDLY:
+        	fontman->print(" (FRIENDLY ");
+        	break;
+        case Faction::NEUTRAL:
+        	fontman->print(" (NEUTRAL ");
+        	break;
+        case Faction::HOSTILE:
+        	fontman->print(" (HOSTILE ");
+        	break;
+        }
+        fontman->print("towards ");
+        fontman->print(player->getFaction()->getName().c_str());
+        fontman->print(")");
 
     	fontman->setAlpha(0.5);
         fontman->setCursor(o , px, py);
@@ -322,7 +348,7 @@ void Gunsight::drawTargets() {
     for(Iter i=actors.begin(); i!=actors.end(); i++) {
         if (!(*i)->getTargetInfo()) continue;
         TargetInfo::TargetClass tclass = (*i)->getTargetInfo()->getTargetClass();
-        //if (!tclass.is_radar_detectable && !tclass.is_navigational) continue;
+        if (!tclass.is_radar_detectable && !tclass.is_navigational) continue;
         Vector p = (*i)->getLocation();
         bool in_view = true;
         for(int j=0; j<6; j++) {

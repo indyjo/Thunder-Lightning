@@ -10,6 +10,7 @@
 #include <modules/engines/controls.h>
 
 class TankBrain;
+class SoundSource;
 
 class Tank : virtual public SimpleActor, virtual public SigObject {
 public:

@@ -1,6 +1,8 @@
 #ifndef _JOGI_OPENGL_H
 #define _JOGI_OPENGL_H
 
+#include "JRenderer.h"
+
 #define JGL_MAX_TEXTURES 256
 
 typedef enum {

@@ -1,4 +1,4 @@
-#include <iostream>
+#include <fstream>
 #include <cstdio>
 #include "CollisionManager.h"
 #include <modules/math/Collide.h>
@@ -157,7 +157,7 @@ bool PossibleContact::shouldDivideTime(const Hints & hints) {
 
 void PossibleContact::divideTime(std::priority_queue<PossibleContact> & q) {
     float t_mid = 0.5f*(t0+t1);
-    ls_message("dividing time: %f-%f (new midpoint:%f)\n", t0, t1, t_mid);
+    //ls_message("dividing time: %f-%f (new midpoint:%f)\n", t0, t1, t_mid);
     PossibleContact new_contact(*this);
     new_contact.t1 = t_mid;
     q.push(new_contact);
@@ -172,7 +172,7 @@ bool PossibleContact::collide(float delta_t, Hints & hints) {
         return false;
     }
     
-    ls_message("---------- %f - %f -----------\n", t0, t1);
+    //ls_message("---------- %f - %f -----------\n", t0, t1);
     // Sphere / Sphere test
     if (partners[0].isSphere() && partners[1].isSphere()) {
         Vector p[2], v[2];
@@ -566,7 +566,8 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
         found_contacts = 0;
         stop_time = delta_t;
         bool found = false;
-        while(!queue.empty()) {
+        int iters_left = 4096;
+        while(!queue.empty() && iters_left-->0) {
             PossibleContact pc(queue.top());
             queue.pop();
 
@@ -612,8 +613,8 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
                             GeometryInstance *instance = partner.instance;
                             Ptr<BoundingGeometry> bounding = instance->collidable->getBoundingGeometry();
                             Transform & transform = instance->transforms_0[partner.transform];
-                            ls_message("transform[%d]: quat(%f, %f, %f, %f)\n",
-                                j, transform.quat().real(),transform.quat().imag()[0],transform.quat().imag()[1],transform.quat().imag()[2]);
+                            //ls_message("transform[%d]: quat(%f, %f, %f, %f)\n",
+                            //    j, transform.quat().real(),transform.quat().imag()[0],transform.quat().imag()[1],transform.quat().imag()[2]);
                             //visualize_geometry(game, bounding->getRootNode(), instance);
                         }
                     }

@@ -3,6 +3,10 @@
 
 #include <landscape.h>
 #include "status.h"
+#include <interfaces/IGame.h>
+#include <modules/texman/TextureManager.h>
+
+class IFontMan;
 
 class LoadingScreen : public SigC::Object {
 public:

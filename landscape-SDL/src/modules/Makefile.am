@@ -11,15 +11,13 @@ SUBDIRS = \
 	flight          \
         fontman         \
 	gunsight	\
-	horizon		\
         jogi            \
 	map		\
         math            \
 	model           \
         physics         \
 	player		\
-	sky		\
 	skybox		\
-	terrain         \
+	texman		\
         ui
 

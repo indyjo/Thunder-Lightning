@@ -2,10 +2,10 @@
 #define DRONE_H
 
 #include <landscape.h>
+#include <mtasker.h>
 #include <modules/math/Vector.h>
 #include <modules/math/Matrix.h>
 #include <modules/model/model.h>
-#include "ai.h"
 #include <modules/flight/autopilot.h>
 #include <modules/flight/flightinfo.h>
 #include <modules/engines/controls.h>
@@ -13,6 +13,22 @@
 #include <modules/collide/CollisionManager.h>
 
 class FlightEngine2;
+class Idea;
+class PatrolIdea;
+struct Context;
+struct Rating;
+
+struct Personality {
+    Personality() : confidence(.25), obedience(.25),
+            experience(.25), cautiousness(.25) { }
+    float confidence;
+    float obedience;
+    float experience;
+    float cautiousness;
+    
+    float evaluate(const Rating & r);
+    void randomize();
+};
 
 class Drone : public SimpleActor, public Collide::Collidable {
 public:
@@ -39,6 +55,7 @@ private:
     Ptr<ITerrain> terrain;
 
     // ai stuff
+    Ptr<Context> context;
     Personality personality;
     std::list<Ptr<Idea> > ideas;
     Ptr<Idea> current_idea;
@@ -56,6 +73,7 @@ private:
     int cannon_num, smart_launcher_num, dumb_launcher_num;
     float primary_reload_time, secondary_reload_time;
     float damage;
+    MTasker<> mtasker;
 };
 
 

@@ -2,7 +2,7 @@
 #define SOUND_H
 
 #include <map>
-#include <deque>
+#include <vector>
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <object.h>

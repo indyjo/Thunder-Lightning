@@ -2,6 +2,7 @@
 #define NEWTONIANENGINE_H
 
 #include <landscape.h>
+#include <interfaces/IGame.h>
 #include "engine.h"
 
 class NewtonianEngine : public IEngine {

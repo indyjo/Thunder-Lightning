@@ -1,6 +1,9 @@
 #ifndef _JOGI_RENDERER_H
 #define _JOGI_RENDERER_H
 
+#include "JCamera.h"
+#include "types.h"
+
 typedef enum {
     JR_DRAWMODE_POINTS=0,
     JR_DRAWMODE_LINES,

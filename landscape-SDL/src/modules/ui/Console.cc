@@ -1,4 +1,8 @@
 #include <modules/environment/environment.h>
+#include <modules/jogi/JRenderer.h>
+#include <interfaces/IConfig.h>
+#include <interfaces/IFontMan.h>
+
 
 #include "Surface.h"
 #include "Console.h"

@@ -3,7 +3,9 @@
 
 #include <cmath>
 #include <landscape.h>
+#include <util.h>
 #include <modules/actors/simpleactor.h>
+#include <interfaces/IProjectile.h>
 
 #define SPARK_TRAIL_BUFFER 30
 

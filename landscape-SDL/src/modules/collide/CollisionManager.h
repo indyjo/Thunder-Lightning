@@ -9,6 +9,8 @@
 #include <modules/math/Transform.h>
 #include "BoundingBox.h"
 #include "SweepNPrune.h"
+#include <interfaces/IActor.h>
+#include <interfaces/IGame.h>
 
 
 namespace Collide {

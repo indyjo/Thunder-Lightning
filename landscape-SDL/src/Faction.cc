@@ -15,16 +15,16 @@ Faction::BasicFactions::BasicFactions() {
     neutral_faction->setAttitudeTowards(neutral_faction, FRIENDLY);
 
     faction_a = new Faction("A");
+    faction_b = new Faction("B");
+    faction_c = new Faction("C");
     faction_a->setAttitudeTowards(faction_a, FRIENDLY);
     faction_a->setAttitudeTowards(faction_b, HOSTILE);
     faction_a->setAttitudeTowards(faction_c, HOSTILE);
 
-    faction_b = new Faction("B");
     faction_b->setAttitudeTowards(faction_a, HOSTILE);
     faction_b->setAttitudeTowards(faction_b, FRIENDLY);
     faction_b->setAttitudeTowards(faction_c, HOSTILE);
 
-    faction_c = new Faction("C");
     faction_c->setAttitudeTowards(faction_a, HOSTILE);
     faction_c->setAttitudeTowards(faction_b, HOSTILE);
     faction_c->setAttitudeTowards(faction_c, FRIENDLY);
@@ -37,7 +37,19 @@ void Faction::setAttitudeTowards(Ptr<Faction> f, Attitude a) {
 }
 
 Faction::Attitude Faction::getAttitudeTowards(Ptr<Faction> f) {
+	{
+		std::map<Ptr<Faction>, Attitude>::iterator i;
+		ls_message("Attitude of %s towards %p \"%s\":",
+			getName().c_str(), &*f, f->getName().c_str());
+		for(i=attitudes.begin(); i!=attitudes.end(); ++i) {
+			ls_message(" %p:%s",&*i->first, 
+				(i->second==FRIENDLY)?"FRIENDLY":
+				((i->second==HOSTILE)?"HOSTILE":"NEUTRAL"));
+		}
+		ls_message("\n");
+	}
     std::map<Ptr<Faction>, Attitude>::iterator i = attitudes.find(f);
+    
     if (i==attitudes.end())
         return default_attitude;
     else

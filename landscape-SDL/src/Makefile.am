@@ -1,11 +1,13 @@
-SUBDIRS = modules boost
+SUBDIRS = modules boost interfaces
 
 bin_PROGRAMS = landscape-bin
 
 landscape_bin_SOURCES = game.cc game.h landscape.h interfaces.h \
-                        Factory.h modptr.h resman.cc \
-                        resman.h object.h util.h signals.h remap.h remap.cc \
+                        Factory.h object.h \
+                        util.h signals.h remap.h remap.cc \
                         sound.cc sound.h \
+                        mtasker.cc mtasker.h \
+                        coroutine.cc coroutine.h \
                         TargetInfo.h TargetInfo.cc \
                         voidptr.h TypedObject.h \
                         ActorStage.cc ActorStage.h \
@@ -37,7 +39,8 @@ landscape_libs = \
     modules/skybox/libskybox.a \
     modules/terrain/libterrain.a \
     modules/ui/libui.a \
-    modules/ai/libai.a
+    modules/ai/libai.a \
+    modules/texman/libtexman.a
 
 landscape_bin_LDADD = @SDL_LIBS@ @SIGC_LIBS@ $(landscape_libs) @OPENGL_LIBS@  \
     -L/usr/local/lib -lopenal @LIBPNG_LIBS@

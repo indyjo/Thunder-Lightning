@@ -1,5 +1,6 @@
 #include "LoDTerrain.h"
 #include "Config.h"
+#include <interfaces/ICamera.h>
 
 void LoDQuad::draw(JRenderer *renderer)
 {

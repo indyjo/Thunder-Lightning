@@ -1,5 +1,7 @@
 #include <cmath>
 #include "flightinfo.h"
+#include <interfaces/IMovementProvider.h>
+#include <interfaces/ITerrain.h>
 
 #define PI 3.14159265358979323846
 
@@ -13,6 +15,32 @@ void FlightInfo::update( double delta_t, IMovementProvider & mp, ITerrain & ter)
     p = mp.getLocation();
     Vector up, right, front;
     mp.getOrientation(&up, &right, &front);
+    
+    // Calculating angular velocity (omega)
+    // in order to avoid numerical instabilities we first find out
+    // whether the front or the up vector changes faster and then take
+    // this vector to calculate the angular velocity
+    // We also have to take into account that there might in fact not
+    // be any angular velocity at all, in which case we just set omega
+    // to 0,0,0
+    {
+	    Vector old_vec, new_vec;
+	    if ((this->up - up).lengthSquare() > (this->front - front).lengthSquare()) {
+	    	old_vec = this->up;
+	    	new_vec = up;
+	    } else {
+	    	old_vec = this->front;
+	    	new_vec = front;
+	    }
+	    float angle = acos(old_vec*new_vec);
+	    if ((old_vec-new_vec).lengthSquare() < 1e-4) { omega = Vector(0,0,0); }
+	    else {
+	    	omega = (old_vec % new_vec).normalize() * angle;
+	    }
+    }
+    this->up = up;
+    this->right = right;
+    this->front = front;
     
     Vector collide_point;
     collision_warning = ter.lineCollides(

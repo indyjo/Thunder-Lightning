@@ -1,8 +1,8 @@
-#include <stdio.h>
-#include <math.h>
-#include <fstream.h>
 #include <landscape.h>
 #include <modules/environment/environment.h>
+#include <modules/texman/TextureManager.h>
+#include <interfaces/IGame.h>
+#include <interfaces/ISkyBox.h>
 
 class SkyBox: public ISkyBox
 {

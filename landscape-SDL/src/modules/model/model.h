@@ -7,6 +7,7 @@
 #include <vector>
 #include <list>
 #include <landscape.h>
+#include <modules/texman/TextureManager.h>
 
 class Model : virtual public Object {
     struct Material;

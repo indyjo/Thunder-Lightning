@@ -3,6 +3,7 @@
 
 #include <landscape.h>
 #include <TypedObject.h>
+#include <interfaces/IActor.h>
 
 namespace AI {
 

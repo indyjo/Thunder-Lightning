@@ -7,6 +7,12 @@
 #include <modules/actors/projectiles/smartmissile.h>
 #include <modules/actors/projectiles/smartmissile2.h>
 #include <modules/actors/fx/explosion.h>
+#include <interfaces/IConfig.h>
+#include <interfaces/IGunsight.h>
+#include <interfaces/ITerrain.h>
+#include <remap.h>
+#include <sound.h>
+
 
 #define STRAFE_RIGHT_ACCEL 2000.0f
 #define STRAFE_FRONT_ACCEL 800.0f
@@ -36,6 +42,7 @@ Player::Player(Ptr<IGame> thegame)
 {
     setTargetInfo(new TargetInfo(
         "Player", 10.0f, TargetInfo::CLASS_AIRCRAFT));
+    setFaction(Faction::basic_factions.faction_a);
 
     this->thegame=thegame;
     renderer=thegame->getRenderer();
@@ -174,27 +181,6 @@ Player::Player(Ptr<IGame> thegame)
     r->map("-secondary", SigC::bind(
             SigC::slot(*this, & Player::event), RELEASE_SECONDARY));
 
-    r->map("throttle0", SigC::bind(
-            SigC::slot(*this, & Player::setThrottle), 0.0f));
-    r->map("throttle1", SigC::bind(
-            SigC::slot(*this, & Player::setThrottle), 0.11f));
-    r->map("throttle2", SigC::bind(
-            SigC::slot(*this, & Player::setThrottle), 0.22f));
-    r->map("throttle3", SigC::bind(
-            SigC::slot(*this, & Player::setThrottle), 0.33f));
-    r->map("throttle4", SigC::bind(
-            SigC::slot(*this, & Player::setThrottle), 0.44f));
-    r->map("throttle5", SigC::bind(
-            SigC::slot(*this, & Player::setThrottle), 0.55f));
-    r->map("throttle6", SigC::bind(
-            SigC::slot(*this, & Player::setThrottle), 0.66f));
-    r->map("throttle7", SigC::bind(
-            SigC::slot(*this, & Player::setThrottle), 0.77f));
-    r->map("throttle8", SigC::bind(
-            SigC::slot(*this, & Player::setThrottle), 0.88f));
-    r->map("throttle9", SigC::bind(
-            SigC::slot(*this, & Player::setThrottle), 1.0f));
-
     r->map("autopilot", SigC::slot(*this, & Player::toggleAutoPilot));
 
     ls_message("At end of Player init.\n");
@@ -264,49 +250,19 @@ void Player::draw()
 
 void Player::doFlight()
 {
-    float mx, my;
-    int buttons;
-
-    thegame->getMouseState(&mx, &my, &buttons);
     double delta_t = thegame->getTimeDelta() / 1000.0;
-    mx/=delta_t;
-    my/=delta_t;
-
-    mx = max(-1.0, min( 1.0, mx / 100.0));
-    my = max(-1.0, min( 1.0, -my / 100.0));
-
-    // dead zone
-#define DZ 0.1
-//     if (abs(mx)<DZ) mx = 0;
-//     else {
-//         if (mx>0) mx = (mx-DZ) / (1.0-DZ);
-//         else      mx = (mx+DZ) / (1.0-DZ);
-//     }
-//     if (abs(my)<DZ) my = 0;
-//     else {
-//         if (my>0) my = (my-DZ) / (1.0-DZ);
-//         else      my = (my+DZ) / (1.0-DZ);
-//     }
-
-    mx *= abs(mx);
-    my *= abs(my);
-
-    //ls_message("Elevator: %f Aileron/Rudder: %f\n", my, mx);
-
-
-    //drone_controls->setRudder( 0.2*mx );
-    //drone_controls->setAileron( mx );
-    //drone_controls->setElevator( my );
-    //drone_controls.setThrottle( 1 );
 
     drone_controls->setRudder( thegame->getEventRemapper()->getAxis("rudder") );
     drone_controls->setAileron( thegame->getEventRemapper()->getAxis("aileron") );
     drone_controls->setElevator( -thegame->getEventRemapper()->getAxis("elevator") );
-    drone_controls->setThrottle(
-        0.5 - 0.5*thegame->getEventRemapper()->getAxis("throttle") );
+    drone_controls->setThrottle( thegame->getEventRemapper()->getAxis("throttle") );
 
     flight_info.update(delta_t, *this, *terrain);
-    if (auto_pilot_enabled) auto_pilot.fly(flight_info, *drone_controls);
+    if (auto_pilot_enabled) {
+    	ls_message("Letting the autopilot fly.\n");
+    	auto_pilot.fly(flight_info, *drone_controls);
+    	ls_message("done.\n");
+    }
 
     engine->applyLinearAcceleration(getStrafeVector(
         getFrontVector(), getRightVector()));
@@ -398,15 +354,22 @@ Vector Player::getStrafeVector(const Vector & front, const Vector & right)
 void Player::toggleAutoPilot() {
     auto_pilot_enabled = !auto_pilot_enabled;
     if (auto_pilot_enabled) {
+    	/*
         auto_pilot.setMode(AP_HEIGHT_MASK | AP_COURSE_MASK | AP_SPEED_MASK);
         auto_pilot.setTargetHeight(flight_info.getCurrentHeight());
         auto_pilot.setTargetCourse(flight_info.getCurrentCourse());
         auto_pilot.setTargetSpeed(flight_info.getCurrentSpeed());
         ls_message("Player: Enabling autopilot.\n");
-        ls_message("height: %4.0fm course: %3.0f° speed: %4.0fkm/h\n",
+        ls_message("height: %4.0fm course: %3.0f? speed: %4.0fkm/h\n",
                 flight_info.getCurrentHeight(),
                 flight_info.getCurrentCourse() * 360.0 / PI,
                 flight_info.getCurrentSpeed() * 3.6);
+        */
+        ls_message("Enabling auto pilot.\n");
+        auto_pilot.setMode(AP_DIRECTION_MASK);
+        auto_pilot.setTargetDirection(
+        	Vector(0, 0.2, 1).normalize());
+        ls_message("done.\n");
     } else {
         auto_pilot.reset();
         drone_controls->setRudder(0);

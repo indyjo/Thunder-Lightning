@@ -1,4 +1,8 @@
 #include <landscape.h>
+#include <interfaces/ICamera.h>
+#include <interfaces/IConfig.h>
+#include <interfaces/IGame.h>
+#include <modules/jogi/JCamera.h>
 
 class Camera: public ICamera
 {

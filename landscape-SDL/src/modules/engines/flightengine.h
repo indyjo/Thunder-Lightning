@@ -3,6 +3,7 @@
 
 #include <landscape.h>
 #include <modules/engines/controls.h>
+#include <interfaces/IGame.h>
 
 #include "engine.h"
 

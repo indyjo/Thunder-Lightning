@@ -59,16 +59,25 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
+CXXCPP = @CXXCPP@
 DLLTOOL = @DLLTOOL@
 ECHO = @ECHO@
+EGREP = @EGREP@
 EXEEXT = @EXEEXT@
+F77 = @F77@
+GCJ = @GCJ@
+GCJFLAGS = @GCJFLAGS@
+HAVE_LIB = @HAVE_LIB@
+LIB = @LIB@
 LIBPNG_CFLAGS = @LIBPNG_CFLAGS@
 LIBPNG_LIBS = @LIBPNG_LIBS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
+LTLIB = @LTLIB@
 MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
@@ -77,6 +86,7 @@ OPENGL_LIBS = @OPENGL_LIBS@
 PACKAGE = @PACKAGE@
 PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
+RC = @RC@
 SDL_CFLAGS = @SDL_CFLAGS@
 SDL_CONFIG = @SDL_CONFIG@
 SDL_LIBS = @SDL_LIBS@
@@ -84,19 +94,12 @@ STRIP = @STRIP@
 VERSION = @VERSION@
 
 noinst_LIBRARIES = libcollide.a
-noinst_PROGRAMS = bb_test snp_test prim_test
+#noinst_PROGRAMS = bb_test snp_test prim_test
 
 INCLUDES = -I${top_srcdir}/src
 
 libcollide_a_SOURCES =          BoundingBox.cc BoundingBox.h               Primitive.cc Primitive.h                   SweepNPrune.h                              CollisionManager.cc CollisionManager.h
 
-
-prim_test_SOURCES = prim_test.cc Primitive.h Primitive.cc
-
-bb_test_SOURCES = BoundingBox.cc BoundingBox.h bb_test.cc
-bb_test_LDFLAGS = ../math/libmath.a
-
-snp_test_SOURCES = SweepNPrune.h snp_test.cc
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../../config.h
 CONFIG_CLEAN_FILES = 
@@ -110,21 +113,6 @@ LIBS = @LIBS@
 libcollide_a_LIBADD = 
 libcollide_a_OBJECTS =  BoundingBox.$(OBJEXT) Primitive.$(OBJEXT) \
 CollisionManager.$(OBJEXT)
-AR = ar
-noinst_PROGRAMS =  bb_test$(EXEEXT) snp_test$(EXEEXT) prim_test$(EXEEXT)
-PROGRAMS =  $(noinst_PROGRAMS)
-
-bb_test_OBJECTS =  BoundingBox.$(OBJEXT) bb_test.$(OBJEXT)
-bb_test_LDADD = $(LDADD)
-bb_test_DEPENDENCIES = 
-snp_test_OBJECTS =  snp_test.$(OBJEXT)
-snp_test_LDADD = $(LDADD)
-snp_test_DEPENDENCIES = 
-snp_test_LDFLAGS = 
-prim_test_OBJECTS =  prim_test.$(OBJEXT) Primitive.$(OBJEXT)
-prim_test_LDADD = $(LDADD)
-prim_test_DEPENDENCIES = 
-prim_test_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -143,9 +131,9 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/BoundingBox.P .deps/CollisionManager.P \
-.deps/Primitive.P .deps/bb_test.P .deps/prim_test.P .deps/snp_test.P
-SOURCES = $(libcollide_a_SOURCES) $(bb_test_SOURCES) $(snp_test_SOURCES) $(prim_test_SOURCES)
-OBJECTS = $(libcollide_a_OBJECTS) $(bb_test_OBJECTS) $(snp_test_OBJECTS) $(prim_test_OBJECTS)
+.deps/Primitive.P
+SOURCES = $(libcollide_a_SOURCES)
+OBJECTS = $(libcollide_a_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -209,27 +197,6 @@ libcollide.a: $(libcollide_a_OBJECTS) $(libcollide_a_DEPENDENCIES)
 	-rm -f libcollide.a
 	$(AR) cru libcollide.a $(libcollide_a_OBJECTS) $(libcollide_a_LIBADD)
 	$(RANLIB) libcollide.a
-
-mostlyclean-noinstPROGRAMS:
-
-clean-noinstPROGRAMS:
-	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-
-distclean-noinstPROGRAMS:
-
-maintainer-clean-noinstPROGRAMS:
-
-bb_test$(EXEEXT): $(bb_test_OBJECTS) $(bb_test_DEPENDENCIES)
-	@rm -f bb_test$(EXEEXT)
-	$(CXXLINK) $(bb_test_LDFLAGS) $(bb_test_OBJECTS) $(bb_test_LDADD) $(LIBS)
-
-snp_test$(EXEEXT): $(snp_test_OBJECTS) $(snp_test_DEPENDENCIES)
-	@rm -f snp_test$(EXEEXT)
-	$(CXXLINK) $(snp_test_LDFLAGS) $(snp_test_OBJECTS) $(snp_test_LDADD) $(LIBS)
-
-prim_test$(EXEEXT): $(prim_test_OBJECTS) $(prim_test_DEPENDENCIES)
-	@rm -f prim_test$(EXEEXT)
-	$(CXXLINK) $(prim_test_LDFLAGS) $(prim_test_OBJECTS) $(prim_test_LDADD) $(LIBS)
 .cc.o:
 	$(CXXCOMPILE) -c $<
 .cc.obj:
@@ -356,7 +323,7 @@ install-am: all-am
 install: install-am
 uninstall-am:
 uninstall: uninstall-am
-all-am: Makefile $(LIBRARIES) $(PROGRAMS)
+all-am: Makefile $(LIBRARIES)
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
@@ -373,30 +340,27 @@ distclean-generic:
 
 maintainer-clean-generic:
 mostlyclean-am:  mostlyclean-noinstLIBRARIES mostlyclean-compile \
-		mostlyclean-libtool mostlyclean-noinstPROGRAMS \
-		mostlyclean-tags mostlyclean-depend mostlyclean-generic
+		mostlyclean-libtool mostlyclean-tags mostlyclean-depend \
+		mostlyclean-generic
 
 mostlyclean: mostlyclean-am
 
-clean-am:  clean-noinstLIBRARIES clean-compile clean-libtool \
-		clean-noinstPROGRAMS clean-tags clean-depend \
-		clean-generic mostlyclean-am
+clean-am:  clean-noinstLIBRARIES clean-compile clean-libtool clean-tags \
+		clean-depend clean-generic mostlyclean-am
 
 clean: clean-am
 
 distclean-am:  distclean-noinstLIBRARIES distclean-compile \
-		distclean-libtool distclean-noinstPROGRAMS \
-		distclean-tags distclean-depend distclean-generic \
-		clean-am
+		distclean-libtool distclean-tags distclean-depend \
+		distclean-generic clean-am
 	-rm -f libtool
 
 distclean: distclean-am
 
 maintainer-clean-am:  maintainer-clean-noinstLIBRARIES \
 		maintainer-clean-compile maintainer-clean-libtool \
-		maintainer-clean-noinstPROGRAMS maintainer-clean-tags \
-		maintainer-clean-depend maintainer-clean-generic \
-		distclean-am
+		maintainer-clean-tags maintainer-clean-depend \
+		maintainer-clean-generic distclean-am
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
@@ -406,17 +370,23 @@ maintainer-clean: maintainer-clean-am
 clean-noinstLIBRARIES maintainer-clean-noinstLIBRARIES \
 mostlyclean-compile distclean-compile clean-compile \
 maintainer-clean-compile mostlyclean-libtool distclean-libtool \
-clean-libtool maintainer-clean-libtool mostlyclean-noinstPROGRAMS \
-distclean-noinstPROGRAMS clean-noinstPROGRAMS \
-maintainer-clean-noinstPROGRAMS tags mostlyclean-tags distclean-tags \
-clean-tags maintainer-clean-tags distdir mostlyclean-depend \
-distclean-depend clean-depend maintainer-clean-depend info-am info \
-dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
-install-exec install-data-am install-data install-am install \
-uninstall-am uninstall all-redirect all-am all installdirs \
-mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+clean-libtool maintainer-clean-libtool tags mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir \
+mostlyclean-depend distclean-depend clean-depend \
+maintainer-clean-depend info-am info dvi-am dvi check check-am \
+installcheck-am installcheck install-exec-am install-exec \
+install-data-am install-data install-am install uninstall-am uninstall \
+all-redirect all-am all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
+
+#prim_test_SOURCES = prim_test.cc Primitive.h Primitive.cc
+
+#bb_test_SOURCES = BoundingBox.cc BoundingBox.h bb_test.cc
+#bb_test_LDFLAGS = ../math/libmath.a
+
+#snp_test_SOURCES = SweepNPrune.h snp_test.cc
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

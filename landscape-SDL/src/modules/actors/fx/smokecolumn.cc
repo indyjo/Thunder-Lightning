@@ -1,4 +1,6 @@
 #include "smokecolumn.h"
+#include <interfaces/ICamera.h>
+#include <interfaces/IConfig.h>
 
 #define max(x,y) ((x)>(y)?(x):(y))
 

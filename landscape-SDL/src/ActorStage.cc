@@ -1,4 +1,6 @@
+#include <interfaces/IActor.h>
 #include <ActorStage.h>
+
 
 void ActorStage::addActor(Ptr<IActor> actor) {
     actors.insert(actors.end(), actor);

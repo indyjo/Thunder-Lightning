@@ -1,37 +1,17 @@
-#include <sys/time.h>
-#include <cstdio>
-#include <cstdlib>
-#include <list>
-#include <sigc++/bind.h>
 #include <landscape.h>
+#include <interfaces/IGame.h>
 #include <SDL/SDL.h>
 #include <modules/jogi/JOpenGLRenderer.h>
-#include <modules/math/Vector.h>
-#include <modules/config/config.h>
-#include <modules/camera/camera.h>
-#include <modules/clock/clock.h>
-#include <modules/player/player.h>
-#include <modules/terrain/terrain.h>
-#include <modules/LoDTerrain/LoDTerrain.h>
-#include <modules/sky/sky.h>
-#include <modules/skybox/skybox.h>
-#include <modules/horizon/horizon.h>
-#include <modules/map/map.h>
-#include <modules/gunsight/gunsight.h>
-#include <modules/actors/drone/drone.h>
-#include <modules/actors/projectiles/bullet.h>
-#include <modules/actors/projectiles/dumbmissile.h>
-#include <modules/actors/projectiles/smartmissile.h>
-#include <modules/actors/tank/tank.h>
-#include <modules/environment/environment.h>
-#include <modules/model/model.h>
-#include <modules/model/modelman.h>
-#include <modules/fontman/fontman.h>
-#include <modules/ui/loadingscreen.h>
-#include <modules/collide/CollisionManager.h>
-#include <modules/ui/Console.h>
-#include <modules/ui/Surface.h>
+#include <remap.h>
 #include <ActorStage.h>
+
+class Status;
+class ILoDQuadManager;
+class ISkyBox;
+class IMap;
+namespace UI {
+	class Console;
+}
 
 class Game: public IGame, public ActorStage, public SigObject
 {
@@ -115,20 +95,11 @@ private:
     Ptr<SoundMan> soundman;
     Ptr<IModelMan> modelman;
     Ptr<Collide::CollisionManager> collisionman;
-#if ENABLE_TERRAIN
-    Ptr<ITerrain> terrain;
-#endif
 #if ENABLE_LOD_TERRAIN
     Ptr<ILoDQuadManager> quadman;
 #endif
-#if ENABLE_SKY
-    Ptr<ISky> sky;
-#endif
 #if ENABLE_SKYBOX
     Ptr<ISkyBox> skybox;
-#endif
-#if ENABLE_HORIZON
-    Ptr<IHorizon> horizon;
 #endif
 #if ENABLE_MAP
     Ptr<IMap> map;

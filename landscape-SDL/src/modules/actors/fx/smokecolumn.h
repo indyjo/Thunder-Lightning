@@ -1,11 +1,11 @@
 #ifndef SMOKECOLUMN_H
 #define SMOKECOLUMN_H
 
+#include <list>
 #include <landscape.h>
 #include <modules/actors/simpleactor.h>
-#include <cstdio>
-#include <cmath>
-#include <list>
+#include <modules/texman/TextureManager.h>
+#include <interfaces/IFollower.h>
 
 
 class SmokeColumn: public SimpleActor

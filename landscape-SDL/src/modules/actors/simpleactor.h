@@ -7,6 +7,8 @@
 #include <TargetInfo.h>
 #include <Faction.h>
 #include <modules/engines/engine.h>
+#include <interfaces/IActor.h>
+#include <interfaces/IGame.h>
 
 class SimpleActor : virtual public IActor
 {

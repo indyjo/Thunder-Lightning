@@ -1,6 +1,8 @@
 #ifndef _JOGI_CAMERA_H
 #define _JOGI_CAMERA_H
 
+#include "types3d.h"
+
 class JCamera
 {
 public:

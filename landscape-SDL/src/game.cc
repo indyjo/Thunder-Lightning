@@ -1,3 +1,32 @@
+#include <sys/time.h>
+#include <cstdio>
+#include <cstdlib>
+#include <list>
+#include <sigc++/bind.h>
+#include <modules/math/Vector.h>
+#include <modules/config/config.h>
+#include <modules/camera/camera.h>
+#include <modules/clock/clock.h>
+#include <modules/player/player.h>
+#include <modules/LoDTerrain/LoDTerrain.h>
+#include <modules/skybox/skybox.h>
+#include <modules/map/map.h>
+#include <modules/gunsight/gunsight.h>
+#include <modules/actors/drone/drone.h>
+#include <modules/actors/projectiles/bullet.h>
+#include <modules/actors/projectiles/dumbmissile.h>
+#include <modules/actors/projectiles/smartmissile.h>
+#include <modules/actors/tank/tank.h>
+#include <modules/environment/environment.h>
+#include <modules/model/model.h>
+#include <modules/model/modelman.h>
+#include <modules/fontman/fontman.h>
+#include <modules/ui/loadingscreen.h>
+#include <modules/collide/CollisionManager.h>
+#include <modules/ui/Console.h>
+#include <modules/ui/Surface.h>
+
+#include <sound.h>
 #include <Faction.h>
 #include "game.h"
 
@@ -109,7 +138,7 @@ Game::Game(int argc, const char **argv)
     Ptr<Drone> drone;
     Ptr<SmokeTrail> smoke;
 
-    for(int i=0; i<1; i++) {
+    for(int i=0; i<3; i++) {
         ls_message("create drone.\n");
         drone = new Drone(this);
         Vector p = Vector(
@@ -375,15 +404,35 @@ void Game::initControls()
     r->mapKey(SDLK_d, false, "-right");
 
     r->mapKey(SDLK_1, true, "throttle0");
+    r->map("throttle0", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.0f));
     r->mapKey(SDLK_2, true, "throttle1");
+    r->map("throttle1", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.11f));
     r->mapKey(SDLK_3, true, "throttle2");
+    r->map("throttle2", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.22f));
     r->mapKey(SDLK_4, true, "throttle3");
+    r->map("throttle3", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.33f));
     r->mapKey(SDLK_5, true, "throttle4");
+    r->map("throttle4", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.44f));
     r->mapKey(SDLK_6, true, "throttle5");
+    r->map("throttle5", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.55f));
     r->mapKey(SDLK_7, true, "throttle6");
+    r->map("throttle6", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.66f));
     r->mapKey(SDLK_8, true, "throttle7");
+    r->map("throttle7", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.77f));
     r->mapKey(SDLK_9, true, "throttle8");
+    r->map("throttle8", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.88f));
     r->mapKey(SDLK_0, true, "throttle9");
+    r->map("throttle9", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 1.0f));
 
     r->mapKey(SDLK_HOME, true, "autopilot");
 
@@ -420,6 +469,7 @@ void Game::initControls()
     r->mapKey(SDLK_SPACE, false, "-secondary");
     r->mapKey(SDLK_RCTRL, true,  "+tertiary");
     r->mapKey(SDLK_RCTRL, false, "-tertiary");
+    
     r->mapMouseButton(1, true,  "+primary");
     r->mapMouseButton(1, false, "-primary");
     r->mapMouseButton(3, true,  "+secondary");
@@ -451,6 +501,10 @@ void Game::initControls()
     r->mapJoystickAxis(0,1,"js_elevator");
     r->mapJoystickAxis(0,2,"js_rudder");
     r->mapJoystickAxis(0,3,"js_throttle");
+    
+    r->addAxisManipulator(
+        AxisManipulator(new LinearAxisTransform(-0.5f, 0.5f), "js_throttle2")
+        .input("js_throttle"));
 
     r->mapRelativeMouseAxes("mouse_rel_x", "mouse_rel_y");
     r->mapAbsoluteMouseAxes("mouse_abs_x", "mouse_abs_y");
@@ -481,8 +535,9 @@ void Game::initControls()
         AxisManipulator(new SumAxesTransform(), "rudder")
         .input("js_rudder"));
     r->addAxisManipulator(
-        AxisManipulator(new SumAxesTransform(), "throttle")
-        .input("js_throttle"));
+        AxisManipulator(new SelectAxisByActivityTransform(0.01f), "throttle")
+        .input("js_throttle2")
+        .input("kbd_throttle"));
 
     /*
     r->mapKey(SDLK_UP, true, "cannon-up");

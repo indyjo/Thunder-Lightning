@@ -4,6 +4,7 @@
 #include <landscape.h>
 #include <modules/math/Transform.h>
 #include <modules/physics/RigidBody.h>
+#include <interfaces/IGame.h>
 
 #include "engine.h"
 

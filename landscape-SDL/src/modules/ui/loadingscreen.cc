@@ -1,5 +1,7 @@
 #include "loadingscreen.h"
 #include <modules/environment/environment.h>
+#include <interfaces/IFontMan.h>
+#include <interfaces/IConfig.h>
 
 #define MIN_PERCENT_DIFFERENCE 0.30
 

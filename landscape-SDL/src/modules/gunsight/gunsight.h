@@ -3,6 +3,9 @@
 #include <landscape.h>
 #include <modules/environment/environment.h>
 #include <modules/flight/flightinfo.h>
+#include <modules/texman/TextureManager.h>
+#include <interfaces/IGunsight.h>
+#include <interfaces/IGame.h>
 
 class Gunsight: public IGunsight, virtual public SigObject
 {
