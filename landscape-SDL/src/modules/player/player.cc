@@ -152,21 +152,21 @@ Player::Player(Ptr<IGame> thegame)
 
     ls_message("Mapping events.\n");
     EventRemapper *r=thegame->getEventRemapper();
-    r->map("+forward", SigC::bind(
+    r->map("+strafe_forward", SigC::bind(
             SigC::slot(*this, & Player::strafeForward), true));
-    r->map("-forward", SigC::bind(
+    r->map("-strafe_forward", SigC::bind(
             SigC::slot(*this, & Player::strafeForward), false));
-    r->map("+backward", SigC::bind(
+    r->map("+strafe_backward", SigC::bind(
             SigC::slot(*this, & Player::strafeBackward), true));
-    r->map("-backward", SigC::bind(
+    r->map("-strafe_backward", SigC::bind(
             SigC::slot(*this, & Player::strafeBackward), false));
-    r->map("+left", SigC::bind(
+    r->map("+strafe_left", SigC::bind(
             SigC::slot(*this, & Player::strafeLeft), true));
-    r->map("-left", SigC::bind(
+    r->map("-strafe_left", SigC::bind(
             SigC::slot(*this, & Player::strafeLeft), false));
-    r->map("+right", SigC::bind(
+    r->map("+strafe_right", SigC::bind(
             SigC::slot(*this, & Player::strafeRight), true));
-    r->map("-right", SigC::bind(
+    r->map("-strafe_right", SigC::bind(
             SigC::slot(*this, & Player::strafeRight), false));
     r->map("cycle-primary", SigC::bind(
             SigC::slot(*this, & Player::event), CYCLE_PRIMARY));

@@ -394,14 +394,23 @@ void Game::initControls()
     r->mapKey(SDLK_TAB, true,  "map_magnify");
     r->mapKey(SDLK_TAB, false, "map_demagnify");
 
-    r->mapKey(SDLK_w, true,  "+forward");
-    r->mapKey(SDLK_w, false, "-forward");
-    r->mapKey(SDLK_s, true,  "+backward");
-    r->mapKey(SDLK_s, false, "-backward");
-    r->mapKey(SDLK_a, true,  "+left");
-    r->mapKey(SDLK_a, false, "-left");
-    r->mapKey(SDLK_d, true,  "+right");
-    r->mapKey(SDLK_d, false, "-right");
+    r->mapKey(SDLK_w, true,  "+strafe_forward");
+    r->mapKey(SDLK_w, false, "-strafe_forward");
+    r->mapKey(SDLK_s, true,  "+strafe_backward");
+    r->mapKey(SDLK_s, false, "-strafe_backward");
+    r->mapKey(SDLK_a, true,  "+strafe_left");
+    r->mapKey(SDLK_a, false, "-strafe_left");
+    r->mapKey(SDLK_d, true,  "+strafe_right");
+    r->mapKey(SDLK_d, false, "-strafe_right");
+
+    r->mapKey(SDLK_UP, true, "+forward");
+    r->mapKey(SDLK_UP, false, "-forward");
+    r->mapKey(SDLK_DOWN, true, "+backward");
+    r->mapKey(SDLK_DOWN, false, "-backward");
+    r->mapKey(SDLK_LEFT, true, "+left");
+    r->mapKey(SDLK_LEFT, false, "-left");
+    r->mapKey(SDLK_RIGHT, true, "+right");
+    r->mapKey(SDLK_RIGHT, false, "-right");
 
     r->mapKey(SDLK_1, true, "throttle0");
     r->map("throttle0", SigC::bind(
@@ -522,15 +531,36 @@ void Game::initControls()
     r->addAxisManipulator(
         AxisManipulator(new ClampAxisTransform(), "mouse_elevator")
         .input("mouse_elevator"));
+        
+    r->map("+left",  SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_aileron_left", -1.0f));
+    r->map("-left",  SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_aileron_left", 0.0f));
+    r->map("+right",  SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_aileron_right", 1.0f));
+    r->map("-right",  SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_aileron_right", 0.0f));
+    r->map("+forward",  SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_elevator_up", -1.0f));
+    r->map("-forward",  SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_elevator_up", 0.0f));
+    r->map("+backward",  SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_elevator_down", +1.0f));
+    r->map("-backward",  SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_elevator_down", 0.0f));
 
     r->addAxisManipulator(
         AxisManipulator(new SumAxesTransform(), "aileron")
         .input("mouse_aileron")
-        .input("js_aileron"));
+        .input("js_aileron")
+        .input("kbd_aileron_left")
+        .input("kbd_aileron_right"));
     r->addAxisManipulator(
         AxisManipulator(new SumAxesTransform(), "elevator")
         .input("mouse_elevator")
-        .input("js_elevator"));
+        .input("js_elevator")
+        .input("kbd_elevator_up")
+        .input("kbd_elevator_down"));
     r->addAxisManipulator(
         AxisManipulator(new SumAxesTransform(), "rudder")
         .input("js_rudder"));
