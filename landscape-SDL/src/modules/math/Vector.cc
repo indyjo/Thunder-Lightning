@@ -16,18 +16,24 @@ std::istream & operator>> (std::istream & is,
 
     std::string s;
     is >> s;
+    //ls_message("s: %s\n", s.c_str());
     if (!is || s != ost.str()) {
         is.setstate(std::ios_base::failbit);
         return is;
     }
 
     for (int i=0; i<N; i++) {
-        char c;
-        is >> v[i] >> c;
+        is >> v[i]; // >> c;
+        //ls_message("v[%d]: %f\n", i, v[i]);
     }
+    char c;
+    is >> c;
+    //ls_message("c: %c\n",c);
+    
 
     if (!is) is.setstate(std::ios_base::failbit);
 
+    //ls_message("Read vector: "); v.dump();
     return is;
 }
 

@@ -84,6 +84,8 @@ bool intersectTriangleSphere(const Vector * triangle,
     hints.triangle_sphere.must_divide_time = false;
     // transformed triangle coords
     IVector tri[3];
+    ls_message("Performing triangle sphere test for triangle:\n");
+    for(int i=0; i<3; ++i) triangle[i].dump();
     for(int i=0; i<3; i++) tri[i] = T1((IVector) triangle[i]);
     IVector normal = (tri[1]-tri[0]) % (tri[2]-tri[0]);
     try {
@@ -143,6 +145,11 @@ bool contains_zero(const IVector & v) {
         v[1].a <= 0 && 0 <= v[1].b &&
         v[2].a <= 0 && 0 <= v[2].b;
 }
+
+bool contains_zero(const Interval & x) {
+    return x.a <= 0 && 0 <= x.b;
+}
+
 }
 
 bool intersectTriangleVertex(const IVector * tri,
@@ -151,7 +158,6 @@ bool intersectTriangleVertex(const IVector * tri,
                              const IVector & v,
                              Hints & hints)
 {
-    /*
     //first check for every dimension if v and tri could intersect
     for(int i=0; i<3; i++) {
         Interval triangle_interval = tri[0][i];
@@ -163,10 +169,9 @@ bool intersectTriangleVertex(const IVector * tri,
         //    v[i].a,v[i].b, triangle_interval.a, triangle_interval.b);
         if (!intersect(v[i], triangle_interval)) return false;
     }
-    */
 
     Interval d = (tri[0]-v) * normal;
-    if (std::abs(d) > 0) return false;
+    if (contains_zero(d)) return false;
 
     /*
     for(int i=0; i<3; i++) {
@@ -200,6 +205,7 @@ bool intersectTriangleVertex(const IVector * tri,
     ls_message("triangle 2:  "); dump_ivector(tri[2]);
     ls_message("normal:      "); dump_ivector(normal);
     ls_message("plane dist:  [%f %f]\n", d.a, d.b);
+    ls_message("exactness:    %f\n", hints.triangle_triangle.exactness);
 
     return true;
 }
@@ -210,7 +216,7 @@ bool intersectEdgeEdge(const IVector & a, const IVector & b,
 {
     IVector normal = (b-a) % (d-c);
     Interval dist = (c-a) * normal;
-    if (std::abs(dist) > 0) return false;
+    if (!contains_zero(dist)) return false;
 
     IVector edge_normal = normal % (b-a);
     Interval x = edge_normal * (c-a);
@@ -225,6 +231,15 @@ bool intersectEdgeEdge(const IVector & a, const IVector & b,
         return false;
 
     hints.triangle_triangle.exactness = exactness(a+b+c+d);
+    
+    ls_message("Intersecting edge/edge:\n");
+    ls_message("edge 1 a:    "); dump_ivector(a);
+    ls_message("edge 1 b:    "); dump_ivector(b);
+    ls_message("edge 2 c:    "); dump_ivector(c);
+    ls_message("edge 2 d:    "); dump_ivector(d);
+    ls_message("normal:      "); dump_ivector(normal);
+    ls_message("plane dist:  [%f %f]\n", dist.a, dist.b);
+    ls_message("exactness:    %f\n", hints.triangle_triangle.exactness);
 
     return true;
 }
@@ -239,13 +254,15 @@ bool intersectTriangleTriangle(const Vector * triangle1,
 {
     IVector tri1[3], tri2[3];
     for(int i=0; i<3; i++) {
-        tri1[i] = T1((IVector) triangle1[i]);
-        tri2[i] = T2((IVector) triangle2[i]);
+        tri1[i] = T1(triangle1[i]);
+        tri2[i] = T2(triangle2[i]);
     }
 
+    // Check if any of the three main axes is a separating axis.
+    // If yes, there can't be an intersection
     for(int i=0; i<3; i++) {
-        Interval t1(tri1[0][i].a, tri1[0][i].b);
-        Interval t2(tri2[0][i].a, tri2[0][i].b);
+        Interval t1(tri1[0][i]);
+        Interval t2(tri2[0][i]);
         for(int j=1; j<3; j++) {
             t1.a = std::min(t1.a, tri1[j][i].a);
             t1.b = std::max(t1.b, tri1[j][i].b);
@@ -259,43 +276,25 @@ bool intersectTriangleTriangle(const Vector * triangle1,
     IVector i_normal1, i_normal2;
     IVector i_edge_normals1[3], i_edge_normals2[3];
 
-    // Compute normals and edge normals
+    // Compute normals and inward pointing edge normals
     {
         Vector  normal1, normal2;
         normal1 = (triangle1[1]-triangle1[0]) % (triangle1[2]-triangle1[0]);
         normal2 = (triangle2[1]-triangle2[0]) % (triangle2[2]-triangle2[0]);
-        i_normal1 = T1.quat().rot((IVector &) normal1);
-        i_normal2 = T2.quat().rot((IVector &) normal2);
+        i_normal1 = T1.quat().rot(normal1);
+        i_normal2 = T2.quat().rot(normal2);
 
         for(int i=0; i<3; i++) {
             Vector edge_normal = normal1 % (triangle1[(i+1)%3]-triangle1[i]);
-            i_edge_normals1[i] = T1.quat().rot((IVector &) edge_normal);
+            i_edge_normals1[i] = T1.quat().rot(edge_normal);
             edge_normal = normal2 % (triangle2[(i+1)%3]-triangle2[i]);
-            i_edge_normals2[i] = T2.quat().rot((IVector &) edge_normal);
+            i_edge_normals2[i] = T2.quat().rot(edge_normal);
         }
     }
 
-    // check if none of the normals contains the zero vector.
+    // check if any of the normals contain the zero vector.
     // If it does, we have to subdivide time
-    if (contains_zero(i_normal1)) {
-        ls_warning("0-Vector in normal 1:\n");
-        dump_ivector(i_normal1);
-        ls_message("unrotated normal: ");
-        Vector normal = (triangle1[1]-triangle1[0]) % (triangle1[2]-triangle1[0]);
-        normal.dump();
-        ls_message("quaternion:\n[%f %f] ", T1.quat().real().a, T1.quat().real().b);
-        dump_ivector(T1.quat().imag());
-        hints.triangle_triangle.must_divide_time = true;
-        return true;
-    }
-    if (contains_zero(i_normal2)) {
-        ls_warning("0-Vector in normal 2:\n");
-        dump_ivector(i_normal2);
-        ls_message("unrotated normal: ");
-        Vector normal = (triangle2[1]-triangle2[0]) % (triangle2[2]-triangle2[0]);
-        normal.dump();
-        ls_message("quaternion:\n[%f %f] ", T2.quat().real().a, T2.quat().real().b);
-        dump_ivector(T2.quat().imag());
+    if (contains_zero(i_normal1) || contains_zero(i_normal2)) {
         hints.triangle_triangle.must_divide_time = true;
         return true;
     }

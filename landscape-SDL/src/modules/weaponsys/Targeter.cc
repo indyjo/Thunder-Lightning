@@ -14,7 +14,6 @@ Targeter::Targeter(IActorStage &stage, IActor &self)
 
 void Targeter::setMaxRange(float r) {
 	max_range=r;
-	ls_error("Set max range to %f\n", r);
 }
 
 Ptr<IActor> Targeter::getCurrentTarget() {
@@ -118,7 +117,9 @@ void Targeter::listTargets(vector<Ptr<IActor> > & actors) {
 		actors,
 		self.getLocation(),
 		max_range<0?1e15:max_range);
-	actors.erase(find(actors.begin(), actors.end(), Ptr<IActor>(&self)));
+    vector<Ptr<IActor> >::iterator i = 
+    	find(actors.begin(), actors.end(), Ptr<IActor>(&self));
+	if (i!=actors.end()) actors.erase(i);
 	actors.resize(remove_if(actors.begin(),actors.end(),invalid)
 	              - actors.begin());
 }
@@ -128,7 +129,9 @@ void Targeter::listHostileTargets(vector<Ptr<IActor> > & actors) {
 		actors,
 		self.getLocation(),
 		max_range<0?1e15:max_range);
-	actors.erase(find(actors.begin(), actors.end(), Ptr<IActor>(&self)));
+    vector<Ptr<IActor> >::iterator i = 
+    	find(actors.begin(), actors.end(), Ptr<IActor>(&self));
+	if (i!=actors.end()) actors.erase(i);
 	
 	Ptr<Faction> faction=self.getFaction();
 	
@@ -141,7 +144,9 @@ void Targeter::listFriendlyTargets(vector<Ptr<IActor> > & actors) {
 		actors,
 		self.getLocation(),
 		max_range<0?1e15:max_range);
-	actors.erase(find(actors.begin(), actors.end(), Ptr<IActor>(&self)));
+    vector<Ptr<IActor> >::iterator i = 
+    	find(actors.begin(), actors.end(), Ptr<IActor>(&self));
+	if (i!=actors.end()) actors.erase(i);
 	
 	Ptr<Faction> faction=self.getFaction();
 	

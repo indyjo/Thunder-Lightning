@@ -69,6 +69,8 @@ public:
     void addBasicCrosshairs();
     void addFlightModules(Ptr<IGame>, FlightInfo &);
     void addTargeting(Ptr<IActor>, Ptr<Targeter>);
+    void addDirectionOfFlight(Ptr<IActor>);
+    void addInterception(Ptr<IActor> src, Ptr<IActor> target);
     
     // IDrawable implementation
     virtual void draw();

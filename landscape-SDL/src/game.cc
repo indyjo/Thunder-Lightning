@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <list>
+#include <algorithm>
 #include <sigc++/bind.h>
 #include <modules/math/Vector.h>
 #include <modules/config/config.h>
@@ -134,7 +135,7 @@ Game::Game(int argc, const char **argv)
     soundman = new SoundMan(config);
     collisionman = new Collide::CollisionManager();
     clock = new Clock;
-    ls_message("done.\n");
+    ls_message("done\n", ptr(clock));
 
     {
         string background = config->query("Game_loading_screen");
@@ -150,10 +151,11 @@ Game::Game(int argc, const char **argv)
     }
     //renderer->setClipRange(CLIP_MIN_RANGE, CLIP_RANGE);
 
+    /*
     Ptr<Drone> drone;
     Ptr<SmokeTrail> smoke;
 
-    for(int i=0; i<5; i++) {
+    for(int i=0; i<1; i++) {
         drone = new Drone(this);
         Vector p = Vector(
             1000.0f*RAND,
@@ -176,8 +178,9 @@ Game::Game(int argc, const char **argv)
     }
     
     setCurrentView(drone->getView(0));
-    setCurrentlyControlledActor(drone);
+    setCurrentlyControlledActor(drone);*/
 
+    /*
     for(int i=0; i<25; ++i) {
         Ptr<Tank> tank = new Tank(this);
         
@@ -189,7 +192,8 @@ Game::Game(int argc, const char **argv)
         tank->setLocation(Vector(RAND*15000,0,RAND*15000));
         addActor(tank);
     }
-    
+    */
+    /*
     Ptr<RigidActor> a = new RigidActor(
     	this,
     	collisionman->queryGeometry(
@@ -199,13 +203,30 @@ Game::Game(int argc, const char **argv)
     a->setModel(modelman->query(
     	(std::string()+config->query("model_dir")+
     		"/asteroid/asteroid.obj").c_str()));
-    a->setLocation(Vector(0, 500, 5000));
-    a->getEngine()->construct(100000, 10000, 10000, 5000);
+    a->setLocation(Vector(0, 500, 1000));
+    a->getEngine()->construct(1e5, 1e7, 1e7, 5e6);
     //a->getEngine()->applyAngularImpulse(Vector(10000,100,5000));
     Ptr<TargetInfo> ti = new TargetInfo("Asteroid", 50, TargetInfo::AIRCRAFT);
     a->setTargetInfo(ti);
     addActor(a);
-
+    
+	a = new RigidActor(
+    	this,
+    	collisionman->queryGeometry(
+        	(std::string()+config->query("model_dir")+
+    			"/asteroid/asteroid.bounds").c_str()
+        ));
+    a->setModel(modelman->query(
+    	(std::string()+config->query("model_dir")+
+    		"/asteroid/asteroid.obj").c_str()));
+    a->setLocation(Vector(00, 500, 2040));
+    a->getEngine()->construct(1e5, 1e7, 1e7, 5e6);
+    a->getEngine()->setAngularMomentum(Vector(-1e7,1e5, 1e6));
+    a->getEngine()->setLinearMomentum(Vector(0,0,-1e7));
+    a->setTargetInfo(new TargetInfo("Asteroid2", 50, TargetInfo::AIRCRAFT));
+    addActor(a);
+    */
+    
     console = new UI::Console(this, getScreenSurface());
     addMappings(this, io_scripting_manager->getMainState());
     {
@@ -241,7 +262,6 @@ void Game::run()
     
     //Object::debug();
     
-    io_scripting_manager = 0;
     removeAllActors();
     current_view = 0;
     current_actor = 0;
@@ -270,6 +290,7 @@ void Game::run()
 #if ENABLE_GUNSIGHT
     gunsight = 0;
 #endif
+    io_scripting_manager = 0;
     ls_message("exiting with %d references left.\n", getRefs());
     SDL_WM_GrabInput(SDL_GRAB_OFF);
     SDL_ShowCursor(SDL_ENABLE);
@@ -763,6 +784,18 @@ void Game::postFrame()
 #endif
 
     console->draw(renderer);
+    
+    IoObject* self = getProtoObject<IGame>(
+    	io_scripting_manager->getMainState());
+    if (IoObject_rawGetSlot_(self, IOSTRING("postFrame"))) {
+		IoState_pushRetainPool(IOSTATE);
+		IoMessage *msg =
+			IoMessage_newWithName_(IOSTATE, IOSTRING("postFrame"));
+		IoState_stackRetain_(IOSTATE, msg);
+		IoMessage_locals_performOn_(msg,IOSTATE->lobby,self);
+		IoState_popRetainPool(IOSTATE);
+    }
+    
     clearScreen();
 }
 
@@ -881,21 +914,18 @@ void Game::nextTarget() {
     typedef const std::vector<Ptr<IActor> > List;
     typedef List::const_iterator Iter;
     
-    if (!current_view || !current_view->getViewSubject()) return;
+    //if (!current_view || !current_view->getViewSubject()) return;
     
     List & list = actors;
-    if (list.empty()) return;
-    
-    Iter current;
-    for(current = list.begin(); current != list.end(); ++current) {
-        if (*current == current_view->getViewSubject())
-            break;
+    Iter current = list.begin();
+    if(current_view && current_view->getViewSubject()) {
+    	current = find(list.begin(),list.end(), 
+    		current_view->getViewSubject());
     }
-    
     if (current == list.end()) current = list.begin();
+    if (current==list.end()) return;
     current++;
     if (current == list.end()) current = list.begin();
-    
     setCurrentView((*current)->getView(0));
 }
 

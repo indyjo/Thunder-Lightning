@@ -19,6 +19,7 @@ struct Rating;
 class Targeter;
 struct SoundSource;
 struct Context;
+struct IoObject;
 
 class EventSheet;
 
@@ -47,14 +48,15 @@ struct WheelState {
 
 class Drone : public SimpleActor, public Collide::Collidable, virtual public SigObject {
 public:
-    Drone(Ptr<IGame> thegame);
+    Drone(Ptr<IGame> thegame, IoObject * io_peer=0);
+    virtual ~Drone();
 
     virtual void action();
     virtual void kill();
 
     virtual void draw();
 
-    virtual void applyDamage(float damage, int domain);
+    virtual void applyDamage(float damage, int domain, Ptr<IProjectile>);
     virtual float getRelativeDamage();
 
     virtual void integrate(float delta_t, Transform * transforms);
@@ -117,6 +119,9 @@ private:
     float primary_reload_time, secondary_reload_time;
     float damage;
     MTasker<> mtasker;
+    
+    // io scripting
+    IoObject * io_peer;
 };
 
 

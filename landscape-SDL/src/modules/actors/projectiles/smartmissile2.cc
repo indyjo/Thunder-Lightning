@@ -3,13 +3,15 @@
 #include <modules/actors/RelativeView.h>
 #include <modules/clock/clock.h>
 #include <modules/engines/missileengine.h>
+#include <modules/gunsight/gunsight.h>
+#include <modules/model/modelman.h>
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
 #include <interfaces/ITerrain.h>
 #include <sound.h>
 #include <remap.h>
 
-#define BLAST_BEGIN 1.0
+#define BLAST_BEGIN 0.5
 #define BLAST_END 2.5
 #define BLAST_THRUST 74000.0
 #define MIN_EXPLOSION_AGE 1.5f
@@ -27,8 +29,8 @@ http://www.chinfo.navy.mil/navpalib/factfile/missiles/wep-side.html
 */
 
 
-SmartMissile2::SmartMissile2(Ptr<IGame> thegame, Ptr<IActor> target)
-:   SimpleActor(thegame), target(target), damage(0), age(0)
+SmartMissile2::SmartMissile2(Ptr<IGame> thegame, Ptr<IActor> target, Ptr<IActor> source)
+:   SimpleActor(thegame), target(target), damage(0), age(0), source(source)
 {
     renderer = thegame->getRenderer();
     terrain = thegame->getTerrain();
@@ -67,137 +69,42 @@ SmartMissile2::SmartMissile2(Ptr<IGame> thegame, Ptr<IActor> target)
             thegame->getConfig()->query("Missile_engine_sound")));
 
     thegame->getCollisionMan()->add(this);
+    
+    setModel(thegame->getModelMan()->query(
+    	thegame->getConfig()->query("SmartMissile_model")));
+    
+  	delta_omega_old = Vector(-1,2,-3);
 }
 
 
 void SmartMissile2::action()
 {
-    char buf[256];
-
-    float delta_t = thegame->getClock()->getStepDelta();
-    age += delta_t;
-
+    // If too old -> explode
     if (age > MAX_LIFETIME) {
         ls_message("killed by MAX_LIFETIME.\n");
         explode();
         return;
     }
 
+    // If target dead -> clear target
     if (target && target->getState() == IActor::DEAD)
         target = 0;
 
-    Vector p = getLocation();
-    Vector v = getMovementVector();
-    Vector d = Vector(v).normalize();
+    // Do the engine blast
     engine_sound_src->setPosition(getLocation());
     engine_sound_src->setVelocity(getMovementVector());
-
-    // Aiming
-    if (target) {
-        Vector target_pos = target->getLocation();
-        Vector target_speed = target->getMovementVector();
-
-        rendezvous.updateSource(p, Vector(0,0,0), Vector(0,0,0));
-        rendezvous.updateTarget(delta_t, target_pos, target_speed);
-        rendezvous.setVelocity(v.length());
-        Vector rendezvous_point;
-        Vector dv = v - target_speed;
-        float rel_speed = dv.length();
-        if (rel_speed > MAX_INTERCEPT_SPEED) {
-            rendezvous_point = rendezvous.calculate();
-        } else if (rel_speed < MIN_INTERCEPT_SPEED){
-            rendezvous_point = target_pos;
-        } else {
-            float u = (rel_speed-MIN_INTERCEPT_SPEED);
-            u /= MAX_INTERCEPT_SPEED - MIN_INTERCEPT_SPEED;
-            rendezvous_point = u*rendezvous.calculate() + (1-u)*target_pos;
-        }
-
-
-		// FIXME
-		rendezvous_point = target_pos;
-        Vector target_direction = (rendezvous_point-p).normalize();
-        
-
-        //d = (0.6*getFrontVector() + 0.4*d).normalize();
-        if ((target_pos-p).normalize() * getFrontVector() > cos(SCAN_ANGLE)) {
-        	/*
-            //const static float Ka = 20, Kb = 3, Kc = 4, Kd = 0.005;
-            const static float Ka = 20, Kb = 0, Kc = 10, Kd = 20;
-
-            float cos_angle = d * target_direction;
-            cos_angle = std::max(-1.0f, std::min(1.0f, cos_angle));
-            float angle = acos(cos_angle);
-            Vector d_error = (d % target_direction).normalize();
-            //ls_message("d_error = %f %f %f\n",
-            //    d_error[0],d_error[1],d_error[2]);
-            d_error *= angle;
-            Vector d_error_dt = (d_error-d_error_old) / delta_t;
-            d_error_old = d_error;
-            if (age == delta_t) d_error_dt = Vector(0,0,0);
-
-            Vector omega_dest = Ka * d_error + Kb * d_error_dt;
-            //ls_message("d_error = %f %f %f\n",
-            //    d_error[0],d_error[1],d_error[2]);
-            //ls_message("d_error_dt = %f %f %f\n",
-            //    d_error_dt[0],d_error_dt[1],d_error_dt[2]);
-            //ls_message("--> omega_dest = %f %f %f\n",
-            //    omega_dest[0],omega_dest[1],omega_dest[2]);
-
-            Vector omega_error = omega_dest - engine->getAngularVelocity();
-            Vector omega_error_dt = (omega_error - omega_error_old) / delta_t;
-            omega_error_old = omega_error;
-            if (age == delta_t) omega_error_dt = Vector(0,0,0);
-
-            Vector omega_dt = Kc * omega_error + Kd * omega_error_dt;
-            //ls_message("omega_error = %f %f %f\n",
-            //    omega_error[0],omega_error[1],omega_error[2]);
-            //ls_message("omega_error_dt = %f %f %f\n",
-            //    omega_error_dt[0],omega_error_dt[1],omega_error_dt[2]);
-
-            //ls_message("Apply torque: %f %f %f\n",
-            //    omega_dt[0],omega_dt[1],omega_dt[2]);
-            engine->applyTorque(omega_dt);
-            //engine->applyAngularAcceleration(0.5f * (Vector(0,1,0)-engine->getAngularVelocity()));
-            */
-        } else {
-            if (age>MIN_EXPLOSION_AGE) {
-                ls_message("killed when target got out of SCAN_ANGLE.\n");
-                explode();
-                return;
-            }
-        }
-    }
-    
-    {
-            Vector target_direction=Vector(1,0,0);
-            Vector ortho = d % target_direction;
-            Vector axis = ortho.normalize();
-            Vector omega = engine->getAngularVelocity();
-            Vector omega_radial = axis * (axis * omega);
-            Vector omega_tangential = omega - omega_radial;
-            Ptr<IConfig> config = thegame->getConfig();
-            engine->applyTorque(
-            	config->queryFloat("Missile_Ka",100)*ortho
-            	+config->queryFloat("Missile_Kb",-100)*omega_tangential
-            	+config->queryFloat("Missile_Kc",-50)*omega_radial);
-    }
-
-	/*
-	EventRemapper *remap = thegame->getEventRemapper();
-	float x = remap->getAxis("aileron");
-	float y = remap->getAxis("elevator");
-    engine->applyAngularAcceleration(
-    	engine->getState().q.rot(10*Vector(-y,x,0)));
-    */
-    
     if(age > BLAST_BEGIN && age < BLAST_END) {
         engine->applyForce(getFrontVector()*BLAST_THRUST);
+        engine_sound_src->setGain(1);
+    } else {
+    	engine_sound_src->setGain(0.2);
     }
+    
+    if (target) interceptTarget();
 
-    Vector p_old = p;
+    Vector p_old = getLocation();
     SimpleActor::action();
-    p = getLocation();
+    Vector p = getLocation();
 
     if (terrain->lineCollides(p_old, p, &p)) {
         //SmokeColumn::PuffParams pparams;
@@ -210,97 +117,6 @@ void SmartMissile2::action()
     }
 }
 
-void SmartMissile2::draw()
-{
-    static const float points[][3] = {
-        {0,0,2.0},
-        { .1,  0, 0},
-        {  0,-.1, 0},
-        {-.1,  0, 0},
-        {  0, .1, 0},
-        { .5,  0, 0},
-        {  0,-.5, 0},
-        {-.5,  0, 0},
-        {  0, .5, 0}
-    };
-
-    static const int indices[][3] = {
-        {1,0,2},
-        {2,0,3},
-        {3,0,4},
-        {4,0,1},
-        {1,2,3},
-        {1,3,4},
-        {5,0,1},
-        {6,0,2},
-        {7,0,3},
-        {8,0,4}
-    };
-
-    static float colors[][3] = {
-        {0,0,0},
-        {.5,.5,.5},
-        {.8,.8,.8},
-        {1,.8,.6}
-    };
-
-    static const int col_indices[] = {
-        1,
-        0,
-        1,
-        0,
-        3,
-        3,
-        2,
-        1,
-        2,
-        1
-    };
-
-
-    static const int n_indices = sizeof(indices) / sizeof(int) / 3;
-
-    Vector right, up, front;
-    getOrientation(&up, &right, &front);
-    Vector p = getLocation();
-
-    renderer->enableSmoothShading();
-    renderer->disableAlphaBlending();
-    renderer->disableTexturing();
-    renderer->setCullMode(JR_CULLMODE_NO_CULLING);
-    renderer->begin(JR_DRAWMODE_TRIANGLES);
-    for(int i=0; i<n_indices; i++) {
-        float col[3];
-        for(int j=0; j<3; j++) col[j] = colors[col_indices[i]][j];
-        renderer->setColor(Vector(col));
-        for(int j=0; j<3; j++) {
-            renderer->vertex(
-                    right * points[indices[i][j]][0] +
-                    up    * points[indices[i][j]][1] +
-                    front * points[indices[i][j]][2] +
-                    p);
-        }
-    }
-    renderer->end();
-
-    Vector vs = engine->getVelocityAt(p+1.4*front) - getMovementVector();
-    renderer->begin(JR_DRAWMODE_CONNECTED_LINES);
-    renderer->setAlpha(1);
-    renderer->setColor(Vector(1,0,0));
-    *renderer << p << p+vs;
-    renderer->end();
-
-    if (!target) return;
-    Vector d = (getMovementVector()).normalize();
-    Vector target_direction = (target->getLocation()-p).normalize();
-    Vector d_error = acos(d * target_direction) *
-        (d % target_direction).normalize();
-    renderer->begin(JR_DRAWMODE_CONNECTED_LINES);
-    renderer->setAlpha(1);
-    renderer->setColor(Vector(0,0,1));
-    *renderer << p << (p+10*d_error);
-    renderer->end();
-}
 
 void SmartMissile2::shoot(
         const Vector &pos,
@@ -336,9 +152,20 @@ void SmartMissile2::shoot(
     }
 }
 
+Ptr<IActor> SmartMissile2::getSource() {
+	return source;
+}
+
 int SmartMissile2::getNumViews() { return 5; }
 
 Ptr<IView> SmartMissile2::getView(int n) { 
+    Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
+    gunsight->addDebugInfo(thegame, this);
+    //gunsight->addFlightModules(thegame, flight_info);
+    gunsight->addBasicCrosshairs();
+    //gunsight->addTargeting(this, targeter);
+    gunsight->addDirectionOfFlight(this);
+    if (target) gunsight->addInterception(this,target);
 	switch(n) {
 	case 0:
 		return new RelativeView(
@@ -346,7 +173,7 @@ Ptr<IView> SmartMissile2::getView(int n) {
             Vector(0,0,0),
             Vector(1,0,0),
             Vector(0,1,0),
-            Vector(0,0,1));
+            Vector(0,0,1), gunsight);
     case 1:
     	return new RelativeView(
             this,
@@ -374,7 +201,7 @@ Ptr<IView> SmartMissile2::getView(int n) {
             Vector(0,5,-25),
             Vector(1,0,0),
             Vector(0,1,0),
-            Vector(0,0,1));
+            Vector(0,0,1), gunsight);
     default:
     	return 0;
 	}
@@ -395,23 +222,23 @@ void SmartMissile2::explode()
 {
     thegame->addActor(new Explosion(thegame, getLocation(), 10.0));
     state = DEAD;
+    //ls_message("state=DEAD\n");
     thegame->getCollisionMan()->remove(this);
 
-    if (target) {
-        float dist = (target->getLocation() - getLocation()).length();
-        ls_message("target position: ");
-        target->getLocation().dump();
-        ls_message("p: ");
-        getLocation().dump();
-        ls_message("dist = %f\n");
-        dist = std::min(dist, DAMAGE_RADIUS);
-        dist /= DAMAGE_RADIUS;
-        dist *= dist;
-        ls_message("dist = %f\n");
-        float damage = (1.0 - dist);
+    typedef IActorStage::ActorVector Actors;
+    typedef Actors::iterator Iter;
+    
+    Actors actors;
+    thegame->queryActorsInSphere(actors, getLocation(), DAMAGE_RADIUS);
+    for(Iter i=actors.begin(); i!=actors.end(); ++i) {
+    	const Ptr<IActor> & actor = *i;
+    	if (actor == this) continue;
+        float dist = (actor->getLocation() - getLocation()).length();
+        float damage = (1.0 - dist / DAMAGE_RADIUS);
         damage *= MAX_DAMAGE;
-        target->applyDamage(damage);
+        actor->applyDamage(damage, 0, this);
     }
+    engine_sound_src->stop();
 }
 
 
@@ -431,6 +258,70 @@ void SmartMissile2::collide(const Collide::Contact & c) {
         partner = c.collidables[0];
     Ptr<IActor> a = partner->getActor();
     if (age <= MIN_EXPLOSION_AGE) return;
-    if (a) a->applyDamage(MAX_DAMAGE);
+    //if (a) a->applyDamage(MAX_DAMAGE);
     explode();
+}
+
+Vector SmartMissile2::getDesiredDirection() {
+	Vector p = getLocation();
+	Vector v = getMovementVector();
+	
+    Vector target_p = target->getLocation();
+    Vector target_v = target->getMovementVector();
+    
+    Vector target_dir = (target_p-p).normalize();
+    Vector target_vrel = target_v - target_dir*(target_dir*target_v);
+    float target_vrel2 = target_vrel.lengthSquare();
+    float v2 = v.lengthSquare();
+    if (target_vrel2 > v2) target_vrel2 = v2;
+    Vector desired_v = target_vrel + target_dir * sqrt(v2 - target_vrel2);
+    //return (desired_v).normalize();
+    return (desired_v - 0.5*v).normalize();
+}
+
+Vector SmartMissile2::getDesiredOmega(const Vector &desired_direction) {
+	Vector d = getMovementVector().normalize();
+    Vector axis = (d % desired_direction).normalize();
+    return axis * acos(d*desired_direction);
+}
+
+void SmartMissile2::interceptTarget() {
+    float delta_t = thegame->getClock()->getStepDelta();
+    age += delta_t;
+
+    Vector target_p = target->getLocation();
+    Vector target_v = target->getMovementVector();
+    Vector p = getLocation();
+    Vector d = getFrontVector();
+
+    // Aiming
+    if ((target_p-p).normalize() * d < cos(SCAN_ANGLE)) {
+        if (age>MIN_EXPLOSION_AGE) {
+            ls_message("killed when target got out of SCAN_ANGLE.\n");
+            explode();
+        }
+        return;
+    }
+	Vector desired_direction = getDesiredDirection();
+	Vector desired_omega = getDesiredOmega(desired_direction);
+    
+    Vector omega = engine->getAngularVelocity();
+    Vector delta_omega = desired_omega - omega;
+    Vector d_delta_omega =
+    	(delta_omega-delta_omega_old) / delta_t;
+    // Magic initialization value
+    if ((delta_omega_old-Vector(-1,2,-3)).lengthSquare() < 1e-10)
+    	d_delta_omega = Vector(0,0,0);
+    delta_omega_old = delta_omega;
+    
+    	
+    Ptr<IConfig> config = thegame->getConfig();
+    //ls_message("delta_omega: "); delta_omega.dump();
+    //ls_message("d_delta_omega: "); d_delta_omega.dump();
+    //ls_message("Applying angular accel: ");
+    (config->queryFloat("Missile_Ka",1)*delta_omega
+    	+config->queryFloat("Missile_Kb",1)*d_delta_omega).dump();
+    engine->applyAngularAcceleration(
+    	config->queryFloat("Missile_Ka",1)*delta_omega
+    	+config->queryFloat("Missile_Kb",1)*d_delta_omega);
 }

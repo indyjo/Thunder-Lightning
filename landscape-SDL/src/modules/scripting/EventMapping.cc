@@ -35,6 +35,8 @@ namespace {
 			return self;
 		}
 	
+		CREATE_FUNC(EventRemapper)
+		
 		static IoObject * mapKey
 		(IoObject *self, IoObject *locals, IoMessage *m) {
 			BEGIN_FUNC("EventRemapper.mapKey")
@@ -110,10 +112,7 @@ void addMapping<EventRemapper>(Ptr<IGame> game, IoState *state) {
 template<>
 IoObject * wrapObject<Ptr<EventRemapper> >
 (Ptr<EventRemapper> r, IoState *state) {
-	IoObject *new_object = EventMapping::rawClone(
-		IoState_protoWithInitFunction_(state, EventMapping::proto));
-	EventMapping::retarget(new_object, &*r);
-	return new_object;
+	return EventMapping::create(r,state);
 }
 
 template<>

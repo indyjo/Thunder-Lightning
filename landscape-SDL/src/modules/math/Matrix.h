@@ -97,8 +97,16 @@ public:
     static XMatrix Hom(const XMatrix<N-1,T> & R, const XVector<N-1,T> & x);
     static XMatrix Hom(const XMatrix<N-1,T> & R);
 
-// raw data access
+// data access
     inline const T * raw() const { return m; }
+    inline XVector<N,T> column(int n)
+    { return XVector<N,T>(&m[N*n]); }
+    inline XVector<N,T> row(int n)
+    {
+    	XVector<N,T> v;
+    	for(int i=0;i<N;++i) v[i] = (*this)(n,i);
+    	return v;
+    }
     
 
 // Operators

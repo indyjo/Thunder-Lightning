@@ -98,17 +98,18 @@ STRIP = @STRIP@
 VERSION = @VERSION@
 
 noinst_LIBRARIES = libmath.a
-noinst_PROGRAMS = test_solver test_quat test_ballist test_interval test_xvec
+noinst_PROGRAMS = test_solver test_quat test_ballist test_interval test_xvec test_quat_interval
 
 INCLUDES = -I${top_srcdir}/src
 
-libmath_a_SOURCES =          Ballistic.cc Ballistic.h                Collide.cc Collide.h            	Feedback.cc Feedback.h		        Interval.h                              Line.cc Line.h                  	Matrix.h SpecialMatrices.h MatrixVector.h 		PIDController.h PIDController.cc         Plane.h                                 Polynomial.cc Polynomial.h              Quaternion.h                            Rendezvous.cc Rendezvous.h              Solve.cc Solve.h                        Transform.h                     	Vector.cc Vector.h
+libmath_a_SOURCES =          Ballistic.cc Ballistic.h                Collide.cc Collide.h            	Feedback.cc Feedback.h		        Interval.cc Interval.h                  Line.cc Line.h                  	Matrix.h SpecialMatrices.h MatrixVector.h 		PIDController.h PIDController.cc         Plane.h                                 Polynomial.cc Polynomial.h              Quaternion.h                            Rendezvous.cc Rendezvous.h              Solve.cc Solve.h                        Transform.h                     	Vector.cc Vector.h
 
 
 test_solver_SOURCES = test_solver.cc Solve.cc Solve.h
 test_quat_SOURCES = test_quat.cc
-test_interval_SOURCES = test_interval.cc
-test_xvec_SOURCES = test_xvec.cc Vector.h Matrix.h Vector.cc
+test_interval_SOURCES = test_interval.cc Interval.cc
+test_quat_interval_SOURCES = test_quat_interval.cc Interval.cc Vector.cc
+test_xvec_SOURCES = test_xvec.cc Vector.h Matrix.h Vector.cc Interval.cc
 test_ballist_SOURCES = Ballistic.cc Ballistic.h Solve.h Solve.cc test_ballist.cc
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../../config.h
@@ -122,11 +123,12 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libmath_a_LIBADD = 
 libmath_a_OBJECTS =  Ballistic.$(OBJEXT) Collide.$(OBJEXT) \
-Feedback.$(OBJEXT) Line.$(OBJEXT) PIDController.$(OBJEXT) \
-Polynomial.$(OBJEXT) Rendezvous.$(OBJEXT) Solve.$(OBJEXT) \
-Vector.$(OBJEXT)
+Feedback.$(OBJEXT) Interval.$(OBJEXT) Line.$(OBJEXT) \
+PIDController.$(OBJEXT) Polynomial.$(OBJEXT) Rendezvous.$(OBJEXT) \
+Solve.$(OBJEXT) Vector.$(OBJEXT)
 noinst_PROGRAMS =  test_solver$(EXEEXT) test_quat$(EXEEXT) \
-test_ballist$(EXEEXT) test_interval$(EXEEXT) test_xvec$(EXEEXT)
+test_ballist$(EXEEXT) test_interval$(EXEEXT) test_xvec$(EXEEXT) \
+test_quat_interval$(EXEEXT)
 PROGRAMS =  $(noinst_PROGRAMS)
 
 test_solver_OBJECTS =  test_solver.$(OBJEXT) Solve.$(OBJEXT)
@@ -142,14 +144,20 @@ test_ballist.$(OBJEXT)
 test_ballist_LDADD = $(LDADD)
 test_ballist_DEPENDENCIES = 
 test_ballist_LDFLAGS = 
-test_interval_OBJECTS =  test_interval.$(OBJEXT)
+test_interval_OBJECTS =  test_interval.$(OBJEXT) Interval.$(OBJEXT)
 test_interval_LDADD = $(LDADD)
 test_interval_DEPENDENCIES = 
 test_interval_LDFLAGS = 
-test_xvec_OBJECTS =  test_xvec.$(OBJEXT) Vector.$(OBJEXT)
+test_xvec_OBJECTS =  test_xvec.$(OBJEXT) Vector.$(OBJEXT) \
+Interval.$(OBJEXT)
 test_xvec_LDADD = $(LDADD)
 test_xvec_DEPENDENCIES = 
 test_xvec_LDFLAGS = 
+test_quat_interval_OBJECTS =  test_quat_interval.$(OBJEXT) \
+Interval.$(OBJEXT) Vector.$(OBJEXT)
+test_quat_interval_LDADD = $(LDADD)
+test_quat_interval_DEPENDENCIES = 
+test_quat_interval_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -168,12 +176,12 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/Ballistic.P .deps/Collide.P .deps/Feedback.P \
-.deps/Line.P .deps/PIDController.P .deps/Polynomial.P \
+.deps/Interval.P .deps/Line.P .deps/PIDController.P .deps/Polynomial.P \
 .deps/Rendezvous.P .deps/Solve.P .deps/Vector.P .deps/test_ballist.P \
-.deps/test_interval.P .deps/test_quat.P .deps/test_solver.P \
-.deps/test_xvec.P
-SOURCES = $(libmath_a_SOURCES) $(test_solver_SOURCES) $(test_quat_SOURCES) $(test_ballist_SOURCES) $(test_interval_SOURCES) $(test_xvec_SOURCES)
-OBJECTS = $(libmath_a_OBJECTS) $(test_solver_OBJECTS) $(test_quat_OBJECTS) $(test_ballist_OBJECTS) $(test_interval_OBJECTS) $(test_xvec_OBJECTS)
+.deps/test_interval.P .deps/test_quat.P .deps/test_quat_interval.P \
+.deps/test_solver.P .deps/test_xvec.P
+SOURCES = $(libmath_a_SOURCES) $(test_solver_SOURCES) $(test_quat_SOURCES) $(test_ballist_SOURCES) $(test_interval_SOURCES) $(test_xvec_SOURCES) $(test_quat_interval_SOURCES)
+OBJECTS = $(libmath_a_OBJECTS) $(test_solver_OBJECTS) $(test_quat_OBJECTS) $(test_ballist_OBJECTS) $(test_interval_OBJECTS) $(test_xvec_OBJECTS) $(test_quat_interval_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -266,6 +274,10 @@ test_interval$(EXEEXT): $(test_interval_OBJECTS) $(test_interval_DEPENDENCIES)
 test_xvec$(EXEEXT): $(test_xvec_OBJECTS) $(test_xvec_DEPENDENCIES)
 	@rm -f test_xvec$(EXEEXT)
 	$(CXXLINK) $(test_xvec_LDFLAGS) $(test_xvec_OBJECTS) $(test_xvec_LDADD) $(LIBS)
+
+test_quat_interval$(EXEEXT): $(test_quat_interval_OBJECTS) $(test_quat_interval_DEPENDENCIES)
+	@rm -f test_quat_interval$(EXEEXT)
+	$(CXXLINK) $(test_quat_interval_LDFLAGS) $(test_quat_interval_OBJECTS) $(test_quat_interval_LDADD) $(LIBS)
 .cc.o:
 	$(CXXCOMPILE) -c $<
 .cc.obj:

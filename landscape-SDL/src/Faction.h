@@ -16,11 +16,12 @@ public:
     } basic_factions;
     enum Attitude { FRIENDLY, NEUTRAL, HOSTILE };
 
-    inline Faction(const char * name)
+    inline Faction(const char * name="<unnamed faction>")
     : default_attitude(NEUTRAL), name(name) { }
     ~Faction();
 
-    const std::string & getName() { return name; }
+    inline void setName(const std::string & name) { this->name = name; }
+    inline const std::string & getName() { return name; }
 
     void setDefaultAttitude(Attitude a) { default_attitude = a; }
     Attitude getDefaultAttitude() { return default_attitude; }

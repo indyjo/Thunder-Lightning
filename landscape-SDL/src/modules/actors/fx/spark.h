@@ -9,7 +9,7 @@
 
 #define SPARK_TRAIL_BUFFER 30
 
-class Spark: public SimpleActor, public IProjectile
+class Spark: public SimpleActor
 {
     typedef struct {
         float p[3];    // the point coords

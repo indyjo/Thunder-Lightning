@@ -90,19 +90,23 @@ void SmokeTrail::action()
         }
     }
     if (!trail.empty()) {
+    	while (
+        	trail.size() > 1 &&
+        	(trail.end()-2)->age > MAX_AGE_IN_SECS)
+        {
+            trail.pop_back();
+        }
         if (trail.size()==1) {
             if (trail.back().age > MAX_AGE_IN_SECS) {
                 trail.pop_back();
             }
-        } else while (trail[trail.size()-1].age > MAX_AGE_IN_SECS) {
-            trail.pop_back();
         }
     }
 }
 
 void SmokeTrail::draw()
 {
-    if (trail.empty()) return;
+    if (trail.size() < 2) return;
 
     Vector eye = camera->getLocation();
     Vector v_right, v_up, v_front;

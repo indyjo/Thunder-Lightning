@@ -87,6 +87,35 @@ extern "C" {
 			getObject(self)->funcname(), IOSTATE);  	\
 	}
 
+#define SET_VECTOR(funcname)							\
+	static IoObject * funcname(							\
+	IoObject *self, IoObject *locals, IoMessage *m) {	\
+		IOASSERT(IoMessage_argCount(m) == 1,			\
+			"Expected one argument")					\
+		IoObject *arg = IoMessage_locals_objectArgAt_(	\
+			m, locals, 0);								\
+		getObject(self)-> funcname (					\
+			unwrapObject<Vector>(arg));					\
+		return self;									\
+	}
+
+#define SETTER(type, funcname)							\
+	static IoObject * funcname(IoObject *self, IoObject *locals, IoMessage *m){	\
+		IOASSERT(IoMessage_argCount(m) == 1, "Expected one argument")			\
+		IoObject *arg = IoMessage_locals_objectArgAt_(m,locals,0);				\
+		getObject(self)-> funcname( unwrapObject<type>(arg) );					\
+		return self;															\
+	}
+
+#define GETTER(type, funcname)													\
+	static IoObject * funcname(IoObject *self, IoObject *locals, IoMessage *m){	\
+		BEGIN_FUNC(#funcname)													\
+		return wrapObject<type>( getObject(self)-> funcname(), IOSTATE );		\
+	}
+	
+#define GET_STRING(funcname) GETTER(std::string, funcname)
+#define SET_STRING(funcname) SETTER(std::string, funcname)
+
 /// Add all type mappings to state
 void addBasicMappings(Ptr<IGame>, IoState *);
 void addMappings(Ptr<IGame>, IoState *);
@@ -103,16 +132,9 @@ IoObject * wrapObject(T, IoState *);
 template<class T>
 T unwrapObject(IoObject *);
 
-template<class S, class T>
-inline IoObject * mixin(IoObject * self, T obj) {
-	IoObject *old_parent=IoObject_getSlot_(self, IOSTATE->parentString);
-	IoObject *mixin_object=wrapObject<S>(obj, IOSTATE);
-	if (old_parent) {
-		IoObject_setSlot_to_(mixin_object,IOSTATE->parentString,old_parent);
-	}
-	IoObject_setSlot_to_(self,IOSTATE->parentString,mixin_object);
-	return self;
-}
+/// Template definition to obtain the proto of a type mapping
+template<class T>
+IoObject * getProtoObject(IoState *);
 
 template<class S, class T>
 IoObject * castfunc(IoObject * self, IoObject*, IoObject*) {
@@ -142,6 +164,7 @@ struct TemplatedObjectMapping {
 		child->data = self->data;
 		return child;
 	}
+	
 	static void mark(IoObject * self) {
 		//if (self->data) getObject(self)->ref();
 	}
@@ -158,5 +181,14 @@ struct TemplatedObjectMapping {
 	}
 };
 
+#define CREATE_FUNC(T)														\
+	static IoObject * create(Ptr<T> p, IoState *state) 						\
+	{																		\
+		IoObject *child = IoObject_rawClonePrimitive(						\
+			IoState_protoWithInitFunction_(state, proto));					\
+		retarget(child, ptr(p));											\
+		return child;														\
+	}
+	
 
 #endif

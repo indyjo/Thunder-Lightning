@@ -796,49 +796,37 @@ void Dogfight::aimInDirection(Vector d) {
 }
 
 void Dogfight::aimAndShoot() {
-	Rendezvous rv;
-	rv.setVelocity(BULLET_SPEED+ctx.fi->getCurrentSpeed());
 	char buf[1024];
 	nfo = "aiming and shooting";
 	ctx.ap->setMode(AP_SPEED_MASK|AP_COURSE_MASK|AP_PITCH_MASK);
 	while (positionFavorable() && targetInRange(ctx.targeter->getCurrentTarget())) {
-		rv.updateSource(
-			ctx.actor->getLocation(),
-			Vector(0,0,0),
-			Vector(0,-9.81,0));
-		rv.updateTarget(
-			ctx.thegame->getClock()->getStepDelta(),
-			ctx.targeter->getCurrentTarget()->getLocation(),
-			ctx.targeter->getCurrentTarget()->getMovementVector());
 		Vector p = ctx.actor->getLocation();
-		Vector target_p = rv.calculate();
+		Vector v = ctx.actor->getMovementVector();
+		Vector target_p = ctx.targeter->getCurrentTarget()->getLocation();
 		Vector target_v = ctx.targeter->getCurrentTarget()->getMovementVector();
-		Vector dir_to_target = target_p-p;
-		float dist = dir_to_target.length();
-		dir_to_target.normalize();
+	    
+	    Vector target_dir = target_p-p;
+	    float dist = target_dir.length();
+	    target_dir /= dist;
+	    Vector target_vrel = target_v - target_dir*(target_dir*target_v);
+	    float target_vrel2 = target_vrel.lengthSquare();
+	    float v2 = v.length() + BULLET_SPEED;
+	    v2 *= v2;
+	    if (target_vrel2 > v2)
+	    	target_vrel2 = v2;
+	    Vector desired_dir = target_vrel + target_dir * sqrt(v2 - target_vrel2);
+	    desired_dir.normalize();
 		
-		// we calculate the deviation between the front vector
-		// (were the cannon is aimed at)and the actual
-		// projectile direction, thus getting a corrected aiming
-		// vector
-		Vector front = ctx.actor->getFrontVector();
-		Vector projectile_dir = ctx.actor->getMovementVector()
-			+ BULLET_SPEED*front;
-		projectile_dir.normalize();
+		aimInDirection(desired_dir);
 		
-		dir_to_target -= (projectile_dir - front);
-		dir_to_target.normalize();
-		
-		aimInDirection(dir_to_target);
-		
-	    float speed_diff = (target_v-ctx.actor->getMovementVector())
+	    float speed_diff = (target_v-v)
 	    	*ctx.actor->getFrontVector();
 	    float speed = target_v.length() + (dist - 500.0) + 15*speed_diff;
 	    
 	    speed = std::max(100.0f, speed);
 	    ctx.ap->setTargetSpeed(speed);
 	    
-	    float cos_error = dir_to_target*ctx.actor->getFrontVector();
+	    float cos_error = desired_dir*ctx.actor->getFrontVector();
 	    float tan_error = sqrt(1-cos_error*cos_error)/cos_error;
 	    
 	    ctx.controls->setFirePrimary(cos_error > 0.95 && tan_error <= 50/dist);
@@ -849,13 +837,13 @@ void Dogfight::aimAndShoot() {
 			"dir to target: %5.2f %5.2f %5.2f\n"
 			"dir: %5.2f %5.2f %5.2f\n"
 			"tan_error: %5.3f\n"
-			"15/dist; %5.3f",
+			"50/dist: %5.3f",
 			p[0], p[1], p[2],
 			target_p[0], target_p[1], target_p[2],
-			dir_to_target[0], dir_to_target[1], dir_to_target[2],
+			desired_dir[0], desired_dir[1], desired_dir[2],
 			ctx.actor->getFrontVector()[0],ctx.actor->getFrontVector()[1],ctx.actor->getFrontVector()[2],
 			tan_error,
-			15/dist);
+			50/dist);
 		nfo = buf;
 		
 	    yield();

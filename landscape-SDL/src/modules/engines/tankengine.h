@@ -12,12 +12,12 @@ struct TankParams {
 
     TankParams(
         float trs = 1.0f,
-        float crs = 0.3f,
+        float crs = 0.6f,
         float mincr = -0.14f,
         //float maxcr = 0.19f,
         float maxcr = 1.0f,
         //float rt = 5.0f)
-        float rt = 0.1f)
+        float rt = 1.0f/27)
     :
         turret_rot_speed(trs),
         cannon_rot_speed(crs),

@@ -16,12 +16,13 @@ class EventSheet;
 class Tank : virtual public SimpleActor, virtual public SigObject {
 public:
     Tank(Ptr<IGame> thegame);
+    ~Tank();
 
     virtual void action();
 
     virtual void draw();
 
-    virtual void applyDamage(float damage, int domain);
+    virtual void applyDamage(float damage, int domain, Ptr<IProjectile>);
     
     virtual void setLocation(const Vector & p);
 

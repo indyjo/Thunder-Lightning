@@ -43,9 +43,8 @@ void unwrap_raw(IoObject *self, T *out, int rows, int cols) {
 	IOASS(IoNumber_asInt(IoObject_getSlot_(self,IOSTRING("rows"))) == rows
 	   && IoNumber_asInt(IoObject_getSlot_(self,IOSTRING("columns"))) == cols,
 	                  "Wrong dimension")
-	IoObject *entries = IoObject_getSlot_(IOSTATE->lobby, IOSTRING("entries"));
+	IoObject *entries = IoObject_getSlot_(self, IOSTRING("entries"));
 	IOASS(entries && ISLIST(entries), "entries not found or invalid")
-	IOASS(IoList_rawCount(entries) == 3, "Inconsistent Matrix")
 	for (int i=0; i<rows*cols; ++i)
 		out[i] = IoNumber_asDouble(IoList_rawAt_(entries,i));
 }

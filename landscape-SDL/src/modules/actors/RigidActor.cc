@@ -8,7 +8,7 @@
 using namespace Collide;
 
 RigidActor::RigidActor(Ptr<IGame> game, Ptr<BoundingGeometry> bgeom)
-:	PassiveActor(game),
+:	SimpleActor(game),
 	Collidable(bgeom),
 	gravity(0,0,0)
 {
@@ -27,7 +27,7 @@ RigidActor::~RigidActor() {
 
 void RigidActor::action() {
 	rigid_engine->applyLinearAcceleration(gravity);
-	PassiveActor::action();
+	SimpleActor::action();
 }
 
 void RigidActor::integrate(float delta_t, Transform * transforms) {

@@ -18,7 +18,7 @@ void Config::feedArguments(int argc, const char **const argv)
 void Config::set(const char *key, const char *value)
 {
 	data[key] = value;
-    ls_message("  Config: %s = %s\n", key, value);
+    //ls_message("  Config: %s = %s\n", key, value);
 }
 
 const char *Config::query(const char *key, const char *def)

@@ -7,9 +7,16 @@ libscripting_a_SOURCES = \
 	IoScriptingManager.h IoScriptingManager.cc \
 	mappings.h mappings.cc \
 	ActorMapping.cc \
+	ActorStageMapping.cc \
 	ClockMapping.cc \
 	ConfigMapping.cc \
+	DroneMapping.cc \
+	EnvironmentMapping.cc \
 	EventMapping.cc \
+	FactionMapping.cc \
 	GameMapping.cc \
 	LinalgMapping.cc \
-	ProviderMapping.cc
+	ProviderMapping.cc \
+	PrimitiveMappings.cc \
+	ReceiverMapping.cc \
+	TankMapping.cc

@@ -1,4 +1,5 @@
 #include <landscape.h>
+#include <interfaces/IProjectile.h>
 #include <modules/math/Vector.h>
 #include <modules/actors/fx/spark.h>
 #include <modules/actors/fx/smoketrail.h>
@@ -26,18 +27,17 @@ public:
     virtual void setPos(const Vector & pos) { setLocation(pos); }
 };
 
-class SmartMissile: public SimpleActor
+class SmartMissile: public SimpleActor, public IProjectile
 {
 public:
-    SmartMissile(Ptr<IGame> thegame, Ptr<IActor> target);
+    SmartMissile(Ptr<IGame> thegame, Ptr<IActor> target, Ptr<IActor> source=0);
 
     virtual void action();
 
-    virtual void draw();
-    
     virtual void shoot(const Vector &pos, const Vector &vec, const Vector &dir);
+    virtual Ptr<IActor> getSource();
     
-    virtual void hitTarget(float damage);
+    virtual void applyDamage(float damage, int domain, Ptr<IProjectile>);
 
 private:
     void explode();
@@ -52,4 +52,5 @@ private:
     float damage;
     Ptr<SmartMissileEngine> engine;
     Ptr<SoundSource> engine_sound_src;
+    Ptr<IActor> source;
 };

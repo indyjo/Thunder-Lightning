@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------
 
 #include <interfaces/IPositionProvider.h>
+#include <interfaces/IMovementProvider.h>
 #include <modules/math/SpecialMatrices.h>
 #include "mappings.h"
 
@@ -13,10 +14,11 @@ namespace {
 	{
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject * self =  proto(state);
+			IoState_registerProtoWithFunc_(state, self, proto);
 			IoObject_setSlot_to_(state->lobby, IOSTRING("PositionProvider"), self);
 			self->data = 0;
 		}
-		static IoObject *proto(IoState *state) {
+		static IoObject *proto(void *state) {
 			IoMethodTable methodTable[] = {
 				/* standard I/O */
 				{"getLocation", getLocation},
@@ -28,10 +30,7 @@ namespace {
 			};
 			IoObject *self = IoObject_new(state);
 			self->tag = tag(state, "PositionProvider");
-			
 			self->data = 0;
-			IoState_registerProtoWithFunc_(state, self,
-				(IoStateProtoFunc*) proto);
 			
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
@@ -46,11 +45,38 @@ namespace {
 				MatrixFromColumns(right,up,front),
 				(IoState*) self->tag->state );
 		}
+		CREATE_FUNC(IPositionProvider)
 		
 		GET_VECTOR(getLocation)
 		GET_VECTOR(getUpVector)
 		GET_VECTOR(getFrontVector)
 		GET_VECTOR(getRightVector)
+	};
+	
+	struct MovementProviderMapping
+	:	public TemplatedObjectMapping<IMovementProvider>
+	{
+		static void addMapping(Ptr<IGame> thegame, IoState * state) {
+			IoObject * self =  proto(state);
+			IoState_registerProtoWithFunc_(state, self, proto);
+			IoObject_setSlot_to_(state->lobby, IOSTRING("MovementProvider"), self);
+			self->data = 0;
+		}
+		static IoObject *proto(void *state) {
+			IoMethodTable methodTable[] = {
+				{"getMovementVector", getMovementVector},
+				{NULL, NULL}
+			};
+			IoObject *self = IoObject_new(state);
+			self->tag = tag(state, "MovementProvider");
+			self->data = 0;
+			
+			IoObject_addMethodTable_(self, methodTable);
+			return self;
+		}
+		CREATE_FUNC(IMovementProvider)
+		
+		GET_VECTOR(getMovementVector)
 	};
 }
 
@@ -62,12 +88,7 @@ void addMapping<IPositionProvider>(Ptr<IGame> game, IoState *state) {
 template<>
 IoObject * wrapObject<Ptr<IPositionProvider> >
 (Ptr<IPositionProvider> pp, IoState *state) {
-	IoObject *new_object = PositionProviderMapping::rawClone(
-		IoObject_getSlot_(
-			state->lobby,
-			IoState_stringWithCString_(state, "PositionProvider")));
-	new_object->data = &*pp;
-	return new_object;
+	return PositionProviderMapping::create(pp, state);
 }
 
 template<>
@@ -75,3 +96,20 @@ Ptr<IPositionProvider> unwrapObject<Ptr<IPositionProvider> >(IoObject * self) {
 	return (IPositionProvider*) self->data;
 }
 
+
+template<>
+void addMapping<IMovementProvider>(Ptr<IGame> game, IoState *state) {
+	MovementProviderMapping::addMapping(game,state);
+}
+
+
+template<>
+IoObject * wrapObject
+(Ptr<IMovementProvider> pp, IoState *state) {
+	return MovementProviderMapping::create(pp, state);
+}
+
+template<>
+Ptr<IMovementProvider> unwrapObject(IoObject * self) {
+	return (IMovementProvider*) self->data;
+}

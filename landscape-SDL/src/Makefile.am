@@ -15,6 +15,7 @@ landscape_bin_SOURCES = game.cc game.h landscape.h interfaces.h \
                         ActorStage.cc ActorStage.h \
                         Faction.cc Faction.h
 landscape_libs = \
+    modules/scripting/libscripting.a \
     modules/LoDTerrain/libLoDTerrain.a \
     modules/actors/drone/libdrone.a \
     modules/actors/tank/libtank.a \
@@ -39,7 +40,6 @@ landscape_libs = \
     modules/ui/libui.a \
     modules/ai/libai.a \
     modules/texman/libtexman.a \
-    modules/scripting/libscripting.a \
     modules/weaponsys/libweaponsys.a
 
 landscape_bin_LDADD = @SDL_LIBS@ @SIGC_LIBS@ $(landscape_libs) @OPENGL_LIBS@  \

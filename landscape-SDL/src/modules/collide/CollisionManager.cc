@@ -138,12 +138,8 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
         possible.t0 = 0.0f;
         possible.t1 = delta_t;
         for(ContactIter i=possible_contacts.begin(); i!= possible_contacts.end(); i++) {
-            possible.partners[0] =
-                ContactPartner(geom_instances[i->first],
-                               &*i->first->getBoundingGeometry());
-            possible.partners[1] =
-                ContactPartner(geom_instances[i->second],
-                               &*i->second->getBoundingGeometry());
+            possible.setPartner(0, geom_instances[i->first]);
+            possible.setPartner(1, geom_instances[i->second]);
             queue.push(possible);
         }
 
@@ -151,7 +147,7 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
         found_contacts = 0;
         stop_time = delta_t;
         bool found = false;
-        int iters_left = 4096;
+        int iters_left = 128;
         while(!queue.empty() && iters_left-->0) {
             PossibleContact pc(queue.top());
             queue.pop();

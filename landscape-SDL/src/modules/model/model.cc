@@ -20,7 +20,7 @@ namespace {
 
 void Model::parseObjFile(TextureManager & texman, istream & in, const char *dir)
 {
-	ls_message("Model::parseObjFile in dir %s\n", dir);
+	//ls_message("Model::parseObjFile in dir %s\n", dir);
     string op;
     //int v_idx=0, n_idx=0, t_idx=0, f_idx=0;
 
@@ -171,7 +171,7 @@ void Model::parseMtlFile(TextureManager & texman, istream & in, const char *dir)
         } else {
             // Unknown operator, ignore till next line
             read_to_eol(in);
-            ls_warning("MTL Operator %s unknown.\n", op.c_str());
+            //ls_warning("MTL Operator %s unknown.\n", op.c_str());
         }
     }
 }

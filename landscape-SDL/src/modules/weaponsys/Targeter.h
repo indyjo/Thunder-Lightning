@@ -13,6 +13,7 @@ public:
 	//void setTargetFilter(TargetFilter
 	
 	Ptr<IActor> getCurrentTarget();
+	inline void setCurrentTarget(Ptr<IActor> target) { current = target; }
 	
 	void selectNextTarget();
 	void selectPreviousTarget();

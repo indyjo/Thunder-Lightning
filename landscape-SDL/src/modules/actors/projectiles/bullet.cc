@@ -16,8 +16,8 @@
 #define RAND_POS ((float) rand() / (float) RAND_MAX)
 
 
-Bullet::Bullet(IGame *thegame)
-:   SimpleActor(thegame) , age(0)
+Bullet::Bullet(IGame *thegame, Ptr<IActor> source, float factor)
+:   SimpleActor(thegame) , age(0), source(source), factor(factor)
 {
     this->renderer = thegame->getRenderer();
     this->terrain = thegame->getTerrain();
@@ -82,6 +82,10 @@ void Bullet::shoot(const Vector &pos, const Vector &vec, const Vector &dir)
     setMovementVector(vec);
 }
 
+Ptr<IActor> Bullet::getSource() {
+	return source;
+}
+
 void Bullet::integrate(float delta_t, Transform * transforms) {
     engine->integrate(delta_t, transforms);
 }
@@ -92,15 +96,19 @@ void Bullet::update(float delta_t, const Transform * new_transforms) {
 
 void Bullet::collide(const Collide::Contact & c) {
     Ptr<Collidable> partner;
-    if (c.collidables[0] == this)
+    int domain;
+    if (c.collidables[0] == this) {
         partner = c.collidables[1];
-    else
+        domain = c.domains[1];
+    } else {
         partner = c.collidables[0];
+        domain = c.domains[0];
+    }
     Ptr<IActor> a = partner->getActor();
-    if(RAND_POS > 0.2) {
-        if (a) a->applyDamage(0.05f);
+    if(RAND_POS > 0.4) {
+        if (a) a->applyDamage(factor*0.15f, domain, this);
         explode();
-    } else if (a) a->applyDamage(0.02f);
+    } else if (a) a->applyDamage(factor*0.1f, domain, this);
 }
 
 void Bullet::die() {

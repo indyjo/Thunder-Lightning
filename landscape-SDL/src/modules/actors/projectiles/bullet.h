@@ -11,13 +11,15 @@
 class Bullet: public IProjectile, public SimpleActor, public Collide::Collidable
 {
 public:
-    Bullet(IGame *thegame);
+    Bullet(IGame *thegame, Ptr<IActor> source=0, float factor=0);
 
     virtual void action();
 
     virtual void draw();
 
     virtual void shoot(const Vector &pos, const Vector &vec, const Vector &dir);
+    virtual Ptr<IActor> getSource();
+    
     inline void setTTL(double ttl) { this->ttl = ttl; }
 
     virtual void integrate(float delta_t, Transform * transforms);
@@ -33,5 +35,6 @@ private:
     Ptr<ITerrain> terrain;
     Ptr<IPositionProvider> camera;
     Ptr<RigidEngine> engine;
-    double age, ttl;
+    Ptr<IActor> source;
+    float age, ttl, factor;
 };

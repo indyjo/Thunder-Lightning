@@ -291,7 +291,7 @@ void LoDQuadManager::loadTextures()
         if (token == "single") {
             in >> prefix;
             filename = basename + "/" + prefix + ".spr";
-            ls_message("loading texture %s\n", filename.c_str());
+            //ls_message("loading texture %s\n", filename.c_str());
             textures[i][15] = game->getTexMan()->
                 query(filename.c_str(), JR_HINT_FULLOPACITY, 0, true);
         } else if (token == "group") {
@@ -301,13 +301,13 @@ void LoDQuadManager::loadTextures()
                 for(int k=8;k!=0; k>>=1) postfix += j&k?'1':'0';
                 postfix += ".spr";
                 filename = basename + "/" + prefix + postfix;
-                ls_message("loading texture %s\n", filename.c_str());
+                //ls_message("loading texture %s\n", filename.c_str());
                 textures[i][j] = game->getTexMan()->
                     query(filename.c_str(),
                         j==15?JR_HINT_FULLOPACITY:0, 0, true);
             }
         } else if (token == "skip") {
-            ls_message("Skipping texture %d\n", i);
+            //ls_message("Skipping texture %d\n", i);
         } else {
             ls_error("LodQuadManager: illegal token %s in %f - aborting.\n",
                     token.c_str(), texfile.c_str());

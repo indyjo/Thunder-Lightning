@@ -13,6 +13,8 @@
 #include <modules/gunsight/gunsight.h>
 #include <modules/math/SpecialMatrices.h>
 #include <modules/weaponsys/Targeter.h>
+#include <modules/scripting/IoScriptingManager.h>
+#include <modules/scripting/mappings.h>
 
 #include <remap.h>
 #include <sound.h>
@@ -23,6 +25,7 @@
 
 #include "drone.h"
 #include "ai.h"
+#include <modules/actors/SimpleView.h>
 #include <modules/actors/RelativeView.h>
 
 #define PI 3.14159265358979323846
@@ -44,12 +47,47 @@
 #define RAND ((float) rand() / (float) RAND_MAX)
 #define RAND2 ((float) rand() / (float) RAND_MAX * 2.0 - 1.0)
 
-Drone::Drone(Ptr<IGame> thegame)
+
+struct TargetView: public SimpleView {
+	Ptr<Targeter> targeter;
+	Vector view_pos;
+	
+	TargetView::TargetView(
+		Ptr<IActor> subject,
+		Vector view_pos=0,
+		Ptr<Targeter> targeter=0,
+		Ptr<IDrawable> gunsight=0)
+	:	SimpleView(subject,gunsight),
+		targeter(targeter),
+		view_pos(view_pos)
+	{ }
+	
+	virtual void getPositionAndOrientation(Vector*pos, Matrix3 *orient)
+	{
+	    Vector right,up,front;
+	    subject->getOrientation(&up,&right,&front);
+   		*orient = MatrixFromColumns(right,up,front);
+	    *pos = subject->getLocation() + *orient * view_pos;
+	    if (!targeter || !targeter->getCurrentTarget()) {
+	    	return;
+	    }
+	    	
+	    Vector target_pos = targeter->getCurrentTarget()->getLocation();
+	    front = (target_pos - *pos).normalize();
+	    right = (up % front).normalize();
+	    up = (front % right).normalize();
+	    *orient = MatrixFromColumns(right,up,front);
+	}
+};
+
+
+Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer)
 : SimpleActor(thegame),
   renderer(thegame->getRenderer()),
   terrain(thegame->getTerrain()), damage(0),
   mtasker(64*1024),
-  control_mode(UNCONTROLLED)
+  control_mode(UNCONTROLLED),
+  io_peer(io_peer)
 {
 	Ptr<IConfig> cfg = thegame->getConfig();
     setTargetInfo(new TargetInfo(
@@ -163,7 +201,23 @@ Drone::Drone(Ptr<IGame> thegame)
     engine_sound_src->setGain(cfg->queryFloat("Drone_engine_gain"));
     engine_sound_src->play(thegame->getSoundMan()->querySound(
             cfg->query("Drone_engine_sound")));
+            
+    // Io initialiization
+    IoState * state = thegame->getIoScriptingManager()->getMainState();
+    if (!io_peer) {
+    	io_peer = wrapObject<Ptr<Drone> >(this, state);
+    }
+    IoState_retain_(state, io_peer);
 }         
+
+Drone::~Drone() {
+	ls_message("Drone dying.\n");
+	if (io_peer) {
+		IoState_release_(
+			thegame->getIoScriptingManager()->getMainState(),
+			io_peer);
+	}
+}
 
 void Drone::action() {
 	if (!isAlive()) return;
@@ -273,11 +327,28 @@ void Drone::action() {
 }
 
 void Drone::kill() {
+    state=DEAD;
+    
     thegame->getCollisionMan()->remove(this);
 	targeter->clearCurrentTarget();
 	ideas.clear();
 	current_idea=0;
 	patrol_idea=0;
+	
+    IoObject* self = io_peer;
+    if (IoObject_rawGetSlot_(self, IOSTRING("onKill"))) {
+		IoState_pushRetainPool(IOSTATE);
+		IoMessage *msg =
+			IoMessage_newWithName_(IOSTATE, IOSTRING("onKill"));
+		IoState_stackRetain_(IOSTATE, msg);
+		IoMessage_locals_performOn_(msg,IOSTATE->lobby,self);
+		IoState_popRetainPool(IOSTATE);
+    }
+    
+	IoState_release_(
+		thegame->getIoScriptingManager()->getMainState(),
+		io_peer);
+	io_peer = 0;
 }
 
 #define MAX_MODEL_DISTANCE 3000.0f
@@ -354,7 +425,34 @@ void Drone::draw() {
 }
 
 // Our drone has been hit ...
-void Drone::applyDamage(float damage, int domain) {
+void Drone::applyDamage(float damage, int domain, Ptr<IProjectile> projectile) {
+	if (!isAlive()) return;
+    IoObject* self = io_peer;
+    if (IoObject_rawGetSlot_(self, IOSTRING("onDamage"))) {
+    	// call onDamage with parameters damage, domain, projectile, source
+		IoState_pushRetainPool(IOSTATE);
+		IoMessage *msg =
+			IoMessage_newWithName_(IOSTATE, IOSTRING("onDamage"));
+		IoState_stackRetain_(IOSTATE, msg);
+		IoMessage_setCachedArg_to_(msg, 0, wrapObject(damage, IOSTATE));
+		IoMessage_setCachedArg_toInt_(msg, 1, domain);
+		IoMessage_setCachedArg_to_(msg, 2,
+			projectile?
+				wrapObject<Ptr<IActor> >(projectile, IOSTATE)
+				:IONIL(self));
+		IoMessage_setCachedArg_to_(msg, 3,
+			projectile&&projectile->getSource()?
+			  wrapObject<Ptr<IActor> >(projectile->getSource(),IOSTATE):IONIL(self));
+		IoMessage_locals_performOn_(msg,IOSTATE->lobby,self);
+		IoState_popRetainPool(IOSTATE);
+    }
+    
+	if (projectile->getSource()) {
+		Ptr<IActor> src = projectile->getSource();
+		float dist2 = (src->getLocation()-getLocation()).lengthSquare();
+		if (src->getFaction()->getAttitudeTowards(getFaction()) != Faction::FRIENDLY)
+			targeter->setCurrentTarget(src);
+	}
     if (this->damage < 0.7 && this->damage+damage>0.7) {
         SmokeColumn::Params params;
         params.interval=0.1;
@@ -423,20 +521,15 @@ Ptr<IView> Drone::getView(int n) {
             Vector(1,0,0),
             Vector(0,1,0),
             Vector(0,0,1));
-    /*case 5:
-    	return new RelativeView(
-            this,
-            Vector(0, -3, 15),
-            Vector(-1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,-1));*/
     case 5:
-    	return new RelativeView(
-            this,
-            Vector(-6, 0, 1),
-            Vector(0,0,-1),
-            Vector(0,1,0),
-            Vector(1,0,0));
+    	{
+		    Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
+		    gunsight->addDebugInfo(thegame, this);
+		    //gunsight->addFlightModules(thegame, flight_info);
+		    //gunsight->addBasicCrosshairs();
+		    gunsight->addTargeting(this, targeter);
+	    	return new TargetView( this, pilot_pos, targeter, gunsight);
+    	}
     default:
     	return 0;
 	}
@@ -448,7 +541,7 @@ Ptr<IView> Drone::getView(int n) {
 #define NUM_EXPLOSIONS 15
 #define MAX_EXPLOSION_AGE -2.0
 void Drone::explode() {
-    state=DEAD;
+	kill();
     Vector p = getLocation();
     for(int i=0; i<NUM_EXPLOSIONS; i++) {
         Vector v = p + RAND * MAX_EXPLOSION_DISTANCE *
@@ -458,20 +551,6 @@ void Drone::explode() {
         double time = RAND * MAX_EXPLOSION_AGE;
         thegame->addActor(new Explosion(thegame, v, size, time));
     }
-    kill();
-
-    // HACK: create new drone somewhere
-    Ptr<Drone> drone = new Drone(thegame);
-    float r = RAND;
-    if (3*r<1) drone->setFaction(Faction::basic_factions.faction_a);
-    else if (3*r<2) drone->setFaction(Faction::basic_factions.faction_b);
-    else drone->setFaction(Faction::basic_factions.faction_c);
-    Vector p0(RAND, 0, RAND);
-    p0*=36000;
-    p0[1] = terrain->getHeightAt(p0[0], p0[2]) + 500;
-    drone->setLocation(p0);
-    drone->setControlMode(AUTOMATIC);
-    thegame->addActor(drone);
 }
 
 
@@ -492,14 +571,12 @@ void Drone::fireBullet()
         Vector( 1.7, +1.0, 10.0)
     };*/
     static const Vector cannon[]={
-        Vector(-0.684, -0.236, 4.0),
-        Vector( 0.684, -0.236, 4.0),
-        Vector(-0.72, -0.2, 4.0),
-        Vector( 0.72, -0.2, 4.0),
+        Vector(-0.8575, 0.073, 4.362),
+        Vector(0.8575, 0.073, 4.362),
     };
     static const int ncannons = sizeof(cannon) / sizeof(Vector);
 
-    Ptr<Bullet> projectile( new Bullet(&*thegame) );
+    Ptr<Bullet> projectile( new Bullet(ptr(thegame), this) );
     projectile->setTTL(BULLET_TTL);
 
     Vector start = getLocation()
@@ -515,7 +592,7 @@ void Drone::fireBullet()
             thegame->getConfig()->query("Drone_cannon_sound")));
 
     move += engine->getState().q.rot(
-        BULLET_SPEED * Vector(0,0,1));
+        BULLET_SPEED * (Vector(0,0,1) + 0.00333*Vector(RAND2+RAND2+RAND2,RAND2+RAND2+RAND2,0)));
 
     thegame->addActor(projectile);
     projectile->shoot(start, move, getFrontVector());
@@ -536,7 +613,7 @@ void Drone::fireDumbMissile()
         Vector( 4.5,  0.5, 4.5)
     };
 
-    Ptr<DumbMissile> projectile( new DumbMissile(&*thegame) );
+    Ptr<DumbMissile> projectile( new DumbMissile(ptr(thegame), this) );
 
     Vector start = getLocation()
         + engine->getState().q.rot(launchers[dumb_launcher_num++]);
@@ -561,7 +638,7 @@ void Drone::fireSmartMissile()
     };
 
     Ptr<SmartMissile> projectile(
-    		new SmartMissile(&*thegame, targeter->getCurrentTarget()) );
+    		new SmartMissile(ptr(thegame), targeter->getCurrentTarget(), this) );
     ls_message("Launching smart missile to target: %p\n",
     	&*targeter->getCurrentTarget());
     Vector start = getLocation()
@@ -587,7 +664,7 @@ void Drone::fireSmartMissile2()
     };
 
     Ptr<SmartMissile2> projectile(
-    		new SmartMissile2(&*thegame, targeter->getCurrentTarget()) );
+    		new SmartMissile2(ptr(thegame), targeter->getCurrentTarget(), this) );
     ls_message("Launching smart missile to target: %p\n",
     	&*targeter->getCurrentTarget());
     Vector start = getLocation()

@@ -1,10 +1,12 @@
 #include <vector>
-#include "dumbmissile.h"
+#include <interfaces/ICamera.h>
+#include <interfaces/IConfig.h>
+#include <interfaces/ITerrain.h>
 #include <modules/actors/fx/explosion.h>
 #include <modules/clock/clock.h>
-#include <interfaces/ICamera.h>
-#include <interfaces/ITerrain.h>
+#include <modules/model/modelman.h>
 #include <sound.h>
+#include "dumbmissile.h"
 
 #define EARTH_GRAVITY 9.81
 #define MAX_DEVIATION_PER_SECOND 10.0
@@ -15,8 +17,8 @@
 #define RESISTANCE_Y 0.05
 #define RESISTANCE_Z 0.0001
 
-DumbMissile::DumbMissile(Ptr<IGame> thegame)
-    : SimpleActor(thegame)
+DumbMissile::DumbMissile(Ptr<IGame> thegame, Ptr<IActor> source)
+    : SimpleActor(thegame), source(source)
 {
     this->renderer = thegame->getRenderer();
     this->terrain = thegame->getTerrain();
@@ -24,6 +26,8 @@ DumbMissile::DumbMissile(Ptr<IGame> thegame)
     engine = new MissileEngine(thegame);
     setEngine(engine);
     setTargetInfo(new TargetInfo("Dumb missile", 1.0f, TargetInfo::MISSILE));
+    setModel(thegame->getModelMan()->query(
+    	thegame->getConfig()->query("DumbMissile_model")));
 }
 
 void DumbMissile::action()
@@ -60,13 +64,9 @@ void DumbMissile::action()
         		- victims[i]->getTargetInfo()->getTargetSize();
         	if (dist < 0) dist = 0;
         	else if (dist > damage_radius) continue;
-        	victims[i]->applyDamage(10*dist / damage_radius, 0);
+        	victims[i]->applyDamage(10*dist / damage_radius, 0, this);
         }
     }
-}
-
-void DumbMissile::draw()
-{
 }
 
 void DumbMissile::shoot(
@@ -95,6 +95,11 @@ void DumbMissile::shoot(
     }
 }
 
+Ptr<IActor> DumbMissile::getSource() {
+	return source;
+}
+
+
 #define NUM_SPARKS 5
 #define MAX_HORIZONTAL_SPEED 100.0
 #define MAX_VERTICAL_SPEED 100.0
@@ -107,7 +112,6 @@ void DumbMissile::shootSparks()
     
     SmokeColumn::Params params;
     SmokeColumn::PuffParams puff_params;
-    Ptr<IProjectile> spark;
     
     // Setup smoke column parameters so that the puff interval is shorter
     params.ttl = 1.0;
@@ -124,7 +128,7 @@ void DumbMissile::shootSparks()
     
     thegame->addActor(new Explosion(thegame, getLocation(), 10.0));
     for (i=0; i<NUM_SPARKS; i++) {
-        spark=new Spark(thegame);
+        Ptr<Spark> spark(new Spark(thegame));
         vec[0] = MAX_HORIZONTAL_SPEED * RAND;
         vec[1] = MAX_VERTICAL_SPEED * RAND_POS;
         vec[2] = MAX_HORIZONTAL_SPEED * RAND;

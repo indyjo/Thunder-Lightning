@@ -94,6 +94,7 @@ std::istream & operator>> (std::istream & in, BoundingNode & bn) {
         bn.type = BoundingNode::LEAF;
         in >> n;
         bn.data.leaf.n_triangles = n;
+        //ls_message("reading %d triangles:\n",n);
         bn.data.leaf.vertices = new Vector[n*3];
         for(int i=0; i<n*3; i++)
             in >> bn.data.leaf.vertices[i];

@@ -26,6 +26,7 @@ public:
     inline int getRefs() const { return refs; }
     
 	static void debug();
+	static void debug(Object*);
 	static void backtrace();
 };
 

@@ -1,6 +1,7 @@
 #include <modules/environment/environment.h>
 #include <modules/jogi/JRenderer.h>
 #include <modules/scripting/IoScriptingManager.h>
+#include <modules/scripting/mappings.h>
 #include <interfaces/IConfig.h>
 #include <interfaces/IFontMan.h>
 #include <algorithm>
@@ -9,6 +10,24 @@
 #include "Console.h"
 
 using namespace std;
+
+namespace {
+	string longest_prefix(vector<string> & vec) {
+		if (vec.empty()) return "";
+		string prefix = vec[0];
+		for(int i=1; i<vec.size(); ++i) {
+			if (vec[i].size() < prefix.size())
+				prefix = prefix.substr(0, vec[i].size());
+			for(int j=0; j<prefix.size(); ++j) {
+				if (prefix[j] != vec[i][j]) {
+					prefix = prefix.substr(0, j);
+					break;
+				}
+			}
+		}
+		return prefix;
+	}
+}
 
 namespace UI {
 
@@ -154,6 +173,36 @@ bool Console::feedEvent(SDL_Event & ev) {
         	cursor_pos=0;
         } else if (ev.key.keysym.sym == SDLK_END) {
         	cursor_pos=command.size();
+        } else if (unicode == '\t') {
+        	IoState * state = game->getIoScriptingManager()->getMainState();
+        	IoObject * self = IoObject_rawGetSlot_(state->lobby,
+        		IoState_stringWithCString_(state, "complete"));
+        	if (self) {
+				IoMessage *msg =
+					IoMessage_newWithName_(IOSTATE, IOSTRING("complete"));
+				IoState_retain_(IOSTATE,msg);
+				
+				IoMessage_setCachedArg_to_(msg, 0,
+					IOSTRING((buffer+command).c_str()));
+				IoMessage_setCachedArg_to_(msg, 1, state->lobby);
+				
+				IoObject *results =IoMessage_locals_performOn_(
+					msg,IOSTATE->lobby,IOSTATE->lobby);
+				std::vector<std::string> str_results =
+					unwrapObject<std::vector<std::string> >(results);
+					
+				std::string prefix = longest_prefix(str_results);
+				command += prefix;
+				cursor_pos += prefix.length();
+				if (prefix == "" && !str_results.empty()) {
+					for(int i=0; i<str_results.size(); ++i) {
+						putString("  ");
+						putString(str_results[i].c_str());
+						putString("\n");
+					}
+				}
+				IoState_release_(IOSTATE, msg);
+        	}
         } else if (unicode == '\r') {
         	if (bracecount == 0) putString("# ");
         	else 				 putString("> ");

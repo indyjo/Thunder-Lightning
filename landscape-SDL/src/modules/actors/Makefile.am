@@ -7,7 +7,6 @@ SUBDIRS =       \
 noinst_LIBRARIES = libactors.a
 
 libactors_a_SOURCES = simpleactor.cc simpleactor.h \
-	PassiveActor.h PassiveActor.cc \
 	RelativeView.h RelativeView.cc \
 	RigidActor.h RigidActor.cc \
 	SimpleView.h SimpleView.cc

@@ -52,15 +52,18 @@ void RigidEngine::setLocation(const Vector & new_p) {
 void RigidEngine::setOrientation( const Vector & up,
                                   const Vector & right,
                                   const Vector & front) {
+    /*
     ls_message("<RigidEngine::setOrientation>\n");
     ls_message("Requested: %+1.3f %+1.3f %+1.3f right\n"
                "           %+1.3f %+1.3f %+1.3f up\n"
                "           %+1.3f %+1.3f %+1.3f front\n",
                ls_vector(right), ls_vector(up), ls_vector(front));
+    */
 
     struct RigidBodyState state = getState();
     state.q.fromMatrix(MatrixFromColumns(right,up,front));
     setState(state);
+    /*
     ls_message("Got:       %+1.3f %+1.3f %+1.3f right\n"
                "           %+1.3f %+1.3f %+1.3f up\n"
                "           %+1.3f %+1.3f %+1.3f front\n",
@@ -68,6 +71,7 @@ void RigidEngine::setOrientation( const Vector & up,
                ls_vector(state.q.rot(Vector(0,1,0))),
                ls_vector(state.q.rot(Vector(0,0,1))));
     ls_message("</RigidEngine::setOrientation>\n");
+    */
 }
 
 // IMovementReceiver

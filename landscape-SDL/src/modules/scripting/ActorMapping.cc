@@ -4,6 +4,8 @@
 
 
 #include <interfaces/IActor.h>
+#include <interfaces/IProjectile.h>
+#include <Faction.h>
 
 #include "mappings.h"
 
@@ -29,10 +31,19 @@ namespace {
 			IoMethodTable methodTable[] = {
 				{"asPositionProvider",
 					castfunc<Ptr<IActor>, Ptr<IPositionProvider> >},
+				{"asMovementProvider",
+					castfunc<Ptr<IActor>, Ptr<IMovementProvider> >},
+				{"asPositionReceiver",
+					castfunc<Ptr<IActor>, Ptr<IPositionReceiver> >},
+				{"asMovementReceiver",
+					castfunc<Ptr<IActor>, Ptr<IMovementReceiver> >},
 				{"getNumViews", getNumViews},
 				{"getRelativeDamage", getRelativeDamage},
+				{"applyDamage", applyDamage},
 				{"isAlive", isAlive},
 				{"setControlMode", setControlMode},
+				{"getFaction", getFaction},
+				{"setFaction", setFaction},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
@@ -45,16 +56,21 @@ namespace {
 		
 		static IoObject *isAlive(IoObject *self, IoObject*locals, IoObject*m) {
 			BEGIN_FUNC("Actor.isAlive")
+			//ls_message("state: %d\n", getObject(self)->getState());
 			if (getObject(self)->getState() == IActor::ALIVE) {
 				return self;
 			} else {
 				return IONIL(self);
 			}
 		}
+		CREATE_FUNC(IActor)
 		
 		SET_ENUM(setControlMode, IActor::ControlMode)
 		GET_NUMBER(getNumViews)
 		GET_NUMBER(getRelativeDamage)
+		SET_FLOAT(applyDamage)
+		GETTER(Ptr<Faction>, getFaction)
+		SETTER(Ptr<Faction>, setFaction)
 	};
 } // namespace
 
@@ -65,11 +81,7 @@ void addMapping<IActor>(Ptr<IGame> game, IoState *state) {
 
 template<>
 IoObject * wrapObject<Ptr<IActor> >(Ptr<IActor> actor, IoState *state) {
-	IoObject *new_object = ActorMapping::rawClone(
-		IoObject_getSlot_(
-			state->lobby,
-			IoState_stringWithCString_(state, "Actor")));
-	new_object->data = &*actor;
-	return new_object;
+	if (!actor) return state->ioNil;
+	return ActorMapping::create(actor, state);
 }
 

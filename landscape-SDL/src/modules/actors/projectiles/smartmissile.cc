@@ -1,6 +1,8 @@
 #include "smartmissile.h"
 #include <modules/actors/fx/explosion.h>
 #include <modules/engines/missileengine.h>
+#include <modules/model/modelman.h>
+#include <interfaces/IActorStage.h>
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
 #include <interfaces/ITerrain.h>
@@ -16,8 +18,8 @@
 #define MIN_INTERCEPT_SPEED 250.0
         
 
-SmartMissile::SmartMissile(Ptr<IGame> thegame, Ptr<IActor> target)
-: SimpleActor(thegame), target(target), damage(0)
+SmartMissile::SmartMissile(Ptr<IGame> thegame, Ptr<IActor> target, Ptr<IActor> source)
+: SimpleActor(thegame), target(target), damage(0), source(source)
 {
     renderer = thegame->getRenderer();
     terrain = thegame->getTerrain();
@@ -40,6 +42,8 @@ SmartMissile::SmartMissile(Ptr<IGame> thegame, Ptr<IActor> target)
     engine_sound_src->play(thegame->getSoundMan()->querySound(
             thegame->getConfig()->query("Missile_engine_sound")));
 
+    setModel(thegame->getModelMan()->query(
+    	thegame->getConfig()->query("SmartMissile_model")));
 }
 
 
@@ -137,80 +141,6 @@ void SmartMissile::action()
     }
 }
 
-void SmartMissile::draw()
-{
-    static const float points[][3] = {
-        {0,0,2.0},
-        { .1,  0, 0},
-        {  0,-.1, 0},
-        {-.1,  0, 0},
-        {  0, .1, 0},
-        { .5,  0, 0},
-        {  0,-.5, 0},
-        {-.5,  0, 0},
-        {  0, .5, 0}
-    };
-
-    static const int indices[][3] = {
-        {1,0,2},
-        {2,0,3},
-        {3,0,4},
-        {4,0,1},
-        {1,2,3},
-        {1,3,4},
-        {5,0,1},
-        {6,0,2},
-        {7,0,3},
-        {8,0,4}
-    };
-
-    static float colors[][3] = {
-        {0,0,0},
-        {.5,.5,.5},
-        {.8,.8,.8},
-        {1,.8,.6}
-    };
-
-    static const int col_indices[] = {
-        1,
-        0,
-        1,
-        0,
-        3,
-        3,
-        2,
-        1,
-        2,
-        1
-    };
-
-
-    static const int n_indices = sizeof(indices) / sizeof(int) / 3;
-
-    Vector right, up, front;
-    getOrientation(&up, &right, &front);
-    Vector p = getLocation();
-
-    renderer->enableSmoothShading();
-    renderer->disableAlphaBlending();
-    renderer->disableTexturing();
-    renderer->setCullMode(JR_CULLMODE_NO_CULLING);
-    renderer->begin(JR_DRAWMODE_TRIANGLES);
-    for(int i=0; i<n_indices; i++) {
-        float col[3];
-        for(int j=0; j<3; j++) col[j] = colors[col_indices[i]][j];
-        renderer->setColor(Vector(col));
-        for(int j=0; j<3; j++) {
-            renderer->vertex(
-                    right * points[indices[i][j]][0] +
-                    up    * points[indices[i][j]][1] +
-                    front * points[indices[i][j]][2] +
-                    p);
-        }
-    }
-    renderer->end();
-}
-
 void SmartMissile::shoot(
         const Vector &pos,
         const Vector &vec,
@@ -246,7 +176,11 @@ void SmartMissile::shoot(
     }
 }
 
-void SmartMissile::hitTarget(float damage)
+Ptr<IActor> SmartMissile::getSource() {
+	return source;
+}
+
+void SmartMissile::applyDamage(float damage, int domain, Ptr<IProjectile>)
 {
     if ((this->damage+=damage) > 0.1) explode();
 }
@@ -264,12 +198,18 @@ void SmartMissile::explode()
     if(marker) marker->kill();
     state = DEAD;
 
-    if (target) {
-        float dist = (target->getLocation() - getLocation()).length();
-        dist = std::min(dist, DAMAGE_RADIUS);
+    typedef IActorStage::ActorVector Actors;
+    typedef Actors::iterator Iter;
+    
+    Actors actors;
+    thegame->queryActorsInSphere(actors, getLocation(), DAMAGE_RADIUS);
+    for(Iter i=actors.begin(); i!=actors.end(); ++i) {
+    	const Ptr<IActor> & actor = *i;
+    	if (actor == this) continue;
+        float dist = (actor->getLocation() - getLocation()).length();
         float damage = (1.0 - dist / DAMAGE_RADIUS);
         damage *= MAX_DAMAGE;
-        target->applyDamage(damage);
+        actor->applyDamage(damage, 0, this);
     }
     engine_sound_src->stop();
 }

@@ -25,7 +25,7 @@
 #define RAND ((float) rand() / (float) RAND_MAX)
 #define RAND2 ((float) rand() / (float) RAND_MAX * 2.0 - 1.0)
 
-#define MUZZLE_VELOCITY 1200.0f
+#define MUZZLE_VELOCITY 800.0f
 #define BULLET_RANGE 5000.0f
 #define BULLET_TTL (BULLET_RANGE / MUZZLE_VELOCITY)
 
@@ -144,6 +144,13 @@ Tank::Tank(Ptr<IGame> thegame)
             ));
     
 	
+}
+
+Tank::~Tank() {
+	ls_error("Tank dying with %d refs\n", getRefs());
+	fprintf(stderr, "Object debug because of tank death -------------\n");
+	debug(this);
+	fprintf(stderr, "Done object debug because of tank death -------------\n");
 }
 
 void Tank::action() {
@@ -276,7 +283,13 @@ void Tank::draw() {
 }
 
 // Our tank has been hit ...
-void Tank::applyDamage(float damage, int domain) {
+void Tank::applyDamage(float damage, int domain, Ptr<IProjectile> projectile) {
+	if (projectile->getSource()) {
+		Ptr<IActor> src = projectile->getSource();
+		float dist2 = (src->getLocation()-getLocation()).lengthSquare();
+		if (src->getFaction()->getAttitudeTowards(getFaction()) != Faction::FRIENDLY)
+			target=src;
+	}
 	damage *= 0.2;
     if (this->damage < 0.7 && this->damage+damage>0.7) {
         SmokeColumn::PuffParams pparams;
@@ -416,7 +429,7 @@ void Tank::shoot() {
     Vector d_bullet = Mmodel * cannon_nozzle2 - p_bullet;
     Vector v_bullet = MUZZLE_VELOCITY * d_bullet;
 
-    Ptr<Bullet> bullet = new Bullet(&*thegame);
+    Ptr<Bullet> bullet = new Bullet(ptr(thegame), this, 2.5f);
     bullet->setTTL(BULLET_TTL);
     bullet->shoot(p_bullet, v_bullet, d_bullet);
     thegame->addActor(bullet);

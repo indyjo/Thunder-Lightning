@@ -192,6 +192,28 @@ void Object::debug() {
 #endif
 }
 
+void Object::debug(Object *o) {
+#if OBJECT_DEBUG
+	typedef set<Context>::iterator CtxIter;
+	Context c = construct_contexts()[o];
+	fprintf(stderr, "%s at %p with %d refs created in:\n",
+		demangle(typeid(*o).name()).c_str(),
+		o,
+		o->getRefs());
+	c.dump();
+	
+	set<Context> contexts = context_map()[o];
+	for(CtxIter j = contexts.begin(); j!= contexts.end(); ++j) {
+		Context ctx = *j;
+		int ccount = counter_map()[make_pair(o,ctx)];
+		fprintf(stderr, "-- Count %d for context:\n", ccount);
+		ctx.dump(4);
+	}
+#else
+	fprintf(stderr, "Object Debugging not enabled.\n");
+#endif
+}
+
 void Object::backtrace() {
 #if OBJECT_DEBUG
 	doBacktrace();

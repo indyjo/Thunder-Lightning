@@ -1,4 +1,5 @@
 #include "simpleactor.h"
+#include <modules/model/model.h>
 #include <modules/engines/newtonianengine.h>
 #include <Faction.h>
 #include "RelativeView.h"
@@ -12,6 +13,12 @@ SimpleActor::SimpleActor( Ptr<IGame> game)
         "<unnamed SimpleActor>", 1.0f, TargetInfo::NONE);
 }
 
+SimpleActor::~SimpleActor()
+{ }
+
+void SimpleActor::setModel(Ptr<Model> m) {
+	model = m;
+}
 
 // IActor
 Ptr<TargetInfo> SimpleActor::getTargetInfo() { return target_info; }
@@ -21,7 +28,7 @@ void SimpleActor::action() { engine->run(); }
 void SimpleActor::kill() { state = DEAD; }
 IActor::State SimpleActor::getState() { return state; }
 float SimpleActor::getRelativeDamage() { return 0.0f; }
-void SimpleActor::applyDamage(float damage, int domain) { }
+void SimpleActor::applyDamage(float damage, int domain, Ptr<IProjectile>) { }
 
 int SimpleActor::getNumViews() { return 4; }
 
@@ -92,5 +99,20 @@ void SimpleActor::setMovementVector(const Vector & v) {
 }
 
 // IDrawable
-void SimpleActor::draw() { }
+void SimpleActor::draw() {
+	if (!model) return;
+    Vector right, up, front;
+    getOrientation(&up, &right, &front);
+    Matrix Translation = TranslateMatrix<4,float>(getLocation());
+    Matrix Rotation    = Matrix::Hom(
+        MatrixFromColumns(right, up, front));
+
+    Matrix Mmodel  = Translation * Rotation;
+    JRenderer *renderer = thegame->getRenderer();
+    renderer->setCullMode(JR_CULLMODE_CULL_NEGATIVE);
+    renderer->setAlpha(1);
+    renderer->setColor(Vector(1,1,1));
+    
+    model->draw(*renderer, Mmodel, Rotation);
+}
 

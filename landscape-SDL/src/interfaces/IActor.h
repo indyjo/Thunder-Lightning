@@ -8,6 +8,7 @@
 class Faction;
 class TargetInfo;
 class IView;
+class IProjectile;
 
 class IActor:   virtual public IDrawable,
               	virtual public IMovementProvider,
@@ -29,7 +30,9 @@ public:
     inline bool isAlive() { return getState()==ALIVE; }
 
     virtual float getRelativeDamage()=0;
-    virtual void applyDamage(float damage, int domain=0)=0;
+    virtual void applyDamage(float damage,
+    	int domain=0,
+    	Ptr<IProjectile> projectile=0)=0;
 
     virtual int getNumViews()=0;
     virtual Ptr<IView> getView(int n)=0;

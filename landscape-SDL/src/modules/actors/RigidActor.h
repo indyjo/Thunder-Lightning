@@ -4,11 +4,11 @@
 #include <modules/collide/CollisionManager.h>
 #include <TargetInfo.h>
 
-#include "PassiveActor.h"
+#include "simpleactor.h"
 
 struct RigidEngine;
 
-class RigidActor : public PassiveActor, public Collide::Collidable {
+class RigidActor : public SimpleActor, public Collide::Collidable {
 	Ptr<RigidEngine> rigid_engine;
 	Vector gravity;
 public:

@@ -11,6 +11,8 @@
 #include <interfaces/IGame.h>
 #include <interfaces/IView.h>
 
+struct Model;
+
 class SimpleActor : virtual public IActor
 {
 protected:
@@ -19,12 +21,15 @@ protected:
     State state;
     Ptr<TargetInfo> target_info;
     Ptr<Faction> faction;
+    Ptr<Model> model;
 public:
     SimpleActor( Ptr<IGame> game);
+    virtual ~SimpleActor();
 
     inline void setEngine(Ptr<IEngine> e) { engine = e; }
     inline Ptr<IEngine> getEngine() { return engine; }
     inline void setTargetInfo(Ptr<TargetInfo> ti) { target_info = ti; }
+    void setModel(Ptr<Model>);
 
     // IPositionProvider
     virtual Vector getLocation();
@@ -53,7 +58,7 @@ public:
     virtual State getState();
     virtual void kill();
     virtual float getRelativeDamage();
-    virtual void applyDamage(float damage, int domain);
+    virtual void applyDamage(float damage, int domain, Ptr<IProjectile>);
     virtual int getNumViews();
     virtual Ptr<IView> getView(int n);
     virtual bool hasControlMode(ControlMode);
