@@ -620,6 +620,7 @@ void JOpenGLRenderer::uploadTexture(
 
 void JOpenGLRenderer::setupFog()
 {
+    if (!glIsEnabled(GL_FOG)) return;
     switch(fog_type) {
     case JR_FOGTYPE_LINEAR:
         glFogi(GL_FOG_MODE, GL_LINEAR);

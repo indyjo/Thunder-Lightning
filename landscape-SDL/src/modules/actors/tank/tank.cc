@@ -9,7 +9,6 @@
 #include "ai.h"
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
-#include <interfaces/IGunsight.h>
 #include <interfaces/IMap.h>
 #include <interfaces/IModelMan.h>
 #include <interfaces/ITerrain.h>
@@ -202,7 +201,7 @@ void Tank::action() {
 
     age+=delta_t;
 
-    target = thegame->getGunsight()->getCurrentTarget();
+    //target = thegame->getGunsight()->getCurrentTarget();
     if (target && target->getState() == IActor::DEAD) target = 0;
 
     if (target) {
@@ -288,6 +287,7 @@ void Tank::draw() {
                 (MAX_POINT_DISTANCE - MAX_MODEL_DISTANCE));
         renderer->vertex(p);
         renderer->end();
+        renderer->disableAlphaBlending();
         return;
     }
 

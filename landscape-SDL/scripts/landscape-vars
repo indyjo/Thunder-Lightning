@@ -22,14 +22,14 @@ setv fonts_dir			      $data_dir/fonts
 setv sounds_dir			      $data_dir/sounds
 
 # Game configuration
-#setv Game_xres			      800
-#setv Game_yres			      600
-#setv Game_fullscreen	              0
-setv Game_xres			      1024
-setv Game_yres			      768
+setv Game_xres			      800
+setv Game_yres			      600
+setv Game_fullscreen	              0
+#setv Game_xres			      1024
+#setv Game_yres			      768
 #setv Game_xres			      1280
 #setv Game_yres			      1024
-setv Game_fullscreen	              1
+#setv Game_fullscreen	              1
 setv Game_loading_screen              $texture_dir/loading-screen.spr
 
 # Sound Manager configuration

@@ -157,6 +157,8 @@ bool LoDQuad::lineCollides(Vector a, Vector b, float * t, LoDTriangle * tri)
 {
     float t0, t1;
     
+    if ((a-b).lengthSquare() < 1e-10) return false;
+    
     //ls_message("Checking for collision in tri %p from ", tri);
     //a.dump();
     //ls_message("to ");

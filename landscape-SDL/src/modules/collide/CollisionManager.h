@@ -140,6 +140,8 @@ struct GeometryInstance {
             transforms_0[i] = g.transforms_0[i];
             transforms_1[i] = g.transforms_1[i];
         }
+        
+        return *this;
     }
 };
 

@@ -249,6 +249,8 @@ bool LoDQuadManager::lineCollides(Vector a, Vector b, Vector * cx) {
         //game->drawDebugTriangleAt(*cx);
         return true;
     }
+    
+    return false;
 }
 
 

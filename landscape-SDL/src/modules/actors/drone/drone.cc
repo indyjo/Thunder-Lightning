@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <sigc++/bind.h>
 #include <modules/actors/fx/smokecolumn.h>
 #include <modules/actors/fx/explosion.h>
 #include <modules/actors/projectiles/bullet.h>
@@ -8,14 +9,14 @@
 #include <modules/actors/projectiles/smartmissile.h>
 #include <modules/clock/clock.h>
 #include <modules/engines/flightengine2.h>
+#include <modules/gunsight/FlightGunsight.h>
 #include <modules/math/SpecialMatrices.h>
+#include <remap.h>
 #include <sound.h>
 #include <interfaces/IConfig.h>
 #include <interfaces/ICamera.h>
-#include <interfaces/IGunsight.h>
 #include <interfaces/IModelMan.h>
 #include <interfaces/ITerrain.h>
-
 
 #include "drone.h"
 #include "ai.h"
@@ -43,7 +44,8 @@ Drone::Drone(Ptr<IGame> thegame)
 : SimpleActor(thegame),
   renderer(thegame->getRenderer()),
   terrain(thegame->getTerrain()), damage(0),
-  mtasker(64*1024)
+  mtasker(64*1024),
+  control_mode(UNCONTROLLED)
 {
     setTargetInfo(new TargetInfo(
         "Drone", RADIUS, TargetInfo::CLASS_AIRCRAFT));
@@ -84,9 +86,7 @@ Drone::Drone(Ptr<IGame> thegame)
     //ideas.push_back( new CRIdea(*context));
     ideas.push_back( new Dogfight(*context));
 
-    drone_controls->setThrottle(1);
-    drone_controls->setElevator(0);
-    drone_controls->setAileronAndRudder(0);
+    setControlMode(UNCONTROLLED);
 
     cannon_num = dumb_launcher_num = smart_launcher_num = 0;
     damage = 0;
@@ -99,25 +99,27 @@ Drone::Drone(Ptr<IGame> thegame)
             pilot_pos,
             Vector(1,0,0),
             Vector(0,1,0),
-            Vector(0,0,1)));
+            Vector(0,0,1),
+            new FlightGunsight(thegame, flight_info)
+            ));
     views.push_back(new RelativeView(
             *this,
-            pilot_pos,
+            Vector(0, 10, 30),
             Vector(-1,0,0),
             Vector(0,1,0),
             Vector(0,0,-1)));
     views.push_back(new RelativeView(
             *this,
-            pilot_pos,
-            Vector(0,0,1),
-            Vector(0,1,0),
-            Vector(-1,0,0)));
-    views.push_back(new RelativeView(
-            *this,
-            pilot_pos,
+            Vector(-30,0,15),
             Vector(0,0,-1),
             Vector(0,1,0),
             Vector(1,0,0)));
+    views.push_back(new RelativeView(
+            *this,
+            Vector(30,0,15),
+            Vector(0,0,1),
+            Vector(0,1,0),
+            Vector(-1,0,0)));
     views.push_back(new RelativeView(
             *this,
             Vector(0, 10, -30),
@@ -126,11 +128,45 @@ Drone::Drone(Ptr<IGame> thegame)
             Vector(0,0,1)));
     views.push_back(new RelativeView(
             *this,
-            Vector(0, 10, 30),
+            Vector(0, -10, 30),
             Vector(-1,0,0),
             Vector(0,1,0),
             Vector(0,0,-1)));
-}
+            
+    event_sheet = new EventSheet;
+    /*
+    event_sheet->map("+strafe_forward", SigC::bind(
+            SigC::slot(*this, & Player::strafeForward), true));
+    event_sheet->map("-strafe_forward", SigC::bind(
+            SigC::slot(*this, & Player::strafeForward), false));
+    event_sheet->map("+strafe_backward", SigC::bind(
+            SigC::slot(*this, & Player::strafeBackward), true));
+    event_sheet->map("-strafe_backward", SigC::bind(
+            SigC::slot(*this, & Player::strafeBackward), false));
+    event_sheet->map("+strafe_left", SigC::bind(
+            SigC::slot(*this, & Player::strafeLeft), true));
+    event_sheet->map("-strafe_left", SigC::bind(
+            SigC::slot(*this, & Player::strafeLeft), false));
+    event_sheet->map("+strafe_right", SigC::bind(
+            SigC::slot(*this, & Player::strafeRight), true));
+    event_sheet->map("-strafe_right", SigC::bind(
+            SigC::slot(*this, & Player::strafeRight), false));
+    */
+    event_sheet->map("cycle-primary", SigC::bind(
+            SigC::slot(*this, & Drone::event), CYCLE_PRIMARY));
+    event_sheet->map("cycle-secondary", SigC::bind(
+            SigC::slot(*this, & Drone::event), CYCLE_SECONDARY));
+    event_sheet->map("+primary", SigC::bind(
+            SigC::slot(*this, & Drone::event), FIRE_PRIMARY));
+    event_sheet->map("-primary", SigC::bind(
+            SigC::slot(*this, & Drone::event), RELEASE_PRIMARY));
+    event_sheet->map("+secondary", SigC::bind(
+            SigC::slot(*this, & Drone::event), FIRE_SECONDARY));
+    event_sheet->map("-secondary", SigC::bind(
+            SigC::slot(*this, & Drone::event), RELEASE_SECONDARY));
+
+    //event_sheet->map("autopilot", SigC::slot(*this, & Player::toggleAutoPilot));
+}         
 
 void Drone::action() {
     float delta_t = thegame->getClock()->getStepDelta();
@@ -140,42 +176,49 @@ void Drone::action() {
 
     flight_info.update(delta_t, *this, *terrain);
 
-    float best_value=-1, current_value=0;
-    Ptr<Idea> best_idea;
-    for(std::list<Ptr<Idea> >::iterator i=ideas.begin(); i!=ideas.end(); i++) {
-        Rating r = (*i)->rate();
-//         ls_message("rating: attack=%f defense=%f order=%f opportunity=%f\n"
-//                 "\tnecessity=%f danger=%f\n",
-//                 r.attack, r.defense, r.order, r.opportunity,
-//                 r.necessity, r.danger);
-        float value = personality.evaluate(r);
-        snprintf(buf,1024, "%s: %.2f\n", (*i)->name.c_str(), value);
-        info += buf;
-//         ls_message("value = %f\n", value);
-        if (*i == current_idea) {
-            current_value = value;
+    if (control_mode == AUTOMATIC) {
+        float best_value=-1, current_value=0;
+        Ptr<Idea> best_idea;
+        for(std::list<Ptr<Idea> >::iterator i=ideas.begin(); i!=ideas.end(); i++) {
+            Rating r = (*i)->rate();
+    //         ls_message("rating: attack=%f defense=%f order=%f opportunity=%f\n"
+    //                 "\tnecessity=%f danger=%f\n",
+    //                 r.attack, r.defense, r.order, r.opportunity,
+    //                 r.necessity, r.danger);
+            float value = personality.evaluate(r);
+            snprintf(buf,1024, "%s: %.2f\n", (*i)->name.c_str(), value);
+            info += buf;
+    //         ls_message("value = %f\n", value);
+            if (*i == current_idea) {
+                current_value = value;
+            }
+            if (value > best_value) {
+                best_value = value;
+                best_idea = *i;
+            }
         }
-        if (value > best_value) {
-            best_value = value;
-            best_idea = *i;
+        if (current_idea && best_value > current_value + CURRENT_IDEA_BONUS) {
+            current_idea->postpone();
+            current_idea = best_idea;
+        } else if (!current_idea) {
+            current_idea = best_idea;
         }
-    }
-    if (current_idea && best_value > current_value + CURRENT_IDEA_BONUS) {
-        current_idea->postpone();
-        current_idea = best_idea;
-    } else if (!current_idea) {
-        current_idea = best_idea;
-    }
+        
+        current_idea->realize();
+        mtasker.scheduleAll();
+        
+        if (current_idea) {
+            getTargetInfo()->setTargetInfo(info+current_idea->info());
+        }
     
-    current_idea->realize();
-    mtasker.scheduleAll();
-    
-    if (current_idea) {
-        getTargetInfo()->setTargetInfo(info+current_idea->info());
+        //flight_info.dump();
+        auto_pilot.fly(flight_info, *drone_controls);
+    } else if (control_mode == MANUAL) {
+        drone_controls->setRudder( thegame->getEventRemapper()->getAxis("rudder") );
+        drone_controls->setAileron( thegame->getEventRemapper()->getAxis("aileron") );
+        drone_controls->setElevator( -thegame->getEventRemapper()->getAxis("elevator") );
+        drone_controls->setThrottle( thegame->getEventRemapper()->getAxis("throttle") );
     }
-
-    //flight_info.dump();
-    auto_pilot.fly(flight_info, *drone_controls);
     SimpleActor::action();
 
     if (primary_reload_time > 0) primary_reload_time -= delta_t;
@@ -322,7 +365,6 @@ void Drone::fireBullet()
         Vector( 1.7, +1.0, 10.0)
     };
 
-    Ptr<IActor> target = thegame->getGunsight()->getCurrentTarget();
     Ptr<Bullet> projectile( new Bullet(&*thegame) );
     projectile->setTTL(BULLET_TTL);
 
@@ -381,9 +423,7 @@ void Drone::fireSmartMissile()
         Vector( 3.5, 0, 8.0)
     };
 
-    Ptr<IActor> target = thegame->getGunsight()->getCurrentTarget();
-
-    Ptr<SmartMissile> projectile( new SmartMissile(&*thegame, target) );
+    Ptr<SmartMissile> projectile( new SmartMissile(&*thegame, 0) );
     Vector start = getLocation()
         + engine->getState().q.rot(launchers[smart_launcher_num++]);
     Vector move(getMovementVector());
@@ -395,4 +435,55 @@ void Drone::fireSmartMissile()
 
     thegame->addActor(projectile);
     projectile->shoot(start, move, getFrontVector());
+}
+
+
+bool Drone::hasControlMode(ControlMode) {
+  return true;
+}
+void Drone::setControlMode(ControlMode m) {
+    if (control_mode==MANUAL && m!=control_mode)  {
+        thegame->getEventRemapper()->removeEventSheet(event_sheet);
+    }
+    control_mode = m;
+    if (m==UNCONTROLLED) {
+        drone_controls->setThrottle(1);
+        drone_controls->setElevator(0);
+        drone_controls->setAileronAndRudder(0);
+        drone_controls->setThrottle(0);
+        drone_controls->setFirePrimary(false);
+        drone_controls->setFireSecondary(false);
+    } else if (m==MANUAL) {
+        thegame->getEventRemapper()->addEventSheet(event_sheet);
+    }
+}
+
+
+/// Handles a primitive event.
+/// @param event the Event to handle
+/// @see Event
+void Drone::event(Event event) {
+    switch(event) {
+    case CYCLE_PRIMARY:
+        drone_controls->setPrimary(0);
+        break;
+    case CYCLE_SECONDARY:
+        drone_controls->setSecondary(
+            (drone_controls->getSecondary()+1) % 2);
+        break;
+    case FIRE_PRIMARY:
+        drone_controls->setFirePrimary(true);
+        break;
+    case FIRE_SECONDARY:
+        drone_controls->setFireSecondary(true);
+        break;
+    case RELEASE_PRIMARY:
+        drone_controls->setFirePrimary(false);
+        break;
+    case RELEASE_SECONDARY:
+        drone_controls->setFireSecondary(false);
+        break;
+    default:
+        ls_error("Drone::event: Unknown event %d\n", event);
+    }
 }

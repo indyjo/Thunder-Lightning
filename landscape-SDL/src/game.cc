@@ -7,11 +7,9 @@
 #include <modules/config/config.h>
 #include <modules/camera/camera.h>
 #include <modules/clock/clock.h>
-#include <modules/player/player.h>
 #include <modules/LoDTerrain/LoDTerrain.h>
 #include <modules/skybox/skybox.h>
 #include <modules/map/map.h>
-#include <modules/gunsight/gunsight.h>
 #include <modules/actors/drone/drone.h>
 #include <modules/actors/projectiles/bullet.h>
 #include <modules/actors/projectiles/dumbmissile.h>
@@ -40,7 +38,7 @@ Game * Game::the_game = 0;
 
 
 Game::Game(int argc, const char **argv)
-: argc(argc), argv(argv), game_speed(1.0), view(0)
+: argc(argc), argv(argv), game_speed(1.0)
 {
     the_game = this;
 
@@ -51,8 +49,8 @@ Game::Game(int argc, const char **argv)
 
     ls_message("Initializing SDL: ");
     if (-1 == SDL_Init( SDL_INIT_VIDEO |
-                        SDL_INIT_JOYSTICK |
-                        SDL_INIT_NOPARACHUTE )  )
+                        SDL_INIT_JOYSTICK /*|
+                        SDL_INIT_NOPARACHUTE*/ )  )
     {
         const char * err = SDL_GetError();
         ls_error("error: %s", err);
@@ -100,12 +98,11 @@ Game::Game(int argc, const char **argv)
     ls_message("done.\n");
 
     pause = false;
-    follow_mode = false;
 
     mouse_relx=mouse_rely=0;
     mouse_buttons=0;
-    SDL_WM_GrabInput(SDL_GRAB_ON);
-    SDL_ShowCursor(SDL_DISABLE);
+    //SDL_WM_GrabInput(SDL_GRAB_ON);
+    //SDL_ShowCursor(SDL_DISABLE);
 
     key_tab_old=false;
 
@@ -133,8 +130,6 @@ Game::Game(int argc, const char **argv)
     }
     //renderer->setClipRange(CLIP_MIN_RANGE, CLIP_RANGE);
 
-    cam_pos = player;
-
     Ptr<Drone> drone;
     Ptr<SmokeTrail> smoke;
 
@@ -161,6 +156,9 @@ Game::Game(int argc, const char **argv)
         //smoke->follow(drone);
         //addActor( smoke );
     }
+    
+    setCurrentView(drone->getView(0));
+    setCurrentlyControlledActor(drone);
 
     for(int i=0; i<5; ++i) {
         Ptr<Tank> tank = new Tank(this);
@@ -168,11 +166,7 @@ Game::Game(int argc, const char **argv)
         addActor(tank);
     }
 
-    float aspect = 1.3;
-    float focus = camera->getFocus();
-    UI::Surface surface =
-        UI::Surface::FromCamera(aspect, focus, 1024, 768);
-    console = new UI::Console(this, surface);
+    console = new UI::Console(this, getScreenSurface());
 
     while (clock->catchup(1.0f)) ;
 }
@@ -230,20 +224,18 @@ Ptr<IConfig> Game::getConfig()
     return config;
 }
 
-Ptr<IActor> Game::getCamPos()
-{
-    return cam_pos;
-}
-
-void Game::setCamPos(Ptr<IActor> c)
-{
-    cam_pos=c;
-    if (!c) cam_pos = gunsight->getCurrentTarget();
-}
 
 Ptr<ICamera> Game::getCamera()
 {
     return camera;
+}
+
+UI::Surface Game::getScreenSurface() {
+    float xres = atof(config->query("Game_xres","1024"));
+    float yres = atof(config->query("Game_yres","768"));
+    float aspect = camera->getAspect();
+    float focus = camera->getFocus();
+    return UI::Surface::FromCamera(aspect, focus, xres, yres);
 }
 
 Ptr<Clock> Game::getClock()
@@ -256,19 +248,17 @@ Ptr<ITerrain> Game::getTerrain()
 #if ENABLE_LOD_TERRAIN
     return quadman;
 #endif
-#if ENABLE_TERRAIN
-    return terrain;
-#endif
 }
 
-Ptr<IPlayer> Game::getPlayer()
-{
-    return player;
-}
-
-Ptr<IGunsight> Game::getGunsight()
+Ptr<IDrawable> Game::getGunsight()
 {
     return gunsight;
+}
+
+void Game::setGunsight(Ptr<IDrawable> gunsight) {
+    ls_message("setGunsight\n");
+    this->gunsight=gunsight;
+    ls_message("end setGunsight\n");
 }
 
 #if ENABLE_SKY
@@ -308,29 +298,51 @@ double Game::getTime()
     return (double) 0.0;
 }
 
+Ptr<IView> Game::getCurrentView()
+{
+	return current_view;
+}
+
+void Game::setCurrentView(Ptr<IView> view)
+{
+	current_view = view;
+	if (view) setGunsight(view->getGunsight());
+	else setGunsight(0);
+}
+
+Ptr<IActor> Game::getCurrentlyControlledActor()
+{
+	return current_actor;
+}
+
+void Game::setCurrentlyControlledActor(Ptr<IActor> actor)
+{
+	if (current_actor) {
+		if (current_actor->hasControlMode(IActor::AUTOMATIC)) {
+			current_actor->setControlMode(IActor::AUTOMATIC);
+		} else {
+			current_actor->setControlMode(IActor::UNCONTROLLED);
+		}
+	}
+	
+	current_actor = actor;
+	if (current_actor->hasControlMode(IActor::MANUAL)) {
+		current_actor->setControlMode(IActor::MANUAL);
+	}
+}
+
 void Game::initModules(Status & stat)
 {
-    int steps = 2;
+    ls_message("initModules\n");
+    int steps = 1;
 #define STEPS 2
-#if ENABLE_TERRAIN
-    steps++;
-#endif
 #if ENABLE_LOD_TERRAIN
-    steps++;
-#endif
-#if ENABLE_SKY
     steps++;
 #endif
 #if ENABLE_SKYBOX
     steps++;
 #endif
-#if ENABLE_HORIZON
-    steps++;
-#endif
 #if ENABLE_MAP
-    steps++;
-#endif
-#if ENABLE_GUNSIGHT
     steps++;
 #endif
 
@@ -339,46 +351,26 @@ void Game::initModules(Status & stat)
     camera = new Camera(this);
     environment = new Environment();
     stat.stepFinished();
-#if ENABLE_TERRAIN
-    terrain = new Terrain(this);
-    stat.stepFinished();
-    //Terrain *terrain = new Terrain(this);
-    ls_message("Game@%p drawing Terrain@%p\n", this, &*terrain);
-    terrain->draw();
-#endif
 #if ENABLE_LOD_TERRAIN
     stat.beginJob("Initialize LOD terrain",1);
     quadman = new LoDQuadManager(this, stat);
     stat.endJob();
 #endif
-    ls_message("init player.\n");
-    player = new Player(this);
-    ls_message("adding player.\n");
-    addActor(player);
-    ls_message("init player done.\n");
-    stat.stepFinished();
-#if ENABLE_SKY
-    sky = new Sky(this);
-    stat.stepFinished();
-#endif
 #if ENABLE_SKYBOX
+    ls_message("SkyBox init\n");
     skybox = new SkyBox(this);
-    stat.stepFinished();
-#endif
-#if ENABLE_HORIZON
-    horizon = new Horizon(this);
+    ls_message("end SkyBox init\n");
     stat.stepFinished();
 #endif
 #if ENABLE_MAP
+    ls_message("map init\n");
     map = new Map(this);
-    stat.stepFinished();
-#endif
-#if ENABLE_GUNSIGHT
-    gunsight = new Gunsight(this);
+    ls_message("end map init\n");
     stat.stepFinished();
 #endif
 
     stat.endJob();
+    ls_message("end LoDQuad::init\n");
 }
 
 namespace {
@@ -455,20 +447,21 @@ void Game::initControls()
     r->mapKey(SDLK_F4, true, "view3");
     r->mapKey(SDLK_F5, true, "view4");
     r->mapKey(SDLK_F6, true, "view5");
-    r->map("view0", SigC::bind( SigC::slot(&setvar<int>), &view, 0));
-    r->map("view1", SigC::bind( SigC::slot(&setvar<int>), &view, 1));
-    r->map("view2", SigC::bind( SigC::slot(&setvar<int>), &view, 2));
-    r->map("view3", SigC::bind( SigC::slot(&setvar<int>), &view, 3));
-    r->map("view4", SigC::bind( SigC::slot(&setvar<int>), &view, 4));
-    r->map("view5", SigC::bind( SigC::slot(&setvar<int>), &view, 5));
-
-
-    r->mapKey(SDLK_v, true, "external");
-    r->map("external", SigC::bind(
-            SigC::slot(*this, & Game::setCamPos),
-            Ptr<IActor>()));
-    r->mapKey(SDLK_f, true, "follow");
-    r->map("follow", SigC::slot(*this, & Game::toggleFollowMode));
+    r->map("view0", SigC::bind(
+    	SigC::slot(*this, &Game::setView), 0));
+    r->map("view1", SigC::bind(
+    	SigC::slot(*this, &Game::setView), 1));
+    r->map("view2", SigC::bind(
+    	SigC::slot(*this, &Game::setView), 2));
+    r->map("view3", SigC::bind(
+    	SigC::slot(*this, &Game::setView), 3));
+    r->map("view4", SigC::bind(
+    	SigC::slot(*this, &Game::setView), 4));
+    r->map("view5", SigC::bind(
+    	SigC::slot(*this, &Game::setView), 5));
+    r->mapKey(SDLK_v, true, "external-view");
+    r->mapKey(SDLK_v, true, "return-view");
+    r->map("return-view", SigC::slot(*this, &Game::returnView));
 
     r->mapKey(SDLK_BACKSPACE, true, "cycle-primary");
     r->mapKey(SDLK_RETURN,    true, "cycle-secondary");
@@ -493,7 +486,7 @@ void Game::initControls()
     r->mapJoystickButton(0, 1, false, "-secondary");
     r->mapJoystickButton(0, 2, true,  "gunsight_target");
     r->mapJoystickButton(0, 3, true,  "cycle-secondary");
-
+    
 
     r->mapKey(SDLK_F12, true, "debug");
 
@@ -684,19 +677,16 @@ void Game::preFrame()
         }
     }
 
-    if (cam_pos && cam_pos->getState() == IActor::DEAD) cam_pos = 0;
-    if (cam_pos) {
-        Ptr<IPositionProvider> view_pos = cam_pos->getView(
-                std::min(view, cam_pos->getNumViews()-1));
-        camera->alignWith(&*view_pos);
+    if (current_view) {
+        camera->alignWith(&*current_view);
         camera->getCamera(&jcamera);
         renderer->setCamera(&jcamera.cam);
         Vector pos, up, right, front;
-        pos = view_pos->getLocation();
-        view_pos->getOrientation(&up, &right, &front);
+        pos = current_view->getLocation();
+        current_view->getOrientation(&up, &right, &front);
         soundman->setListenerPosition(pos);
         soundman->setListenerOrientation(up, front);
-        soundman->setListenerVelocity(cam_pos->getMovementVector());
+        soundman->setListenerVelocity(current_view->getMovementVector());
     }
 
     environment->update(camera);
@@ -740,23 +730,12 @@ void Game::doFrame()
 
 void Game::postFrame()
 {
-    jcolor3_t sky_col;
-
-#if ENABLE_SKY
-    sky->draw();
-#endif
-
 #if ENABLE_GUNSIGHT
-    gunsight->draw();
+    if (gunsight) gunsight->draw();
 #endif
 
 #if ENABLE_MAP
     map->draw();
-#endif
-
-#if ENABLE_SKY
-    sky->getSkyColor(&sky_col);
-    renderer->setBackgroundColor(&sky_col);
 #endif
 
     console->draw(renderer);
@@ -837,8 +816,7 @@ void Game::drawDebugTriangleAt(const Vector & p)
     renderer->disableAlphaBlending();
 }
 
-void Game::clearScreen()
-{
+void Game::clearScreen() {
     SDL_GL_SwapBuffers();
     renderer->clear();
 }
@@ -847,13 +825,7 @@ void Game::togglePauseMode() {
     if (clock->isPaused()) clock->resume(); else clock->pause();
 }
 
-void Game::toggleFollowMode() {
-    follow_mode = !follow_mode;
-    if (!follow_mode) cam_pos = player;
-}
-
-void Game::endGame()
-{
+void Game::endGame() {
     game_done=true;
 }
 
@@ -863,6 +835,20 @@ void Game::accelerateSpeed() {
 
 void Game::decelerateSpeed() {
     clock->setTimeFactor(clock->getTimeFactor() / 1.5);
+}
+
+void Game::setView(int n) {
+	if (!current_view || !current_view->getViewSubject()) return;
+	if (n >= current_view->getViewSubject()->getNumViews()) return;
+	setCurrentView(current_view->getViewSubject()->getView(n));
+}
+
+void Game::returnView() {
+	if (!current_actor)
+		return;
+	if (current_view &&  current_view->getViewSubject() == current_actor)
+		return;
+	setCurrentView(current_actor->getView(0));
 }
 
 int main(int argc, const char **argv)

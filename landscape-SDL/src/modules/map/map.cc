@@ -12,6 +12,7 @@ using namespace std;
 Map::Map(IGame *thegame)
 :   thegame(thegame)
 {
+    ls_message("Map::Map\n");
     ifstream in;
     JSprite spr;
     Ptr<IConfig> config( thegame->getConfig() );
@@ -33,6 +34,7 @@ Map::Map(IGame *thegame)
     EventRemapper *r = thegame->getEventRemapper();
     r->map("map_magnify", SigC::slot(*this, & Map::magnify));
     r->map("map_demagnify", SigC::slot(*this, & Map::demagnify));
+    ls_message("end Map::Map\n");
 }
 
 void Map::enable()

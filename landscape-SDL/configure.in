@@ -51,8 +51,6 @@ dnl AC_CHECK_FUNCS(gettimeofday)
 AC_OUTPUT([
 Makefile
 scripts/Makefile
-scripts/landscape
-scripts/landscape-debug
 src/Makefile
 src/boost/Makefile
 src/interfaces/Makefile
@@ -78,7 +76,6 @@ src/modules/map/Makefile
 src/modules/math/Makefile
 src/modules/model/Makefile
 src/modules/physics/Makefile
-src/modules/player/Makefile
 src/modules/skybox/Makefile
 src/modules/texman/Makefile
 src/modules/ui/Makefile

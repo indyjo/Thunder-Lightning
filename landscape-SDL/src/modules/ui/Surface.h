@@ -11,17 +11,28 @@ namespace UI {
   * The surface does not imply orientation, i.e. whether dy points upwards
   * or downwards. By convention, dx points to the right and dy downwards.
   * Every UI class using Surface adheres to this convention.
+  * Additionally, a surface carries a resolution information which may
+  * or may not be used. In case it is not used, width and height should
+  * be set to 1.
   */
 class Surface {
     /// The surface origin
     Vector origin;
     /// The surface's +x and +y vectors
     Vector dx, dy;
+    /// Optional: pixel size. Defaults to 1
+    float width, height;
 
 public:
+    inline Surface()
+    :   origin(0,0,0), dx(0,0,0), dy(0,0,0),
+        width(0), height(0)
+    { }
+    
     /** Creates a Surface from the given values. */
-    inline Surface(const Vector & origin, const Vector & dx, const Vector & dy)
-    :   origin(origin), dx(dx), dy(dy)
+    inline Surface(const Vector & origin, const Vector & dx, const Vector & dy,
+        float width, float height)
+    :   origin(origin), dx(dx), dy(dy), width(width), height(height)
     { }
 
     /** Creates a Surface from three corners plus width and height.
@@ -39,7 +50,7 @@ public:
                                         const Vector & sw,
                                         float width=1, float height=1)
     {
-        return Surface(nw, (ne-nw) / width, (sw-nw) / height);
+        return Surface(nw, (ne-nw) / width, (sw-nw) / height, width, height);
     }
 
     /** Creates a Surface from the given camera specification.
@@ -65,7 +76,7 @@ public:
         float f = 2/factor;
         return Surface(Vector(-dx2, dy2, dist),
                        Vector(f*dx2/width, 0, 0),
-                       Vector(0, -f*dy2/height, 0));
+                       Vector(0, -f*dy2/height, 0), width, height);
     }
 
     /// Translate the origin by the specified surface units
@@ -82,6 +93,12 @@ public:
 
     inline const Vector & getDY() const { return dy; }
     inline void setDY(const Vector & dy) { this->dy = dy; }
+    
+    inline float getWidth() const { return width; }
+    inline float getHeight() const { return height; }
+    
+    inline void setWidth(float w) { width = w; }
+    inline void setHeight(float h) { height = h; }
 
     /// Creates a 4x4 matrix M so that M*x == origin + x[0]*dx + x[1]*dy
     inline Matrix getMatrix() const {

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+function on_error() {
+  xset r on
+  echo Das Programm wurde abgebrochen!
+  exit -1
+}
+
+
+exec_dir=`dirname $0`
+source $exec_dir/landscape-vars
+
+echo $bin_dir/landscape-bin $param $*
+$bin_dir/landscape-bin $param $*
+if [ $? != 0 ]; then
+  on_error
+fi
+

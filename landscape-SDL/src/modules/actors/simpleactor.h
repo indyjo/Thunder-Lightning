@@ -9,6 +9,7 @@
 #include <modules/engines/engine.h>
 #include <interfaces/IActor.h>
 #include <interfaces/IGame.h>
+#include <interfaces/IView.h>
 
 class SimpleActor : virtual public IActor
 {
@@ -18,7 +19,7 @@ protected:
     Ptr<IGame> thegame;
     Ptr<IEngine> engine;
     State state;
-    std::vector<Ptr<IPositionProvider> > views;
+    std::vector<Ptr<IView> > views;
     Ptr<TargetInfo> target_info;
     Ptr<Faction> faction;
 public:
@@ -56,31 +57,44 @@ public:
     virtual float getRelativeDamage();
     virtual void applyDamage(float damage, int domain);
     virtual int getNumViews();
-    virtual Ptr<IPositionProvider> getView(int n);
+    virtual Ptr<IView> getView(int n);
+    virtual bool hasControlMode(ControlMode);
+    virtual void setControlMode(ControlMode);
 
     // IDrawable
     virtual void draw();
 };
 
-class SimpleActor::RelativeView : virtual public IPositionProvider {
-    IPositionProvider &base;
+class SimpleActor::RelativeView : virtual public IView {
+    IActor &subject;
     Vector p,up,right,front;
+    Ptr<IDrawable> gunsight;
 public:
-    inline RelativeView(IPositionProvider &base,
+    inline RelativeView(IActor & subject,
         const Vector & p,
         const Vector & right,
         const Vector & up,
-        const Vector & front)
-    :   base(base),
+        const Vector & front,
+        Ptr<IDrawable> gunsight=0)
+    :   subject(subject),
         p(p),
-        up(up), right(right), front(front)
+        up(up), right(right), front(front),
+        gunsight(gunsight)
     { }
 
+    // IPositionProvider
     virtual Vector getLocation();
     virtual Vector getFrontVector();
     virtual Vector getRightVector();
     virtual Vector getUpVector();
     virtual void getOrientation(Vector * up, Vector * right, Vector * front);
+    
+    // IMovementProvider
+    virtual Vector getMovementVector();
+    
+    // IView
+    virtual Ptr<IActor> getViewSubject();
+    virtual Ptr<IDrawable> getGunsight();
 };
 
 #endif

@@ -18,6 +18,8 @@ class PatrolIdea;
 struct Context;
 struct Rating;
 
+class EventSheet;
+
 struct Personality {
     Personality() : confidence(.25), obedience(.25),
             experience(.25), cautiousness(.25) { }
@@ -30,7 +32,7 @@ struct Personality {
     void randomize();
 };
 
-class Drone : public SimpleActor, public Collide::Collidable {
+class Drone : public SimpleActor, public Collide::Collidable, virtual public SigObject {
 public:
     Drone(Ptr<IGame> thegame);
 
@@ -50,11 +52,27 @@ public:
     void fireSmartMissile();
     void fireDumbMissile();
     
+    virtual bool hasControlMode(ControlMode);
+    virtual void setControlMode(ControlMode);
+    
+private:
+    enum Event {
+        CYCLE_PRIMARY,
+        CYCLE_SECONDARY,
+        FIRE_PRIMARY,
+        RELEASE_PRIMARY,
+        FIRE_SECONDARY,
+        RELEASE_SECONDARY
+    };
+    void event(Event e);
+    
 private:
     JRenderer * renderer;
     Ptr<ITerrain> terrain;
 
     // ai stuff
+    Ptr<EventSheet> event_sheet;
+    ControlMode control_mode;
     Ptr<Context> context;
     Personality personality;
     std::list<Ptr<Idea> > ideas;

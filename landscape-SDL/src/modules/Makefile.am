@@ -16,7 +16,6 @@ SUBDIRS = \
         math            \
 	model           \
         physics         \
-	player		\
 	skybox		\
 	texman		\
         ui

@@ -7,15 +7,14 @@ noinst_HEADERS=\
 	IFollower.h			\
 	IFontMan.h			\
 	IGame.h				\
-	IGunsight.h			\
 	ILoDQuadManager.h	\
 	IMap.h				\
 	IModelMan.h			\
 	IMovementProvider.h	\
 	IMovementReceiver.h	\
-	IPlayer.h			\
 	IPositionProvider.h	\
 	IPositionReceiver.h	\
 	IProjectile.h		\
 	ISkyBox.h			\
-	ITerrain.h
+	ITerrain.h			\
+	IView.h

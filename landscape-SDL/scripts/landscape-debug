@@ -1,0 +1,37 @@
+#!/bin/sh
+
+debug_1="ddd --args"
+debug_2="valgrind -v --leak-check=yes --logfile=valgrind --num-callers=8"
+debug_3="efence"
+
+function efence {
+  export LD_PRELOAD=libefence.so.0.0
+}
+
+function on_error() {
+  xset r on
+  echo Das Programm wurde abgebrochen!
+  exit -1
+}
+
+echo "Please choose a debugger:"
+echo "1 $debug_1"
+echo "2 $debug_2"
+echo "3 $debug_3"
+read num
+
+case $num in
+  1) debug=$debug_1 ;;
+  2) debug=$debug_2 ;;
+  3) debug=$debug_3 ;;
+esac
+
+exec_dir=`dirname $0`
+source $exec_dir/landscape-vars
+
+echo $debug $bin_dir/landscape-bin $param $*
+$debug $bin_dir/landscape-bin $param $*
+if [ $? != 0 ]; then
+  on_error
+fi
+

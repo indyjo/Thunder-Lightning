@@ -7,6 +7,7 @@
 
 class Faction;
 class TargetInfo;
+class IView;
 
 class IActor:   virtual public IDrawable,
               	virtual public IMovementProvider,
@@ -14,6 +15,7 @@ class IActor:   virtual public IDrawable,
 {
 public:
     typedef enum {ALIVE, DEAD} State;
+    typedef enum {UNCONTROLLED, MANUAL, AUTOMATIC} ControlMode;
 
     virtual Ptr<TargetInfo> getTargetInfo()=0;
 
@@ -27,7 +29,10 @@ public:
     virtual void applyDamage(float damage, int domain=0)=0;
 
     virtual int getNumViews()=0;
-    virtual Ptr<IPositionProvider> getView(int n)=0;
+    virtual Ptr<IView> getView(int n)=0;
+    
+    virtual bool hasControlMode(ControlMode)=0;
+    virtual void setControlMode(ControlMode)=0;
 };
 
 #endif

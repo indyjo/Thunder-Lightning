@@ -14,7 +14,6 @@ landscape_bin_SOURCES = game.cc game.h landscape.h interfaces.h \
                         Faction.cc Faction.h
 landscape_libs = \
     modules/LoDTerrain/libLoDTerrain.a \
-    modules/player/libplayer.a \
     modules/actors/drone/libdrone.a \
     modules/actors/tank/libtank.a \
     modules/actors/projectiles/libprojectiles.a \
@@ -29,15 +28,12 @@ landscape_libs = \
     modules/flight/libflight.a \
     modules/fontman/libfontman.a \
     modules/gunsight/libgunsight.a \
-    modules/horizon/libhorizon.a \
     modules/jogi/libjogi.a \
     modules/map/libmap.a \
     modules/physics/libphysics.a \
     modules/math/libmath.a \
     modules/model/libmodel.a \
-    modules/sky/libsky.a \
     modules/skybox/libskybox.a \
-    modules/terrain/libterrain.a \
     modules/ui/libui.a \
     modules/ai/libai.a \
     modules/texman/libtexman.a

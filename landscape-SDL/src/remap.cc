@@ -1,15 +1,46 @@
+#include <algorithm>
 #include <landscape.h>
 #include <remap.h>
 
+
+EventSheet::~EventSheet() {
+    // Delete every ActionSignal instance from the out map
+    for(OutMap::iterator i=outmap.begin(); i!=outmap.end(); i++)
+        delete i->second;
+}
+
+void EventSheet::map(const char *action, const ActionSlot & slot)
+{
+    OutMap::iterator i = outmap.find(action);
+    ActionSignal *sig;
+    if (i == outmap.end()) {
+        sig = new ActionSignal;
+        outmap[action] = sig;
+    } else {
+        sig = i->second;
+    }
+
+    sig->connect(slot);
+}
+
+bool EventSheet::triggerAction(const char * action)
+{
+    OutMap::iterator o = outmap.find( action );
+    if (o != outmap.end()) {
+        o->second->emit();
+        return true;
+    }
+    return false;
+}
+
 EventRemapper::EventRemapper()
 {
+    // default sheet
+    event_sheets.push_back(new EventSheet());
 }
 
 EventRemapper::~EventRemapper()
 {
-    // Delete every ActionSignal instance from the out map
-    for(OutMap::iterator i=outmap.begin(); i!=outmap.end(); i++)
-        delete i->second;
 }
 
 void EventRemapper::mapKey(int key, bool pressed, const char *action)
@@ -28,20 +59,6 @@ void EventRemapper::mapJoystickButton(int js, int button, bool pressed, const ch
         = action;
 }
 
-void EventRemapper::map(const char *action, const ActionSlot & slot)
-{
-    OutMap::iterator i = outmap.find(action);
-    ActionSignal *sig;
-    if (i == outmap.end()) {
-        sig = new ActionSignal;
-        outmap[action] = sig;
-    } else {
-        sig = i->second;
-    }
-
-    sig->connect(slot);
-}
-
 void EventRemapper::pushEventFilter(Ptr<IEventFilter> filter) {
     event_filters.push_back(filter);
 }
@@ -50,6 +67,15 @@ void EventRemapper::popEventFilter() {
     if (!event_filters.empty())
         event_filters.pop_back();
 }
+
+void EventRemapper::addEventSheet(Ptr<EventSheet> sheet) {
+    event_sheets.push_back(sheet);
+}
+
+void EventRemapper::removeEventSheet(Ptr<EventSheet> sheet) {
+    event_sheets.erase(std::find(event_sheets.begin(), event_sheets.end(), sheet));
+}
+
 
 void EventRemapper::beginEvents() {
     x_accum = y_accum = 0.0f;
@@ -101,12 +127,13 @@ void EventRemapper::feedEvent(SDL_Event & ev)
 }
 
 
-void EventRemapper::triggerAction(const char * action)
+bool EventRemapper::triggerAction(const char * action)
 {
-    OutMap::iterator o = outmap.find( action );
-    if (o != outmap.end()) {
-        o->second->emit();
+    typedef EventSheets::reverse_iterator Iter;
+    for (Iter i=event_sheets.rbegin(); i!=event_sheets.rend(); ++i) {
+        if ((*i)->triggerAction(action)) return true;
     }
+    return false;
 }
 
 void EventRemapper::keyEvent(SDL_KeyboardEvent & ev)
@@ -115,8 +142,9 @@ void EventRemapper::keyEvent(SDL_KeyboardEvent & ev)
     bool pressed = (ev.state == SDL_PRESSED);
     KeyState ks(key, pressed);
 
-    KeyMap::iterator i = keymap.find(ks);
-    if (i != keymap.end())
+    typedef KeyMap::iterator Iter;
+    std::pair<Iter, Iter> range = keymap.equal_range(ks);
+    for(KeyMap::iterator i=range.first; i!=range.second; ++i)
         triggerAction(i->second.c_str());
 }
 
@@ -126,8 +154,9 @@ void EventRemapper::mouseButtonEvent(SDL_MouseButtonEvent & ev)
     bool pressed = (ev.state == SDL_PRESSED);
     MouseButtonState bs(button, pressed);
 
-    MouseButtonMap::iterator i = mouse_button_map.find(bs);
-    if (i != mouse_button_map.end())
+    typedef MouseButtonMap::iterator Iter;
+    std::pair<Iter, Iter> range = mouse_button_map.equal_range(bs);
+    for(Iter i=range.first; i!=range.second; ++i)
         triggerAction(i->second.c_str());
 }
 
@@ -147,8 +176,9 @@ void EventRemapper::joyButtonEvent(SDL_JoyButtonEvent & ev)
     bool pressed = (ev.state == SDL_PRESSED);
     JoystickButtonState js(std::make_pair(joy, button), pressed);
 
-    JoystickButtonMap::iterator i = joystick_button_map.find(js);
-    if (i != joystick_button_map.end())
+    typedef JoystickButtonMap::iterator Iter;
+    std::pair<Iter, Iter> range = joystick_button_map.equal_range(js);
+    for(Iter i=range.first; i!=range.second; ++i)
         triggerAction(i->second.c_str());
 }
 

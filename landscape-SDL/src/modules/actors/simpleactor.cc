@@ -46,7 +46,12 @@ IActor::State SimpleActor::getState() { return state; }
 float SimpleActor::getRelativeDamage() { return 0.0f; }
 void SimpleActor::applyDamage(float damage, int domain) { }
 int SimpleActor::getNumViews() { return views.size(); }
-Ptr<IPositionProvider> SimpleActor::getView(int n) { return views[n]; }
+Ptr<IView> SimpleActor::getView(int n) { return views[n]; }
+bool SimpleActor::hasControlMode(ControlMode m) {
+  return m==UNCONTROLLED;
+}
+void SimpleActor::setControlMode(ControlMode) { }
+
 
 // IPositionProvider
 Vector SimpleActor::getLocation() { return engine->getLocation(); }
@@ -79,35 +84,46 @@ void SimpleActor::draw() { }
 // SimpleActor::RelativeView
 Vector SimpleActor::RelativeView::getLocation() {
     Vector r, u, f;
-    base.getOrientation(&u, &r, &f);
+    subject.getOrientation(&u, &r, &f);
     Matrix3 M = MatrixFromColumns<float>(r,u,f);
-    return base.getLocation() + M*p;
+    return subject.getLocation() + M*p;
 }
 Vector SimpleActor::RelativeView::getFrontVector() {
     Vector r, u, f;
-    base.getOrientation(&u, &r, &f);
+    subject.getOrientation(&u, &r, &f);
     Matrix3 M = MatrixFromColumns<float>(r,u,f);
     return M*front;
 }
 
 Vector SimpleActor::RelativeView::getRightVector() {
     Vector r, u, f;
-    base.getOrientation(&u, &r, &f);
+    subject.getOrientation(&u, &r, &f);
     Matrix3 M = MatrixFromColumns<float>(r,u,f);
     return M*right;
 }
 Vector SimpleActor::RelativeView::getUpVector() {
     Vector r, u, f;
-    base.getOrientation(&u, &r, &f);
+    subject.getOrientation(&u, &r, &f);
     Matrix3 M = MatrixFromColumns<float>(r,u,f);
     return M*up;
 }
 void SimpleActor::RelativeView::getOrientation
         (Vector *up, Vector *right, Vector *front) {
     Vector r, u, f;
-    base.getOrientation(&u, &r, &f);
+    subject.getOrientation(&u, &r, &f);
     Matrix3 M = MatrixFromColumns<float>(r,u,f);
     *up = M*this->up;
     *right = M*this->right;
     *front = M*this->front;
+}
+Vector SimpleActor::RelativeView::getMovementVector() {
+	return subject.getMovementVector();
+}
+
+Ptr<IActor> SimpleActor::RelativeView::getViewSubject() {
+    return &subject;
+}
+
+Ptr<IDrawable> SimpleActor::RelativeView::getGunsight() {
+    return gunsight;
 }

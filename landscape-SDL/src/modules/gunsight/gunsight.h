@@ -1,42 +1,79 @@
-#include <math.h>
-#include <stdio.h>
-#include <landscape.h>
-#include <modules/environment/environment.h>
-#include <modules/flight/flightinfo.h>
-#include <modules/texman/TextureManager.h>
-#include <interfaces/IGunsight.h>
-#include <interfaces/IGame.h>
+#ifndef GUNSIGHT_H
+#define GUNSIGHT_H
 
-class Gunsight: public IGunsight, virtual public SigObject
-{
-public:
-    Gunsight(IGame *thegame);
+#include <vector>
+#include <string>
 
-    virtual void draw();
+#include <interfaces/ICamera.h>
+#include <interfaces/IDrawable.h>
+#include <modules/ui/Surface.h>
+#include <modules/math/Vector.h>
 
-    virtual void enable();
-    virtual void disable();
-    
-    virtual Ptr<IActor> getCurrentTarget();
+class IGame;
+class ICamera;
+class JRenderer;
+class FlexibleGunsight;
+class Environment;
 
+class GunsightModule : virtual public Object {
 protected:
-    void drawGunsight();
-    void drawThrustBar();
-    void drawFlightInfo();
-    void drawTargetInfo();
-    void drawTargets();
-    bool targetSelectable(Ptr<IActor>);
-    void selectNextTarget();
-    void selectTargetInGunsight();
-    void toggleInfo();
-private:
-    IGame * thegame;
-    JRenderer *renderer;
-    TexPtr tex;
-    bool enabled;
-    bool display_info;
-    Ptr<IPlayer> player;
-    FlightInfo fi;
-    Ptr<ITerrain> terrain;
-    Ptr<IActor> current_target;
+    float width, height;
+    Vector offset;
+    std::string name;
+public:
+    GunsightModule(const char *name, float w, float h);
+    
+    inline void setOffset(const Vector & ofs) { offset=ofs; }
+    inline const Vector & getOffset() { return offset; }
+    
+    inline float getWidth() { return width; }
+    inline float getHeight() { return height; }
+    
+    inline const std::string & getName() const { return name; }
+    virtual void draw(FlexibleGunsight &)=0;
 };
+
+
+class FlexibleGunsight : public IDrawable {
+protected:
+    UI::Surface surface;
+    Ptr<ICamera> camera;
+    Ptr<Environment> env;
+    typedef std::vector<Ptr<GunsightModule> > Modules;
+    Modules modules;
+    JRenderer * renderer;
+public:
+    enum {
+        LEFT=0x01,
+        RIGHT=0x02,
+        HCENTER=0x00,
+        TOP=0x04,
+        BOTTOM=0x08,
+        VCENTER=0x00
+    };
+
+    FlexibleGunsight(Ptr<IGame>);
+    void addModule(Ptr<GunsightModule>,
+        std::string relative_to="screen",
+        int parent_corner=0, int child_corner=0,
+        Vector ofs=Vector(0,0,0), bool ofs_in_pixels=true);
+        
+    inline const UI::Surface & getSurface() { return surface; }
+    inline JRenderer* getRenderer() { return renderer; }
+    inline Ptr<ICamera> getCamera() { return camera; }
+    
+    // IDrawable implementation
+    virtual void draw();
+    
+};
+
+struct PlaceholderModule : public GunsightModule {
+    inline PlaceholderModule(const char *name, float w, float h)
+    : GunsightModule(name,w,h) { }
+    
+    virtual void draw(FlexibleGunsight &);
+};
+
+typedef FlexibleGunsight DefaultGunsight;
+
+#endif

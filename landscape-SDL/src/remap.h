@@ -94,17 +94,37 @@ public:
     virtual bool feedEvent(SDL_Event & ev) = 0;
 };
 
+
+/// Enables events to trigger method calls.
+/// The organization into sheets makes it possible to switch between
+/// them. Each input context has a sheet associated with it.
+/// For example, while the player controls a car, a different sheet
+/// gets used as while he controls an airplane.
+/// EventRemapper allows multiple sheets to be active at once. If an event
+/// is triggered, only the latest-added sheet handling the event receives it.
+class EventSheet : public Object
+{
+    typedef std::map<std::string, ActionSignal *>        OutMap;
+    OutMap outmap;
+public:
+    ~EventSheet();
+    void map(const char *action, const ActionSlot & slot);
+    bool triggerAction(const char *action);
+};
+
 class EventRemapper : public SigC::Object
 {
 public:
     EventRemapper();
     ~EventRemapper();
 
+    inline void map(const char *action, const ActionSlot & slot) {
+        event_sheets[0]->map(action,slot);
+    }
+    
     void mapKey(int key, bool pressed, const char *action);
     void mapMouseButton(int button, bool pressed, const char *action);
     void mapJoystickButton(int js, int button, bool pressed, const char *action);
-
-    void map(const char *action, const ActionSlot & slot);
 
     void mapJoystickAxis(int js, int joyaxis,
         const char * axis);
@@ -117,12 +137,15 @@ public:
 
     void pushEventFilter(Ptr<IEventFilter> filter);
     void popEventFilter();
+    
+    void addEventSheet(Ptr<EventSheet> sheet);
+    void removeEventSheet(Ptr<EventSheet> sheet);
 
     void beginEvents();
     void feedEvent(SDL_Event & ev);
     void endEvents();
 
-    void triggerAction(const char * action);
+    bool triggerAction(const char * action);
 
 private:
     void keyEvent(SDL_KeyboardEvent & ev);
@@ -139,14 +162,13 @@ private:
     typedef int AxisIndex;
     typedef std::pair<KeyCode,                            bool> KeyState;
     typedef std::pair<ButtonNumber,                       bool> MouseButtonState;
-    typedef std::pair<std::pair<JoystickIndex, ButtonNumber>,
-                      bool>                                     JoystickButtonState;
+    typedef std::pair<std::pair<JoystickIndex, ButtonNumber>, bool> 
+        JoystickButtonState;
 
     typedef std::map<KeyState,              std::string> KeyMap;
     typedef std::map<MouseButtonState,      std::string> MouseButtonMap;
     typedef std::map<JoystickButtonState,   std::string> JoystickButtonMap;
-    typedef std::map<std::string, ActionSignal *>        OutMap;
-
+ 
     typedef std::pair<JoystickIndex, AxisIndex>          JoystickAxis;
     typedef std::map<JoystickAxis, std::string>          JoystickAxisMap;
     typedef std::map<std::string, float>                 AxisMap;
@@ -154,6 +176,7 @@ private:
     typedef std::vector<AxisManipulator>                 AxisManips;
 
     typedef std::vector<Ptr<IEventFilter> >              EventFilters;
+    typedef std::vector<Ptr<EventSheet> >                EventSheets;
 
     std::string         abs_mouse_x, abs_mouse_y, rel_mouse_x, rel_mouse_y;
     float               x_accum, y_accum;
@@ -161,10 +184,10 @@ private:
     MouseButtonMap      mouse_button_map;
     JoystickButtonMap   joystick_button_map;
     JoystickAxisMap     joystick_axis_map;
-    OutMap outmap;
     AxisMap axismap;
     AxisManips axismanips;
     EventFilters event_filters;
+    EventSheets event_sheets;
 };
 
 #endif

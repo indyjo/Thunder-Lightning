@@ -2,6 +2,7 @@
 #define IACTORSTAGE_H
 #include <list>
 #include <object.h>
+#include <modules/math/Vector.h>
 
 class IActor;
 

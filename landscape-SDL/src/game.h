@@ -28,17 +28,13 @@ public:
     virtual EventRemapper *getEventRemapper();
     virtual Ptr<IModelMan> getModelMan();
     virtual Ptr<IConfig> getConfig();
-    virtual Ptr<IActor> getCamPos();
-    virtual void setCamPos(Ptr<IActor>);
     virtual Ptr<ICamera> getCamera();
+    virtual UI::Surface getScreenSurface();
     virtual Ptr<Clock> getClock();
     virtual Ptr<ITerrain> getTerrain();
-    virtual Ptr<IPlayer> getPlayer();
-    virtual Ptr<IGunsight> getGunsight();
+    virtual Ptr<IDrawable> getGunsight();
+    virtual void setGunsight(Ptr<IDrawable>);
     virtual Ptr<Environment> getEnvironment();
-#if ENABLE_SKY
-    virtual Ptr<ISky> getSky();
-#endif
     virtual Ptr<IFontMan> getFontMan();
     virtual Ptr<SoundMan> getSoundMan();
     virtual Ptr<Collide::CollisionManager> getCollisionMan();
@@ -46,7 +42,13 @@ public:
     virtual double  getTimeDelta();
     virtual double  getTime();
     virtual void drawDebugTriangleAt(const Vector & p);
-
+    
+    virtual Ptr<IView> getCurrentView();
+    virtual void setCurrentView(Ptr<IView>);
+    
+    virtual Ptr<IActor> getCurrentlyControlledActor();
+    virtual void setCurrentlyControlledActor(Ptr<IActor>);
+    
     virtual void clearScreen();
 
 private:
@@ -73,6 +75,9 @@ private:
 
     void accelerateSpeed();
     void decelerateSpeed();
+    
+    void setView(int);
+    void returnView();
 
 private:
     int argc;
@@ -86,8 +91,9 @@ private:
     EventRemapper * event_remapper;
     KeyboardSignal keyboard_sig;
 
-    Ptr<IPlayer> player;
-    Ptr<IActor> cam_pos;
+    Ptr<IView> current_view;
+    Ptr<IActor> current_actor;
+    
     Ptr<ICamera> camera;
     Ptr<Clock> clock;
     Ptr<IConfig> config;
@@ -105,7 +111,7 @@ private:
     Ptr<IMap> map;
 #endif
 #if ENABLE_GUNSIGHT
-    Ptr<IGunsight> gunsight;
+    Ptr<IDrawable> gunsight;
 #endif
     Ptr<Environment> environment;
 
@@ -118,7 +124,5 @@ private:
 
     bool key_tab_old;
     bool pause;
-    bool follow_mode;
     float game_speed;
-    int view;
 };
