@@ -50,12 +50,13 @@ LIBRARIES = $(noinst_LIBRARIES)
 ARFLAGS = cru
 libgunsight_a_AR = $(AR) $(ARFLAGS)
 libgunsight_a_LIBADD =
-am_libgunsight_a_OBJECTS = gunsight.$(OBJEXT) FlightGunsight.$(OBJEXT)
+am_libgunsight_a_OBJECTS = gunsight.$(OBJEXT) flight.$(OBJEXT) \
+	debug.$(OBJEXT)
 libgunsight_a_OBJECTS = $(am_libgunsight_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/FlightGunsight.Po \
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/debug.Po ./$(DEPDIR)/flight.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/gunsight.Po
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -185,7 +186,8 @@ target_alias = @target_alias@
 noinst_LIBRARIES = libgunsight.a
 INCLUDES = -I${top_srcdir}/src
 libgunsight_a_SOURCES = gunsight.cc gunsight.h \
-	FlightGunsight.h FlightGunsight.cc
+	flight.h flight.cc \
+	debug.h debug.cc
 
 all: all-am
 
@@ -234,7 +236,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FlightGunsight.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/debug.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/flight.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gunsight.Po@am__quote@
 
 .cc.o:

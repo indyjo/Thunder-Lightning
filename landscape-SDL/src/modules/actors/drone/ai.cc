@@ -189,7 +189,7 @@ void PatrolIdea::realize() {
     ctx.ap->setMode( AP_COURSE_MASK | AP_ALTITUDE_MASK | AP_SPEED_MASK );
     ctx.ap->setTargetCourse(course);
     ctx.ap->setTargetAltitude(a[1]+t*(b[1]-a[1]));
-    ctx.ap->setTargetSpeed(400.0);
+    ctx.ap->setTargetSpeed(120.0);
 }
 
 void PatrolIdea::postpone() {
@@ -603,7 +603,7 @@ std::string CRIdea::info() {
 
 void CRIdea::run() {
 	for(;;) {
-		nfo = "Stablilizing";
+		nfo = "Stabilizing";
 		ctx.ap->setMode(AP_ROLL_MASK|AP_PITCH_MASK|AP_SPEED_MASK);
 		ctx.ap->setTargetRoll(0);
 		ctx.ap->setTargetPitch(0);
@@ -614,7 +614,7 @@ void CRIdea::run() {
 		} while (
 			std::abs(ctx.fi->getCurrentRoll()) > 0.02
 			|| std::abs(ctx.fi->getCurrentPitch()) > 0.05
-			|| std::abs(ctx.fi->getCurrentSpeed()) < 195);
+			|| std::abs(ctx.fi->getCurrentSpeed()) < 120);
 			
 		nfo = "Rolling";
 		ctx.ap->reset();
@@ -637,7 +637,7 @@ void CRIdea::run() {
 		} while (
 			std::abs(ctx.fi->getCurrentRoll()) > 0.02
 			|| std::abs(ctx.fi->getCurrentPitch()) > 0.05
-			|| std::abs(ctx.fi->getCurrentSpeed()) < 195);
+			|| std::abs(ctx.fi->getCurrentSpeed()) < 120);
 			
 		nfo = "Looping";
 		ctx.ap->reset();
@@ -661,7 +661,7 @@ void CRIdea::run() {
 			yield();
 		} while (
 			std::abs(ctx.fi->getCurrentHeight()) < 995
-			|| std::abs(ctx.fi->getCurrentSpeed()) < 195);
+			|| std::abs(ctx.fi->getCurrentSpeed()) < 120);
 		
 	}
 }
@@ -777,6 +777,11 @@ void Dogfight::aimInDirection(Vector d) {
     float course = atan2(d[0], d[2]);
     if (course < 0) course += 2.0*PI;
     ctx.ap->setTargetCourse(course);
+    char buf[512];
+    snprintf(buf,512, "%s\n\n"
+    	"aiming in direction: %3.2f\n"
+    	"with pitch: %3.2f", nfo.c_str(), course*180/PI, pitch);
+    nfo = buf;
 }
 
 void Dogfight::aimAndShoot() {
@@ -813,20 +818,6 @@ void Dogfight::aimAndShoot() {
 		dir_to_target -= (projectile_dir - front);
 		dir_to_target.normalize();
 		
-		snprintf(buf, 1024, "Aiming and shooting\n"
-			"p: %5.2f %5.2f %5.2f\n"
-			"target: %5.2f %5.2f %5.2f\n"
-			"dir to target: %5.2f %5.2f %5.2f\n"
-			"dir: %5.2f %5.2f %5.2f\n"
-			"elevator: %1.3f\n"
-			"aileron; %1.3f",
-			p[0], p[1], p[2],
-			target_p[0], target_p[1], target_p[2],
-			dir_to_target[0], dir_to_target[1], dir_to_target[2],
-			ctx.actor->getFrontVector()[0],ctx.actor->getFrontVector()[1],ctx.actor->getFrontVector()[2],
-			ctx.controls->getElevator(),
-			ctx.controls->getAileron());
-		nfo = buf;
 		aimInDirection(dir_to_target);
 		
 	    float speed_diff = (target_v-ctx.actor->getMovementVector())
@@ -839,8 +830,23 @@ void Dogfight::aimAndShoot() {
 	    float cos_error = dir_to_target*ctx.actor->getFrontVector();
 	    float tan_error = sqrt(1-cos_error*cos_error)/cos_error;
 	    
-	    ctx.controls->setFirePrimary(tan_error <= 15/dist);
+	    ctx.controls->setFirePrimary(cos_error > 0.95 && tan_error <= 50/dist);
 	    
+		snprintf(buf, 1024, "Aiming and shooting\n"
+			"p: %5.2f %5.2f %5.2f\n"
+			"target: %5.2f %5.2f %5.2f\n"
+			"dir to target: %5.2f %5.2f %5.2f\n"
+			"dir: %5.2f %5.2f %5.2f\n"
+			"tan_error: %5.3f\n"
+			"15/dist; %5.3f",
+			p[0], p[1], p[2],
+			target_p[0], target_p[1], target_p[2],
+			dir_to_target[0], dir_to_target[1], dir_to_target[2],
+			ctx.actor->getFrontVector()[0],ctx.actor->getFrontVector()[1],ctx.actor->getFrontVector()[2],
+			tan_error,
+			15/dist);
+		nfo = buf;
+		
 	    yield();
 	}
 	ctx.ap->reset();
@@ -903,7 +909,6 @@ void Dogfight::evade() {
 }
 
 void Dogfight::gainSpeedAndStabilize() {
-	nfo = "Gaining speed and stabilizing";
 	ctx.controls->setAileronAndRudder(0);
 	ctx.controls->setElevator(0);
 	ctx.ap->setMode(AP_PITCH_MASK|AP_ROLL_MASK|AP_SPEED_MASK);
@@ -911,11 +916,23 @@ void Dogfight::gainSpeedAndStabilize() {
 	ctx.ap->setTargetPitch(0);
 	ctx.ap->setTargetSpeed(200);
 	do {
+		char buf[256];
+		snprintf(buf, 256,
+			"Gaining speed and stabilizing:\n"
+			" roll:  %f > 0.02\n"
+			" pitch: %f > 0.08\n"
+			" speed: %f < 120",
+			ctx.fi->getCurrentRoll(),
+			ctx.fi->getCurrentPitch(),
+			ctx.fi->getCurrentSpeed());
+		nfo = buf;
+			
+		//nfo = "Gaining speed and stabilizing";
 		yield();
 		} while (
 			std::abs(ctx.fi->getCurrentRoll()) > 0.02
-			|| std::abs(ctx.fi->getCurrentPitch()) > 0.05
-			|| std::abs(ctx.fi->getCurrentSpeed()) < 195);
+			|| std::abs(ctx.fi->getCurrentPitch()) > 0.08
+			|| std::abs(ctx.fi->getCurrentSpeed()) < 120);
 	ctx.ap->reset();
 }
 

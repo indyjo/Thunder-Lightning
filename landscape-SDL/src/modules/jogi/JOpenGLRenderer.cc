@@ -11,15 +11,15 @@
 #define CLIP_FAR 5000.0
 
 #include <landscape.h>
-JOpenGLRenderer::JOpenGLRenderer(int init_width, int init_height)
+JOpenGLRenderer::JOpenGLRenderer(int init_width, int init_height, float aspect)
 {
     resize(init_width, init_height);
 
     coord_sys=JR_CS_WORLD;
 
     camera.init();
-    view_frustum[JGL_FRUSTUM_LEFT] =   -DEFAULT_ASPECT;
-    view_frustum[JGL_FRUSTUM_RIGHT] =   DEFAULT_ASPECT;
+    view_frustum[JGL_FRUSTUM_LEFT] =   -aspect;
+    view_frustum[JGL_FRUSTUM_RIGHT] =   aspect;
     view_frustum[JGL_FRUSTUM_TOP] =     1.0;
     view_frustum[JGL_FRUSTUM_BOTTOM] = -1.0;
     view_frustum[JGL_FRUSTUM_NEAR] =    CLIP_NEAR;

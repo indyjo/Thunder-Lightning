@@ -11,6 +11,7 @@
 
 class TankBrain;
 class SoundSource;
+class EventSheet;
 
 class Tank : virtual public SimpleActor, virtual public SigObject {
 public:
@@ -28,10 +29,16 @@ public:
 
     void shoot();
 
+    virtual bool hasControlMode(ControlMode);
+    virtual void setControlMode(ControlMode);
+    
 private:
     JRenderer * renderer;
     Ptr<ITerrain> terrain;
 
+    // special views
+    Ptr<RelativeView> cannon_view, turret_view;
+    
     // 3d models
     Ptr<Model> base, turret, cannon;
 
@@ -39,6 +46,8 @@ private:
     Ptr<SoundSource> sound_low, sound_high;
 
     // Tank state
+    ControlMode control_mode;
+    Ptr<EventSheet> event_sheet;
     Ptr<TankControls> tank_controls;
     Ptr<TankEngine> tank_engine;
     Ptr<TankBrain> brain;

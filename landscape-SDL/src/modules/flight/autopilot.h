@@ -4,6 +4,7 @@
 #include <landscape.h>
 #include "flightinfo.h"
 #include <modules/engines/controls.h>
+#include <modules/math/PIDController.h>
 
 #define AP_SPEED        0
 #define AP_ACCEL        1
@@ -29,19 +30,22 @@ class AutoPilot : virtual public SigObject {
     float speed_target;
     float accel_target;
     float roll_target;
+    PIDController<float> roll_controller;
     float pitch_target;
+    PIDController<float> pitch_controller;
     float height_target;
     float altitude_target;
     float course_target;
+    PIDController<float> course_controller;
     Vector direction_target, d_direction_target;
     Vector vector_target, d_vector_target;
     
     int mode;
     
 public:
-    AutoPilot() : mode(0) { }
+    AutoPilot();
     
-    void reset() { mode = 0; }
+    void reset();
     
     int  getMode() { return mode; }
     bool isEnabled(int module) { return mode & (2<<module); }
@@ -87,17 +91,17 @@ public:
     }
     Vector getTargetVector() { return vector_target; }
     
-    void fly( const FlightInfo & fi, FlightControls & ctrls );
+    void fly( float dt, const FlightInfo & fi, FlightControls & ctrls );
 
 protected:
     int implies(int module);
     void handleSpeed( const FlightInfo & fi, FlightControls & ctrls );
     void handleAccel( const FlightInfo & fi, FlightControls & ctrls );
-    void handleRoll( const FlightInfo & fi, FlightControls & ctrls );
-    void handlePitch( const FlightInfo & fi, FlightControls & ctrls );
+    void handleRoll( float dt, const FlightInfo & fi, FlightControls & ctrls );
+    void handlePitch( float dt, const FlightInfo & fi, FlightControls & ctrls );
     void handleHeight( const FlightInfo & fi, FlightControls & ctrls );
     void handleAltitude( const FlightInfo & fi, FlightControls & ctrls );
-    void handleCourse( const FlightInfo & fi, FlightControls & ctrls );
+    void handleCourse( float dt, const FlightInfo & fi, FlightControls & ctrls );
     void handleDirection( const FlightInfo & fi, FlightControls & ctrls );
     void handleVector( const FlightInfo & fi, FlightControls & ctrls );
 };

@@ -142,4 +142,7 @@ void FontMan::print(const char *text) {
         cursor += fc->dx * px;
         text++;
     }
+    renderer->enableSmoothShading();
+    renderer->disableAlphaBlending();
+    renderer->disableTexturing();
 }

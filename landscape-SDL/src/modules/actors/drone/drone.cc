@@ -9,7 +9,7 @@
 #include <modules/actors/projectiles/smartmissile.h>
 #include <modules/clock/clock.h>
 #include <modules/engines/flightengine2.h>
-#include <modules/gunsight/FlightGunsight.h>
+#include <modules/gunsight/gunsight.h>
 #include <modules/math/SpecialMatrices.h>
 #include <remap.h>
 #include <sound.h>
@@ -92,6 +92,11 @@ Drone::Drone(Ptr<IGame> thegame)
     damage = 0;
     primary_reload_time = secondary_reload_time = 0;
 
+    Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
+    gunsight->addDebugInfo(thegame, this);
+    gunsight->addFlightModules(thegame, flight_info);
+    gunsight->addBasicCrosshairs();
+    
     views.clear();
     Vector pilot_pos(0, 1.5f, 3);
     views.push_back(new RelativeView(
@@ -100,8 +105,7 @@ Drone::Drone(Ptr<IGame> thegame)
             Vector(1,0,0),
             Vector(0,1,0),
             Vector(0,0,1),
-            new FlightGunsight(thegame, flight_info)
-            ));
+            gunsight));
     views.push_back(new RelativeView(
             *this,
             Vector(0, 10, 30),
@@ -212,7 +216,7 @@ void Drone::action() {
         }
     
         //flight_info.dump();
-        auto_pilot.fly(flight_info, *drone_controls);
+        auto_pilot.fly(delta_t, flight_info, *drone_controls);
     } else if (control_mode == MANUAL) {
         drone_controls->setRudder( thegame->getEventRemapper()->getAxis("rudder") );
         drone_controls->setAileron( thegame->getEventRemapper()->getAxis("aileron") );
@@ -344,6 +348,7 @@ void Drone::explode() {
     p0*=36000;
     p0[1] = terrain->getHeightAt(p0[0], p0[2]) + 500;
     drone->setLocation(p0);
+    drone->setControlMode(AUTOMATIC);
     thegame->addActor(drone);
 }
 

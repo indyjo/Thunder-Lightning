@@ -32,6 +32,7 @@ namespace {
             out << std::endl;
         }
         out << ')';
+        return out;
     }
 }
 
@@ -67,35 +68,82 @@ void FlightEngine2::run() {
     // Angle of attack (vertical, horizontal)
     float alpha   = -asin(direction * up);
     float alpha_h =  asin(direction * right);
+    if (direction*front < 0) {
+        alpha = PI - alpha;
+        alpha_h = PI - alpha_h;
+    }
 
-    const static float CL_x[4] = {-8.0, 0.0, 18.0, 32.0};
-    const static float CL_y[4] = {-0.2, 0.5,  1.6,  1.0};
-    const static float CD_x[5] = {-8.0, 0.0, 8.0, 16.0, 24.0};
-    const static float CD_y[5] = {0.01,.015, .05,  0.7,  1.5};
-    const static float CD_h_x[3] = {-8.0, 0.0, 8.0};
-    const static float CD_h_y[3] = {-1.0, 0.0, 1.0};
+    //const static float CL_x[4] = {-8.0, 0.0, 18.0, 32.0};
+    //const static float CL_y[4] = {-0.2, 0.5,  1.6,  1.0};
+    const static float CL_x[] = {-180.0, -135.0, -90.0, -45.0, -8.0, 0.0, 18.0, 32.0, 90.0, 135.0, 180.0};
+    const static float CL_y[] = {  -0.5,    1.6,   0.0,  -1.0, -0.2, 0.2,  1.6,  1.0,  0.0,  -1.6,  -0.5};
+    //const static float CD_x[] = {-8.0, 0.0, 8.0, 16.0, 24.0};
+    //const static float CD_y[] = {0.01,.015, .05,  0.7,  1.5};
+    const static float CD_x[] = {-180.0, -90.0, -45.0, -24.0, -16.0, -8.0,  0.0, 8.0,  16.0, 24.0, 45.0, 90.0, 180.0};
+    const static float CD_y[] = {   1.5,   4.0,   3.5,   1.2,   0.3,  0.2, 0.15, 0.2,   0.3,  1.2,  3.5,  4.0,   1.5};
+    //const static float CD_h_x[] = {-8.0, 0.0, 8.0};
+    //const static float CD_h_y[] = {-1.0, 0.0, 1.0};
+    const static float CD_h_x[] = {-180.0, -172.0, -120.0, -90.0, -60.0, -8.0, 0.0, 8.0, 60.0, 90.0, 120.0, 172.0, 180.0};
+    const static float CD_h_y[] = {   0.0,   -1.0,   -2.5,  -3.0,  -2.5, -1.0, 0.0, 1.0,  2.5,  3.0,   2.5,   1.0,   0.0};
+    const static float C_torque_x[] = { -180, -120, -90, -60, -10,  0, 10, 60, 90, 120, 180};
+    const static float C_torque_y[] = {    0,  -.5,  -1, -.5, -.1,  0, .1, .5,  1,  .5,   0};
+    const static int nCL = sizeof(CL_x)/4;
+    const static int nCD = sizeof(CD_x)/4;
+    const static int nCD_h = sizeof(CD_h_x)/4;
+    const static int nC_torque = sizeof(C_torque_x)/4;
 
-    float C_L =   interp(4, alpha * 180 / PI, CL_x, CL_y);
-    float C_D =   interp(5, alpha * 180 / PI, CD_x, CD_y);
-    float C_D_h = interp(3, alpha_h * 180 / PI, CD_h_x, CD_h_y);
+    float C_L =   interp(nCL, alpha * 180 / PI, CL_x, CL_y);
+    float C_D =   interp(nCD, alpha * 180 / PI, CD_x, CD_y);
+    float C_D_h = interp(nCD_h, alpha_h * 180 / PI, CD_h_x, CD_h_y);
 
     float V2 = v.lengthSquare();
-    float L = 0.5 * C_L * rho * V2 * wing_area;
-    float D = 0.5 * C_D * rho * V2 * wing_area;
-    float D_h = 0.5 * C_D_h * rho * V2 * wing_area;
+    float V = sqrt(V2);
+    
+    float Vxz2 = (v - up*(v*up)).lengthSquare();
+    float Vxz = sqrt(Vxz2);
+    
+    float Vyz2 = (v - right*(v*right)).lengthSquare();
+    float Vyz = sqrt(Vyz2);
+    
+    float Vx = fabs(v * right);
+    float Vx2 = Vx*Vx;
+
+    float Vz = fabs(v * front);
+    float Vz2 = Vz*Vz;
+    
+    float L = 0.5 * C_L * rho * Vyz2 * wing_area;
+    float D = 0.5 * C_D * rho * Vyz2 * wing_area;
+    float D_h = 0.5 * C_D_h * rho * Vx2 * wing_area;
+    
+    Vector aero_force = up*L - direction * D - right * D_h;
+    float delta_Ekin = aero_force * v;
+    if (delta_Ekin > 0) {
+        ls_error("delta Ekin: %5.5f\n", delta_Ekin);
+    }
 
     applyForce((max_thrust * controls->getThrottle()) * front);
     applyForce(up * L);
     applyForce(direction * -D);
     applyForce(right * -D_h);
     applyLinearAcceleration(Vector(0,-9.81,0));
+    
+    float C_torque = interp(nC_torque, alpha * 180/PI, C_torque_x, C_torque_y);
+    float torque = 0.5 * C_torque * rho * wing_area * Vyz;
+    float C_torque_h = interp(nC_torque, alpha_h * 180/PI, C_torque_x, C_torque_y);
+    float torque_h = 0.5 * C_torque_h * rho * wing_area * Vxz;
+    
+    applyTorque(200 * right * torque);
+    applyTorque(5000 * up * torque_h);
+    applyTorque(0.01 * Vz * front * (max_torque * -controls->getAileron()));
+    applyTorque(0.01 * Vz * right * (max_torque * controls->getElevator()));
+    applyTorque(0.01 * Vz * up    * (max_torque * controls->getRudder()));
 
-    applyTorque(front * (max_torque * -controls->getAileron()));
-    applyTorque(right * (max_torque * controls->getElevator()));
-    applyTorque(up    * (max_torque * controls->getRudder()));
-
-    const Vector & omega = getAngularVelocity();
-    applyAngularAcceleration(-2.5f * omega * omega.length());
+    Vector omega = getAngularVelocity();
+    Vector omega_xy = front * (front * omega);
+    Vector omega_rest = omega - omega_xy;
+    //applyAngularAcceleration(-0.001*V2 * omega * omega.length());
+    applyAngularAcceleration(-0.001*V2 * omega_rest * omega_rest.length());
+    applyAngularAcceleration(-0.0005*V2 * omega_xy * omega_xy.length());
 
     RigidEngine::run();
 }

@@ -99,6 +99,13 @@ public:
     
     inline void setWidth(float w) { width = w; }
     inline void setHeight(float h) { height = h; }
+    
+    inline void resize(float w, float h) {
+    	dx = dx * width / w;
+    	dy = dy * height / h;
+    	width = w;
+    	height = h;
+    }
 
     /// Creates a 4x4 matrix M so that M*x == origin + x[0]*dx + x[1]*dy
     inline Matrix getMatrix() const {

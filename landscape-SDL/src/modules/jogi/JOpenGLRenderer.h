@@ -25,7 +25,7 @@ class JOpenGLRenderer : public JRenderer
 public:
 
     /* Initialisation methods ---------------------------------------*/
-    JOpenGLRenderer(int init_width, int init_height);
+    JOpenGLRenderer(int init_width, int init_height, float aspect);
 
     virtual void setVertexMode(jrvertexmode_t mode);
     virtual void setCoordSystem(jrcoordsystem_t cs);

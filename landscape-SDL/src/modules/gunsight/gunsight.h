@@ -14,6 +14,7 @@ class ICamera;
 class JRenderer;
 class FlexibleGunsight;
 class Environment;
+class FlightInfo;
 
 class GunsightModule : virtual public Object {
 protected:
@@ -61,6 +62,11 @@ public:
     inline const UI::Surface & getSurface() { return surface; }
     inline JRenderer* getRenderer() { return renderer; }
     inline Ptr<ICamera> getCamera() { return camera; }
+    
+    // Gunsight configuration
+    void addDebugInfo(Ptr<IGame>, Ptr<IActor>);
+    void addBasicCrosshairs();
+    void addFlightModules(Ptr<IGame>, FlightInfo &);
     
     // IDrawable implementation
     virtual void draw();

@@ -78,6 +78,9 @@ private:
     
     void setView(int);
     void returnView();
+    
+    void nextTarget();
+    void toggleControlMode();
 
 private:
     int argc;

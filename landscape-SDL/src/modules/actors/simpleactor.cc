@@ -82,6 +82,19 @@ void SimpleActor::setMovementVector(const Vector & v) {
 void SimpleActor::draw() { }
 
 // SimpleActor::RelativeView
+void SimpleActor::RelativeView::set(
+    const Vector & p,
+    const Vector & right,
+    const Vector & up,
+    const Vector & front)
+{
+    this->subject = subject;
+    this->p = p;
+    this->up = up;
+    this->right = right;
+    this->front = front;
+}
+
 Vector SimpleActor::RelativeView::getLocation() {
     Vector r, u, f;
     subject.getOrientation(&u, &r, &f);
@@ -116,6 +129,7 @@ void SimpleActor::RelativeView::getOrientation
     *right = M*this->right;
     *front = M*this->front;
 }
+
 Vector SimpleActor::RelativeView::getMovementVector() {
 	return subject.getMovementVector();
 }

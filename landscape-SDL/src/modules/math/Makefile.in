@@ -55,8 +55,9 @@ ARFLAGS = cru
 libmath_a_AR = $(AR) $(ARFLAGS)
 libmath_a_LIBADD =
 am_libmath_a_OBJECTS = Ballistic.$(OBJEXT) Collide.$(OBJEXT) \
-	Feedback.$(OBJEXT) Line.$(OBJEXT) Polynomial.$(OBJEXT) \
-	Rendezvous.$(OBJEXT) Solve.$(OBJEXT) Vector.$(OBJEXT)
+	Feedback.$(OBJEXT) Line.$(OBJEXT) PIDController.$(OBJEXT) \
+	Polynomial.$(OBJEXT) Rendezvous.$(OBJEXT) Solve.$(OBJEXT) \
+	Vector.$(OBJEXT)
 libmath_a_OBJECTS = $(am_libmath_a_OBJECTS)
 PROGRAMS = $(noinst_PROGRAMS)
 am_test_ballist_OBJECTS = Ballistic.$(OBJEXT) Solve.$(OBJEXT) \
@@ -80,7 +81,8 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/Ballistic.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/Collide.Po ./$(DEPDIR)/Feedback.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/Line.Po ./$(DEPDIR)/Polynomial.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/Line.Po ./$(DEPDIR)/PIDController.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/Polynomial.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/Rendezvous.Po ./$(DEPDIR)/Solve.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/Vector.Po ./$(DEPDIR)/test_ballist.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/test_interval.Po \
@@ -225,6 +227,7 @@ libmath_a_SOURCES = \
         Interval.h                      \
         Line.cc Line.h                  \
 	Matrix.h SpecialMatrices.h MatrixVector.h \
+		PIDController.h PIDController.cc \
         Plane.h                         \
         Polynomial.cc Polynomial.h      \
         Quaternion.h                    \
@@ -311,6 +314,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Collide.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Feedback.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Line.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PIDController.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Polynomial.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Rendezvous.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Solve.Po@am__quote@

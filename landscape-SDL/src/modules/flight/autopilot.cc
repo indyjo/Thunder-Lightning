@@ -3,37 +3,56 @@
 #include "autopilot.h"
 
 
-#define MAX_AILERON   0.3f
-#define MIN_AILERON  -0.3f
-#define EMERGENCY_PITCH  1.2f
-#define MAX_PITCH     0.9
-#define MIN_PITCH    -0.7f
-#define MAX_ELEVATOR  0.9f
-#define MIN_ELEVATOR -0.9f
-#define MAX_ROLL      1.2f
-#define MIN_ROLL     -1.2f
-#define MAX_RUDDER    0.3f
-#define MIN_RUDDER   -0.3f
+#define MAX_AILERON   1.0f
+#define MIN_AILERON  -1.0f
+#define EMERGENCY_PITCH  1.0f
+#define MAX_PITCH     1.0f
+#define MIN_PITCH    -1.0f
+#define MAX_ELEVATOR  1.0f
+#define MIN_ELEVATOR -1.0f
+#define MAX_ROLL      1.0f
+#define MIN_ROLL     -1.0f
+#define MAX_RUDDER    1.0f
+#define MIN_RUDDER   -1.0f
 #define MIN_ACCEL    (9.81f * -2.0f)
 #define MAX_ACCEL    (9.81f *  3.0f)
 
 #define PI 3.14159265358979323846
 
-void AutoPilot::fly( const FlightInfo & fi, FlightControls & ctrls ) {
+AutoPilot::AutoPilot()
+:	mode(0),
+	pitch_controller(MIN_ELEVATOR / (45 * PI / 180),
+            		 0.4*MIN_ELEVATOR / (45 * PI / 180),
+            		 0.02*MIN_ELEVATOR / (45 * PI / 180)),
+	roll_controller(MAX_AILERON / (45 * PI / 180),
+				    0.3*MAX_AILERON / (45 * PI / 180),
+				    0.1*MAX_AILERON / (45 * PI / 180)),
+	course_controller(16/PI , 4/PI , 0.1/PI)
+            		 
+{ }
+
+void AutoPilot::reset()
+{
+	mode = 0;
+	pitch_controller.reset();
+	roll_controller.reset();
+	course_controller.reset();	
+}
+void AutoPilot::fly( float dt, const FlightInfo & fi, FlightControls & ctrls ) {
     if (isEnabled(AP_VECTOR)) handleVector(fi, ctrls);
     if (isEnabled(AP_DIRECTION)) handleDirection(fi, ctrls);
     if (isEnabled(AP_SPEED)) handleSpeed(fi, ctrls);
-    if (isEnabled(AP_COURSE)) handleCourse(fi, ctrls);
-    if (isEnabled(AP_ROLL)) handleRoll(fi, ctrls);
+    if (isEnabled(AP_COURSE)) handleCourse(dt, fi, ctrls);
+    if (isEnabled(AP_ROLL)) handleRoll(dt, fi, ctrls);
     if (isEnabled(AP_HEIGHT)) handleHeight(fi, ctrls);
     if (isEnabled(AP_ALTITUDE)) handleAltitude(fi, ctrls);
-    if (isEnabled(AP_PITCH)) handlePitch(fi, ctrls);
+    if (isEnabled(AP_PITCH)) handlePitch(dt, fi, ctrls);
     if (isEnabled(AP_ACCEL)) handleAccel(fi, ctrls);
 }
 
 #define NUM_MODES 9
 bool AutoPilot::setMode( int m ) {
-    mode = 0;
+    reset();
     for(int i=0; i<NUM_MODES; i++) {
         if ( m & (2<<i) ) {
             int new_mode = implies(i);
@@ -157,14 +176,9 @@ void AutoPilot::handleAccel( const FlightInfo & fi, FlightControls & ctrls ) {
 //     //else ctrls.setAileronAndRudder(-1);
 // }
 
-void AutoPilot::handleRoll( const FlightInfo & fi, FlightControls & ctrls ) {
-    float x = fi.getCurrentRoll();
-    float dx = fi.getCurrentRollSpeed();
-    FeedbackController<float> controller(
-            roll_target,
-            MAX_AILERON / (45 * PI / 180),
-            MIN_AILERON / (45 * PI / 180));
-    float r = controller.control(x, dx);
+void AutoPilot::handleRoll( float dt, const FlightInfo & fi, FlightControls & ctrls ) {
+    float r = roll_controller.control(
+    	roll_target - fi.getCurrentRoll(), dt);
     if (r > MAX_AILERON) r = MAX_AILERON;
     else if (r < MIN_AILERON) r = MIN_AILERON;
 //     cerr << "AutoPilot: roll_target: " << roll_target << endl;
@@ -183,7 +197,7 @@ void AutoPilot::handleRoll( const FlightInfo & fi, FlightControls & ctrls ) {
 //     ctrls.setElevator(elevator_adj);
 // }
 
-void AutoPilot::handlePitch( const FlightInfo & fi, FlightControls & ctrls ) {
+/*void AutoPilot::handlePitch( const FlightInfo & fi, FlightControls & ctrls ) {
     float x = fi.getCurrentPitch();
     float dx = fi.getCurrentPitchSpeed();
     FeedbackController<float> controller(
@@ -196,7 +210,21 @@ void AutoPilot::handlePitch( const FlightInfo & fi, FlightControls & ctrls ) {
     	elevator_adj = -elevator_adj;
     }
     ctrls.setElevator(elevator_adj);
+}*/
+
+void AutoPilot::handlePitch( float dt, 
+							 const FlightInfo & fi,
+							 FlightControls & ctrls )
+{
+    float r = pitch_controller.control(
+    	pitch_target - fi.getCurrentPitch(), dt);
+    float elevator_adj = std::max(-0.7f, std::min( 0.7f, r));
+    if (2*std::abs(fi.getCurrentRoll()) > PI) {
+    	elevator_adj = -elevator_adj;
+    }
+    ctrls.setElevator(elevator_adj);
 }
+
 
 // void AutoPilot::handleHeight( const FlightInfo & fi, FlightControls & ctrls ) {
 //     float ground_altitude = fi.getCurrentAltitude() - fi.getCurrentHeight();
@@ -267,16 +295,11 @@ void AutoPilot::handleAltitude( const FlightInfo & fi, FlightControls & ctrls ) 
     setTargetPitch(pitch);
 }
 
-void AutoPilot::handleCourse( const FlightInfo & fi, FlightControls & ctrls ) {
+void AutoPilot::handleCourse( float dt, const FlightInfo & fi, FlightControls & ctrls ) {
     float course_error = course_target - fi.getCurrentCourse();
-    float d_course = fi.getCurrentCourseSpeed();
     while (course_error >  PI) course_error -= 2.0*PI;
     while (course_error < -PI) course_error += 2.0*PI;
-    FeedbackController<float> controller(
-            0.0f,
-            -16.0 / PI,
-            -4.0f / PI);
-    float r = controller.control(course_error, d_course);
+    float r = course_controller.control(course_error, dt);
     r = std::min(1.0f, std::max(-1.0f, r));
     setTargetRoll(MAX_ROLL * r);
     ctrls.setRudder(MAX_RUDDER * r);
@@ -290,7 +313,7 @@ void AutoPilot::handleDirection(const FlightInfo & fi, FlightControls & ctrls ) 
 		a.normalize();
 		mode |= AP_COURSE_MASK | AP_PITCH_MASK;
 		setTargetCourse( std::atan2(a[0], a[2]) );
-		setTargetPitch( std::acos(direction_target[1]) );
+		setTargetPitch( std::asin(direction_target[1]) );
 	} else {
 		mode &= ~(AP_COURSE_MASK | AP_PITCH_MASK);
 		setTargetRoll(0);

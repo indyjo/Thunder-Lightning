@@ -4,6 +4,7 @@
 #include <modules/actors/fx/explosion.h>
 #include <modules/actors/projectiles/bullet.h>
 #include <modules/actors/fx/smoketrail.h>
+#include <modules/gunsight/gunsight.h>
 #include <sigc++/bind.h>
 #include "tank.h"
 #include "ai.h"
@@ -36,11 +37,8 @@ Tank::Tank(Ptr<IGame> thegame)
         "Tank", RADIUS, TargetInfo::CLASS_TANK));
 
     tank_controls = new TankControls();
-    tank_controls->setSteer(0.0f);
-    tank_controls->setThrottle(0.0f);
-    tank_controls->setTurretSteer(0.0f);
-    tank_controls->setCannonSteer(0.0f);
-    tank_controls->setFire(false);
+    setControlMode(UNCONTROLLED);
+    setControlMode(AUTOMATIC);
 
     tank_engine = new TankEngine(thegame, tank_controls);
     tank_engine->getFireSignal().connect(
@@ -67,37 +65,51 @@ Tank::Tank(Ptr<IGame> thegame)
     turret = thegame->getModelMan()->query(turret_file);
     cannon = thegame->getModelMan()->query(cannon_file);
 
+    Ptr<FlexibleGunsight> gunsight1 = new FlexibleGunsight(thegame);
+    gunsight1->addBasicCrosshairs();
+    gunsight1->addDebugInfo(thegame, this);
+    
+    Ptr<FlexibleGunsight> gunsight2 = new FlexibleGunsight(thegame);
+    gunsight2->addDebugInfo(thegame, this);
+    
     views.clear();
     views.push_back(new RelativeView(
             *this,
             Vector(0.0f, 1.5f, 1.5f),
             Vector(1,0,0),
             Vector(0,1,0),
-            Vector(0,0,1)));
-    views.push_back(new RelativeView(
+            Vector(0,0,1),
+            gunsight2));
+    cannon_view = new RelativeView(
             *this,
             Vector(0.0f, 2.413f, 0.424f),
             Vector(1,0,0),
             Vector(0,1,0),
-            Vector(0,0,1)));
+            Vector(0,0,1),
+            gunsight1);
+    views.push_back(cannon_view);
     views.push_back(new RelativeView(
             *this,
             Vector(0,8,-12),
             Vector(1,0,0),
             Vector(0,1,0),
-            Vector(0,0,1)));
+            Vector(0,0,1),
+            gunsight2));
     views.push_back(new RelativeView(
             *this,
             Vector(0,10,18),
             Vector(-1,0,0),
             Vector(0,1,0),
-            Vector(0,0,-1)));
-    views.push_back(new RelativeView(
+            Vector(0,0,-1),
+            gunsight2));
+    turret_view = new RelativeView(
             *this,
             Vector(0,15,-30),
             Vector(1,0,0),
             Vector(0,1,0),
-            Vector(0,0,1)));
+            Vector(0,0,1),
+            gunsight1);
+    views.push_back(turret_view);
 
     sound_low = thegame->getSoundMan()->requestSource();
     sound_low->setPosition(p);
@@ -112,87 +124,19 @@ Tank::Tank(Ptr<IGame> thegame)
             thegame->getConfig()->query("Tank_engine_sound_high")));
 
 
-    static bool is_first = true;
-    if (!is_first) return;
-    else is_first = false;
-
-    thegame->getEventRemapper()->map("cannon-idle",
-        SigC::bind(
-            SigC::slot(*tank_controls, &TankControls::setCannonSteer),
-            0.0f
-            ));
-    thegame->getEventRemapper()->map("cannon-up",
-        SigC::bind(
-            SigC::slot(*tank_controls, &TankControls::setCannonSteer),
-            1.0f
-            ));
-    thegame->getEventRemapper()->map("cannon-down",
-        SigC::bind(
-            SigC::slot(*tank_controls, &TankControls::setCannonSteer),
-            -1.0f
-            ));
-    thegame->getEventRemapper()->map("turret-left",
-        SigC::bind(
-            SigC::slot(*tank_controls, &TankControls::setTurretSteer),
-            -1.0f
-            ));
-    thegame->getEventRemapper()->map("turret-right",
-        SigC::bind(
-            SigC::slot(*tank_controls, &TankControls::setTurretSteer),
-            1.0f
-            ));
-    thegame->getEventRemapper()->map("turret-idle",
-        SigC::bind(
-            SigC::slot(*tank_controls, &TankControls::setTurretSteer),
-            0.0f
-            ));
-    thegame->getEventRemapper()->map("+throttle",
-        SigC::bind(
-            SigC::slot(*tank_controls, &TankControls::setThrottle),
-            1.0f
-            ));
-    thegame->getEventRemapper()->map("-throttle",
-        SigC::bind(
-            SigC::slot(*tank_controls, &TankControls::setThrottle),
-            0.0f
-            ));
-    thegame->getEventRemapper()->map("+brake",
-        SigC::bind(
-            SigC::slot(*tank_controls, &TankControls::setBrake),
-            1.0f
-            ));
-    thegame->getEventRemapper()->map("-brake",
-        SigC::bind(
-            SigC::slot(*tank_controls, &TankControls::setBrake),
-            0.0f
-            ));
-    thegame->getEventRemapper()->map("steer-left",
-        SigC::bind(
-            SigC::slot(*tank_controls, &TankControls::setSteer),
-            -1.0f
-            ));
-    thegame->getEventRemapper()->map("steer-right",
-        SigC::bind(
-            SigC::slot(*tank_controls, &TankControls::setSteer),
-            1.0f
-            ));
-    thegame->getEventRemapper()->map("steer-idle",
-        SigC::bind(
-            SigC::slot(*tank_controls, &TankControls::setSteer),
-            0.0f
-
-            ));
-    thegame->getEventRemapper()->map("+cannon-fire",
+    event_sheet = new EventSheet;
+    thegame->getEventRemapper()->map("+primary",
         SigC::bind(
             SigC::slot(*tank_controls, &TankControls::setFire),
             true
             ));
-    thegame->getEventRemapper()->map("-cannon-fire",
+    thegame->getEventRemapper()->map("-primary",
         SigC::bind(
             SigC::slot(*tank_controls, &TankControls::setFire),
             false
             ));
-
+    
+	
 }
 
 void Tank::action() {
@@ -204,22 +148,31 @@ void Tank::action() {
     //target = thegame->getGunsight()->getCurrentTarget();
     if (target && target->getState() == IActor::DEAD) target = 0;
 
-    if (target) {
-        brain->advanced_cannon_control.setMuzzleVelocity(MUZZLE_VELOCITY);
-        brain->advanced_cannon_control.setTarget(target->getLocation());
-        brain->maintain_position.setTarget(target->getLocation(),
-                                           target->getMovementVector());
+    if (control_mode == AUTOMATIC) {
+	    if (target) {
+	        brain->advanced_cannon_control.setMuzzleVelocity(MUZZLE_VELOCITY);
+	        brain->advanced_cannon_control.setTarget(target->getLocation());
+	        brain->maintain_position.setTarget(target->getLocation(),
+	                                           target->getMovementVector());
+	    }
+	
+	    brain->advanced_cannon_control.run(*brain);
+	    //brain->maintain_position.run(*brain);
+	    brain->move_to_exposed_point.run(*brain);
+	
+	    tank_controls->setFire(
+	        target
+	        && brain->cannon_control.inAimingCone()
+	        && (target->getLocation()-getLocation()).lengthSquare()
+	            < BULLET_RANGE*BULLET_RANGE);
+    } else if (control_mode == MANUAL) {
+    	EventRemapper *remap = thegame->getEventRemapper();
+    	tank_controls->setSteer(remap->getAxis("car_steer"));
+    	tank_controls->setThrottle(remap->getAxis("car_throttle"));
+    	tank_controls->setBrake(remap->getAxis("car_brake"));
+    	tank_controls->setTurretSteer(remap->getAxis("tank_turret_steer"));
+    	tank_controls->setCannonSteer(remap->getAxis("tank_cannon_steer"));
     }
-
-    brain->advanced_cannon_control.run(*brain);
-    //brain->maintain_position.run(*brain);
-    brain->move_to_exposed_point.run(*brain);
-
-    tank_controls->setFire(
-        target
-        && brain->cannon_control.inAimingCone()
-        && (target->getLocation()-getLocation()).lengthSquare()
-            < BULLET_RANGE*BULLET_RANGE);
 
     //setTargetInfo(main_idea->getInfo());
     SimpleActor::action();
@@ -231,7 +184,7 @@ void Tank::action() {
     M = M *
         RotateZMatrix<float>(-tank_engine->getTurretAngle());
 
-    views[4] = new RelativeView(*this,
+    turret_view->set(
         M * Vector(0, 30, 15),
         M * Vector(-1, 0, 0),
         M * Vector( 0, 0, 1),
@@ -239,7 +192,7 @@ void Tank::action() {
 
     M = M * RotateXMatrix<float>(-tank_engine->getCannonAngle());
 
-    views[1] = new RelativeView(*this,
+    cannon_view->set(
         M * Vector(0, 3, 6),
         M * Vector(-1, 0, 0),
         M * Vector( 0, 0, 1),
@@ -351,6 +304,25 @@ void Tank::hitTarget(float damage) {
 void Tank::setLocation(const Vector & p) {
     SimpleActor::setLocation(p);
     brain->move_to_exposed_point.onEnabled(*brain);
+}
+
+bool Tank::hasControlMode(ControlMode) {
+  return true;
+}
+void Tank::setControlMode(ControlMode m) {
+    if (control_mode==MANUAL && m!=control_mode)  {
+        thegame->getEventRemapper()->removeEventSheet(event_sheet);
+    }
+    control_mode = m;
+    if (m==UNCONTROLLED) {
+	    tank_controls->setSteer(0.0f);
+	    tank_controls->setThrottle(0.0f);
+	    tank_controls->setTurretSteer(0.0f);
+	    tank_controls->setCannonSteer(0.0f);
+	    tank_controls->setFire(false);
+    } else if (m==MANUAL) {
+        thegame->getEventRemapper()->addEventSheet(event_sheet);
+    }
 }
 
 

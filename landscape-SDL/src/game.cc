@@ -93,7 +93,12 @@ Game::Game(int argc, const char **argv)
         SDL_GL_GetAttribute( SDL_GL_DOUBLEBUFFER, &db );
         ls_message(" got r/g/b/d %d/%d/%d/%d %s double buffering. ",
                 r,g,b,d,db?"width":"without");
-        renderer = new JOpenGLRenderer(xres, yres);
+        renderer = new JOpenGLRenderer(xres, yres, atof(config->query("Camera_aspect","1.33333")));
+    	camera = new Camera(this);
+    	JCamera jcam;
+    	camera->getCamera(&jcam);
+    	renderer->setCamera(&jcam.cam);
+    	renderer->setClipRange(0.1, 10);
     }
     ls_message("done.\n");
 
@@ -101,8 +106,11 @@ Game::Game(int argc, const char **argv)
 
     mouse_relx=mouse_rely=0;
     mouse_buttons=0;
-    //SDL_WM_GrabInput(SDL_GRAB_ON);
-    //SDL_ShowCursor(SDL_DISABLE);
+    
+    if (config->query("Game_grab_mouse","true") == std::string("true")) {
+	    SDL_WM_GrabInput(SDL_GRAB_ON);
+	    SDL_ShowCursor(SDL_DISABLE);
+    }
 
     key_tab_old=false;
 
@@ -133,7 +141,7 @@ Game::Game(int argc, const char **argv)
     Ptr<Drone> drone;
     Ptr<SmokeTrail> smoke;
 
-    for(int i=0; i<3; i++) {
+    for(int i=0; i<5; i++) {
         ls_message("create drone.\n");
         drone = new Drone(this);
         Vector p = Vector(
@@ -144,6 +152,7 @@ Game::Game(int argc, const char **argv)
         Vector v = Vector(0,0,0);
         drone->setLocation(p);
         drone->setMovementVector(v);
+        drone->setControlMode(IActor::AUTOMATIC);
         float r = RAND;
         if (3*r<1) drone->setFaction(Faction::basic_factions.faction_a);
         else if (3*r<2) drone->setFaction(Faction::basic_factions.faction_b);
@@ -326,6 +335,7 @@ void Game::setCurrentlyControlledActor(Ptr<IActor> actor)
 	}
 	
 	current_actor = actor;
+    if (!actor) return;
 	if (current_actor->hasControlMode(IActor::MANUAL)) {
 		current_actor->setControlMode(IActor::MANUAL);
 	}
@@ -348,7 +358,6 @@ void Game::initModules(Status & stat)
 
     stat.beginJob("Initialize modules", steps);
 
-    camera = new Camera(this);
     environment = new Environment();
     stat.stepFinished();
 #if ENABLE_LOD_TERRAIN
@@ -436,6 +445,7 @@ void Game::initControls()
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 1.0f));
 
     r->mapKey(SDLK_HOME, true, "autopilot");
+    r->map("autopilot", SigC::slot(*this, &Game::toggleControlMode));
 
     r->mapKey(SDLK_p, true, "pause");
     r->map("pause", SigC::slot(*this, & Game::togglePauseMode));
@@ -491,6 +501,7 @@ void Game::initControls()
     r->mapKey(SDLK_F12, true, "debug");
 
     r->mapKey(SDLK_t, true, "next_target");
+    r->map("next_target", SigC::slot(*this, &Game::nextTarget));
     r->mapKey(SDLK_g, true, "gunsight_target");
     r->mapKey(SDLK_h, true, "toggle_gunsight_info");
 
@@ -561,27 +572,59 @@ void Game::initControls()
         AxisManipulator(new SelectAxisByActivityTransform(0.01f), "throttle")
         .input("js_throttle2")
         .input("kbd_throttle"));
+        
+    r->map("+forward", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_car_throttle", 1.0f));
+    r->map("-forward", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_car_throttle", 0.0f));
+    r->map("+backward", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_car_brake", 1.0f));
+    r->map("-backward", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_car_brake", 0.0f));
+    r->map("+left", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_car_steer_left", -1.0f));
+    r->map("-left", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_car_steer_left", 0.0f));
+    r->map("+right", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_car_steer_right", 1.0f));
+    r->map("-right", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_car_steer_right", 0.0f));
+    
+    r->addAxisManipulator(
+        AxisManipulator(new LinearAxisTransform(1.0f/5, 0.0f), "mouse_turret_steer")
+        .input("mouse_rel_x"));
+    r->addAxisManipulator(
+        AxisManipulator(new LinearAxisTransform(-1.0f/5, 0.0f), "mouse_cannon_steer")
+        .input("mouse_rel_y"));
+    r->addAxisManipulator(
+        AxisManipulator(new ClampAxisTransform(), "mouse_turret_steer")
+        .input("mouse_turret_steer"));
+    r->addAxisManipulator(
+        AxisManipulator(new ClampAxisTransform(), "mouse_cannon_steer")
+        .input("mouse_cannon_steer"));
+    
+    r->addAxisManipulator(
+    	AxisManipulator(new SumAxesTransform(), "kbd_car_steer")
+    	.input("kbd_car_steer_left")
+    	.input("kbd_car_steer_right"));
+    	
+   	r->addAxisManipulator(
+   		AxisManipulator(new SumAxesTransform(), "car_steer")
+   		.input("kbd_car_steer"));
+   	r->addAxisManipulator(
+   		AxisManipulator(new SumAxesTransform(), "car_brake")
+   		.input("kbd_car_brake"));
+   	r->addAxisManipulator(
+   		AxisManipulator(new SumAxesTransform(), "car_throttle")
+   		.input("kbd_car_throttle"));
 
-    /*
-    r->mapKey(SDLK_UP, true, "cannon-up");
-    r->mapKey(SDLK_DOWN, true, "cannon-down");
-    r->mapKey(SDLK_UP, false, "cannon-idle");
-    r->mapKey(SDLK_DOWN, false, "cannon-idle");
-    r->mapKey(SDLK_LEFT, true, "turret-left");
-    r->mapKey(SDLK_LEFT, false, "turret-idle");
-    r->mapKey(SDLK_RIGHT, true, "turret-right");
-    r->mapKey(SDLK_RIGHT, false, "turret-idle");
-    r->mapKey(SDLK_i, true, "+throttle");
-    r->mapKey(SDLK_i, false, "-throttle");
-    r->mapKey(SDLK_k, true, "+brake");
-    r->mapKey(SDLK_k, false, "-brake");
-    r->mapKey(SDLK_j, true, "steer-left");
-    r->mapKey(SDLK_j, false, "steer-idle");
-    r->mapKey(SDLK_l, true, "steer-right");
-    r->mapKey(SDLK_l, false, "steer-idle");
-    r->mapKey(SDLK_RETURN, true, "+cannon-fire");
-    r->mapKey(SDLK_RETURN, false, "-cannon-fire");
-    */
+   	r->addAxisManipulator(
+   		AxisManipulator(new SumAxesTransform(), "tank_turret_steer")
+   		.input("mouse_turret_steer"));
+   	r->addAxisManipulator(
+   		AxisManipulator(new SumAxesTransform(), "tank_cannon_steer")
+   		.input("mouse_cannon_steer"));
+   	
 }
 
 void Game::doEvents()
@@ -849,6 +892,38 @@ void Game::returnView() {
 	if (current_view &&  current_view->getViewSubject() == current_actor)
 		return;
 	setCurrentView(current_actor->getView(0));
+}
+
+void Game::nextTarget() {
+    typedef const std::list<Ptr<IActor> > List;
+    typedef List::const_iterator Iter;
+    
+    if (!current_view || !current_view->getViewSubject()) return;
+    
+    List & list = getActorList();
+    if (list.empty()) return;
+    
+    Iter current;
+    for(current = list.begin(); current != list.end(); ++current) {
+        if (*current == current_view->getViewSubject())
+            break;
+    }
+    
+    if (current == list.end()) current = list.begin();
+    current++;
+    if (current == list.end()) current = list.begin();
+    
+    setCurrentView((*current)->getView(0));
+}
+
+void Game::toggleControlMode() {
+    if (current_actor) {
+        setCurrentlyControlledActor(0);
+    } else {
+        if (!current_view || !current_view->getViewSubject())
+            return;
+        setCurrentlyControlledActor(current_view->getViewSubject());
+    }
 }
 
 int main(int argc, const char **argv)

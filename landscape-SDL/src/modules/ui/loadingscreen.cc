@@ -2,6 +2,7 @@
 #include <modules/environment/environment.h>
 #include <interfaces/IFontMan.h>
 #include <interfaces/IConfig.h>
+#include "Surface.h"
 
 #define MIN_PERCENT_DIFFERENCE 0.30
 
@@ -22,19 +23,13 @@ void LoadingScreen::update(Status * stat) {
     double status = stat->getStatus();
     if (100.0*(status - last_status) < MIN_PERCENT_DIFFERENCE) return;
     last_status = status;
-    
-    float aspect = 1.3;
-    float focus = 1.0;
-    Vector nw( -aspect,  1.0, focus);
-    Vector se(  aspect, -1.0, focus);
-    Vector dx( 2.0*aspect, 0, 0 );
-    Vector dy( 0, -2.0, 0);
-    Vector px = dx/1024;
-    Vector py = dy/768;
-    
     JRenderer * r = thegame->getRenderer();
+    UI::Surface surf = thegame->getScreenSurface();
     
     r->setCoordSystem(JR_CS_EYE);
+    r->pushMatrix(),
+    r->multMatrix(surf.getMatrix());
+    
     r->enableTexturing();
     r->setTexture(background);
     r->enableSmoothShading();
@@ -43,51 +38,61 @@ void LoadingScreen::update(Status * stat) {
     r->disableZBuffer();
     r->setClipRange(0.1, 10.0);
     
+    r->setTexture(background);
+    r->setColor(Vector(1,1,1));
+    r->setAlpha(1.0);
+        
     r->begin(JR_DRAWMODE_TRIANGLE_FAN);
     {
-        r->setTexture(background);
-        r->setColor(Vector(1,1,1));
-        r->setAlpha(1.0);
-        
         r->setUVW(Vector(0,0,0));
-        r->vertex(nw);
+        r->vertex(Vector(0,0,0));
         
         r->setUVW(Vector(1,0,0));
-        r->vertex(nw + dx);
+        r->vertex(Vector(surf.getWidth(),0,0));
         
         r->setUVW(Vector(1,1,0));
-        r->vertex(se);
+        r->vertex(Vector(surf.getWidth(), surf.getHeight(), 0));
         
         r->setUVW(Vector(0,1,0));
-        r->vertex(nw + dy);
+        r->vertex(Vector(0, surf.getHeight(), 0));
         
         r->setUVW(Vector(0,0,0));
-        r->vertex(nw);
-    }
-    r->end();
-    
-    Vector o = nw + 256*px + 700*py;
-    
-    r->disableTexturing();
-    r->begin(JR_DRAWMODE_TRIANGLE_FAN);
-    {
-        r->setColor(Vector(1,1,1));
-        r->setAlpha(0.5);
-        *r << o << o + 512*status*px << o + 512*status*px + 30*py
-                << o + 30*py << o;
+        r->vertex(Vector(0,0,0));
     }
     r->end();
     
     fontman->selectFont(IFontMan::FontSpec("dungeon", 12));
     fontman->setColor(Vector(1,1,1));
     fontman->setAlpha(0.5);
-    fontman->setCursor( o - 20*py, px, py);
+    fontman->setCursor(
+    	Vector(surf.getWidth()*256/1024, surf.getHeight()*700/768 - 30, 0),
+    	Vector(1,0,0), Vector(0,1,0));
     fontman->print(stat->getDescription().c_str());
+    
+    r->popMatrix();
+
+    surf.resize(1024, 768);
+    surf.translateOrigin(256,700);
+    r->pushMatrix();
+    r->multMatrix(surf.getMatrix());
+    
+    r->enableAlphaBlending();
+    r->disableTexturing();
+    r->begin(JR_DRAWMODE_TRIANGLE_FAN);
+    {
+        r->setColor(Vector(1,1,1));
+        r->setAlpha(0.5);
+        *r << Vector(0,0,0) << Vector(512*status,0,0)
+           << Vector(512*status,30,0) << Vector(0,30,0);
+    }
+    r->end();
     
     r->enableZBuffer();
     
     r->disableAlphaBlending();
+    r->popMatrix();
     r->setCoordSystem(JR_CS_WORLD);
+    
     Ptr<Environment> env = thegame->getEnvironment();
     r->setClipRange(env->getClipMin(), env->getClipMax());
     

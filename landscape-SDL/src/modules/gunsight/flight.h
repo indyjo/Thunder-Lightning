@@ -6,6 +6,7 @@
 struct IFontMan;
 struct IGame;
 struct FlightInfo;
+struct JRenderer;
 
 struct FlightGunsight : public FlexibleGunsight {
 	FlightGunsight(Ptr<IGame>, FlightInfo &);
@@ -35,6 +36,31 @@ class HeightModule : public GunsightModule {
 public:
 	HeightModule(Ptr<IGame>, FlightInfo&);
     void draw(FlexibleGunsight &);
+};
+
+class HeightGraphModule : public GunsightModule {
+    FlightInfo& flight_info;
+    Ptr<IFontMan> fontman;
+public:
+    HeightGraphModule(float screen_h, Ptr<IGame>, FlightInfo&);
+    void draw(FlexibleGunsight &);
+};
+
+class SpeedGraphModule : public GunsightModule {
+    FlightInfo& flight_info;
+    Ptr<IFontMan> fontman;
+public:
+    SpeedGraphModule(float screen_h, Ptr<IGame>, FlightInfo&);
+    void draw(FlexibleGunsight &);
+};
+
+class HorizonIndicator : public GunsightModule {
+	FlightInfo& flight_info;
+	Ptr<IFontMan> fontman;
+public:
+	HorizonIndicator(Ptr<IGame>, FlightInfo &, float w, float h);
+	void draw(FlexibleGunsight &);
+	void drawIndicator(JRenderer *, int degrees, Vector center, Vector right);
 };
 
 #endif

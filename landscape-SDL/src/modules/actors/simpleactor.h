@@ -81,6 +81,13 @@ public:
         up(up), right(right), front(front),
         gunsight(gunsight)
     { }
+    
+    void SimpleActor::RelativeView::set(
+        const Vector & p,
+        const Vector & right,
+        const Vector & up,
+        const Vector & front);
+    
 
     // IPositionProvider
     virtual Vector getLocation();

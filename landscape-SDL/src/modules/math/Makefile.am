@@ -10,6 +10,7 @@ libmath_a_SOURCES =                     \
         Interval.h                      \
         Line.cc Line.h                  \
 	Matrix.h SpecialMatrices.h MatrixVector.h \
+		PIDController.h PIDController.cc \
         Plane.h                         \
         Polynomial.cc Polynomial.h      \
         Quaternion.h                    \
