@@ -154,7 +154,9 @@ Game::Game(int argc, const char **argv)
         stat.beginJob("Initializing", 2);
         initModules(stat);
         stat.stepFinished();
+        ls_message("Initializing controls ...");
         initControls();
+        ls_message("done\n");
         stat.endJob();
     }
     //renderer->setClipRange(CLIP_MIN_RANGE, CLIP_RANGE);
@@ -945,8 +947,22 @@ void Game::nextTarget() {
     }
     if (current == list.end()) current = list.begin();
     if (current==list.end()) return;
-    current++;
+    
+    if (debugMode()) {
+    	current++;
+    } else {
+    	Iter next = current;
+    	while (++next != current) {
+    		if (next == list.end()) next = list.begin();
+    		if ((*next)->hasControlMode(IActor::MANUAL))
+    			break;
+    	}
+    	current = next;
+    }
     if (current == list.end()) current = list.begin();
+    
+    ls_message("Game: Switching to %s at: ", typeid(*(*current)).name());
+    (*current)->getLocation().dump();
     setCurrentView((*current)->getView(0));
 }
 

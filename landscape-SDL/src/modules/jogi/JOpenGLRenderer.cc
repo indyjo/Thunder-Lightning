@@ -64,9 +64,7 @@ JOpenGLRenderer::JOpenGLRenderer(int init_width, int init_height, float aspect)
     glHint(GL_FOG_HINT, GL_NICEST);
     
     int max_lights = std::min(GL_MAX_LIGHTS, 64);
-    printf("max_lights: %d\n", max_lights);
     while (max_lights--) {
-    	printf("reserving light:%d\n", GL_LIGHT0 + max_lights);
     	free_lights.push(GL_LIGHT0 + max_lights);
     }
 }
@@ -788,18 +786,15 @@ JOpenGLLight::JOpenGLLight(JOpenGLRenderer *r)
 :	renderer(r),
 	gl_name(r->requestLight())
 {
-	printf("Light %d: created\n", gl_name);
 	glEnable(gl_name);
 }
 	
 JOpenGLLight::~JOpenGLLight() {
-	printf("Light %d: destroyed\n", gl_name);
 	glDisable(gl_name);
 	renderer->releaseLight(gl_name);
 }
 
 void JOpenGLLight::setEnabled(bool e) {
-	printf("Light %d: %s\n", gl_name, e?"enabled":"disabled");
 	if (e) glEnable(gl_name);
 	else   glDisable(gl_name);
 }
@@ -809,27 +804,23 @@ bool JOpenGLLight::getEnabled() {
 }
 
 void JOpenGLLight::setColor(const Vector &c) {
-	printf("Light %d: setColor\n", gl_name);
 	float val[4] = {c[0], c[1], c[2], 1};
 	glLightfv(gl_name, GL_DIFFUSE, val);
 	glLightfv(gl_name, GL_SPECULAR, val);
 }
 	
 void JOpenGLLight::setAttenuation(float squared, float linear, float constant) {
-	printf("Light %d: setAttenuation\n", gl_name);
 	glLightfv(gl_name, GL_CONSTANT_ATTENUATION, &constant);
 	glLightfv(gl_name, GL_LINEAR_ATTENUATION, &linear);
 	glLightfv(gl_name, GL_QUADRATIC_ATTENUATION, &squared);	
 }
 
 void JOpenGLLight::setPosition(const Vector &p) {
-	printf("Light %d: setPosition\n", gl_name);
 	float val[] = {p[0],p[1],p[2],1};
 	glLightfv(gl_name, GL_POSITION, val);	
 }
 	
 void JOpenGLLight::setDirection(const Vector &p) {
-	printf("Light %d: setDirection\n", gl_name);
 	float val[] = {p[0],p[1],p[2],0};
 	glLightfv(gl_name, GL_POSITION, val);	
 }

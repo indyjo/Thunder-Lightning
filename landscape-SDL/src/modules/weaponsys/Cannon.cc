@@ -39,7 +39,7 @@ void Cannon::onFire(Armament & arm) {
     move += muzzle_velocity * (front + right*deviation[0] + up*deviation[1]);
 
     game->addActor(projectile);
-    ls_message("Shooting bullet from: ");start.dump();
-    ls_message("to: "); move.dump();
+    //ls_message("Shooting bullet from: ");start.dump();
+    //ls_message("to: "); move.dump();
     projectile->shoot(start, move, front);
 }

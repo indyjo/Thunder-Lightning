@@ -88,7 +88,7 @@ void Skeleton::load(Ptr<IGame> game, const std::string & filename) throw(invalid
     if ( n == string::npos ) dir = "./";
     else dir = filename.substr(0, n+1);
     
-    fstream in(filename.c_str());
+    ifstream in(filename.c_str());
     if (!in)
         throw invalid_argument("Could not open skeleton spec file "+filename);
     

@@ -36,11 +36,11 @@ namespace {
 			return self;
 		}
 	
-		static IoObject * create(Ptr<Tank> faction, IoState *state) 
+		static IoObject * create(Ptr<Tank> tank, IoState *state) 
 		{
 			IoObject *child = IoObject_rawClonePrimitive(
 				IoState_protoWithInitFunction_(state, proto));
-			retarget(child, ptr(faction));
+			retarget(child, ptr(tank));
 			return child;
 		}
 			
