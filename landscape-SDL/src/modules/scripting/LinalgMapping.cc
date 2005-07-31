@@ -13,18 +13,18 @@ template<class T>
 IoObject * wrap_raw(const T *v, int rows, int cols, IoState * state) {
 	IoObject *matrix = IoObject_rawClone(
 		IoObject_getSlot_(state->lobby,
-			IoState_stringWithCString_(state, "Matrix")));
+			IoSeq_newWithCString_(state, "Matrix")));
 
 	IoObject_initClone_(state->lobby, state->lobby, NULL, matrix);
 	
 	IoMessage *dimMessage = IoMessage_newWithName_(state,
-		IoState_stringWithCString_(state, "dim"));
+		IoSeq_newWithCString_(state, "dim"));
 	IoMessage_setCachedArg_toInt_(dimMessage, 0, rows);
 	IoMessage_setCachedArg_toInt_(dimMessage, 1, cols);
 	IoMessage_locals_performOn_(dimMessage,state->lobby,matrix);
 	
 	IoMessage *setMessage = IoMessage_newWithName_(state,
-		IoState_stringWithCString_(state, "set"));
+		IoSeq_newWithCString_(state, "set"));
 	for(int i=0; i<rows; ++i) for(int j=0; j<cols; ++j) {
 		IoMessage_setCachedArg_to_(setMessage, i*cols+j, 
 			IoNumber_newWithDouble_(state, v[j*rows+i]));
@@ -36,14 +36,14 @@ IoObject * wrap_raw(const T *v, int rows, int cols, IoState * state) {
 
 template<class T>
 void unwrap_raw(IoObject *self, T *out, int rows, int cols) {
-	IoObject *matrix = IoObject_getSlot_(IOSTATE->lobby, IOSTRING("Matrix"));
+	IoObject *matrix = IoObject_getSlot_(IOSTATE->lobby, IOSYMBOL("Matrix"));
 	IoState * state = (IoState*) self->tag->state;
 	IOASS(matrix, "Could not find Matrix proto.")
 	IOASS(IoObject_rawHasProto_(self, matrix), "Not a Matrix object")
-	IOASS(IoNumber_asInt(IoObject_getSlot_(self,IOSTRING("rows"))) == rows
-	   && IoNumber_asInt(IoObject_getSlot_(self,IOSTRING("columns"))) == cols,
+	IOASS(IoNumber_asInt(IoObject_getSlot_(self,IOSYMBOL("rows"))) == rows
+	   && IoNumber_asInt(IoObject_getSlot_(self,IOSYMBOL("columns"))) == cols,
 	                  "Wrong dimension")
-	IoObject *entries = IoObject_getSlot_(self, IOSTRING("entries"));
+	IoObject *entries = IoObject_getSlot_(self, IOSYMBOL("entries"));
 	IOASS(entries && ISLIST(entries), "entries not found or invalid")
 	for (int i=0; i<rows*cols; ++i)
 		out[i] = IoNumber_asDouble(IoList_rawAt_(entries,i));

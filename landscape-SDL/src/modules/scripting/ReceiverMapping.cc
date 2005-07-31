@@ -15,7 +15,7 @@ namespace {
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject * self =  proto(state);
 			IoState_registerProtoWithFunc_(state, self, proto);
-			IoObject_setSlot_to_(state->lobby, IOSTRING("PositionReceiver"), self);
+			IoObject_setSlot_to_(state->lobby, IOSYMBOL("PositionReceiver"), self);
 			self->data = 0;
 		}
 		static IoObject *proto(void *state) {
@@ -56,7 +56,7 @@ namespace {
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject * self =  proto(state);
 			IoState_registerProtoWithFunc_(state, self, proto);
-			IoObject_setSlot_to_(state->lobby, IOSTRING("MovementReceiver"), self);
+			IoObject_setSlot_to_(state->lobby, IOSYMBOL("MovementReceiver"), self);
 			self->data = 0;
 		}
 		

@@ -1,5 +1,5 @@
 # The sources directory
-srcdir=.
+srcdir=../../devel/gcc/landscape-SDL/src
 # The install destination
 installdir=../Thunder\&Lightning
 
@@ -15,14 +15,14 @@ COPY=cp
 
 # You can define additional compiler and linker flags here
 #CXXFLAGS=-g
-#CXXFLAGS=-mcpu=i686 -march=i686
-#LDFLAGS=
+CXXFLAGS=-O3 -mcpu=i686 -march=i686 -msse -mfpmath=sse -fabi-version=1
+#LDFLAGS=-fabi-version=1
 
 SIGC_CFLAGS=-I../libsigc-install/include/sigc++-1.2 -I../libsigc-install/lib/sigc++-1.2/include
 SIGC_LIBS=../libsigc-install/lib/libsigc-1.2.dll.a
 
-IO_CFLAGS=-I../IoVM-2004-09-26/
-IO_LIBS=../IoVM-2004-09-26/IoVM/_libs/libIoVM.a
+IO_CFLAGS=-I../IoVM-2005-05-21/ -I../IoVM-2005-05-21/IoVM
+IO_LIBS=../IoVM-2005-05-21/IoVM/_libs/libIoVM.a -lwsock32
 
 #SDL_CFLAGS=`sdl-config --cflags`
 SDL_CFLAGS=-I../SDL-1.2.7/include -I../SDL-1.2.7/include/SDL -D_REENTRANT
@@ -58,7 +58,7 @@ landscape-bin.exe: $(OBJS)
 
 clean:
 	@ echo Cleaning
-	@ rm `find -name \*.o` landscape-bin.exe
+	@ rm -f `find -name \*.o` landscape-bin.exe
 
 install: landscape-bin.exe
 	$(COPY) landscape-bin.exe $(installdir)

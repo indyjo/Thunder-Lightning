@@ -27,7 +27,7 @@ namespace {
 			
 			IoObject *self = proto(state);
 			IoState_registerProtoWithFunc_(state, self, proto);
-			IoObject_setSlot_to_(lobby, IOSTRING("SimpleActor"), self);
+			IoObject_setSlot_to_(lobby, IOSYMBOL("SimpleActor"), self);
 		}
 		
 		TAG_FUNC

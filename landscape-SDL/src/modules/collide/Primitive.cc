@@ -33,8 +33,8 @@ bool intersectBoxBox(const BoundingBox & box1,
         A = std::abs(delta_x * axis);
         B = 0;
         for(int j=0; j<3; j++) {
-            B += box1.dim[j] * std::abs(axis * orient1[j]);
-            B += box2.dim[j] * std::abs(axis * orient2[j]);
+            B += Interval(box1.dim[j]) * std::abs(axis * orient1[j]);
+            B += Interval(box2.dim[j]) * std::abs(axis * orient2[j]);
         }
         if (A > B) return false;
     }

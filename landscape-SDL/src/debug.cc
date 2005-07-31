@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include "debug.h"
 
+#define FORCE_SIMPLE_DEBUG
+
+#ifdef __MINGW32__
+#define FORCE_SIMPLE_DEBUG
+#endif
+
 void ls_message(const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
@@ -22,7 +28,7 @@ void ls_error(const char *fmt, ...) {
 	va_end(ap);
 }
 
-#ifdef __MINGW32__
+#ifdef FORCE_SIMPLE_DEBUG
 void debug(int severity, const char *fmt, va_list ap) {
 	vprintf(fmt, ap);
 	fflush(stdout);

@@ -42,7 +42,7 @@ class SelectAxisByActivityTransform : public AxisTransform {
 	float threshold, value;
 	bool init;
 public:
-	SelectAxisByActivityTransform(float threshold = 0.0f);
+	SelectAxisByActivityTransform(float threshold = 0.0f, float init_value=0.0f);
 	virtual float operator() (std::vector<float> & inputs);
 };
 

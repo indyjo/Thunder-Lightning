@@ -20,7 +20,7 @@ namespace {
 		static void addMapping(Ptr<IGame> game, IoState * state) {
 			IoObject *self = proto(state);
 			IoState_registerProtoWithFunc_(state, self, proto);
-			IoObject_setSlot_to_(state->lobby, IOSTRING("Model"), self);
+			IoObject_setSlot_to_(state->lobby, IOSYMBOL("Model"), self);
 		}
 		
 		static IoObject *proto(void *state) {

@@ -20,7 +20,7 @@ namespace {
 			IoObject *self = proto(state);
 		    self->tag->cloneFunc = (TagCloneFunc *)rawClone;
 			IoState_registerProtoWithFunc_(state, self, proto);
-			IoObject_setSlot_to_(lobby, IOSTRING("Tank"), self);
+			IoObject_setSlot_to_(lobby, IOSYMBOL("Tank"), self);
 		}
 		
 		static IoObject *proto(void *state) {

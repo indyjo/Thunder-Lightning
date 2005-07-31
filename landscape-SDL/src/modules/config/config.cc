@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
+#include <cerrno>
 #include "config.h"
 
 void Config::feedArguments(int argc, const char **const argv)
@@ -18,7 +19,7 @@ void Config::feedArguments(int argc, const char **const argv)
 void Config::set(const char *key, const char *value)
 {
 	data[key] = value;
-    //ls_message("  Config: %s = %s\n", key, value);
+    //ls_message("  Config[%p]: %s = %s\n", this, key, value);
 }
 
 const char *Config::query(const char *key, const char *def)
@@ -27,8 +28,10 @@ const char *Config::query(const char *key, const char *def)
     
     I=data.find(key);
     if (I!=data.end()) {
+    	//ls_message("Found key %s: \"%s\"\n", key, I->second.c_str());
         return I->second.c_str();
     } else {
+    	ls_warning("Not found: key %s. Fallback to \"%s\"\n", key, def);
         return def;
     }
 }

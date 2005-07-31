@@ -12,11 +12,10 @@ namespace {
 			IoObject *object = state->mainActor;
 			IoObject *lobby = state->lobby;
 			
-			IoObject *environment = proto(state);
-			IoState_registerProtoWithFunc_(state, environment, proto);
-			IoObject_setSlot_to_(lobby,
-				IoState_stringWithCString_(state, "Environment"), environment);
-			retarget(environment, &*thegame->getEnvironment());
+			IoObject *self = proto(state);
+			IoState_registerProtoWithFunc_(state, self, proto);
+			IoObject_setSlot_to_(lobby, IOSYMBOL("Environment"), self);
+			retarget(self, &*thegame->getEnvironment());
 		}
 		
 		static IoObject *proto(void *state) {

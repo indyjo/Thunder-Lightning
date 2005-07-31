@@ -12,10 +12,9 @@ namespace {
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject *lobby = state->lobby;
 			
-			IoObject *stage = proto(state);
-			IoState_registerProtoWithFunc_(state, stage, proto);
-			IoObject_setSlot_to_(lobby,
-				IoState_stringWithCString_(state, "ActorStage"), stage);
+			IoObject *self = proto(state);
+			IoState_registerProtoWithFunc_(state, self, proto);
+			IoObject_setSlot_to_(lobby,IOSYMBOL("ActorStage"), self);
 		}
 		
 		static IoObject *proto(void *state) {

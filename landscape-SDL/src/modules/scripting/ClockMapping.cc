@@ -12,7 +12,7 @@ namespace {
 		static void addMapping(Ptr<IGame> game, IoState * state) {
 			IoObject * self = proto(state);
 			IoState_registerProtoWithFunc_(state, self, proto);
-			IoObject_setSlot_to_(state->lobby, IOSTRING("Clock"), self);
+			IoObject_setSlot_to_(state->lobby, IOSYMBOL("Clock"), self);
 			retarget(self, ptr(game->getClock()));
 		}
 	

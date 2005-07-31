@@ -15,7 +15,7 @@ namespace {
 			retarget(self, ptr(thegame->getEventRemapper()));
 			IoState_registerProtoWithFunc_(state, self, proto);
 			IoObject_setSlot_to_(
-				state->lobby, IOSTRING("EventRemapper"), self);
+				state->lobby, IOSYMBOL("EventRemapper"), self);
 		}
 		static IoObject *proto(void *state) {
 			IoMethodTable methodTable[] = {

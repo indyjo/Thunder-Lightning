@@ -4,10 +4,10 @@
 #include <interfaces/IGame.h>
 #include "IoIncludes.h"
 extern "C" {
-	#include <IoVM/IoList.h>
-	#include <IoVM/IoMessage.h>
-	#include <IoVM/IoNil.h>
-	#include <IoVM/IoNumber.h>
+	#include <IoList.h>
+	#include <IoMessage.h>
+	#include <IoNil.h>
+	#include <IoNumber.h>
 }
 
 #define BEGIN_FUNC(name) 							\

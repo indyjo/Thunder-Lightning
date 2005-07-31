@@ -80,15 +80,15 @@ struct TargetView: public SimpleView {
 };
 
 
-Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer)
+Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
 : SimpleActor(thegame),
   renderer(thegame->getRenderer()),
   terrain(thegame->getTerrain()), damage(0),
   mtasker(64*1024),
   control_mode(UNCONTROLLED),
-  io_peer(io_peer)
+  io_peer(io_peer_init)
 {
-	ls_message("Creating drone.\n");
+	ls_message("<Drone::Drone>\n");
 	Ptr<IConfig> cfg = thegame->getConfig();
     setTargetInfo(new TargetInfo(
         "Drone", cfg->queryFloat("Drone_target_radius",15),
@@ -97,6 +97,7 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer)
     drone_controls = new DroneControls;
     engine = new FlightEngine2(thegame);
     setEngine(engine);
+    drone_controls->setThrottle(1.0f);
     engine->setFlightControls(drone_controls);
 
     // Prepare collidable
@@ -204,19 +205,21 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer)
             
     // Io initialiization
     IoState * state = thegame->getIoScriptingManager()->getMainState();
-    if (!io_peer) {
-    	io_peer = wrapObject<Ptr<Drone> >(this, state);
+    if (!this->io_peer) {
+    	this->io_peer = wrapObject<Ptr<Drone> >(this, state);
     }
-    IoState_retain_(state, io_peer);
+    IoState_retain_(state, this->io_peer);
+	ls_message("</Drone::Drone>\n");
 }         
 
 Drone::~Drone() {
-	ls_message("Drone dying.\n");
+	ls_message("<Drone::~Drone()>\n");
 	if (io_peer) {
 		IoState_release_(
 			thegame->getIoScriptingManager()->getMainState(),
 			io_peer);
 	}
+	ls_message("</Drone::~Drone()>\n");
 }
 
 void Drone::action() {
@@ -340,10 +343,10 @@ void Drone::kill() {
 	patrol_idea=0;
 	
     IoObject* self = io_peer;
-    if (IoObject_rawGetSlot_(self, IOSTRING("onKill"))) {
+    if (IoObject_rawGetSlot_(self, IoSeq_newWithCString_(IOSTATE, "onKill"))) {
 		IoState_pushRetainPool(IOSTATE);
 		IoMessage *msg =
-			IoMessage_newWithName_(IOSTATE, IOSTRING("onKill"));
+			IoMessage_newWithName_(IOSTATE, IoSeq_newWithCString_(IOSTATE, "onKill"));
 		IoState_stackRetain_(IOSTATE, msg);
 		IoMessage_locals_performOn_(msg,IOSTATE->lobby,self);
 		IoState_popRetainPool(IOSTATE);
@@ -437,11 +440,11 @@ void Drone::draw() {
 void Drone::applyDamage(float damage, int domain, Ptr<IProjectile> projectile) {
 	if (!isAlive()) return;
     IoObject* self = io_peer;
-    if (IoObject_rawGetSlot_(self, IOSTRING("onDamage"))) {
+    if (IoObject_rawGetSlot_(self, IoSeq_newWithCString_(IOSTATE, "onDamage"))) {
     	// call onDamage with parameters damage, domain, projectile, source
 		IoState_pushRetainPool(IOSTATE);
 		IoMessage *msg =
-			IoMessage_newWithName_(IOSTATE, IOSTRING("onDamage"));
+			IoMessage_newWithName_(IOSTATE, IoSeq_newWithCString_(IOSTATE, "onDamage"));
 		IoState_stackRetain_(IOSTATE, msg);
 		IoMessage_setCachedArg_to_(msg, 0, wrapObject(damage, IOSTATE));
 		IoMessage_setCachedArg_toInt_(msg, 1, domain);

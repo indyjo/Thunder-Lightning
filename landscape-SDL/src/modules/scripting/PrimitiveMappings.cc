@@ -25,11 +25,11 @@ template<> IoObject * wrapObject(float n, IoState * state)
 template<> IoObject * wrapObject(double n, IoState * state)
 { return IoNumber_newWithDouble_(state, n); }
 template<> IoObject * wrapObject(std::string s, IoState * state)
-{ return IoState_stringWithCString_(state, const_cast<char*>(s.c_str())); }
+{ return IoSeq_newWithCString_(state, const_cast<char*>(s.c_str())); }
 template<> IoObject * wrapObject(const char * s, IoState * state)
-{ return IoState_stringWithCString_(state, const_cast<char*>(s)); }
+{ return IoSeq_newWithCString_(state, const_cast<char*>(s)); }
 template<> IoObject * wrapObject(char * s, IoState * state)
-{ return IoState_stringWithCString_(state, s); }
+{ return IoSeq_newWithCString_(state, s); }
 
 template<> bool unwrapObject(IoObject *self)
 { return !ISNIL(self); }
@@ -40,25 +40,25 @@ template<> float unwrapObject(IoObject *self)
 template<> double unwrapObject(IoObject *self)
 { return IoNumber_asDouble(self); }
 template<> std::string unwrapObject(IoObject *self)
-{ return IoString_asCString(self); }
+{ return CSTRING(self); }
 template<> const char* unwrapObject(IoObject *self)
-{ return IoString_asCString(self); }
+{ return CSTRING(self); }
 template<> char* unwrapObject(IoObject *self)
-{ return IoString_asCString(self); }
+{ return CSTRING(self); }
 
 namespace {
 	template<class T>
 	inline IoObject *wrap_vector(const vector<T> & v, IoState *state) {
 		IoList * list = IoList_new(state);
 		for(int i=0; i<v.size(); ++i)
-			IoList_rawAdd_(list, wrapObject<T>(v[i], state));
+			IoList_rawAppend_(list, wrapObject<T>(v[i], state));
 		return list;
 	}
 
 	template<class T>
 	inline vector<T> unwrap_vector(IoObject *self) {
 		IOASS(ISLIST(self), "Not a list")
-		int n=IoList_rawCount(self);
+		int n=(int)IoList_rawSize(self);
 		vector<T> v;
 		for(int i=0; i<n; ++i)
 			v.push_back(unwrapObject<T>(IoList_rawAt_(self, i)));

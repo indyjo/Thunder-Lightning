@@ -14,7 +14,7 @@ namespace {
 		static void addMapping(Ptr<IGame> game, IoState * state) {
 			IoObject * self = proto(state);
 			IoState_registerProtoWithFunc_(state, self, proto);
-			IoObject_setSlot_to_(state->lobby, IOSTRING("ModelMan"), self);
+			IoObject_setSlot_to_(state->lobby, IOSYMBOL("ModelMan"), self);
 			retarget(self, ptr(game->getModelMan()));
 		}
 	

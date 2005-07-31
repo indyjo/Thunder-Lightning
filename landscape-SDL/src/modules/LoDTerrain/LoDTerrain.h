@@ -98,7 +98,8 @@ typedef struct {
 
 class LoDQuad
 {
-    friend class Evaluator {
+    friend class Evaluator;
+    class Evaluator {
         Vector pos;
         float plane[6][4];
         const float *vx, *vy, *vz;

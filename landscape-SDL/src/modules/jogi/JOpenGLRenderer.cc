@@ -17,6 +17,8 @@
 JOpenGLRenderer::JOpenGLRenderer(int init_width, int init_height, float aspect)
 : clip_planes(0)
 {
+    ls_message("<JOpenGLRenderer::JOpenGLRenderer(%d, %d, %f)>\n",
+    	init_width, init_height, aspect);
     resize(init_width, init_height);
 
     coord_sys=JR_CS_WORLD;
@@ -67,6 +69,7 @@ JOpenGLRenderer::JOpenGLRenderer(int init_width, int init_height, float aspect)
     while (max_lights--) {
     	free_lights.push(GL_LIGHT0 + max_lights);
     }
+    ls_message("</JOpenGLRenderer::JOpenGLRenderer>\n");
 }
 
 void JOpenGLRenderer::setVertexMode(jrvertexmode_t mode)
@@ -344,6 +347,13 @@ jError JOpenGLRenderer::setTexture(jrtxtid_t txtid)
     return JERR_OK;
 }
 
+// Hack to make OpenGL 1.2 header files unnecessary
+// because the OpenGL headers of mingw32 and probably win32 are
+// not up to date
+#ifndef GL_CLAMP_TO_EDGE
+	#define GL_CLAMP_TO_EDGE 0x812F
+#endif
+
 void JOpenGLRenderer::setWrapMode( jrtexdim_t dim, jrwrapmode_t mode)
 {
     GLenum pname;
@@ -353,7 +363,7 @@ void JOpenGLRenderer::setWrapMode( jrtexdim_t dim, jrwrapmode_t mode)
     else pname = GL_TEXTURE_WRAP_T;
 
     if (mode == JR_WRAPMODE_REPEAT) param = GL_REPEAT;
-    else param = GL_CLAMP;
+    else param = GL_CLAMP_TO_EDGE;
 
     glTexParameteri(GL_TEXTURE_2D, pname, param);
 }

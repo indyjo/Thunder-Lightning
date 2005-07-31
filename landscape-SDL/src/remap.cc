@@ -3,8 +3,8 @@
 #include <remap.h>
 
 SelectAxisByActivityTransform::SelectAxisByActivityTransform(
-	float threshold)
-:	threshold(threshold), value(0), init(true)
+	float threshold, float init_value)
+:	threshold(threshold), value(init_value), init(true)
 { }
 	
 float SelectAxisByActivityTransform::operator() (std::vector<float> & inputs) {

@@ -139,7 +139,7 @@ bool Console::feedEvent(SDL_Event & ev) {
         Uint16 unicode = ev.key.keysym.unicode;
         ls_message("Console::feedEvent(%d)\n", unicode);
 
-        if (ev.key.keysym.sym == SDLK_CARET) {
+        if (ev.key.keysym.sym == SDLK_F11) {
             disable();
             return false;
         } else if (ev.key.keysym.sym == SDLK_UP) {
@@ -176,14 +176,16 @@ bool Console::feedEvent(SDL_Event & ev) {
         } else if (unicode == '\t') {
         	IoState * state = game->getIoScriptingManager()->getMainState();
         	IoObject * self = IoObject_rawGetSlot_(state->lobby,
-        		IoState_stringWithCString_(state, "complete"));
+        		IoState_symbolWithCString_(state, "complete"));
         	if (self) {
 				IoMessage *msg =
-					IoMessage_newWithName_(IOSTATE, IOSTRING("complete"));
+					IoMessage_newWithName_(IOSTATE, IOSYMBOL("complete"));
 				IoState_retain_(IOSTATE,msg);
 				
+				char cmd[1024];
+				strncpy(cmd,(buffer+command).c_str(), 1024);
 				IoMessage_setCachedArg_to_(msg, 0,
-					IOSTRING((buffer+command).c_str()));
+					IoSeq_newWithCString_(IOSTATE, cmd));
 				IoMessage_setCachedArg_to_(msg, 1, state->lobby);
 				
 				IoObject *results =IoMessage_locals_performOn_(
@@ -239,15 +241,17 @@ bool Console::feedEvent(SDL_Event & ev) {
         	history_pointer = command_history.end();
 			command = "";
 			cursor_pos = 0;
-        } else if (unicode == '\b' && cursor_pos>0) {
-        	command = command.substr(0,cursor_pos-1) +
-        			  command.substr(cursor_pos);
-        	cursor_pos--;
-        } else if (ev.key.keysym.sym == SDLK_DELETE
-        		   && cursor_pos<command.size())
-        {
-        	command = command.substr(0,cursor_pos) +
-        			  command.substr(cursor_pos+1);
+        } else if (unicode == '\b') {
+        	if (cursor_pos > 0) {
+	        	command = command.substr(0,cursor_pos-1) +
+	        			  command.substr(cursor_pos);
+	        	cursor_pos--;
+        	}
+        } else if (ev.key.keysym.sym == SDLK_DELETE) {
+        	if (cursor_pos < command.size()) {
+	        	command = command.substr(0,cursor_pos) +
+	        			  command.substr(cursor_pos+1);
+        	}
         } else if (unicode > 0 && unicode < 256) {
             command = command.substr(0,cursor_pos)
             		  +(char) unicode
@@ -272,15 +276,22 @@ void Console::disable() {
 }
 
 void Console::printCallback(const char *s) {
+	ls_message("%s",s);
 	putString(s);
 }
 
 void Console::exceptionCallback(IoException *ex) {
-	putString(IoString_asCString(IoException_name(ex)));
+	ls_error("Io Exception: %s - %s\n",
+		CSTRING(IoException_name(ex)), 
+		CSTRING(IoException_description(ex)));
+	ls_error("%s\n",
+		CSTRING(IoException_backTraceString(ex, NULL, NULL)));
+	
+	putString(CSTRING(IoException_name(ex)));
 	putString(" - ");
-	putString(IoString_asCString(IoException_description(ex)));
+	putString(CSTRING(IoException_description(ex)));
 	putString("\n");
-	putString(IoString_asCString(IoException_backTraceString(ex, NULL, NULL)));
+	putString(CSTRING(IoException_backTraceString(ex, NULL, NULL)));
 }
 
 void Console::exitCallback() {

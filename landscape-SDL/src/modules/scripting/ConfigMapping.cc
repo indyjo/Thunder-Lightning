@@ -12,11 +12,10 @@ namespace {
 			IoObject *object = state->mainActor;
 			IoObject *lobby = state->lobby;
 			
-			IoObject *config = proto(state);
-			IoState_registerProtoWithFunc_(state, config, proto);
-			IoObject_setSlot_to_(lobby,
-				IoState_stringWithCString_(state, "Config"), config);
-			retarget(config, &*thegame->getConfig());
+			IoObject *self = proto(state);
+			IoState_registerProtoWithFunc_(state, self, proto);
+			IoObject_setSlot_to_(lobby, IOSYMBOL("Config"), self);
+			retarget(self, &*thegame->getConfig());
 		}
 		
 		static IoObject *proto(void *state) {
@@ -42,7 +41,7 @@ namespace {
 			const char *val = getObject(self)->query(key);
 			if (val) {
 				strncpy(valuebuf, val, 256);
-				return IOSTRING(valuebuf);
+				return IoSeq_newWithCString_(IOSTATE, valuebuf);
 			} else {
 				return IONIL(self);
 			}

@@ -24,10 +24,10 @@ namespace {
 		}
 		virtual void exceptionCallback(IoException * e) {
 			ls_error("Io Exception: %s - %s\n",
-				IoString_asCString(IoException_name(e)), 
-				IoString_asCString(IoException_description(e)));
+				CSTRING(IoException_name(e)), 
+				CSTRING(IoException_description(e)));
 			ls_error("%s\n",
-				IoString_asCString(IoException_backTraceString(e, NULL, NULL)));
+				CSTRING(IoException_backTraceString(e, NULL, NULL)));
 		}
 		virtual void exitCallback() {
 			ls_warning("Io has called exit - ignored.\n");

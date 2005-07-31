@@ -8,6 +8,7 @@ noinst_HEADERS =                        \
     config/compiler/sgi_mipspro.hpp     \
     config/compiler/vacpp.hpp           \
     config/compiler/common_edg.hpp      \
+    config/compiler/digitalmars.hpp     \
     config/compiler/gcc.hpp             \
     config/compiler/hp_acc.hpp          \
     config/compiler/mpw.hpp             \

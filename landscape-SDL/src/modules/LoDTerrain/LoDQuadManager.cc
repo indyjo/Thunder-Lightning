@@ -7,6 +7,8 @@
 
 LoDQuadManager::LoDQuadManager(IGame *the_game, Status & stat)
 {
+    ls_message("<LoDQuadManager::LoDQuadManager>\n");
+    
     int        u,v;
     char       buf[256];
     std::ifstream   in;
@@ -91,8 +93,10 @@ LoDQuadManager::LoDQuadManager(IGame *the_game, Status & stat)
             sprintf(buf,"%s-%d-%d.tga", texmap_prefix.c_str(), u, v);
             char lbuf[256];
             sprintf(lbuf, "%s-%d-%d.spr", lightmap_prefix.c_str(), u, v);
+    		ls_message("Initializing quad at %d:%d\n",u,v);
             quad[v*width + u].init(the_game, in, neighbor, main_tex,
                     detail_tex, buf, textures, lbuf, stat);
+    		ls_message("Done initializing quad at %d:%d\n",u,v);
             in.close();
 
             stat.stepFinished();
@@ -107,6 +111,7 @@ LoDQuadManager::LoDQuadManager(IGame *the_game, Status & stat)
     debug_mode = false;
 
     loadTextures();
+    ls_message("</ LoDQuadManager::LoDQuadManager>\n");
 }
 
 LoDQuadManager::~LoDQuadManager()

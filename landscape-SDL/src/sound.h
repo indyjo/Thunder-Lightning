@@ -9,6 +9,7 @@
 #include <modules/math/Vector.h>
 
 struct IConfig;
+class SoundMan;
 
 class Sound : virtual public Object
 {

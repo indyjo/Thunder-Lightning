@@ -20,10 +20,10 @@
 We define a matrix as an array of N row vectors each with N entries. So we get
 an element order just like in OpenGL:
 
+|  0   4   8  12  |
 |  1   5   9  13  |
 |  2   6  10  14  |
 |  3   7  11  15  |
-|  4   8  12  16  |
 
 */
 
@@ -199,7 +199,7 @@ public:
         for(int i=0; i<N; i++) {
             os << "( ";
             for(int j=0; j<N; j++) {
-                std::os << M(i,j);
+                os << M(i,j);
                 if (j==N-1) os << ")" << std::endl;
                 else os << ", ";
             }

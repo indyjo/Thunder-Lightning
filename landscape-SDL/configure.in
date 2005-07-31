@@ -1,12 +1,18 @@
+
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/game.cc)
+AC_CANONICAL_TARGET
+
 AM_INIT_AUTOMAKE(landscape,0.0.1)
 AM_CONFIG_HEADER(config.h)
+
 
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
 AM_PROG_LIBTOOL
+
+CFLAGS=""
 
 dnl Conditionals
 
@@ -74,13 +80,22 @@ AC_SUBST(LIBPNG_CFLAGS)
 AC_SUBST(LIBPNG_LIBS)
 
 AC_ARG_WITH(
+    io-dir,
+    [  --with-io-dir=PATH           Io sources directory],
+    [IO_DIR="$withval"],
+    [AC_MSG_ERROR(['Must specify Io sources directory with --with-io-dir'])])
+
+IO_CFLAGS="-I$IO_DIR/IoVM/_include -I$IO_DIR/IoVM/_include/base"
+IO_LIBS="$IO_DIR/IoVM/_libs/libIoVM.a"
+
+AC_ARG_WITH(
     io-cflags,
-    [  --with-io-cflags=PATH    Specify Io cflags],
-    IO_CFLAGS="$withval", IO_CFLAGS="")
+    [  --with-io-cflags=PATH        Additional Io cflags],
+    IO_CFLAGS="$IO_CFLAGS $withval")
 AC_ARG_WITH(
     io-libs,
-    [  --with-io-libs=PATH      Specify Io libs],
-    IO_LIBS="$withval", IO_LIBS="libIoVM.a")
+    [  --with-io-libs=PATH          Additional Io libs],
+    IO_LIBS="$IO_LIBS $withval")
 AC_SUBST(IO_CFLAGS)
 AC_SUBST(IO_LIBS)
 

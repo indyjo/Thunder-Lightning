@@ -79,7 +79,7 @@ Game::Game(int argc, const char **argv)
     }
     ls_message("done.\n");
 
-    ls_message("Initializing video: ");
+    ls_message("Initializing video.\n");
     {
         int xres = atoi( config->query("Game_xres", "1024") );
         int yres = atoi( config->query("Game_yres", "768") );
@@ -112,14 +112,16 @@ Game::Game(int argc, const char **argv)
         SDL_GL_GetAttribute( SDL_GL_DOUBLEBUFFER, &db );
         ls_message(" got r/g/b/d %d/%d/%d/%d %s double buffering. ",
                 r,g,b,d,db?"width":"without");
+        ls_message("Initializing OpenGL renderer.\n");
         renderer = new JOpenGLRenderer(xres, yres, config->queryFloat("Camera_aspect",1.33333));
+        ls_message("Done initializing OpenGL renderer.\n");
     	camera = new Camera(this);
     	JCamera jcam;
     	camera->getCamera(&jcam);
     	renderer->setCamera(&jcam.cam);
     	renderer->setClipRange(0.1, 10);
     }
-    ls_message("done.\n");
+    ls_message("Done initializing video.\n");
 
     pause = false;
 
@@ -242,7 +244,9 @@ Game::Game(int argc, const char **argv)
     {
 		char buf[256];
 		strncpy(buf,config->query("Io_init_script_2"),256);
+		ls_message("Executing initial setup script: %s\n", buf);
 		IoState_doFile_(io_scripting_manager->getMainState(), buf);
+		ls_message("Done excuting initial setup script: %s\n", buf);
     }
 
     while (clock->catchup(1.0f)) ;
@@ -508,6 +512,7 @@ void Game::initControls()
     r->map("endgame", SigC::slot(*this, & Game::endGame));
     r->map("debug", SigC::slot(*this, & Game::toggleDebugMode));
 
+    r->setAxis("kbd_throttle",-1.0f);
     r->map("throttle0", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.0f));
     r->map("throttle1", SigC::bind(
@@ -601,7 +606,7 @@ void Game::initControls()
         AxisManipulator(new SumAxesTransform(), "rudder")
         .input("js_rudder"));
     r->addAxisManipulator(
-        AxisManipulator(new SelectAxisByActivityTransform(0.01f), "throttle")
+        AxisManipulator(new SelectAxisByActivityTransform(0.05f, 1.0f), "throttle")
         .input("js_throttle2")
         .input("kbd_throttle"));
         
@@ -806,10 +811,10 @@ void Game::postFrame()
     
     IoObject* self = getProtoObject<IGame>(
     	io_scripting_manager->getMainState());
-    if (IoObject_rawGetSlot_(self, IOSTRING("postFrame"))) {
+    if (IoObject_rawGetSlot_(self, IOSYMBOL("postFrame"))) {
 		IoState_pushRetainPool(IOSTATE);
 		IoMessage *msg =
-			IoMessage_newWithName_(IOSTATE, IOSTRING("postFrame"));
+			IoMessage_newWithName_(IOSTATE, IOSYMBOL("postFrame"));
 		IoState_stackRetain_(IOSTATE, msg);
 		IoMessage_locals_performOn_(msg,IOSTATE->lobby,self);
 		IoState_popRetainPool(IOSTATE);
