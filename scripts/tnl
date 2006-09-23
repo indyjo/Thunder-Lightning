@@ -62,7 +62,11 @@ if [[ $debug_enabled == yes ]]; then
 fi
 
 echo $command $param $*
-$command $param $* >/tmp/stdout.txt 2>/tmp/stderr.txt
+if [[ $debug_enabled == yes ]]; then
+  $command $param $*
+else
+  $command $param $* >/tmp/stdout.txt 2>/tmp/stderr.txt
+fi
 if [[ $? != 0 ]]; then
   on_error
 fi
