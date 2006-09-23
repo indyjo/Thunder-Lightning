@@ -31,20 +31,13 @@ void ChasingEngine::run() {
         current_xform = Transform(-current_xform.quat(), current_xform.vec());
     }
     float      delta_t = clock->getStepDelta();
-    Quaternion delta_q = target_xform.quat() - current_xform.quat();
-    Vector     delta_x = target_xform.vec()  - current_xform.vec();
 
-    Quaternion new_q = (rot_thalf>0)? (current_xform.quat() + delta_t * log(2.0f)/rot_thalf * delta_q) : target_xform.quat();
-    Vector     new_x = (pos_thalf>0)? (current_xform.vec()  + delta_t * log(2.0f)/pos_thalf * delta_x) : target_xform.vec();
-
-    current_xform = Transform(new_q.normalize(), new_x);
-
-    //float r = pow(2.0f, -delta_t/rot_thalf);
-    //float s = pow(2.0f, -delta_t/pos_thalf);
-    ////current_xform = Transform(current_xform.quat(), current_xform.vec() + delta_t*v);
-    //current_xform = Transform(
-    //    (r*current_xform.quat() + (1-r)*target_xform.quat()).normalize(),
-    //    s*current_xform.vec()  + (1-s)*target_xform.vec());
+    float r = pow(2.0f, -delta_t/rot_thalf);
+    float s = pow(2.0f, -delta_t/pos_thalf);
+    //current_xform = Transform(current_xform.quat(), current_xform.vec() + delta_t*v);
+    current_xform = Transform(
+        (r*current_xform.quat() + (1-r)*target_xform.quat()).normalize(),
+        s*current_xform.vec()  + (1-s)*target_xform.vec());
     
     //ls_warning("current vec: "); new_x.dump();
     //ls_warning("current quat: %f ",
