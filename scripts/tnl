@@ -2,19 +2,68 @@
 
 function on_error() {
   xset r on
-  echo The program was aborted.
-  echo See /tmp/stdout.txt and /tmp/stderr.txt for information on what happened.
-  echo Visit http://tnlgame.net for information and to contact the author and the community.
+  echo
+  echo TnL has exited with a non-zero return value.
+  echo This usually means that something has gone wrong and the game has crashed.
+  echo "  * See /tmp/stdout.txt and /tmp/stderr.txt for information"
+  echo "    on what happened."
+  echo "  * Visit http://tnlgame.net for information and to contact"
+  echo "    the author and the community."
+  if [[ $debug_enabled==no ]]; then
+    echo "  * If you would like to debug TnL, start again with"
+    echo "    tnl --debug or set TNL_DEBUG=1"
+  fi
   exit -1
 }
 
+param=""
+function setv() {
+  vname=$1
+  vval=$2
+  
+  eval "$vname=$vval"
+  param="$param $vname=$vval"
+}
 
 exec_dir=`dirname $0`
-source $exec_dir/tnl-vars
 
-echo $bin_dir/tnl-bin $param $*
-$bin_dir/tnl-bin $param $* >/tmp/stdout.txt 2>/tmp/stderr.txt
-if [ $? != 0 ]; then
+# Set common variables
+setv base_dir                         `cd $exec_dir/..;pwd`
+setv bin_dir                          $base_dir/bin
+setv Io_init_script                   $base_dir/share/landscape/scripts/init.io
+
+command="$bin_dir/tnl-bin"
+
+debug_enabled=no
+if [[ $1 == "-d" || $1 == "--debug" ]]; then
+  shift
+  debug_enabled=yes
+fi
+
+if [[ -n "$TNL_DEBUG" ]]; then
+  debug_enabled=yes
+fi
+
+
+if [[ $debug_enabled == yes ]]; then
+  debug_1="ddd --args"
+  debug_2="valgrind -v --leak-check=yes --logfile=valgrind --num-callers=8"
+  debug_3="gdb --args"
+  echo "Please choose a debugger:"
+  echo "1 $debug_1"
+  echo "2 $debug_2"
+  echo "3 $debug_3"
+  read num
+  case $num in
+    1) command="$debug_1 $command" ;;
+    2) command="$debug_2 $command" ;;
+    3) command="$debug_3 $command" ;;
+  esac
+fi
+
+echo $command $param $*
+$command $param $* >/tmp/stdout.txt 2>/tmp/stderr.txt
+if [[ $? != 0 ]]; then
   on_error
 fi
 
