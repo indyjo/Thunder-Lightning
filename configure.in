@@ -1,0 +1,159 @@
+AC_INIT([tnl],[060203],[bugs@tnlgame.net],[TnL-source])
+AC_CONFIG_SRCDIR(src/game.cc)
+AC_CONFIG_HEADERS(config.h)
+AC_CANONICAL_TARGET
+
+AM_INIT_AUTOMAKE
+
+
+dnl Checks for programs.
+AC_PROG_CXX
+AC_PROG_RANLIB
+
+dnl Conditionals
+
+AC_ARG_ENABLE(
+    profiling,
+    [  --enable-profiling           Enables gprof profiling],
+    CXXFLAGS="$CXXFLAGS -pg")
+
+AC_ARG_ENABLE(
+    pentium2,
+    [  --enable-pentium2            Enables Pentium 2 code generation],
+    CXXFLAGS="$CXXFLAGS -march=i686 -mcpu=i686 -mfpmath=sse -msse")
+
+AC_ARG_ENABLE(
+    pentium4,
+    [  --enable-pentium4            Enables Pentium 4 code generation],
+    CXXFLAGS="$CXXFLAGS -march=pentium4 -mcpu=pentium4 -mfpmath=sse -msse2")
+
+AC_ARG_ENABLE(
+    athlonxp,
+    [  --enable-athlonxp            Enables Athlon XP code generation],
+    CXXFLAGS="$CXXFLAGS -march=athlonxp -mcpu=athlonxp -mfpmath=sse -msse")
+
+AC_ARG_WITH(
+    opengl-cflags,
+    [  --with-opengl-cflags=PATH    Specify OpenGL cflags],
+    OPENGL_CFLAGS="$withval", OPENGL_CFLAGS="")
+AC_ARG_WITH(
+    opengl-libs,
+    [  --with-opengl-libs=PATH      Specify OpenGL libs],
+    OPENGL_LIBS="$withval", OPENGL_LIBS="-lGL -lpthread")
+AC_SUBST(OPENGL_CFLAGS)
+AC_SUBST(OPENGL_LIBS)
+
+AC_ARG_WITH(
+    openal-cflags,
+    [  --with-openal-cflags=PATH    Specify OpenAL cflags],
+    OPENAL_CFLAGS="$withval", OPENAL_CFLAGS="")
+AC_ARG_WITH(
+    openal-libs,
+    [  --with-openal-libs=PATH      Specify OpenAL libs],
+    OPENAL_LIBS="$withval", OPENAL_LIBS="-lopenal")
+CXXFLAGS="$CXXFLAGS $OPENAL_CFLAGS"
+LDFLAGS="$LDFLAGS $OPENAL_LDFLAGS"
+AC_SUBST(OPENAL_CFLAGS)
+AC_SUBST(OPENAL_LIBS)
+
+AC_ARG_WITH(
+    libpng-cflags,
+    [  --with-libpng-cflags=PATH    Specify libPNG cflags],
+    LIBPNG_CFLAGS="$withval", LIBPNG_CFLAGS="")
+AC_ARG_WITH(
+    libpng-libs,
+    [  --with-libpng-libs=PATH      Specify libPNG libs],
+    LIBPNG_LIBS="$withval", LIBPNG_LIBS="-lpng")
+AC_SUBST(LIBPNG_CFLAGS)
+AC_SUBST(LIBPNG_LIBS)
+
+dnl Configure Io sources directory. If this is not given, the
+dnl user can still pass CFLAGS and LDFLAGS arguments
+AC_ARG_WITH(
+    io-dir,
+    [  --with-io-dir=PATH           Io sources directory],
+    [IO_DIR="$withval"])
+
+if [[ "$IO_DIR" ]]; then
+    IO_CFLAGS="-I$IO_DIR/vm/_include -I$IO_DIR/vm/_include/base"
+    IO_LIBS="$IO_DIR/vm/_libs/libIoVM.a"
+fi
+
+AC_ARG_WITH(
+    io-cflags,
+    [  --with-io-cflags=PATH        Additional Io cflags],
+    IO_CFLAGS="$IO_CFLAGS $withval")
+AC_ARG_WITH(
+    io-libs,
+    [  --with-io-libs=PATH          Additional Io libs],
+    IO_LIBS="$IO_LIBS $withval")
+CXXFLAGS="$CXXFLAGS $IO_CFLAGS"
+AC_SUBST(IO_LIBS)
+
+dnl Checks for libraries.
+PKG_CHECK_MODULES(
+    SIGC,
+    sigc++-1.2,
+    [],
+    AC_MSG_WARN([Warning: could not find SigC++ via pkg-config.]))
+AC_ARG_WITH(
+    sigc-cflags,
+    [  --with-sigc-cflags=PATH      Additional SigC++ cflags],
+    SIGC_CFLAGS="$SIGC_CFLAGS $withval")
+AC_ARG_WITH(
+    sigc-libs,
+    [  --with-sigc-libs=PATH        Additional SigC++ libs],
+    SIGC_LIBS="$SIGC_LIBS $withval")
+CXXFLAGS="$CXXFLAGS $SIGC_CFLAGS"
+
+AM_PATH_SDL(1.2.0, , AC_MSG_ERROR([SDL verion 1.2.0+ needed]))
+CXXFLAGS="$CXXFLAGS $SDL_CFLAGS"
+LDFLAGS="$LDFLAGS $SDL_LFLAGS"
+
+dnl Checks for header files.
+AC_CHECK_HEADERS(sys/time.h unistd.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+dnl AC_C_CONST
+dnl AC_HEADER_TIME
+
+dnl Checks for library functions.
+dnl AC_CHECK_FUNCS(gettimeofday)
+
+AC_CONFIG_FILES([
+Makefile
+autopackage/default.apspec
+scripts/Makefile
+src/Makefile
+src/boost/Makefile
+src/interfaces/Makefile
+src/modules/Makefile
+src/modules/LoDTerrain/Makefile
+src/modules/actors/Makefile
+src/modules/actors/drone/Makefile
+src/modules/actors/fx/Makefile
+src/modules/actors/projectiles/Makefile
+src/modules/actors/tank/Makefile
+src/modules/ai/Makefile
+src/modules/camera/Makefile
+src/modules/clock/Makefile
+src/modules/collide/Makefile
+src/modules/config/Makefile
+src/modules/engines/Makefile
+src/modules/environment/Makefile
+src/modules/flight/Makefile
+src/modules/fontman/Makefile
+src/modules/gunsight/Makefile
+src/modules/jogi/Makefile
+src/modules/map/Makefile
+src/modules/math/Makefile
+src/modules/model/Makefile
+src/modules/physics/Makefile
+src/modules/scripting/Makefile
+src/modules/skybox/Makefile
+src/modules/texman/Makefile
+src/modules/ui/Makefile
+src/modules/weaponsys/Makefile
+])
+AC_OUTPUT
+

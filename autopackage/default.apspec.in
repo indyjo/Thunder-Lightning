@@ -1,0 +1,56 @@
+# -*-shell-script-*-
+
+[Meta]
+RootName: @tnlgame.net/tnl:$SOFTWAREVERSION
+DisplayName: Thunder&Lightning
+ShortName: tnl
+Maintainer: Jonas Eschenburg <indyjo@gmx.de>
+Packager: Jonas Eschenburg <indyjo@gmx.de>
+Summary: An Open Source Futuristic Action Flight Simulator
+URL: http://tnlgame.net/
+License: GNU General Public License, Version 2
+SoftwareVersion: @VERSION@
+AutopackageTarget: 1.0
+Repository: http://tnlgame.net/autopackage/repository.xml
+
+# Only uncomment InterfaceVersion if your package exposes interfaces to other software,
+# for instance if it includes DSOs or python/perl modules. See the developer guide for more info,
+# or ask on autopackage-dev if you don't understand interface versioning in autopackage.
+#
+# InterfaceVersion: 0.0
+
+[Description]
+Thunder&Lightning is the new name of a rather old project of me, Jonas Eschenburg. What started in 1999 as a technology demonstration has become quite an advanced flight simulator.
+
+This has always been my pet project but now I'm going to release it to the public, under the GPL, an Open Source license. This means that development can continue including other people than just myself. While it is already playable, Thunder&Lightning is by no means a finished game. If you like it, think about contributing!
+
+In the long run, I plan to incorporate features from the 80's classics Carrier Command and Midwinter. There will be multiple Islands to conquer, each with its own defense strategy. Thunder&Lightning will not be mission oriented, but there will be scripted events for each island.
+
+[BuildPrepare]
+prepareBuild
+
+[BuildUnprepare]
+unprepareBuild
+
+[Imports]
+echo '*' | import
+
+[Prepare]
+# Dependency checking
+require @libsdl.org/sdl 1.2
+require @opengl.org/opengl 1.1
+#require @openal.org/openal 1.0
+# OpenAL should be mentioned here!
+# At the moment, it is linked in statically
+# -- which is bad.
+
+registerRepository @tnlgame.net/tnldata http://tnlgame.net/autopackage/repository.xml
+require @tnlgame.net/tnldata 060203
+
+[Install]
+# Put your installation script here
+installExe bin/tnl*
+
+[Uninstall]
+# Usually just the following line is enough to uninstall everything
+uninstallFromLog

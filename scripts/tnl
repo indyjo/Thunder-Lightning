@@ -1,0 +1,20 @@
+#!/bin/sh
+
+function on_error() {
+  xset r on
+  echo The program was aborted.
+  echo See /tmp/stdout.txt and /tmp/stderr.txt for information on what happened.
+  echo Visit http://tnlgame.net for information and to contact the author and the community.
+  exit -1
+}
+
+
+exec_dir=`dirname $0`
+source $exec_dir/tnl-vars
+
+echo $bin_dir/tnl-bin $param $*
+$bin_dir/tnl-bin $param $* >/tmp/stdout.txt 2>/tmp/stderr.txt
+if [ $? != 0 ]; then
+  on_error
+fi
+
