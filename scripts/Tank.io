@@ -36,7 +36,7 @@ Tank do (
       if (front dot(self target_course) < 0,
         error := if(error >= 0, 1, -1))
       error
-    )
+    ) setIsActivatable(true)
  
     error := courseError
     while(1,
@@ -161,12 +161,12 @@ Tank do (
       d := b - a
       p := me location2
       (p - a) dot(d) / d lenSquare
-    )
+    ) setIsActivatable(true)
     
     popSegment := block(
       front := vpath removeAt(0)
       if (closed, vpath push(front))
-    )
+    ) setIsActivatable(true)
     
     self mp := Tank maintainPosition2 clone start(me)
     manage(mp)

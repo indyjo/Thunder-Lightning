@@ -101,7 +101,7 @@ Completion := Object clone do(
       msg = msg attachedMessage
     )
     return obj
-  )
+  ) setIsActivatable(true)
   
   allSlotNamesOf := method(obj,
     slots := Map clone

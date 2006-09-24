@@ -61,10 +61,10 @@ EventTarget := Object clone do(
   //   thisHandler remove
   // )
   on := method(name,
-    assert(thisMessage arguments size == 2)
+    assert(call argCount == 2)
     // arg 0 should evaluate to a string
     if (self hasSlot("handlers") isNil, self handlers := Map clone)
-    action := thisMessage arguments at(1)
+    action := call argAt(1)
     handlers atPut(name,action)
   )
   

@@ -2,7 +2,7 @@ assert := method(v,
   if (v,
     self
   ,
-    code := thisMessage arguments at(0) code
+    code := call argAt(0) code
     Exception raise("Assertion failed", "Assertion: " .. code)
   )
 )
@@ -43,7 +43,7 @@ Matrix := Object clone do(
 
   set := method(
     self entries empty
-    args := thisMessage argsEvaluatedIn(sender)
+    args := call evalArgs
     for (c,0,columns-1, for (r,0,rows-1,
       entries append(args at (r*columns+c))
     ))
@@ -165,29 +165,29 @@ Matrix := Object clone do(
 )
 
 vector := block(
-  M := Matrix clone dim(thisMessage arguments size,1)
-  values := thisMessage argsEvaluatedIn(sender)
+  M := Matrix clone dim(call argCount, 1)
+  values := call evalArgs
   Lobby vals := values
   //writeln("values: ", values)
   M setList( values )
-)
+) setIsActivatable(true)
 
 matrix := block(
   rows := List clone append(List clone)
   maxcols := 1
-  thisMessage arguments foreach(i, arg,
+  call message arguments foreach(i, arg,
     //writeln("argument ",i,": ",arg code)
     while(arg nextMessage,
       arg0 := arg clone
       arg0 setNextMessage(Nil)
-      rows last append( sender doMessage(arg0) )
+      rows last append( call evalArg(arg0) )
       if (rows last size > maxcols, maxcols = rows last size)
       rows append(List clone)
       arg = arg nextMessage
     )
     arg0 := arg clone
     arg0 setNextMessage(Nil)
-    rows last append( sender doMessage(arg0) )
+    rows last append( call evalArg(arg0) )
   )
   if (rows last size > maxcols, maxcols = rows last size)
 
@@ -198,7 +198,7 @@ matrix := block(
     M atSet(i,j, val)
   ))
   M
-)
+) setIsActivatable(true)
 
 Number oldmult := Number getSlot("*")
 Number setSlot("*", method(other,

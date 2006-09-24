@@ -86,6 +86,6 @@ buildScene := block(
     Game setControlledActor(me)
     Game setView(me, 0)
     Lobby home := method( Game setControlledActor(me); Game setView(me, 0) )
-)
+) setIsActivatable(true)
 
 buildScene

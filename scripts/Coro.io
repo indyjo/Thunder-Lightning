@@ -9,7 +9,7 @@ Coro := Object clone do(
     
     // Start the coroutine.
     start := method(
-        @@wrapRun(thisMessage argsEvaluatedIn(sender))
+        @@wrapRun(call evalArgs)
         running = self
     )
     
@@ -61,9 +61,9 @@ Coro := Object clone do(
 )
 
 Object coro := method(
-    msg := thisMessage arguments last
+    msg := call message arguments last
     
-    argNames := thisMessage arguments slice(0, thisMessage arguments size - 2 )
+    argNames := call message arguments slice(0, call argCount - 2 )
     argNames mapInPlace(m, m name)
 
     c := Coro clone

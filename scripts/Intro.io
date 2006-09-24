@@ -7,6 +7,25 @@ Game on("toggle-introduction",
     if (intro running, intro interrupt, intro init; intro start)
 )
 
+choose := method(
+    " In choose" println
+    n := call argCount
+    " Random draw" println
+    r := n * Random value
+    (" r = " .. r .. "Nil test") println
+    if (n == 0, " Nil!" println; return Nil)
+    for(i,1,n,
+        "  In for, i:" ..(i) println
+        if (r <= i,
+            "  Evaluating " .. (call argAt(i) code) println
+            x := call evalArgAt(i)
+            "  returning x" println
+            ("   (x == " .. x asString .. ")") println
+            return x
+        )
+    )
+)
+
 intro := coro(dummy,
     ex := try (
         my_watchdog := watchdog clone
@@ -23,6 +42,7 @@ intro := coro(dummy,
         "Start it again by pressing the (I) key a second time." say
         sleep(10)
         "Welcome aboard the Lightning, a small fighter." say
+        sleep(8) 
         "The Lightning is controlled using the mouse and the keyboard." say
         sleep(2)
         "A joystick can be used optionally." say
@@ -33,13 +53,29 @@ intro := coro(dummy,
         sleep(8)
         "First of all, get us into a safer altitude, please." say
         sleep(5)
-        "4000 metres should be enough. " say
+        "4000 meters should be enough. " say
         sleep(5)
         "Oh, the altitude is indicated on the right side of the HUD." say
-        sleep(8)
-        while (me getLocation at(1,0) < 4000,
-            "I am waiting for you to climb up to 4000, kid!" say
-            sleep(8)
+        while (Object,
+            8 repeatTimes(
+                sleep(1)
+                if (me getLocation at(1,0) >= 4000,
+                    break
+                )
+            )
+            if (me getLocation at(1,0) >= 4000,
+                break
+            )
+            
+            "Entering choose" println
+            choose(
+                "I am waiting for you to climb up to 4000, kid!",
+                "I know you can do it!",
+                "Just pull the stick and climb, it's easy!",
+                "Make sure the nose is over the horizon!",
+                "Are you afraid of heights, kid?"
+            ) say
+            "Exiting choose" println
         )
         "Ok, now we're high enough." say
         sleep(8)
@@ -88,9 +124,31 @@ intro := coro(dummy,
         "Are you ready for a challenge? Let's try your combat skills!" say
         sleep(5)
         
-        addEnemy
+        him := addEnemy
         sleep(3)
         "There's an enemy fighter directly in front of you. Get him!" say
+        while(Object,
+            8 repeatTimes(
+                sleep(1)
+                if (him isAlive not,
+                    break
+                )
+            )
+            if (him isAlive not,
+                break
+            )
+            
+            r := 3 * Random value
+            if (      r < 1,
+                "Remember you can select hostile targets with the H key!" say
+            ) elseif( r < 2,
+                "Use your Sidewinder missiles!" say
+            ) else(
+                "Get him before he does!" say
+            )
+        )
+        
+        "That was it, you got him! Congratulations!" say
         sleep(8)
         "This is the end of the introduction." say
         sleep(4)
@@ -151,6 +209,7 @@ addEnemy := method(
     him setOrientation( me getOrientation )
     him setFaction(them)
     him setControlMode(Actor AUTOMATIC)
+    return him
 )
 
 watchdog := coro(actor, target_coro,
