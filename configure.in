@@ -75,8 +75,15 @@ AC_ARG_WITH(
     [IO_DIR="$withval"])
 
 if [[ "$IO_DIR" ]]; then
-    IO_CFLAGS="-I$IO_DIR/vm/_include -I$IO_DIR/vm/_include/base"
-    IO_LIBS="$IO_DIR/vm/_libs/libIoVM.a"
+    if [[ -d $IO_DIR/libs/basekit ]]; then
+        dnl New-style Io distribution
+        IO_CFLAGS="-I$IO_DIR/_build/headers"
+        IO_LIBS="$IO_DIR/_build/lib/libiovmall.a"
+    else
+        dnl Old-style Io distribution
+        IO_CFLAGS="-I$IO_DIR/vm/_include -I$IO_DIR/vm/_include/base"
+        IO_LIBS="$IO_DIR/vm/_libs/libIoVM.a"
+    fi
 fi
 
 AC_ARG_WITH(
