@@ -53,7 +53,7 @@ namespace {
 			};
 			IoObject *self = IoObject_new(state);
 			self->tag = tag(state, "SimpleActor");
-			self->data = 0;
+			self->data.ptr = 0;
             IoObject_rawAppendProto_(self, getProtoObject<Ptr<IActor> >(IOSTATE));
 			
 			IoObject_addMethodTable_(self, methodTable);

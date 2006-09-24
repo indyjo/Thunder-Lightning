@@ -6,11 +6,10 @@
 
 #include <IoList.h>
 #include <IoMessage.h>
-#include <IoNil.h>
 #include <IoNumber.h>
 
 #define BEGIN_FUNC(name) 							\
-	IOASSERT(self->data, "Pointer to C++ Object is zero")
+	IOASSERT(self->data.ptr, "Pointer to C++ Object is zero")
 
 #define VOID_FUNC(funcname)							\
 	static IoObject * funcname (						\
@@ -153,30 +152,30 @@ IoObject * castfunc(IoObject * self, IoObject *locals, IoObject *m) {
 template<class T>
 struct DynamicCastMapping {
 	static T* getObject(IoObject *o)
-    { return dynamic_cast<T*>(reinterpret_cast<Object*>(o->data)); }
+    { return dynamic_cast<T*>(reinterpret_cast<Object*>(o->data.ptr)); }
 
     static void retarget(IoObject *self, T *target) {
 		if (target) target->ref();
-		if (self->data) {
-			Object* old_target = reinterpret_cast<Object*>(self->data);
-			self->data = static_cast<Object*>(target);
+		if (self->data.ptr) {
+			Object* old_target = reinterpret_cast<Object*>(self->data.ptr);
+			self->data .ptr= static_cast<Object*>(target);
 			old_target->unref();
-		} else self->data = static_cast<Object*>(target);
+		} else self->data.ptr = static_cast<Object*>(target);
 	}
 };
 
 template<class T>
 struct ReinterpretCastMapping {
 	static T* getObject(IoObject *o)
-    { return reinterpret_cast<T*>(o->data); }
+    { return reinterpret_cast<T*>(o->data.ptr); }
 
     static void retarget(IoObject *self, T *target) {
 		if (target) target->ref();
-		if (self->data) {
-			T* old_target = (T*) self->data;
-			self->data = target;
+		if (self->data.ptr) {
+			T* old_target = (T*) self->data.ptr;
+			self->data.ptr = target;
 			old_target->unref();
-		} else self->data = target;
+		} else self->data.ptr = target;
 	}
 };
 
@@ -197,16 +196,16 @@ struct TemplatedObjectMapping : Base {
 	static IoObject * rawClone(IoObject *self) 
 	{ 
 		IoObject *child = IoObject_rawClonePrimitive(self);
-		if (self->data) Base::getObject(self)->ref();
-		child->data = self->data;
+		if (self->data.ptr) Base::getObject(self)->ref();
+		child->data.ptr = self->data.ptr;
 		return child;
 	}
 	
 	static void mark(IoObject * self) {
-		//if (self->data) getObject(self)->ref();
+		//if (self->data.ptr) getObject(self)->ref();
 	}
 	static void free(IoObject * self) {
-		if (self->data) Base::getObject(self)->unref();
+		if (self->data.ptr) Base::getObject(self)->unref();
 	}
 };
 

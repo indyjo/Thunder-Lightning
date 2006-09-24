@@ -9,7 +9,7 @@
 
 template<>
 Ptr<Model> unwrapObject(IoObject * self) {
-	return (Model*)self->data;
+	return (Model*)self->data.ptr;
 }
 
 namespace {
@@ -29,7 +29,7 @@ namespace {
 			};
 			IoObject *self = IoObject_new(state);
 			self->tag = tag(state, "Model");
-			self->data = 0;
+			self->data.ptr = 0;
 			
 			IoObject_addMethodTable_(self, methodTable);
 			return self;

@@ -27,7 +27,7 @@ void ProjectileLauncher::onFire() {
     projectile->shoot(start, move, front);
     
     // Send the target a message signalling the missile shot
-    IoObject *self = IOCLONE(game->getIoScriptingManager()->getMainState()->mainActor);
+    IoObject *self = IOCLONE(game->getIoScriptingManager()->getMainState()->objectProto);
     IoState_pushRetainPool(IOSTATE);
     IoState_stackRetain_(IOSTATE,self);
 

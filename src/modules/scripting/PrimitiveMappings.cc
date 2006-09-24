@@ -12,12 +12,12 @@
 
 #define IOASS(expr, message) \
 	if (!(expr))    \
-		IoState_error_description_(IOSTATE, NULL, "Io.Assertion", message);
+		IoState_error_(IOSTATE, NULL, "Io.Assertion '%s'", message);
 
 using namespace std;
 
 template<> IoObject * wrapObject(bool b, IoState * state)
-{ return b?state->mainActor:state->ioNil; }
+{ return b?state->ioTrue:state->ioFalse; }
 template<> IoObject * wrapObject(int n, IoState * state)
 { return IoNumber_newWithDouble_(state, n); }
 template<> IoObject * wrapObject(float n, IoState * state)

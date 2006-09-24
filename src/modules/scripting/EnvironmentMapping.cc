@@ -9,7 +9,6 @@ namespace {
 	
 	struct EnvironmentMapping : public TemplatedObjectMapping<Environment> {
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
-			IoObject *object = state->mainActor;
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
@@ -36,7 +35,7 @@ namespace {
 			};
 			IoObject *self = IoObject_new(state);
 			self->tag = tag(state, "Environment");
-			self->data = 0;
+			self->data.ptr = 0;
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
 		}
@@ -73,6 +72,6 @@ wrapObject(Ptr<Environment> environment, IoState * state) {
 
 template<>
 Ptr<Environment> unwrapObject(IoObject * self) {
-	return (Environment*)self->data;
+	return (Environment*)self->data.ptr;
 }
 

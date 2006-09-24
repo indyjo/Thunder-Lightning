@@ -1,4 +1,3 @@
-#include <IoNil.h>
 #include <IoNumber.h>
 #include <IoState.h>
 #include <IoObject.h>
@@ -21,14 +20,14 @@ Controls::Controls(IoState *state) {
 }
 
 Controls::~Controls() {
-    // TODO: I am not quite sure how to handle the case where the IoStage object has been deleted.
+    // TODO: I am not quite sure how to handle the case where the IoState object has been deleted.
     //       In that case,  the self object has been deleted,  too,  which we can't prevent, since
     //       retaining works via IoState_retain_ and retained variables are kept in the IoState.
     //       Maybe some global test whether the IoState is alive would be possible.
     //       Testing for magic addresses is a hack and not guaranteed to work, esp. cross platform.
     if (IOSTATE != (IoState*)0xDDDDDDDD && IOSTATE != 0x00000000) {
         //ls_message("Removing Io object from state %p\n",IOSTATE);
-        IoState_release_(IOSTATE, self);
+        IoState_stopRetaining_(IOSTATE, self);
     }
 }
 
@@ -37,7 +36,7 @@ bool Controls::getBool(const string & name) const throw(NoSuchControl) {
     if (!slot) {
         throw NoSuchControl();
     }
-    return !ISNIL(slot);
+    return ISTRUE(slot);
 }
 
 bool Controls::getBool(const string & name, bool default_value) {
@@ -47,7 +46,7 @@ bool Controls::getBool(const string & name, bool default_value) {
 
 void Controls::setBool(const string & name, bool val) {
     IoObject_setSlot_to_(self, IOSYMBOL(name.c_str()),
-        val?IONOP(self):IONIL(self));
+        val?IOTRUE(self):IOFALSE(self));
 }
 
 int Controls::getInt(const string & name) const throw(NoSuchControl) {

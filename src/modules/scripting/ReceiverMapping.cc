@@ -16,7 +16,7 @@ namespace {
 			IoObject * self =  proto(state);
 			IoState_registerProtoWithFunc_(state, self, proto);
 			IoObject_setSlot_to_(state->lobby, IOSYMBOL("PositionReceiver"), self);
-			self->data = 0;
+			self->data.ptr = 0;
 		}
 		static IoObject *proto(void *state) {
 			IoMethodTable methodTable[] = {
@@ -26,7 +26,7 @@ namespace {
 			};
 			IoObject *self = IoObject_new(state);
 			self->tag = tag(state, "PositionReceiver");
-			self->data = 0;
+			self->data.ptr = 0;
 			
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
@@ -57,7 +57,7 @@ namespace {
 			IoObject * self =  proto(state);
 			IoState_registerProtoWithFunc_(state, self, proto);
 			IoObject_setSlot_to_(state->lobby, IOSYMBOL("MovementReceiver"), self);
-			self->data = 0;
+			self->data.ptr = 0;
 		}
 		
 		static IoObject *proto(void *state) {
@@ -67,7 +67,7 @@ namespace {
 			};
 			IoObject *self = IoObject_new(state);
 			self->tag = tag(state, "MovementReceiver");
-			self->data = 0;
+			self->data.ptr = 0;
 			
 			IoObject_addMethodTable_(self, methodTable);
 			return self;

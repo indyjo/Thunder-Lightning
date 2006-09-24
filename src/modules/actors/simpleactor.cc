@@ -23,7 +23,7 @@ SimpleActor::SimpleActor( Ptr<IGame> game)
 
 SimpleActor::~SimpleActor() {
     if (self) {
-        IoState_release_(IOSTATE, self);
+        IoState_stopRetaining_(IOSTATE, self);
     }
 }
 
@@ -33,7 +33,7 @@ void SimpleActor::createIoObject() {
 
 void SimpleActor::setIoObject(IoObject *newself) {
     if (self) {
-        IoState_release_(IOSTATE, self);
+        IoState_stopRetaining_(IOSTATE, self);
     }
     self = newself;
     if (self) {
@@ -212,7 +212,7 @@ IoObject* SimpleActor::message(std::string name, IoObject *args) {
     IoObject * result = ((IoState*)args->state)->ioNil;
     
     if (self) {
-        IoState_pushRetainPool(IOSTATE);
+        //IoState_pushRetainPool(IOSTATE);
 
         IoMessage *message = IoMessage_newWithName_label_(IOSTATE, IOSYMBOL("onMessage"),
             IOSYMBOL("SimpleActor::message"));
@@ -220,17 +220,9 @@ IoObject* SimpleActor::message(std::string name, IoObject *args) {
         IoMessage_addCachedArg_(message, IOSYMBOL(name.c_str()));
         IoMessage_addCachedArg_(message, args);
 
-        IoException *ex=0;
-        result = IoState_tryFunc_(IOSTATE,
-            (IoCatchCallback*) IoMessage_locals_performOn_,
-            message, IOSTATE->lobby, self,
-            &ex);
-        IoState_stackRetain_(IOSTATE, result);
-        if (ex) {
-            IoState_exception_(IOSTATE, ex);
-        }
-
-        IoState_popRetainPoolExceptFor_(IOSTATE, result);
+        result = IoState_tryToPerform(IOSTATE, self, IOSTATE->lobby, message);
+        if (result) IoState_stackRetain_(IOSTATE, result);
+        //IoState_popRetainPoolExceptFor_(IOSTATE, result);
     }
 
     message_signal.emit(name, args);

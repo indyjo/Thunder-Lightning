@@ -44,7 +44,7 @@ public:
     virtual bool feedEvent(SDL_Event & ev);
     
 	virtual void printCallback(const char *);
-	virtual void exceptionCallback(IoException *);
+	virtual void exceptionCallback(IoObject *);
 	virtual void exitCallback();
 }; // class Console
 

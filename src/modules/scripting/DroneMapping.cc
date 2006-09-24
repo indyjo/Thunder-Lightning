@@ -27,7 +27,7 @@ namespace {
 			};
 			IoObject *self = IoObject_new(state);
 			self->tag = tag(state, "Drone");
-			self->data = 0;
+			self->data.ptr = 0;
             IoObject_rawAppendProto_(self, getProtoObject<Ptr<SimpleActor> >(IOSTATE));
 			IoObject_addMethodTable_(self, methodTable);
 			return self;

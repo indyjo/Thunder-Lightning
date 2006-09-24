@@ -46,7 +46,7 @@ Console::Console(IGame * game,
 
     Ptr<IFontMan> fontman = game->getFontMan();
     fontman->selectFont(IFontMan::FontSpec("dungeon", 12));
-    max_lines = (int) surface.getHeight() / fontman->getMetrics()->getLineHeight();
+    max_lines = (int) (surface.getHeight() / fontman->getMetrics()->getLineHeight());
     ls_message("Console of %d rows and %d columns.\n", max_lines, max_chars);
 
 	IoState* state = game->getIoScriptingManager()->getMainState();
@@ -210,7 +210,7 @@ bool Console::feedEvent(SDL_Event & ev) {
 						putString("\n");
 					}
 				}
-				IoState_release_(IOSTATE, msg);
+				IoState_stopRetaining_(IOSTATE, msg);
         	}
             IoState_popRetainPool(state);
         } else if (unicode == '\r') {
@@ -234,13 +234,9 @@ bool Console::feedEvent(SDL_Event & ev) {
 					
 				if (result) {
 					putString(" ==> ");
-                    IoException *ex=NULL;
-                    IoState_tryFunc_(state,
-                        (IoCatchCallback*) IoMessage_locals_performOn_,
-                        state->printMessage, result, result, &ex);
-                    if (ex) {
+                    IoObject * printresult = IoState_tryToPerform(state, result, state->lobby, state->printMessage);
+                    if (!printresult) {
                         putString("[An exception occurred while printing]\n");
-                        IoState_exception_(state, ex);
                     } else putChar('\n');
 				} else {
 					putString("???\n");
@@ -296,18 +292,9 @@ void Console::printCallback(const char *s) {
 	putString(s);
 }
 
-void Console::exceptionCallback(IoException *ex) {
-	ls_error("Io Exception: %s - %s\n",
-		CSTRING(IoException_name(ex)), 
-		CSTRING(IoException_description(ex)));
-	ls_error("%s\n",
-		CSTRING(IoException_backTraceString(ex, NULL, NULL)));
-	
-	putString(CSTRING(IoException_name(ex)));
-	putString(" - ");
-	putString(CSTRING(IoException_description(ex)));
-	putString("\n");
-	putString(CSTRING(IoException_backTraceString(ex, NULL, NULL)));
+void Console::exceptionCallback(IoObject *ex) {
+	ls_error("Io Exception\n");
+	IoCoroutine_rawPrintBackTrace(ex);
 }
 
 void Console::exitCallback() {

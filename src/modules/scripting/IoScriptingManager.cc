@@ -8,10 +8,14 @@
 
 namespace {
 	typedef IoCallbackContext Ctx;
-	void globalPrintCallback(Ctx *ctx, const char *str) {
-		if (ctx) ctx->printCallback(str);
+	void globalPrintCallback(Ctx *ctx, int length, const char *str) {
+		if (ctx) {
+		    char * s = new char[length+1];
+		    strcpy(s, str);
+		    ctx->printCallback(s);
+		}
 	}
-	void globalExceptionCallback(Ctx *ctx, IoException *e) {
+	void globalExceptionCallback(Ctx *ctx, IoObject *e) {
 		if(ctx) ctx->exceptionCallback(e);
 	}
 	void globalExitCallback(Ctx *ctx) {
@@ -22,12 +26,9 @@ namespace {
 		virtual void printCallback(const char *str) {
 			ls_message("%s",str);
 		}
-		virtual void exceptionCallback(IoException * e) {
-			ls_error("Io Exception: %s - %s\n",
-				CSTRING(IoException_name(e)), 
-				CSTRING(IoException_description(e)));
-			ls_error("%s\n",
-				CSTRING(IoException_backTraceString(e, NULL, NULL)));
+		virtual void exceptionCallback(IoObject * e) {
+			ls_error("Io Exception has occurred.");
+			IoCoroutine_rawPrintBackTrace(e);
 		}
 		virtual void exitCallback() {
 			ls_warning("Io has called exit - ignored.\n");

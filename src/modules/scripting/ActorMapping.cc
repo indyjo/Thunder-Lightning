@@ -44,7 +44,7 @@ namespace {
 			};
 			IoObject *self = IoObject_new(state);
 			self->tag = tag(state, "Actor");
-			self->data = 0;
+			self->data.ptr = 0;
             IoObject_rawAppendProto_(self, getProtoObject<Ptr<IPositionProvider> >(IOSTATE));
             IoObject_rawAppendProto_(self, getProtoObject<Ptr<IPositionReceiver> >(IOSTATE));
             IoObject_rawAppendProto_(self, getProtoObject<Ptr<IMovementProvider> >(IOSTATE));

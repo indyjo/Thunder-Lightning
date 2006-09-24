@@ -9,7 +9,7 @@
 
 template<>
 Ptr<IGame> unwrapObject<Ptr<IGame> >(IoObject * self) {
-	return (IGame*)self->data;
+	return (IGame*)self->data.ptr;
 }
 
 
@@ -18,7 +18,6 @@ namespace {
 	
 	struct GameMapping : public TemplatedObjectMapping<IGame> {
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
-			IoObject *object = state->mainActor;
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
@@ -38,7 +37,7 @@ namespace {
 			};
 			IoObject *self = IoObject_new(state);
 			self->tag = tag(state, "Game");
-			self->data = 0;
+			self->data.ptr = 0;
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
 		}

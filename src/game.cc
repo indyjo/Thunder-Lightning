@@ -851,14 +851,7 @@ void Game::postFrame()
             IoMessage *msg =
                 IoMessage_newWithName_label_(IOSTATE, IOSYMBOL("postFrame"),IOSYMBOL("Game::postFrame"));
 	            IoState_stackRetain_(IOSTATE, msg);
-            IoException *ex=0;
-            IoState_tryFunc_(IOSTATE,
-                (IoCatchCallback*) IoMessage_locals_performOn_,
-                msg, IOSTATE->lobby, self,
-                &ex);
-            if (ex) {
-                IoState_exception_(IOSTATE, ex);
-            }
+            IoState_tryToPerform(IOSTATE, self, IOSTATE->lobby, msg);
         }
         IoState_popRetainPool(IOSTATE);
     }
@@ -1034,15 +1027,9 @@ void Game::actionTriggered(const char *action) {
     IoMessage_addCachedArg_(message, IOSYMBOL(action));
     IoMessage_addCachedArg_(message, IONIL(self));
 
-    IoException *ex=0;
-    IoObject * result = IoState_tryFunc_(IOSTATE,
-        (IoCatchCallback*) IoMessage_locals_performOn_,
-        message, IOSTATE->lobby, self,
-        &ex);
+    
+    IoObject * result = IoState_tryToPerform(IOSTATE, self, IOSTATE->lobby, message);
     IoState_stackRetain_(IOSTATE, result);
-    if (ex) {
-        IoState_exception_(IOSTATE, ex);
-    }
 }
 
 int main(int argc, char *argv[])

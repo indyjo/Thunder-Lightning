@@ -7,7 +7,7 @@
 
 template<>
 Ptr<Faction> unwrapObject(IoObject * self) {
-	return (Faction*)self->data;
+	return (Faction*)self->data.ptr;
 }
 
 
@@ -44,7 +44,7 @@ namespace {
 			};
 			IoObject *self = IoObject_new(state);
 			self->tag = tag(state, "Faction");
-			self->data = 0;
+			self->data.ptr = 0;
 			retarget(self, new Faction);
 			IoObject_addMethodTable_(self, methodTable);
 			return self;

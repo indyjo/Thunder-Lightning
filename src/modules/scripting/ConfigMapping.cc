@@ -9,7 +9,6 @@ namespace {
 	
 	struct ConfigMapping : public TemplatedObjectMapping<IConfig> {
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
-			IoObject *object = state->mainActor;
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
@@ -27,7 +26,7 @@ namespace {
 			};
 			IoObject *self = IoObject_new(state);
 			self->tag = tag(state, "Config");
-			self->data = 0;
+			self->data.ptr = 0;
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
 		}
@@ -75,6 +74,6 @@ wrapObject<Ptr<IConfig> >(Ptr<IConfig> config, IoState * state) {
 
 template<>
 Ptr<IConfig> unwrapObject<Ptr<IConfig> >(IoObject * self) {
-	return (IConfig*)self->data;
+	return (IConfig*)self->data.ptr;
 }
 

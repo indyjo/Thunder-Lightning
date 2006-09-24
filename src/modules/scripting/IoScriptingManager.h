@@ -8,7 +8,7 @@ struct IGame;
 
 struct IoCallbackContext {
 	virtual void printCallback(const char *)=0;
-	virtual void exceptionCallback(IoException *)=0;
+	virtual void exceptionCallback(IoObject *)=0;
 	virtual void exitCallback()=0;
 	void connectTo(IoState *state);
 };

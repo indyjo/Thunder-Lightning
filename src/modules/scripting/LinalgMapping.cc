@@ -6,11 +6,11 @@
 
 #include "mappings.h"
 
-#define LISTIVAR(self) ((List *)(self->data))
+#define LISTIVAR(self) ((List *)(self->data.ptr))
 
 #define IOASS(expr, message) \
 	if (!(expr))    \
-		IoState_error_description_(state, NULL, "Io.Assertion", message);
+		IoState_error_(IOSTATE, NULL, "Io Assertion '%s'", message);
 
 namespace {
 template<class T>
@@ -39,7 +39,7 @@ template<class T>
 void unwrap_raw(IoObject *self, T *out, int rows, int cols) {
     IoState_pushRetainPool(IOSTATE);
     IoObject *matrix = IoObject_getSlot_(IOSTATE->lobby, IOSYMBOL("Matrix"));
-    IoState * state = (IoState*) self->tag->state;
+    ls_message("Got matrix? Object: %p\n", matrix);
     IOASS(matrix, "Could not find Matrix proto.")
     IOASS(IoObject_rawHasProto_(self, matrix), "Not a Matrix object")
     IOASS(IoNumber_asInt(IoObject_getSlot_(self,IOSYMBOL("rows"))) == rows

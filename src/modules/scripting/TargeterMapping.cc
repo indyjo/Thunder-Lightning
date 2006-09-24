@@ -43,7 +43,7 @@ namespace {
             };
             IoObject *self = IoObject_new(state);
             self->tag = tag(state, "Targeter");
-            self->data = 0;
+            self->data.ptr = 0;
             IoObject_addMethodTable_(self, methodTable);
             return self;
         }
