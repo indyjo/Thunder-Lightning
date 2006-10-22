@@ -127,7 +127,7 @@ intro := coro(dummy,
         him := addEnemy
         sleep(3)
         "There's an enemy fighter directly in front of you. Get him!" say
-        while(Object,
+        loop(
             8 repeatTimes(
                 sleep(1)
                 if (him isAlive not,
@@ -173,6 +173,8 @@ intro := coro(dummy,
             sleep(5)
             "Get me a new one, will you?" say
         )
+    ) catch(Exception,
+        ex showStack
     )
 )
 

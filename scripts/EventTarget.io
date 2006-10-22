@@ -63,13 +63,13 @@ EventTarget := Object clone do(
   on := method(name,
     assert(call argCount == 2)
     // arg 0 should evaluate to a string
-    if (self hasSlot("handlers") isNil, self handlers := Map clone)
+    if (self hasLocalSlot("handlers") not, self handlers := Map clone)
     action := call argAt(1)
     handlers atPut(name,action)
   )
   
   // Enable or disable message logging by setting logMessages
-  logMessages := Nil
+  logMessages := true
   
   // this method is also called by the C++ backend,
   // so its signature must not be changed!

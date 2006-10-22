@@ -46,13 +46,13 @@ Coro := Object clone do(
     )
     
     wrapRun := method(arglist,
-        try(
+        ex := try(
             performWithArgList("run", arglist)
-        ) catch (InterruptedException, ex,
+        )
+        ex catch (InterruptedException,
             Nil
-        ) catch (Exception, ex,
-            writeln(ex name, ": ", ex description)
-            writeln(ex backTraceString)
+        ) catch (Exception,
+            ex showStack
         )
         running = Nil
         managed foreach(i,coro, coro interrupt)
