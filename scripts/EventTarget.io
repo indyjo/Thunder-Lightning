@@ -1,6 +1,6 @@
 EventTarget := Object clone do(
   ////////////////////////////////////
-  // Event-handling subsystem           //
+  // Event-handling subsystem       //
   ////////////////////////////////////
   
   // An event consists of a name and an object with arguments.

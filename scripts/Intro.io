@@ -1,6 +1,18 @@
 Sequence say := method(
-  Game viewSubject passMessage("infoMessage", Object clone do(text := self))
-  Nil
+    args := Object clone
+    args text := self
+    ex := try( 
+        Game viewSubject passMessage("infoMessage", args)
+    )
+    ex catch(Exception,
+      try(
+        "Exception caught: " .. (ex asString) println
+        ex showStack
+        #"Inspection: " print
+        #ex inspect
+      )
+    )
+    Nil
 )
 
 Game on("toggle-introduction",
@@ -33,7 +45,7 @@ intro := coro(dummy,
         
         "Welcome to Thunder&Lightning!" say
         sleep(8)
-        "This is Commander Wilson speaking, your flight instructor." say
+        "This is Commander Wilson, your flight instructor." say
         sleep(8)
         "We will go through some basics for your first flight." say
         sleep(10)
@@ -41,8 +53,6 @@ intro := coro(dummy,
         sleep(5)
         "Start it again by pressing the (I) key a second time." say
         sleep(10)
-        "Welcome aboard the Lightning, a small fighter." say
-        sleep(8) 
         "The Lightning is controlled using the mouse and the keyboard." say
         sleep(2)
         "A joystick can be used optionally." say
@@ -51,6 +61,7 @@ intro := coro(dummy,
         sleep(8)
         "The throttle can be set from 0% to 100% using keys 1,2,3,...,8,9,0." say
         sleep(8)
+        ("Currently, your throttle is set to " .. (me controls throttle * 100) .. "%") say
         "First of all, get us into a safer altitude, please." say
         sleep(5)
         "4000 meters should be enough. " say
@@ -85,7 +96,7 @@ intro := coro(dummy,
         sleep(8)
         "The big number to the left of them displays your height over ground." say
         sleep(8)
-        ("Right now, we are " .. (me getLocation at(1,0) floor) .. " meters above ground.") say
+        ("Our current altitude is " .. (me getLocation at(1,0) floor) .. " meters above sea level.") say
         sleep(8)
         "In a similiar setup, you find your airspeed indicator on the left side."
         sleep(8)
@@ -101,15 +112,13 @@ intro := coro(dummy,
         "fire it with the right mouse button or Space." say
         sleep(8)
         "Your primary weapon is a 4-barrel Vulcan cannon." say
-        "Deadly in the hands of a master." say
         sleep(8)
         "Your secondary weapons are Sidewinder and Hydra missiles." say
         sleep(8)
         "The sidewinder is a heat-seeking missile that will find its way" say
-        "into your enemy." say
+        "towards your enemy." say
         sleep(8)
-        "The Hydra is an unguided but powerful missile," say
-        "well-suited against ground targets." say
+        "The Hydra is an unguided but powerful ground attack rocket." say
         sleep(8)
         "To use the Sidewinders, you must lock on a target." say
         sleep(8)
@@ -121,6 +130,7 @@ intro := coro(dummy,
         sleep(8)
         "Finally, Z (or Y) selects the nearest target." say
         sleep(8)
+        
         "Are you ready for a challenge? Let's try your combat skills!" say
         sleep(5)
         
