@@ -58,9 +58,9 @@ namespace {
 			BEGIN_FUNC("Actor.isAlive")
 			//ls_message("state: %d\n", getObject(self)->getState());
 			if (getObject(self)->getState() == IActor::ALIVE) {
-				return self;
+				return IOTRUE(self);
 			} else {
-				return IONIL(self);
+				return IOFALSE(self);
 			}
 		}
 		CREATE_FUNC(IActor)
