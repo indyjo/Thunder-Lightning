@@ -78,7 +78,7 @@ intro := coro(dummy,
         )
         "Ok, now we're high enough." say
         sleep(8)
-        "Good, you alrady know where the altitude and height indicator is." say
+        "Good, you alrady know where the altitude and height indicators are." say
         sleep(8)
         "The small numbers arranged like ladder steps are steps of 50m of altitude." say
         sleep(8)
