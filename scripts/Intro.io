@@ -20,22 +20,10 @@ Game on("toggle-introduction",
 )
 
 choose := method(
-    " In choose" println
     n := call argCount
-    " Random draw" println
+    if (n == 0, return Nil)
     r := n * Random value
-    (" r = " .. r .. "Nil test") println
-    if (n == 0, " Nil!" println; return Nil)
-    for(i,1,n,
-        "  In for, i:" ..(i) println
-        if (r <= i,
-            "  Evaluating " .. (call argAt(i) code) println
-            x := call evalArgAt(i)
-            "  returning x" println
-            ("   (x == " .. x asString .. ")") println
-            return x
-        )
-    )
+    return call evalArgAt(r floor)
 )
 
 intro := coro(dummy,
