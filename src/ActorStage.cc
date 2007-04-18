@@ -8,7 +8,9 @@ void ActorStage::addActor(Ptr<IActor> actor) {
 }
 
 void ActorStage::removeActor(Ptr<IActor> actor) {
-	actors.erase(find(actors.begin(), actors.end(), actor));
+    ActorVector::iterator iter = find(actors.begin(), actors.end(), actor);
+    if (iter != actors.end())
+        actors.erase(iter);
 }
 
 void ActorStage::addWeakActor(WeakPtr<IActor> actor) {
