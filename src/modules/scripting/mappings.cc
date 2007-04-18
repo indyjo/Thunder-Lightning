@@ -7,6 +7,7 @@ struct IPositionProvider;
 struct IMovementProvider;
 struct IPositionReceiver;
 struct IMovementReceiver;
+struct ITerrain;
 class Faction;
 class Drone;
 class Tank;
@@ -46,4 +47,5 @@ void addMappings(Ptr<IGame> game, IoState * state) {
     addMapping<Armament>(game,state);
     addMapping<Weapon>(game,state);
     addMapping<Targeter>(game,state);
+	addMapping<ITerrain>(game,state);
 }

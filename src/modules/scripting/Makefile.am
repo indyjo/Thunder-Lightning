@@ -25,5 +25,6 @@ libscripting_a_SOURCES = \
 	SimpleActorMapping.cc \
 	TankMapping.cc \
 	TargeterMapping.cc \
+	TerrainMapping.cc \
 	WeaponMapping.cc
 	
