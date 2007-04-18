@@ -45,10 +45,28 @@ struct IGame : virtual public Object, virtual public IActorStage
     virtual Ptr<SoundMan> getSoundMan()=0;
     virtual Ptr<Collide::CollisionManager> getCollisionMan()=0;
     virtual Ptr<IoScriptingManager> getIoScriptingManager()=0;
+    
+    /// Display a user-visible message in the given color.
+    /// @note For the message to show up, the current gunsight
+    ///       must have an InfoMessage module.
+    virtual void infoMessage(const char * msg, const Vector color=Vector(1,1,1))=0;
+    
+    typedef SigC::Signal2<void, const char *, const Vector&> InfoMessageSignal;
+    /// Allow listeners to hook into infoMessages
+    InfoMessageSignal info_message_signal;
+    
+    /// Obsolete user input function. Replaced by event and axis remapper.
     virtual void getMouseState(float *mx, float *my, int *buttons)=0;
+    
+    /// Obsolete time delta function. Replaced by Clock.
     virtual double  getTimeDelta()=0;
+    /// Obsolete time function. Replaced by Clock.
     virtual double  getTime()=0;
+    
+    /// More or less obsolete debugging function
     virtual void drawDebugTriangleAt(const Vector & p) = 0;
+    
+    /// true if program-wide debug mode is enabled
     virtual bool debugMode()=0;
     
     virtual Ptr<IView> getCurrentView()=0;

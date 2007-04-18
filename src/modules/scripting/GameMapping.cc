@@ -33,6 +33,7 @@ namespace {
 				{"setControlledActor", setControlledActor},
 				{"setView", setView},
 				{"viewSubject", getViewSubject},
+				{"infoMessage", infoMessage},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
@@ -81,6 +82,18 @@ namespace {
 			if (!subject) return IONIL(self);
 			return wrapObject<Ptr<IActor> >(subject, IOSTATE);
 		}
+		
+    	static IoObject *
+    	infoMessage(IoObject *self, IoObject *locals, IoMessage *m) {
+    		IOASSERT(IoMessage_argCount(m) == 2,
+    			"Expected two arguments")
+    		IoObject *text = IoMessage_locals_valueArgAt_(m, locals, 0);
+    		IoObject *color = IoMessage_locals_valueArgAt_(m, locals, 1);
+    		getObject(self)-> infoMessage (
+    			unwrapObject<const char*>(text),
+    			unwrapObject<Vector>(color));
+    		return self;
+    	}
 		
 	};
 }

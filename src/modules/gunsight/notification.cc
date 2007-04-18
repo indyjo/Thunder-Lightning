@@ -124,46 +124,42 @@ namespace {
 
 struct InfoMessageModule : public GunsightModule, public SigObject {
 
-    typedef std::pair<std::string, double> TimestampedString;
+    struct TimestampedString {
+        std::string     text;
+        Vector          color;
+        double          age;
+        TimestampedString(const char *text, const Vector & color)
+            : text(text)
+            , color(color)
+            , age(0)
+        { }
+    };
     typedef std::deque<TimestampedString> TimestampedStrings;
     
     TimestampedStrings messages;
     Ptr<Clock> clock;
 	Ptr<IFont> font;
 	
-	InfoMessageModule(const char *name, Ptr<IGame> game, Ptr<SimpleActor> actor)
+	InfoMessageModule(const char *name, Ptr<IGame> game)
         :	GunsightModule(name, game->getScreenSurface().getWidth(), game->getScreenSurface().getHeight()*0.4f)
 	{
-        actor->message_signal.connect(
+        game->info_message_signal.connect(
             SigC::slot(*this, &InfoMessageModule::onMessage));
         clock = game->getClock();
         game->getFontMan()->selectFont(IFontMan::FontSpec("dungeon", 12, IFontMan::FontSpec::BOLD));
         font = game->getFontMan()->getFont();
     }
 
-    void onMessage(std::string name, IoObject *args) {
-        ls_message("InfoMessageModule: Handling %s event\n", name.c_str());
-        if (name != "infoMessage")
-            return;
-
-        ls_message("InfoMessageModule: Handling infoMessage event\n");
-
-        IoObject *self = args;
-        IoObject *io_text = IoObject_rawGetSlot_(args, IOSYMBOL("text"));
-        if (!io_text)
-            return;
-
-        std::string text = unwrapObject<std::string>(io_text);
-
-        messages.push_front(std::make_pair(text, 0.0));
-
+    void onMessage(const char *text, const Vector & color) {
+        ls_message("InfoMessageModule message: %s\n", text);
+        messages.push_front(TimestampedString(text,color));
     }
 
     void update(double delta_t) {
         for (TimestampedStrings::iterator it=messages.begin(); it!=messages.end(); ++it)
-            it->second += delta_t;
+            it->age += delta_t;
 
-        while (!messages.empty() && messages.back().second > FADEOUT_END) messages.pop_back();
+        while (!messages.empty() && messages.back().age > FADEOUT_END) messages.pop_back();
     }
 
 	void draw(FlexibleGunsight & gunsight) {
@@ -181,10 +177,11 @@ struct InfoMessageModule : public GunsightModule, public SigObject {
 
         Vector2 cursor_pos(0,0);
         for (TimestampedStrings::iterator it=messages.begin(); it!=messages.end(); ++it) {
-            const std::string & msg = it->first;
+            const std::string & msg = it->text;
+            const Vector & msgcol = it->color;
+            float msgage = (float)it->age;
             float msgheight = 0;
             font->getStringDims(msg.c_str(), 0, &msgheight);
-            float msgage = (float)it->second;
             float alpha = 1.0f;
             if (msgage < FADEIN_END) {
                 alpha = msgage / FADEIN_END;
@@ -197,7 +194,7 @@ struct InfoMessageModule : public GunsightModule, public SigObject {
             font->drawString(msg.c_str(), cursor_pos+Vector2(-1,+1), Vector(0,0,0), 0.2*alpha, IFont::BOTTOM|IFont::HCENTER);
             font->drawString(msg.c_str(), cursor_pos+Vector2(+1,-1), Vector(0,0,0), 0.2*alpha, IFont::BOTTOM|IFont::HCENTER);
             font->drawString(msg.c_str(), cursor_pos, Vector(0,0,0), 0.2*alpha, IFont::BOTTOM|IFont::HCENTER);
-            font->drawString(msg.c_str(), cursor_pos, Vector(1,1,1), alpha, IFont::BOTTOM|IFont::HCENTER);
+            font->drawString(msg.c_str(), cursor_pos, msgcol, alpha, IFont::BOTTOM|IFont::HCENTER);
 
             cursor_pos[1] -= msgheight;
         }
@@ -208,8 +205,8 @@ struct InfoMessageModule : public GunsightModule, public SigObject {
 	}
 };
 
-void FlexibleGunsight::addInfoMessage(Ptr<IGame> game, Ptr<SimpleActor> actor)
+void FlexibleGunsight::addInfoMessage(Ptr<IGame> game)
 {
-    addModule(new InfoMessageModule("info-messages", game, actor),
+    addModule(new InfoMessageModule("info-messages", game),
         "screen", HCENTER | TOP, HCENTER | TOP);
 }

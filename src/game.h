@@ -40,6 +40,8 @@ public:
     virtual Ptr<SoundMan> getSoundMan();
     virtual Ptr<Collide::CollisionManager> getCollisionMan();
     virtual Ptr<IoScriptingManager> getIoScriptingManager();
+    virtual void infoMessage(const char * msg, const Vector color);
+    
     virtual void getMouseState(float *mx, float *my, int *buttons);
     virtual double  getTimeDelta();
     virtual double  getTime();

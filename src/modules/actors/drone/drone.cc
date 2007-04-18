@@ -411,7 +411,7 @@ Ptr<IView> Drone::getView(int n) {
     gunsight1->addArmamentToScreen(thegame, armament, 0);
     gunsight1->addArmamentToScreenRight(thegame, armament, 1);
     gunsight1->addMissileWarning(thegame, this);
-    gunsight1->addInfoMessage(thegame, this);
+    gunsight1->addInfoMessage(thegame);
 
     Ptr<FlexibleGunsight> gunsight2 = new FlexibleGunsight(thegame);
 	gunsight2->addDebugInfo(thegame, this);
@@ -420,7 +420,7 @@ Ptr<IView> Drone::getView(int n) {
     gunsight2->addArmamentToScreen(thegame, armament, 0);
     gunsight2->addArmamentToScreenRight(thegame, armament, 1);
     gunsight2->addMissileWarning(thegame, this);
-    gunsight2->addInfoMessage(thegame, this);
+    gunsight2->addInfoMessage(thegame);
 
 	switch(n) {
     case 0:

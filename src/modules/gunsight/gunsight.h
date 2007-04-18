@@ -77,7 +77,7 @@ public:
     void addDirectionOfFlight(Ptr<IActor>);
     void addInterception(Ptr<IActor> src, Ptr<IActor> target);
     void addMissileWarning(Ptr<IGame> game, Ptr<SimpleActor> actor);
-    void addInfoMessage(Ptr<IGame> game, Ptr<SimpleActor> actor);
+    void addInfoMessage(Ptr<IGame> game);
     
     // IDrawable implementation
     virtual void draw();

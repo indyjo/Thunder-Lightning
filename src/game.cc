@@ -435,6 +435,10 @@ Ptr<IoScriptingManager> Game::getIoScriptingManager() {
 	return io_scripting_manager;
 }
 
+void Game::infoMessage(const char * msg, const Vector color) {
+    info_message_signal(msg,color);
+}
+
 void Game::getMouseState(float *mx, float *my, int *buttons)
 {
     *mx=mouse_relx;
