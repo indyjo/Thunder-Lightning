@@ -392,10 +392,10 @@ void JOpenGLRenderer::getFogColor(jcolor3_t *col)
 
 jError JOpenGLRenderer::setFogType(jrfogtype_t type, float density)
 {
-    //fog_type=type;
-    //fog_density=density;
+    fog_type=type;
+    fog_density=density;
 
-    //setupFog();
+    setupFog();
 
     return JERR_OK;
 }
