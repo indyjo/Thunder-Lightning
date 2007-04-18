@@ -119,11 +119,11 @@ public:
         setCannonSteer(0);
     }
 
-    void  setTurretSteer(float val) { c->setFloat("turret-steer", val); }
-    float getTurretSteer() { return c->getFloat("turret-steer"); }
+    void  setTurretSteer(float val) { c->setFloat("turret_steer", val); }
+    float getTurretSteer() { return c->getFloat("turret_steer"); }
 
-    void  setCannonSteer(float val) { c->setFloat("cannon-steer", val); }
-    float getCannonSteer() { return c->getFloat("cannon-steer"); }
+    void  setCannonSteer(float val) { c->setFloat("cannon_steer", val); }
+    float getCannonSteer() { return c->getFloat("cannon_steer"); }
 };
 
 #endif

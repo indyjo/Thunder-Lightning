@@ -38,4 +38,5 @@ void TankEngine::run() {
 
     tank_controls->getControls()->setFloat("turret_angle", turret_angle);
     tank_controls->getControls()->setFloat("cannon_angle", cannon_angle);
+    tank_controls->getControls()->setVector("rel_cannon_dir", Vector(cos(turret_angle)*sin(cannon_angle),sin(cannon_angle),cos(turret_angle)*cos(cannon_angle)));
 }
