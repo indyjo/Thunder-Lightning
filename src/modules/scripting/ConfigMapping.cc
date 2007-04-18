@@ -25,8 +25,8 @@ namespace {
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
-			self->tag = tag(state, "Config");
-			self->data.ptr = 0;
+			IoObject_tag_(self, tag(state, "Config"));
+			IoObject_setDataPointer_(self, 0);
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
 		}
@@ -74,6 +74,6 @@ wrapObject<Ptr<IConfig> >(Ptr<IConfig> config, IoState * state) {
 
 template<>
 Ptr<IConfig> unwrapObject<Ptr<IConfig> >(IoObject * self) {
-	return (IConfig*)self->data.ptr;
+	return (IConfig*)IoObject_dataPointer(self);
 }
 

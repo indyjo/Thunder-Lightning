@@ -9,7 +9,7 @@
 
 template<>
 Ptr<IGame> unwrapObject<Ptr<IGame> >(IoObject * self) {
-	return (IGame*)self->data.ptr;
+	return (IGame*)IoObject_dataPointer(self);
 }
 
 
@@ -37,8 +37,8 @@ namespace {
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
-			self->tag = tag(state, "Game");
-			self->data.ptr = 0;
+			IoObject_tag_(self, tag(state, "Game"));
+			IoObject_setDataPointer_(self, 0);
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
 		}

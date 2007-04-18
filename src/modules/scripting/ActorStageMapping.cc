@@ -27,8 +27,8 @@ namespace {
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
-			self->tag = tag(state, "ActorStage");
-			self->data.ptr = 0;
+			IoObject_tag_(self, tag(state, "ActorStage"));
+			IoObject_setDataPointer_(self, 0);
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
 		}
@@ -98,6 +98,6 @@ wrapObject(Ptr<IActorStage> config, IoState * state) {
 
 template<>
 Ptr<IActorStage> unwrapObject(IoObject * self) {
-	return (IActorStage*)self->data.ptr;
+	return (IActorStage*)IoObject_dataPointer(self);
 }
 

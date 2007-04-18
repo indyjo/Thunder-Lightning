@@ -30,8 +30,8 @@ namespace {
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
-			self->tag = tag(state, "Clock");
-			self->data.ptr = 0;
+			IoObject_tag_(self, tag(state, "Clock"));
+			IoObject_setDataPointer_(self, 0);
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
 		}
@@ -55,6 +55,6 @@ void addMapping<Clock>(Ptr<IGame> game, IoState *state) {
 
 template<>
 Ptr<Clock> unwrapObject<Ptr<Clock> >(IoObject * self) {
-	return (Clock*)self->data.ptr;
+	return (Clock*)IoObject_dataPointer(self);
 }
 

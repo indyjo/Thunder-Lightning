@@ -29,8 +29,8 @@ namespace {
                 {NULL, NULL}
             };
             IoObject *self = IoObject_new(state);
-            self->tag = tag(state, "Armament");
-            self->data.ptr = 0;
+            IoObject_tag_(self, tag(state, "Armament"));
+            IoObject_setDataPointer_(self, 0);
             IoObject_addMethodTable_(self, methodTable);
             return self;
         }

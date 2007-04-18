@@ -6,9 +6,9 @@
 
 #include <landscape.h>
 
-struct IoObject;
+#include <modules/scripting/IoIncludes.h>
+
 struct IGame;
-struct IoState;
 
 class Controls : virtual public Object {
     IoObject *self;

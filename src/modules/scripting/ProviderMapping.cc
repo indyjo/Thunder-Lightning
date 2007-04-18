@@ -16,7 +16,6 @@ namespace {
 			IoObject * self =  proto(state);
 			IoState_registerProtoWithFunc_(state, self, proto);
 			IoObject_setSlot_to_(state->lobby, IOSYMBOL("PositionProvider"), self);
-			self->data.ptr = 0;
 		}
 		static IoObject *proto(void *state) {
 			IoMethodTable methodTable[] = {
@@ -29,8 +28,8 @@ namespace {
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
-			self->tag = tag(state, "PositionProvider");
-			self->data.ptr = 0;
+			IoObject_tag_(self, tag(state, "PositionProvider"));
+			IoObject_setDataPointer_(self, 0);
 			
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
@@ -41,9 +40,7 @@ namespace {
 			BEGIN_FUNC("PositionProvider.getOrientation")
 			Vector up,right,front;
 			getObject(self)->getOrientation(&up,&right,&front);
-			return wrapObject<Matrix3>(
-				MatrixFromColumns(right,up,front),
-				(IoState*) self->tag->state );
+			return wrapObject<Matrix3>(MatrixFromColumns(right,up,front), IOSTATE);
 		}
 		CREATE_FUNC(IPositionProvider)
 		
@@ -60,7 +57,7 @@ namespace {
 			IoObject * self =  proto(state);
 			IoState_registerProtoWithFunc_(state, self, proto);
 			IoObject_setSlot_to_(state->lobby, IOSYMBOL("MovementProvider"), self);
-			self->data.ptr = 0;
+			IoObject_setDataPointer_(self, 0);
 		}
 		static IoObject *proto(void *state) {
 			IoMethodTable methodTable[] = {
@@ -68,8 +65,8 @@ namespace {
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
-			self->tag = tag(state, "MovementProvider");
-			self->data.ptr = 0;
+			IoObject_tag_(self, tag(state, "MovementProvider"));
+			IoObject_setDataPointer_(self, 0);
 			
 			IoObject_addMethodTable_(self, methodTable);
 			return self;

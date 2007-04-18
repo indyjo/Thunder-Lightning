@@ -13,6 +13,7 @@
 #include <modules/actors/simpleactor.h>
 #include <modules/collide/CollisionManager.h>
 #include <modules/weaponsys/Armament.h>
+#include <modules/scripting/IoIncludes.h>
 
 
 class FlightEngine2;
@@ -22,7 +23,7 @@ struct Rating;
 class Targeter;
 class SoundSource;
 struct Context;
-struct IoObject;
+
 
 class EventSheet;
 

@@ -9,7 +9,7 @@
 
 template<>
 Ptr<Model> unwrapObject(IoObject * self) {
-	return (Model*)self->data.ptr;
+	return (Model*)IoObject_dataPointer(self);
 }
 
 namespace {
@@ -28,8 +28,8 @@ namespace {
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
-			self->tag = tag(state, "Model");
-			self->data.ptr = 0;
+			IoObject_tag_(self, tag(state, "Model"));
+			IoObject_setDataPointer_(self, 0);
 			
 			IoObject_addMethodTable_(self, methodTable);
 			return self;

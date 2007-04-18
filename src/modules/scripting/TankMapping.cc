@@ -7,7 +7,7 @@
 
 template<>
 Ptr<Tank> unwrapObject(IoObject * self) {
-	return (Tank*)self->data.ptr;
+	return (Tank*)IoObject_dataPointer(self);
 }
 
 
@@ -18,7 +18,8 @@ namespace {
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
-		    self->tag->cloneFunc = (TagCloneFunc *)rawClone;
+		    IoObject_tag(self)->cloneFunc = (IoTagCloneFunc *)rawClone;
+		    
 			IoState_registerProtoWithFunc_(state, self, proto);
 			IoObject_setSlot_to_(lobby, IOSYMBOL("Tank"), self);
 		}
@@ -30,8 +31,9 @@ namespace {
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
-			self->tag = tag(state, "Tank");
-			self->data.ptr = 0;
+			IoObject_tag_(self, tag(state, "Tank"));
+			IoObject_setDataPointer_(self, 0);
+            
             IoObject_rawAppendProto_(self, getProtoObject<Ptr<SimpleActor> >(IOSTATE));
 			IoObject_addMethodTable_(self, methodTable);
 			return self;

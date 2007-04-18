@@ -6,7 +6,7 @@
 
 #include "mappings.h"
 
-#define LISTIVAR(self) ((List *)(self->data.ptr))
+#define LISTIVAR(self) ((List *)IoObject_dataPointer(self))
 
 #define IOASS(expr, message) \
 	if (!(expr))    \

@@ -29,8 +29,8 @@ namespace {
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
-			self->tag = tag(state, "EventRemapper");
-			self->data.ptr = 0;
+			IoObject_tag_(self, tag(state, "EventRemapper"));
+			IoObject_setDataPointer_(self, 0);
 			
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
@@ -124,6 +124,6 @@ IoObject * wrapObject<Ptr<EventRemapper> >
 
 template<>
 Ptr<EventRemapper> unwrapObject<Ptr<EventRemapper> >(IoObject * self) {
-	return (EventRemapper*)self->data.ptr;
+	return (EventRemapper*)IoObject_dataPointer(self);
 }
 

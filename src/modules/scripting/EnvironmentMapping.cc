@@ -34,8 +34,8 @@ namespace {
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
-			self->tag = tag(state, "Environment");
-			self->data.ptr = 0;
+			IoObject_tag_(self, tag(state, "Environment"));
+			IoObject_setDataPointer_(self, 0);
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
 		}
@@ -72,6 +72,6 @@ wrapObject(Ptr<Environment> environment, IoState * state) {
 
 template<>
 Ptr<Environment> unwrapObject(IoObject * self) {
-	return (Environment*)self->data.ptr;
+	return (Environment*) IoObject_dataPointer(self);
 }
 

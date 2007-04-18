@@ -209,7 +209,7 @@ void SimpleActor::setControlMode(ControlMode m) {
 }
 
 IoObject* SimpleActor::message(std::string name, IoObject *args) {
-    IoObject * result = ((IoState*)args->state)->ioNil;
+    IoObject * result = ((IoState*)IoObject_tag(args)->state)->ioNil;
     
     if (self) {
         //IoState_pushRetainPool(IOSTATE);

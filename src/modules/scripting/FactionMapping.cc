@@ -7,7 +7,7 @@
 
 template<>
 Ptr<Faction> unwrapObject(IoObject * self) {
-	return (Faction*)self->data.ptr;
+	return (Faction*)IoObject_dataPointer(self);
 }
 
 
@@ -25,9 +25,9 @@ namespace {
 		static IoTag *tag(void * state, char * name) {
 		    IoTag *tag = IoTag_newWithName_(name);
 		    tag->state = state;
-		    tag->cloneFunc = (TagCloneFunc *)rawClone;
-		    tag->markFunc  = (TagMarkFunc *)mark;
-		    tag->freeFunc  = (TagFreeFunc *)free;
+		    tag->cloneFunc = (IoTagCloneFunc *)rawClone;
+		    tag->markFunc  = (IoTagMarkFunc *)mark;
+		    tag->freeFunc  = (IoTagFreeFunc *)free;
 		    //tag->writeToStoreFunc  = (TagWriteToStoreFunc *)IoFile_writeToStore_;
 		    //tag->readFromStoreFunc = (TagReadFromStoreFunc *)IoFile_readFromStore_;
 		    return tag;
@@ -43,8 +43,8 @@ namespace {
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
-			self->tag = tag(state, "Faction");
-			self->data.ptr = 0;
+			IoObject_tag_(self, tag(state, "Faction"));
+			IoObject_setDataPointer_(self, 0);
 			retarget(self, new Faction);
 			IoObject_addMethodTable_(self, methodTable);
 			return self;

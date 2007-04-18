@@ -9,7 +9,7 @@
 #include <IoNumber.h>
 
 #define BEGIN_FUNC(name) 							\
-	IOASSERT(self->data.ptr, "Pointer to C++ Object is zero")
+	IOASSERT(IoObject_dataPointer(self), "Pointer to C++ Object is zero")
 
 #define VOID_FUNC(funcname)							\
 	static IoObject * funcname (						\
@@ -137,7 +137,7 @@ IoObject * getProtoObject(IoState *);
 /// Function to check the type of an IoObject
 template<class T>
 bool isA(IoObject *self) {
-    return IoObject_hasCloneFunc_(self, getProtoObject<T>(IOSTATE)->tag->cloneFunc);
+    return IoObject_hasCloneFunc_(self, IoObject_tag(getProtoObject<T>(IOSTATE))->cloneFunc);
 }
 template<> bool isA<std::string>(IoObject *self);
 
@@ -152,30 +152,30 @@ IoObject * castfunc(IoObject * self, IoObject *locals, IoObject *m) {
 template<class T>
 struct DynamicCastMapping {
 	static T* getObject(IoObject *o)
-    { return dynamic_cast<T*>(reinterpret_cast<Object*>(o->data.ptr)); }
+    { return dynamic_cast<T*>(reinterpret_cast<Object*>(IoObject_dataPointer(o))); }
 
     static void retarget(IoObject *self, T *target) {
 		if (target) target->ref();
-		if (self->data.ptr) {
-			Object* old_target = reinterpret_cast<Object*>(self->data.ptr);
-			self->data .ptr= static_cast<Object*>(target);
+		if (IoObject_dataPointer(self)) {
+			Object* old_target = reinterpret_cast<Object*>(IoObject_dataPointer(self));
+			IoObject_setDataPointer_(self, static_cast<Object*>(target));
 			old_target->unref();
-		} else self->data.ptr = static_cast<Object*>(target);
+		} else IoObject_setDataPointer_(self, static_cast<Object*>(target));
 	}
 };
 
 template<class T>
 struct ReinterpretCastMapping {
 	static T* getObject(IoObject *o)
-    { return reinterpret_cast<T*>(o->data.ptr); }
+    { return reinterpret_cast<T*>(IoObject_dataPointer(o)); }
 
     static void retarget(IoObject *self, T *target) {
 		if (target) target->ref();
-		if (self->data.ptr) {
-			T* old_target = (T*) self->data.ptr;
-			self->data.ptr = target;
+		if (IoObject_dataPointer(self)) {
+			T* old_target = (T*) IoObject_dataPointer(self);
+			IoObject_setDataPointer_(self, target);
 			old_target->unref();
-		} else self->data.ptr = target;
+		} else IoObject_setDataPointer_(self, target);
 	}
 };
 
@@ -185,9 +185,9 @@ struct TemplatedObjectMapping : Base {
 	static IoTag *tag(void * state, char * name) {
 	    IoTag *tag = IoTag_newWithName_(name);
 	    tag->state = state;
-	    tag->cloneFunc = (TagCloneFunc *)rawClone;
-	    tag->markFunc  = (TagMarkFunc *)mark;
-	    tag->freeFunc  = (TagFreeFunc *)free;
+	    tag->cloneFunc = (IoTagCloneFunc *)rawClone;
+	    tag->markFunc  = (IoTagMarkFunc *)mark;
+	    tag->freeFunc  = (IoTagFreeFunc *)free;
 	    //tag->writeToStoreFunc  = (TagWriteToStoreFunc *)IoFile_writeToStore_;
 	    //tag->readFromStoreFunc = (TagReadFromStoreFunc *)IoFile_readFromStore_;
 	    return tag;
@@ -196,8 +196,8 @@ struct TemplatedObjectMapping : Base {
 	static IoObject * rawClone(IoObject *self) 
 	{ 
 		IoObject *child = IoObject_rawClonePrimitive(self);
-		if (self->data.ptr) Base::getObject(self)->ref();
-		child->data.ptr = self->data.ptr;
+		if (IoObject_dataPointer(self)) Base::getObject(self)->ref();
+		IoObject_setDataPointer_(child, IoObject_dataPointer(self));
 		return child;
 	}
 	
@@ -205,7 +205,7 @@ struct TemplatedObjectMapping : Base {
 		//if (self->data.ptr) getObject(self)->ref();
 	}
 	static void free(IoObject * self) {
-		if (self->data.ptr) Base::getObject(self)->unref();
+		if (IoObject_dataPointer(self)) Base::getObject(self)->unref();
 	}
 };
 
@@ -222,11 +222,12 @@ struct TemplatedObjectMapping : Base {
 	static IoTag *tag(void * state, char * name) {							\
 	    IoTag *tag = IoTag_newWithName_(name);								\
 	    tag->state = state;													\
-	    tag->cloneFunc = (TagCloneFunc *)rawClone;							\
-	    tag->markFunc  = (TagMarkFunc *)mark;								\
-	    tag->freeFunc  = (TagFreeFunc *)free;								\
+	    tag->cloneFunc = (IoTagCloneFunc *)rawClone;							\
+	    tag->markFunc  = (IoTagMarkFunc *)mark;								\
+	    tag->freeFunc  = (IoTagFreeFunc *)free;								\
 	    return tag;															\
 	}
 
 
 #endif
+
