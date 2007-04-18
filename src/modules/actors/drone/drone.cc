@@ -56,7 +56,7 @@ struct TargetView: public SimpleView {
 	Ptr<Targeter> targeter;
 	Vector view_pos;
 	
-	TargetView::TargetView(
+	TargetView(
 		Ptr<IActor> subject,
 		Vector view_pos=Vector(0,0,0),
 		Ptr<Targeter> targeter=0,

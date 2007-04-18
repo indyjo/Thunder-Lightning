@@ -39,7 +39,7 @@
 struct TurretView: public SimpleView {
 	Ptr<TankEngine> engine;
 	
-	TurretView::TurretView(
+	TurretView(
 		Ptr<IActor> subject,
 		Ptr<TankEngine> engine,
 		Ptr<IDrawable> gunsight=0)
