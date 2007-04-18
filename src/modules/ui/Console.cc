@@ -47,7 +47,7 @@ Console::Console(IGame * game,
     Ptr<IFontMan> fontman = game->getFontMan();
     fontman->selectFont(IFontMan::FontSpec("dungeon", 12));
     max_lines = (int) (surface.getHeight() / fontman->getMetrics()->getLineHeight());
-    ls_message("Console of %d rows and %d columns.\n", max_lines, max_chars);
+    ls_message("Console of %d rows.\n", max_lines);
 
 	IoState* state = game->getIoScriptingManager()->getMainState();
 	connectTo(state);

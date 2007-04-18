@@ -27,7 +27,7 @@ class Console : public IEventFilter, public IoCallbackContext, virtual public Si
     int bracecount;
     size_t cursor_pos;
 
-    int max_chars, max_lines;
+    int max_lines;
     bool enabled;
 
 public:
