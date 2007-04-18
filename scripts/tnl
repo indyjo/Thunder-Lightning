@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function on_error() {
   xset r on
@@ -32,13 +32,21 @@ setv base_dir                         `cd $exec_dir/..;pwd`
 setv bin_dir                          $base_dir/bin
 setv Io_init_script                   $base_dir/share/landscape/scripts/init.io
 
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$base_dir/lib"
+
 command="$bin_dir/tnl-bin"
 
 debug_enabled=no
-if [[ $1 == "-d" || $1 == "--debug" ]]; then
+verbose_enabled=no
+
+while [[ $# -gt 0 ]]; do
+  if [[ $1 == "-d" || $1 == "--debug" ]]; then
+    debug_enabled=yes
+  elif [[ $1 == "-v" || $1 == "--verbose" ]]; then
+    verbose_enabled=yes
+  fi
   shift
-  debug_enabled=yes
-fi
+done
 
 if [[ -n "$TNL_DEBUG" ]]; then
   debug_enabled=yes
@@ -47,7 +55,7 @@ fi
 
 if [[ $debug_enabled == yes ]]; then
   debug_1="ddd --args"
-  debug_2="valgrind -v --leak-check=yes --logfile=valgrind --num-callers=8"
+  debug_2="valgrind -v --leak-check=yes --log-file=tnl --num-callers=18"
   debug_3="gdb --args"
   echo "Please choose a debugger:"
   echo "1 $debug_1"
@@ -61,11 +69,13 @@ if [[ $debug_enabled == yes ]]; then
   esac
 fi
 
-echo $command $param $*
+echo $command $param $@
 if [[ $debug_enabled == yes ]]; then
-  $command $param $*
+  $command $param $@
+elif [[ $verbose_enabled == yes ]]; then
+  $command $param $@
 else
-  $command $param $* >/tmp/stdout.txt 2>/tmp/stderr.txt
+  $command $param $@ >/tmp/stdout.txt 2>/tmp/stderr.txt
 fi
 if [[ $? != 0 ]]; then
   on_error
