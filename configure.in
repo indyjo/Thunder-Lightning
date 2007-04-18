@@ -78,7 +78,7 @@ if [[ "$IO_DIR" ]]; then
     if [[ -d $IO_DIR/libs/basekit ]]; then
         dnl New-style Io distribution
         IO_CFLAGS="-I$IO_DIR/_build/headers"
-        IO_LIBS="$IO_DIR/_build/lib/libiovmall.a"
+        IO_LIBS="-L$IO_DIR/_build/dll -liovmall"
     else
         dnl Old-style Io distribution
         IO_CFLAGS="-I$IO_DIR/vm/_include -I$IO_DIR/vm/_include/base"
