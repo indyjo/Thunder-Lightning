@@ -1,5 +1,6 @@
 #include "mappings.h"
 
+class DataNode;
 class Clock;
 struct IConfig;
 struct IActorStage;
@@ -21,6 +22,7 @@ class Targeter;
 
 void addBasicMappings(Ptr<IGame> game, IoState * state) {
 	addMapping<IGame>(game, state);
+	addMapping<DataNode>(game,state);
 	addMapping<IConfig>(game,state);
 }
 

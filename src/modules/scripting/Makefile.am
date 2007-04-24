@@ -11,6 +11,7 @@ libscripting_a_SOURCES = \
 	ArmamentMapping.cc \
 	ClockMapping.cc \
 	ConfigMapping.cc \
+	DataNodeMapping.cc \
 	DroneMapping.cc \
 	EnvironmentMapping.cc \
 	EventMapping.cc \
