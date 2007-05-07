@@ -29,7 +29,9 @@ namespace {
                 {"release", release},
                 {"canFire", canFire},
                 {"maxRounds", getMaxRounds},
+                {"setMaxRounds", setMaxRounds},
                 {"roundsLeft", getRoundsLeft},
+                {"setRoundsLeft", setRoundsLeft},
                 {"isTriggered", isTriggered},
                 {NULL, NULL}
             };
@@ -47,7 +49,9 @@ namespace {
         VOID_FUNC(release)
         GET_BOOLEAN(canFire)
         GET_NUMBER(getMaxRounds)
+        SET_INT(setMaxRounds)
         GET_NUMBER(getRoundsLeft)
+        SET_INT(setRoundsLeft)
         GET_BOOLEAN(isTriggered)
     };
 } // namespace

@@ -24,6 +24,14 @@ int Weapon::getRoundsLeft() {
     return rounds;
 }
 
+void Weapon::setMaxRounds(int n) {
+    maxrounds=n;
+}
+
+void Weapon::setRoundsLeft(int n) {
+    rounds=n;
+}
+
 bool Weapon::canFire() {
     if (next_barrel > barrels.size())
         return false;

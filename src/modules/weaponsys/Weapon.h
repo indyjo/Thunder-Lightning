@@ -39,6 +39,9 @@ public:
     virtual int getMaxRounds();
     virtual int getRoundsLeft();
     
+    virtual void setMaxRounds(int);
+    virtual void setRoundsLeft(int);
+    
     /// Child classes MAY override this to implement special locking behavior
     /// The default implementation just returns whether there is ammo left and reload has finished
     virtual bool canFire();
