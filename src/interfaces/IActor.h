@@ -20,6 +20,11 @@ public:
     typedef enum {ALIVE, DEAD} State;
     typedef enum {UNCONTROLLED, MANUAL, AUTOMATIC} ControlMode;
 
+    /// Called when added to an ActorStage
+    virtual void onLinked() =0;
+    /// Called when removed from an ActorStage
+    virtual void onUnlinked() =0;
+    
     virtual Ptr<TargetInfo> getTargetInfo()=0;
 
     virtual Ptr<Faction> getFaction()=0;

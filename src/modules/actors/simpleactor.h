@@ -41,6 +41,9 @@ public:
 
     void createIoObject();
     void setIoObject(IoObject *self);
+    
+    void onLinked();
+    void onUnlinked();
 
     inline Ptr<Controls> getControls() { return controls; }
     

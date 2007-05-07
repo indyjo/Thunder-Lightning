@@ -145,8 +145,6 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
     setRigidBody(&*engine);
     setActor(this);
 
-    thegame->getCollisionMan()->add(this);
-    
     personality.randomize();
     context = new Context(
     	&flight_info,
@@ -190,6 +188,14 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
 Drone::~Drone() {
 	ls_message("<Drone::~Drone()>\n");
 	ls_message("</Drone::~Drone()>\n");
+}
+
+void Drone::onLinked() {
+    thegame->getCollisionMan()->add(this);
+}
+
+void Drone::onUnlinked() {
+    thegame->getCollisionMan()->remove(this);
 }
 
 void Drone::action() {
@@ -279,7 +285,6 @@ void Drone::action() {
 }
 
 void Drone::kill() {
-    thegame->getCollisionMan()->remove(this);
 	targeter->clearCurrentTarget();
 	ideas.clear();
 	current_idea=0;

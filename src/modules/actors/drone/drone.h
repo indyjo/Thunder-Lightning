@@ -55,6 +55,9 @@ public:
     Drone(Ptr<IGame> thegame, IoObject * io_peer=0);
     virtual ~Drone();
 
+    virtual void onLinked();
+    virtual void onUnlinked();
+    
     virtual void action();
     virtual void kill();
 

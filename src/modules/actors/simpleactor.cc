@@ -41,6 +41,9 @@ void SimpleActor::setIoObject(IoObject *newself) {
     }
 }
 
+void SimpleActor::onLinked() { }
+void SimpleActor::onUnlinked() { }
+
 void SimpleActor::setArmament(Ptr<Armament> armament) {
     this->armament = armament;
 }
