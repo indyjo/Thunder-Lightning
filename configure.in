@@ -18,19 +18,9 @@ AC_ARG_ENABLE(
     CXXFLAGS="$CXXFLAGS -pg")
 
 AC_ARG_ENABLE(
-    pentium2,
-    [  --enable-pentium2            Enables Pentium 2 code generation],
-    CXXFLAGS="$CXXFLAGS -march=i686 -mcpu=i686 -mfpmath=sse -msse")
-
-AC_ARG_ENABLE(
-    pentium4,
-    [  --enable-pentium4            Enables Pentium 4 code generation],
-    CXXFLAGS="$CXXFLAGS -march=pentium4 -mcpu=pentium4 -mfpmath=sse -msse2")
-
-AC_ARG_ENABLE(
-    athlonxp,
-    [  --enable-athlonxp            Enables Athlon XP code generation],
-    CXXFLAGS="$CXXFLAGS -march=athlonxp -mcpu=athlonxp -mfpmath=sse -msse")
+    release,
+    [  --enable-release             Enables building a release (debug code free) version],
+    CXXFLAGS="$CXXFLAGS -DNDEBUG")
 
 AC_ARG_WITH(
     opengl-cflags,
