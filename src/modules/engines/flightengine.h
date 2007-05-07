@@ -24,7 +24,7 @@ public:
     inline void setMaxThrust(float new_thrust) { max_thrust = new_thrust; }
 
     //IEngine
-    virtual void setControls(Ptr<Controls> controls);
+    virtual void setControls(Ptr<DataNode> controls);
     virtual void run();
 
     // IPositionProvider

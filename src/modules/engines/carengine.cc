@@ -17,7 +17,7 @@ CarEngine::CarEngine(Ptr<IGame> game,
     update();
 }
 
-void CarEngine::setControls(Ptr<Controls> controls) {
+void CarEngine::setControls(Ptr<DataNode> controls) {
     this->controls = new CarControls(controls);
 }
 

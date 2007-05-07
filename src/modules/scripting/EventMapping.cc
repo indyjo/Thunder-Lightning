@@ -106,7 +106,9 @@ namespace {
         static IoObject * controls
 		(IoObject *self, IoObject *locals, IoMessage *m) {
 			BEGIN_FUNC("EventRemapper.controls")
-			return getObject(self)->getControls()->getObject();
+			return wrapObject<Ptr<DataNode> >(
+			    getObject(self)->getControls(),
+			    IOSTATE);
 		}
 	};
 }

@@ -44,7 +44,7 @@ FlightEngine::FlightEngine(
   max_thrust(max_thrust), wing_area(wing_area), mass(mass),
   p(p0), v(v0), orient(orient0),
   roll_speed(0), pitch_speed(0), yaw_speed(0),
-  controls(new FlightControls(ptr(game)))
+  controls(new FlightControls)
 { }
 
 
@@ -53,7 +53,7 @@ FlightEngine::FlightEngine(
 // Air pressure
 #define rho 1.293
 
-void FlightEngine::setControls(Ptr<Controls> controls) {
+void FlightEngine::setControls(Ptr<DataNode> controls) {
     this->controls = new FlightControls(controls);
 }
 

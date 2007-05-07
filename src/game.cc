@@ -76,7 +76,7 @@ Game::Game(int argc, const char **argv)
     }
     ls_message("done.\n");
 
-    event_remapper = new EventRemapper(io_scripting_manager->getMainState());
+    event_remapper = new EventRemapper();
 
     ls_message("Initializing SDL: ");
     if (-1 == SDL_Init( SDL_INIT_VIDEO |

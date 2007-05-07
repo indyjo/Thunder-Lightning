@@ -87,7 +87,7 @@ FlightEngine3::FlightEngine3(Ptr<IGame> game,
     return;
 }
 
-void FlightEngine3::setControls(Ptr<Controls> controls) {
+void FlightEngine3::setControls(Ptr<DataNode> controls) {
     this->controls = new FlightControls(controls);
 }
 
@@ -105,7 +105,7 @@ void FlightEngine3::run() {
 
     applyForce(front * max_thrust * controls->getThrottle());
 
-    Ptr<Controls> c = controls->getControls();
+    Ptr<DataNode> c = controls->getDataNode();
     for(int i=0; i!=airfoils.size(); i++) {
         const AirFoil & foil = airfoils[i];
 

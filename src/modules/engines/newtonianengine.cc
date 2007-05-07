@@ -26,7 +26,7 @@ void NewtonianEngine::update() {
 }
 
 // IEngine
-void NewtonianEngine::setControls(Ptr<Controls> controls) {
+void NewtonianEngine::setControls(Ptr<DataNode> controls) {
 }
 
 void NewtonianEngine::run() {

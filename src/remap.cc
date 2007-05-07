@@ -61,9 +61,9 @@ bool EventSheet::triggerAction(const char * action)
     return false;
 }
 
-EventRemapper::EventRemapper(IoState *state)
+EventRemapper::EventRemapper()
 {
-    controls = new Controls(state);
+    controls = new DataNode;
     // default sheet
     event_sheets.push_back(new EventSheet());
 }

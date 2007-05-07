@@ -18,7 +18,7 @@ SimpleActor::SimpleActor( Ptr<IGame> game)
     faction = Faction::basic_factions.none;
     target_info = new TargetInfo(
         "<unnamed SimpleActor>", 1.0f, TargetInfo::NONE);
-    controls = new Controls(ptr(game));
+    controls = new DataNode;
 }
 
 SimpleActor::~SimpleActor() {

@@ -25,7 +25,7 @@ public:
     inline Ptr<FlightControls> getFlightControls() { return controls; }
 
     //IEngine
-    virtual void setControls(Ptr<Controls> controls);
+    virtual void setControls(Ptr<DataNode> controls);
     virtual void run();
 
 protected:

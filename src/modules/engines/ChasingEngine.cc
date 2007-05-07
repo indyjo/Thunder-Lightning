@@ -21,7 +21,7 @@ ChasingEngine::ChasingEngine(Ptr<IGame> game,
     effective_xform = current_xform * post_xform;
 }
 
-void ChasingEngine::setControls(Ptr<Controls> controls) { }
+void ChasingEngine::setControls(Ptr<DataNode> controls) { }
 void ChasingEngine::run() {
     previous_xform = effective_xform;
     Transform target_xform = getTargetTransform();

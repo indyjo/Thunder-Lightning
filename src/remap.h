@@ -3,7 +3,7 @@
 #define REMAP_H
 
 #include <landscape.h>
-#include <modules/engines/controls.h>
+#include <DataNode.h>
 
 #include <SDL_events.h>
 
@@ -100,7 +100,7 @@ public:
 class EventRemapper : public SigObject
 {
 public:
-    EventRemapper(IoState *state);
+    EventRemapper();
     ~EventRemapper();
 
     inline void map(const char *action, const ActionSlot & slot) {
@@ -135,7 +135,7 @@ public:
     /// Emitted within triggerAction()
     SigC::Signal1<void, const char *> sig_action_triggered;
 
-    inline Ptr<Controls> getControls() { return controls; }
+    inline Ptr<DataNode> getControls() { return controls; }
 
 private:
     void keyEvent(SDL_KeyboardEvent & ev);
@@ -173,7 +173,7 @@ private:
     MouseButtonMap      mouse_button_map;
     JoystickButtonMap   joystick_button_map;
     JoystickAxisMap     joystick_axis_map;
-    Ptr<Controls>       controls;
+    Ptr<DataNode>       controls;
     AxisManips axismanips;
     EventFilters event_filters;
     EventSheets event_sheets;

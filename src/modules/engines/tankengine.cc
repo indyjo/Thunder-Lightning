@@ -16,7 +16,7 @@ TankEngine::TankEngine(Ptr<IGame> game,
     cannon_angle = 0.0f;
 }
 
-void TankEngine::setControls(Ptr<Controls> controls) {
+void TankEngine::setControls(Ptr<DataNode> controls) {
     CarEngine::setControls(controls);
     tank_controls = new TankControls(controls);
 }
@@ -36,7 +36,7 @@ void TankEngine::run() {
     cannon_angle = std::max(min_cannon_rot,
             std::min(max_cannon_rot, cannon_angle));
 
-    tank_controls->getControls()->setFloat("turret_angle", turret_angle);
-    tank_controls->getControls()->setFloat("cannon_angle", cannon_angle);
-    tank_controls->getControls()->setVector("rel_cannon_dir", Vector(cos(turret_angle)*sin(cannon_angle),sin(cannon_angle),cos(turret_angle)*cos(cannon_angle)));
+    tank_controls->getDataNode()->setFloat("turret_angle", turret_angle);
+    tank_controls->getDataNode()->setFloat("cannon_angle", cannon_angle);
+    tank_controls->getDataNode()->setVector("rel_cannon_dir", Vector(cos(turret_angle)*sin(cannon_angle),sin(cannon_angle),cos(turret_angle)*cos(cannon_angle)));
 }

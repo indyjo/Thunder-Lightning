@@ -5,50 +5,23 @@
 #include <map>
 
 #include <landscape.h>
-
+#include <DataNode.h>
 #include <modules/scripting/IoIncludes.h>
 
 struct IGame;
 
-class Controls : virtual public Object {
-    IoObject *self;
-public:
-    class NoSuchControl { };
-    
-    Controls(IGame *thegame);
-    Controls(IoState *state);
-    ~Controls();
-
-    inline IoObject *getObject() { return self; }
-    bool getBool(const std::string & name, bool default_value);
-    bool getBool(const std::string & name) const throw(NoSuchControl);
-    void setBool(const std::string & name, bool val);
-    
-    int getInt(const std::string & name, int default_value);
-    int getInt(const std::string & name) const throw(NoSuchControl);
-    void setInt(const std::string & name, int val);
-
-    float getFloat(const std::string & name, float default_value);
-    float getFloat(const std::string & name) const throw(NoSuchControl);
-    void setFloat(const std::string & name, float val);
-
-    Vector getVector(const std::string & name, Vector default_value);
-    Vector getVector(const std::string & name) const throw(NoSuchControl);
-    void setVector(const std::string & name, Vector val);
-};
-
 class FlightControls : virtual public Object {
 protected:
-    Ptr<Controls> c;
+    Ptr<DataNode> c;
 public:
-    FlightControls(IGame *thegame) {
-        c = new Controls(thegame);
+    FlightControls() {
+        c = new DataNode;
         setElevator(0);
         setAileronAndRudder(0);
         setThrottle(0);
     }
 
-    FlightControls(Ptr<Controls> c) : c(c)
+    FlightControls(Ptr<DataNode> c) : c(c)
     {
         setElevator(0);
         setAileronAndRudder(0);
@@ -70,21 +43,21 @@ public:
     void setThrottle(float val) { c->setFloat("throttle", val); }
     float getThrottle() const { return c->getFloat("throttle"); }
 
-    Ptr<Controls> getControls() { return c; }
+    Ptr<DataNode> getDataNode() { return c; }
 };
 
 class CarControls : virtual public SigObject {
 protected:
-    Ptr<Controls> c;
+    Ptr<DataNode> c;
 public:
-    CarControls(IGame *thegame) {
-        c = new Controls(thegame);
+    CarControls() {
+        c = new DataNode;
         setSteer(0);
         setThrottle(0);
         setBrake(0);
     }
 
-    CarControls(Ptr<Controls> c) : c(c)
+    CarControls(Ptr<DataNode> c) : c(c)
     {
         setSteer(0);
         setThrottle(0);
@@ -100,19 +73,18 @@ public:
     void  setBrake(float val) { c->setFloat("brake", val); }
     float getBrake() { return c->getFloat("brake"); }
     
-    Ptr<Controls> getControls() { return c; }
+    Ptr<DataNode> getDataNode() { return c; }
 };
 
 class TankControls : virtual public CarControls {
 public:
-    TankControls(IGame *thegame)
-        :CarControls(thegame)
+    TankControls()
     {
         setTurretSteer(0);
         setCannonSteer(0);
     }
 
-    TankControls(Ptr<Controls> c)
+    TankControls(Ptr<DataNode> c)
         : CarControls(c)
     {
         setTurretSteer(0);

@@ -33,7 +33,7 @@ void MissileEngine::update() {
 }
 
 // IEngine
-void MissileEngine::setControls(Ptr<Controls> controls) {
+void MissileEngine::setControls(Ptr<DataNode> controls) {
 }
 
 void MissileEngine::run() {
@@ -97,7 +97,7 @@ void MissileEngine::setMovementVector(const Vector & new_v) { v = new_v; }
 // SmartMissileEngine
 ///////////////////////////////////////////////////////////////////////////
 
-void SmartMissileEngine::setControls(Ptr<Controls> controls) {
+void SmartMissileEngine::setControls(Ptr<DataNode> controls) {
 }
 
 void SmartMissileEngine::run() {
@@ -200,7 +200,8 @@ void MissileEngine2::run() {
 }
 */
 
-void MissileEngine2::setControls(Ptr<Controls> controls) {
+void MissileEngine2::setControls(Ptr<DataNode> controls) {
+    this->controls = controls;
 }
 
 void MissileEngine2::run() {

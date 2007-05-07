@@ -29,7 +29,7 @@ protected:
     Ptr<Faction> faction;
     Ptr<Model> model;
     Ptr<Skeleton> skeleton;
-    Ptr<Controls> controls;
+    Ptr<DataNode> controls;
     Ptr<Armament> armament;
     Ptr<Targeter> targeter;
     ControlMode control_mode;
@@ -45,7 +45,7 @@ public:
     void onLinked();
     void onUnlinked();
 
-    inline Ptr<Controls> getControls() { return controls; }
+    inline Ptr<DataNode> getControls() { return controls; }
     
     inline void setEngine(Ptr<IEngine> e) { engine = e; engine->setControls(controls); }
     inline Ptr<IEngine> getEngine() { return engine; }

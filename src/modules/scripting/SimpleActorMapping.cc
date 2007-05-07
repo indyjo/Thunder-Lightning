@@ -100,7 +100,9 @@ namespace {
 		static IoObject * controls
 		(IoObject *self, IoObject *locals, IoMessage *m) {
 			BEGIN_FUNC("SimpleActor.controls")
-            return getObject(self)->getControls()->getObject();
+            return wrapObject<Ptr<DataNode> >(
+                getObject(self)->getControls(),
+                IOSTATE);
         }
         
         static IoObject * armament

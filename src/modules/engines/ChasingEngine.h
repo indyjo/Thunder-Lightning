@@ -23,7 +23,7 @@ public:
         Transform post_xform=Transform::identity());
     
     //IEngine
-    virtual void setControls(Ptr<Controls> controls);
+    virtual void setControls(Ptr<DataNode> controls);
     virtual void run();
     
     // IPositionProvider

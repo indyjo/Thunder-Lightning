@@ -13,7 +13,7 @@ RigidEngine::RigidEngine(Ptr<IGame> thegame)
     clearForces();
 };
 
-void RigidEngine::setControls(Ptr<Controls> controls) {
+void RigidEngine::setControls(Ptr<DataNode> controls) {
 }
 
 void RigidEngine::run() {

@@ -17,7 +17,7 @@ public:
     RigidEngine(Ptr<IGame> game);
 
     //IEngine
-    virtual void setControls(Ptr<Controls> controls);
+    virtual void setControls(Ptr<DataNode> controls);
     virtual void run();
 
     // IPositionProvider

@@ -31,7 +31,7 @@ public:
                const TankParams & params = TankParams());
 
     // IEngine
-    virtual void setControls(Ptr<Controls> controls);
+    virtual void setControls(Ptr<DataNode> controls);
     virtual void run();
 
     inline float getTurretAngle() { return turret_angle; }

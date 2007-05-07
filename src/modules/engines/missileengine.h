@@ -45,7 +45,7 @@ public:
     inline void setSideArea(float new_area) { side_area = new_area; }
     
     //IEngine
-    virtual void setControls(Ptr<Controls> controls);
+    virtual void setControls(Ptr<DataNode> controls);
     virtual void run();
     
     // IPositionProvider
@@ -101,13 +101,14 @@ public:
     inline const Vector & getTarget() { return target; }
     inline void setTarget(const Vector & new_t) { target = new_t; }
     
-    virtual void setControls(Ptr<Controls> controls);
+    virtual void setControls(Ptr<DataNode> controls);
     void run();
 };
 
 
 class MissileEngine2 : public RigidEngine {
     float front_area, side_area;
+    Ptr<DataNode> controls;
 public:
     inline MissileEngine2(Ptr<IGame> game,
         float front_area, float side_area)
@@ -116,7 +117,7 @@ public:
         side_area(side_area)
     { }
     
-    virtual void setControls(Ptr<Controls> controls);
+    virtual void setControls(Ptr<DataNode> controls);
     virtual void run();
 };
 

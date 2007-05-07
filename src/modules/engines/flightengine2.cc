@@ -49,7 +49,7 @@ FlightEngine2::FlightEngine2(Ptr<IGame> game,
 }
 
 
-void FlightEngine2::setControls(Ptr<Controls> controls) {
+void FlightEngine2::setControls(Ptr<DataNode> controls) {
     this->controls = new FlightControls(controls);
 }
 
