@@ -13,6 +13,9 @@ struct IoCallbackContext {
 	void connectTo(IoState *state);
 };
 
+/// Extended IoState subclasses an IoState and adds some data
+struct IoStateEx;
+
 class IoScriptingManager : public Object
 {
 public:
@@ -20,11 +23,17 @@ public:
 	virtual ~IoScriptingManager();
 
 	inline IoState * getMainState() { return main_state; }
-	IoState * createNewState();
+	
+	IoState* createIoStateEx();
+	void removeIoStateEx(IoState*);
+	
 private:
 	Ptr<IGame> game;
 	IoState * main_state;
 };
 
+void IoStateEx_coupleLifetime(Object* cpp_object, IoObject* io_object);
+void IoStateEx_removeCoupling(Object* cpp_object, IoObject* io_object);
+	
 
 #endif
