@@ -22,16 +22,8 @@ namespace {
 			IoObject_setSlot_to_(lobby, IOSYMBOL("Faction"), self);
 		}
 		
-		static IoTag *tag(void * state, char * name) {
-		    IoTag *tag = IoTag_newWithName_(name);
-		    tag->state = state;
-		    tag->cloneFunc = (IoTagCloneFunc *)rawClone;
-		    tag->markFunc  = (IoTagMarkFunc *)mark;
-		    tag->freeFunc  = (IoTagFreeFunc *)free;
-		    //tag->writeToStoreFunc  = (TagWriteToStoreFunc *)IoFile_writeToStore_;
-		    //tag->readFromStoreFunc = (TagReadFromStoreFunc *)IoFile_readFromStore_;
-		    return tag;
-		}
+		TAG_FUNC
+		
 		static IoObject *proto(void *state) {
 			IoMethodTable methodTable[] = {
 				{"getName", getName},
