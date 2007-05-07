@@ -252,23 +252,23 @@ struct DirectionOfFlightModule : public GunsightModule {
 		r->multMatrix(surface.getMatrix());
 		
 		Vector dir = M*(self->getMovementVector()).normalize();
-		if (dir[2] <= 0) return;
-		
-		Vector p=(zfactor/dir[2])*Vector(dir[0], -dir[1], 0);
-		
-		float outer = 13, inner = 8;
-		
-		r->setColor(Vector(0,1,0));
-		r->begin(JR_DRAWMODE_LINES);
-		*r << p+Vector(-outer,-outer,0)
-		   << p+Vector(-inner,-inner,0)
-		   << p+Vector( outer,-outer,0)
-		   << p+Vector( inner,-inner,0)
-		   << p+Vector( outer, outer,0)
-		   << p+Vector( inner, inner,0)
-		   << p+Vector(-outer, outer,0)
-		   << p+Vector(-inner, inner,0);
-		r->end();
+		if (dir[2] > 0) {
+    		Vector p=(zfactor/dir[2])*Vector(dir[0], -dir[1], 0);
+    		
+    		float outer = 13, inner = 8;
+    		
+    		r->setColor(Vector(0,1,0));
+    		r->begin(JR_DRAWMODE_LINES);
+    		*r << p+Vector(-outer,-outer,0)
+    		   << p+Vector(-inner,-inner,0)
+    		   << p+Vector( outer,-outer,0)
+    		   << p+Vector( inner,-inner,0)
+    		   << p+Vector( outer, outer,0)
+    		   << p+Vector( inner, inner,0)
+    		   << p+Vector(-outer, outer,0)
+    		   << p+Vector(-inner, inner,0);
+            r->end();
+        }
 		
 		r->popMatrix();
 	}
