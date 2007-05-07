@@ -32,7 +32,7 @@ template<> IoObject * wrapObject(char * s, IoState * state)
 { return IoSeq_newWithCString_(state, s); }
 
 template<> bool unwrapObject(IoObject *self)
-{ return !ISNIL(self); }
+{ return ISTRUE(self); }
 template<> int unwrapObject(IoObject *self)
 { return IoNumber_asInt(self); }
 template<> float unwrapObject(IoObject *self)
