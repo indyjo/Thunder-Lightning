@@ -29,6 +29,11 @@ protected:
 // Constructors
 public:
     inline XVector() { }
+    
+    // initialize with 0
+    inline XVector(int) {
+        for(int i=0; i<N; ++i) v[i] = 0;
+    }
 
     // convert from other XVector type
     template<class U>
