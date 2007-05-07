@@ -5,12 +5,15 @@
 
 void ActorStage::addActor(Ptr<IActor> actor) {
     actors.push_back(actor);
+    actor->onLinked();
 }
 
 void ActorStage::removeActor(Ptr<IActor> actor) {
     ActorVector::iterator iter = find(actors.begin(), actors.end(), actor);
-    if (iter != actors.end())
+    if (iter != actors.end()) {
         actors.erase(iter);
+        actor->onUnlinked();
+    }
 }
 
 void ActorStage::addWeakActor(WeakPtr<IActor> actor) {
@@ -61,6 +64,7 @@ void ActorStage::cleanupActors() {
 	for(int i=0; i<actors.size(); ++i) {
 		Ptr<IActor> a=actors[i];
 		if (a->getState()==IActor::DEAD) {
+		    a->onUnlinked();
 			removed++;
 		} else if (removed>0) actors[i-removed]=a;
 	}
@@ -92,8 +96,11 @@ void ActorStage::drawActors() {
 }
 
 void ActorStage::removeAllActors() {
-	for(int i=0; i<actors.size(); ++i)
+	for(int i=0; i<actors.size(); ++i) {
 		actors[i]->kill();
+		actors[i]->onUnlinked();
+	}
 	actors.clear();
     weak_actors.clear();
 }
+
