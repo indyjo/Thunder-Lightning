@@ -232,6 +232,18 @@ void MissileEngine2::run() {
 
     applyForce(drag_force_f + drag_force_s);
     applyLinearAcceleration(Vector(0,-9.81,0));
+    
+    // control
+    if (controls) {
+        Vector a = controls->getVector("angular_accel");
+        float length = a.length();
+        // 10 is some random value to prevent unusually fast spinning
+        if (length > 10.0f) {
+            a *= 10/length;
+        }
+        applyAngularAcceleration(a);
+    }
 
     RigidEngine::run();
 }
+

@@ -43,6 +43,7 @@ SmartMissile2::SmartMissile2(Ptr<IGame> thegame, Ptr<IActor> target, Ptr<IActor>
     float front_area = PI * 0.13f*0.13f;
     float side_area = 3.0f * 0.63f*0.63f;
     float m = 85.5f;  // wheight in kg
+
     float l = 2.89f;  // length in m
     float r = 0.065f; // radius in m
     float Iz = 0.5f*m*r*r; 			//  0.18062
@@ -53,9 +54,10 @@ SmartMissile2::SmartMissile2(Ptr<IGame> thegame, Ptr<IActor> target, Ptr<IActor>
     //engine->construct(m, Ix, Ix, Iz);
     //engine->construct(m, Ix, Ix, Ix);
     engine->construct(m, 60, 60, 20);
+    engine->setControls(getControls());
     setEngine(engine);
 
-    d_error_old = omega_error_old = Vector(0,0,0);
+    //d_error_old = omega_error_old = Vector(0,0,0);
 
     // Prepare collidable
     setBoundingGeometry(new Collide::BoundingGeometry(1,1));
@@ -76,12 +78,15 @@ SmartMissile2::SmartMissile2(Ptr<IGame> thegame, Ptr<IActor> target, Ptr<IActor>
     setModel(thegame->getModelMan()->query(
     	thegame->getConfig()->query("SmartMissile_model")));
     
-  	delta_omega_old = Vector(-1,2,-3);
+  	//delta_omega_old = Vector(-1,2,-3);
 }
 
 
 void SmartMissile2::action()
 {
+    float delta_t = thegame->getClock()->getStepDelta();
+    age += delta_t;
+
     // If too old -> explode
     if (age > MAX_LIFETIME) {
         ls_message("killed by MAX_LIFETIME.\n");
@@ -92,6 +97,11 @@ void SmartMissile2::action()
     // If target dead -> clear target
     if (target && target->getState() == IActor::DEAD)
         target = 0;
+        
+    // If no target and old enough -> explode
+    if (!target && age > MIN_EXPLOSION_AGE) {
+        explode();
+    }
 
     // Do the engine blast
     engine_sound_src->setPosition(getLocation());
@@ -103,8 +113,10 @@ void SmartMissile2::action()
     	engine_sound_src->setGain(0.2);
     }
     
-    if (target) interceptTarget();
+    if (target) interceptTarget(delta_t);
 
+    // And a cheap-ass terrain collision test
+    
     Vector p_old = getLocation();
     SimpleActor::action();
     Vector p = getLocation();
@@ -224,7 +236,8 @@ Ptr<IView> SmartMissile2::getView(int n) {
 
 void SmartMissile2::hitTarget(float damage)
 {
-    if ((this->damage+=damage) > 0.1) explode();
+    this->damage += damage;
+    if (this->damage > 0.1) explode();
 }
 
 #define RAND ((float) rand() / (float) RAND_MAX * 2.0 - 1.0)
@@ -234,6 +247,7 @@ void SmartMissile2::hitTarget(float damage)
 #define MAX_DAMAGE 1.5f
 void SmartMissile2::explode()
 {
+    ls_message("SmartMissile2::explode()\n");
     thegame->addActor(new Explosion(thegame, getLocation(), 10.0));
     state = DEAD;
     //ls_message("state=DEAD\n");
@@ -269,6 +283,7 @@ void SmartMissile2::update(float delta_t, const Transform * new_transforms) {
 }
 
 void SmartMissile2::collide(const Collide::Contact & c) {
+    ls_message("SmartMissile2::collide()\n");
     Ptr<Collidable> partner;
     if (c.collidables[0] == this)
         partner = c.collidables[1];
@@ -280,41 +295,12 @@ void SmartMissile2::collide(const Collide::Contact & c) {
     explode();
 }
 
-Vector SmartMissile2::getDesiredDirection() {
-	Vector p = getLocation();
-	Vector v = getMovementVector();
-	
-    Vector target_p = target->getLocation();
-    Vector target_v = target->getMovementVector();
-    
-    Vector target_dir = (target_p-p).normalize();
-    Vector target_vrel = target_v - target_dir*(target_dir*target_v);
-    float target_vrel2 = target_vrel.lengthSquare();
-    float v2 = v.lengthSquare();
-    v2 = std::max(v2, 500.f*500.f);
-    if (target_vrel2 > v2) target_vrel2 = v2;
-    Vector desired_v = target_vrel + target_dir * sqrt(v2 - target_vrel2);
-    //return (desired_v).normalize();
-    return (desired_v - 0.5*v).normalize();
-}
-
-Vector SmartMissile2::getDesiredOmega(const Vector &desired_direction) {
-	Vector d = getMovementVector().normalize();
-    Vector axis = (d % desired_direction).normalize();
-    return axis * acos(d*desired_direction);
-}
-
-void SmartMissile2::interceptTarget() {
-    float delta_t = thegame->getClock()->getStepDelta();
-    age += delta_t;
-
+void SmartMissile2::interceptTarget(float delta_t) {
     Vector target_p = target->getLocation();
     Vector target_v = target->getMovementVector();
     Vector p = getLocation();
     Vector v = getMovementVector();
-
-    //ls_message("|delta_p|: %f\n", (target_p-p).length());
-
+    
     // Aiming
     if ((target_p-p) * v < 0) {
         if (age>MIN_EXPLOSION_AGE) {
@@ -323,26 +309,26 @@ void SmartMissile2::interceptTarget() {
         }
         return;
     }
-	Vector desired_direction = getDesiredDirection();
-	Vector desired_omega = getDesiredOmega(desired_direction);
     
-    Vector omega = engine->getAngularVelocity();
-    Vector delta_omega = desired_omega - omega;
-    Vector d_delta_omega =
-    	(delta_omega-delta_omega_old) / delta_t;
-    // Magic initialization value
-    if ((delta_omega_old-Vector(-1,2,-3)).lengthSquare() < 1e-10)
-    	d_delta_omega = Vector(0,0,0);
-    delta_omega_old = delta_omega;
+    Vector los = target_p - p;
+    Vector d_los = target_v - v;
+    Vector los_norm = Vector(los).normalize();
+    Vector d_los_perceived = (d_los - (los_norm * d_los) * los_norm) / los.length();
+    Vector los_rotation = los_norm % d_los_perceived;
+    los_rotation.normalize();
+    los_rotation *= atan(d_los_perceived.length());
     
-    	
+    Vector error = los_rotation;
+    Vector d_error = d_error_dt.differentiate(error, delta_t);
+    Vector I_error = I_error_dt.integrate(error, delta_t);
+    
+    ls_message("missile %p acceleration angular: ", this); los_rotation.dump();
+    
     Ptr<IConfig> config = thegame->getConfig();
-    //ls_message("delta_omega: "); delta_omega.dump();
-    //ls_message("d_delta_omega: "); d_delta_omega.dump();
-    //ls_message("Applying angular accel: ");
-    //(config->queryFloat("Missile_Ka",1)*delta_omega
-    //	+config->queryFloat("Missile_Kb",1)*d_delta_omega).dump();
-    engine->applyAngularAcceleration(
-    	config->queryFloat("Missile_Ka",1)*delta_omega
-    	+config->queryFloat("Missile_Kb",1)*d_delta_omega);
+    getControls()->setVector("angular_accel",
+        config->queryFloat("Missile_Kp",1)*error
+        + config->queryFloat("Missile_Ki",1)*I_error
+        + config->queryFloat("Missile_Kd",1)*d_error
+        );
 }
+

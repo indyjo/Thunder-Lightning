@@ -9,7 +9,7 @@
 #include <modules/actors/simpleactor.h>
 #include <modules/collide/CollisionManager.h>
 #include <modules/math/Rendezvous.h>
-
+#include <modules/math/Differential.h>
 
 class MissileEngine2;
 class RigidEngine;
@@ -37,9 +37,7 @@ public:
 
 private:
     void explode();
-    Vector getDesiredDirection();
-    Vector getDesiredOmega(const Vector &);
-    void interceptTarget();
+    void interceptTarget(float delta_t);
 
 private:
     float age;
@@ -48,12 +46,13 @@ private:
     Ptr<ITerrain> terrain;
     Rendezvous rendezvous;
     float damage;
-    //Ptr<MissileEngine2> engine;
+    
     Ptr<RigidEngine> engine;
-    Vector d_error_old, omega_error_old;
-    Vector delta_omega_old;
     Ptr<SoundSource> engine_sound_src;
     Ptr<IActor> source;
+    
+    Integral<Vector> I_error_dt;
+    Differential<Vector> d_error_dt;
 };
 
 
