@@ -2,6 +2,7 @@
 #define OBJECT_H
 #include <sigc++/sigc++.h>
 
+// Global switch to enable reference counting debugging
 //#define OBJECT_DEBUG 1
 #define OBJECT_DEBUG 0
 
