@@ -172,39 +172,74 @@ vector := block(
   M setList( values )
 ) setIsActivatable(true)
 
-matrix := block(
-  rows := List clone append(List clone)
-  maxcols := 1
-  call message arguments foreach(i, arg,
-    //writeln("argument ",i,": ",arg code)
-    while(arg nextMessage,
-      arg0 := arg clone
-      arg0 setNextMessage(Nil)
-      rows last append( call evalArg(arg0) )
-      if (rows last size > maxcols, maxcols = rows last size)
-      rows append(List clone)
-      arg = arg nextMessage
-    )
-    arg0 := arg clone
-    arg0 setNextMessage(Nil)
-    rows last append( call evalArg(arg0) )
-  )
-  if (rows last size > maxcols, maxcols = rows last size)
 
-  //writeln("Matrix dims: ",rows size," rows, ", maxcols, " columns.")
-  M := Matrix clone dim(rows size, maxcols)
-  rows foreach(i, row, row foreach(j, val,
-    //writeln("entry at ",i,",",j,": ",val)
-    M atSet(i,j, val)
-  ))
-  M
-) setIsActivatable(true)
+Message do(
+  isSemicolon := method( name == ";")
+  hasSemicolonInChain := method(
+    if (self isSemicolon, return true)
+    msg := self
+    while (msg = msg next,
+      if (msg isSemicolon, return true)
+    )
+    return false
+  )
+  cutAtSemicolon := method(
+    msg := self
+    while( msg next,
+      if (msg next isSemicolon,
+        tail := msg next next
+        msg setNext(nil)
+        return tail
+      )
+      msg = msg next
+    )
+    nil
+  )
+)
+
+matrix := method(
+  rows := List clone append(List clone)
+  maxcols := 0
+  cols := 0
+  rows := 0
+  call message arguments foreach(arg,
+    rows = rows max(1)
+    cols = cols + 1
+    maxcols = maxcols max(cols)
+    msg := arg clone
+    while( msg = msg cutAtSemicolon,
+      cols = 1
+      rows = rows + 1
+    )
+  )
+  cols = maxcols
+  
+  mat := Matrix clone dim(rows, cols)
+  msg := tail := nil
+  i := j := 0
+  call message arguments foreach(arg,
+    msg = arg clone
+    while (msg,
+      tail = msg cutAtSemicolon
+      mat atSet(i,j, msg doInContext(call sender) )
+      if (tail isNil not,
+        i = i + 1
+        j = 0
+      )
+      msg = tail
+    )
+    j = j + 1
+  )
+  mat
+)
 
 Number oldmult := Number getSlot("*")
 Number setSlot("*", method(other,
   if(other hasProto(Matrix),
     M := Matrix clone dim(other rows, other columns)
     for(i,0,other rows - 1, for(j,0,other columns - 1,
+      //"other ... = " .. (other at(i,j) ) .. " | " .. (other at(i,j) type) println
+      //"oldmult(other ...) = " .. (oldmult(other at(i,j))) println
       M atSet(i,j, oldmult(other at(i,j)))
     ))
     M

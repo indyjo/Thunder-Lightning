@@ -6,15 +6,13 @@ Object delegate := method(
   call message arguments foreach(i,v, delegator msgNames append(v name))
     
   delegator to := method(
-    context := call argAt(0)
-    
-    msg := Message clone setName("")
-    msg setArguments(list(context))
-    msg setAttachedMessage(message( doMessage(call message, call sender) ) )
-   
-    themethod := method(Nil) setMessage(msg)
-    msgNames foreach(i, name,
-      subject setSlot(name, getSlot("themethod")))
+    target := call message argAt(0) clone
+    msg := message(call delegateTo) clone
+    msg next appendArg(target)
+    themethod := method() setMessage(msg)
+    msgNames foreach(name,
+      subject setSlot(name, getSlot("themethod"))
+    )
   )
   
   delegator

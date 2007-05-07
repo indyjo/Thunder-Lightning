@@ -1,10 +1,11 @@
-"Initializing Io language\n" print
+"Io: Entering init.io\n" print
 
-//Collector debugOn
+Collector setDebug(true)
 //Collector setSweepsPerGeneration(50)
-Importer turnOff
+//Importer turnOff
 
 doFile(Config query("base_dir") .. "/share/landscape/scripts/config.io")
+AddonLoader appendSearchPath( (Config base_dir) .. "/lib/io/addons")
 
-"Done initializing Io language\n" print
+"Io: Exiting init.io\n" print
 

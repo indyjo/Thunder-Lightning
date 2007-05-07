@@ -2,9 +2,9 @@ Coro := Object clone do(
     InterruptedException := Exception clone
     
     init := method(
-        self interruptReq := Nil
+        self interruptReq := nil
         self managed := list
-        self running := Nil
+        self running := nil
     )
     
     // Start the coroutine.
@@ -47,29 +47,34 @@ Coro := Object clone do(
     
     wrapRun := method(arglist,
         ex := try(
+            writeln("run argumentNames: ",self getSlot("run") argumentNames)
             performWithArgList("run", arglist)
         )
         ex catch (InterruptedException,
-            Nil
+            nil
         ) catch (Exception,
             ex showStack
         )
-        running = Nil
+        running = nil
         managed foreach(i,coro, coro interrupt)
     )
     
 )
 
 Object coro := method(
+    //("message: " .. call message) println
+    //Coroutine currentCoroutine showStack
     msg := call message arguments last
     
-    argNames := call message arguments slice(0, call argCount - 2 )
+    argNames := call message arguments slice(0, call argCount - 1 )
     argNames mapInPlace(m, m name)
-
+    
     c := Coro clone
-    c run := method(Nop)
+    c run := method()
     c getSlot("run") setArgumentNames(argNames)
+    //writeln("coro argumentNames: ",c getSlot("run") argumentNames)
+    //("msg: " .. msg) println
     c getSlot("run") setMessage(msg)
     
     c
-}
+)

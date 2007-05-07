@@ -1,18 +1,7 @@
 Sequence say := method(
-    args := Object clone
-    args text := self
-    ex := try( 
-        Game viewSubject passMessage("infoMessage", args)
-    )
-    ex catch(Exception,
-      try(
-        "Exception caught: " .. (ex asString) println
-        ex showStack
-        #"Inspection: " print
-        #ex inspect
-      )
-    )
-    Nil
+    color := vector(0.6,0.8,1)
+    Game infoMessage(self, color)
+    nil
 )
 
 Game on("toggle-introduction",
@@ -21,7 +10,7 @@ Game on("toggle-introduction",
 
 choose := method(
     n := call argCount
-    if (n == 0, return Nil)
+    if (n == 0, return nil)
     r := n * Random value
     return call evalArgAt(r floor)
 )
@@ -49,14 +38,14 @@ intro := coro(dummy,
         sleep(8)
         "The throttle can be set from 0% to 100% using keys 1,2,3,...,8,9,0." say
         sleep(8)
-        ("Currently, your throttle is set to " .. (me controls throttle * 100) .. "%") say
+        ("Currently, your throttle is set to " .. (me controls float("throttle") * 100) .. "%") say
         "First of all, get us into a safer altitude, please." say
         sleep(5)
         "4000 meters should be enough. " say
         sleep(5)
         "Oh, the altitude is indicated on the right side of the HUD." say
         while (Object,
-            8 repeatTimes(
+            8 repeat(
                 sleep(1)
                 if (me getLocation at(1,0) >= 4000,
                     break
@@ -66,7 +55,6 @@ intro := coro(dummy,
                 break
             )
             
-            "Entering choose" println
             choose(
                 "I am waiting for you to climb up to 4000, kid!",
                 "I know you can do it!",
@@ -74,7 +62,6 @@ intro := coro(dummy,
                 "Make sure the nose is over the horizon!",
                 "Are you afraid of heights, kid?"
             ) say
-            "Exiting choose" println
         )
         "Ok, now we're high enough." say
         sleep(8)
@@ -126,7 +113,7 @@ intro := coro(dummy,
         sleep(3)
         "There's an enemy fighter directly in front of you. Get him!" say
         loop(
-            8 repeatTimes(
+            8 repeat(
                 sleep(1)
                 if (him isAlive not,
                     break
@@ -136,14 +123,11 @@ intro := coro(dummy,
                 break
             )
             
-            r := 3 * Random value
-            if (      r < 1,
-                "Remember you can select hostile targets with the H key!" say
-            ) elseif( r < 2,
-                "Use your Sidewinder missiles!" say
-            ) else(
-                "Get him before he does!" say
-            )
+            choose(
+                "Remember you can select hostile targets with the H key!",
+                "Use your Sidewinder missiles!",
+                "Get him before he gets you!"
+            ) say
         )
         
         "That was it, you got him! Congratulations!" say
@@ -161,7 +145,7 @@ intro := coro(dummy,
         my_watchdog interrupt
     )
     ex catch(InterruptedException,
-        interruptReq = Nil
+        interruptReq = nil
         if(me isAlive,
             "Introduction was aborted. Restart with (I) key." say
         ,

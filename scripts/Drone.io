@@ -1,3 +1,4 @@
+if(false,
 Stats := Object clone do (
     lastDamagers := Map clone
     kills := List clone
@@ -54,7 +55,6 @@ Stats := Object clone do (
 
 stats := Stats
 Drone do(
-    inspect
     /*
     delegate(asPositionProvider, asMovementProvider) to (asActor)
     delegate(asPositionReceiver, asMovementReceiver) to (asActor)
@@ -76,3 +76,4 @@ Drone do(
         stats registerDamage(source, self, damage)
     )
 )
+) // if (false,

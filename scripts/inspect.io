@@ -1,10 +1,13 @@
 Object do(
   identify := method(
-    if (self isNil, return "Nil")
+    if (self isNil, return "nil")
+    if (self == true, return "true")
+    if (self == false, return "false")
     if (self == Object, return "Object")
     if (self == Lobby, return "Lobby")
     if (self == Protos, return "Protos")
-    if (self == IoVM, return "IoVM")
+    if (self == Core, return "Core")
+    if (self == Addons, return "Addons")
     return "Object " .. uniqueId .. " ["..(self type).."]"
   )
 
@@ -42,7 +45,7 @@ Object do(
     )
     write("\n\n")
     
-    Nil
+    nil
   )
 )
 

@@ -165,6 +165,10 @@ Config do(
   Missile_Kb                       := "0.1"
   Missile_Kc                       := "0"
   
+  Missile_Kp                       := "1"
+  Missile_Ki                       := "0"
+  Missile_Kd                       := "5"
+  
   // Weapons configuration
   Cannon_sound                     := "cannon-shoot-1.wav"
   Cannon_muzzle_velocity           := "1200"

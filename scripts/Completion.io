@@ -15,28 +15,28 @@ Sequence do (
 Completion := Object clone do(
   openers := Map clone atPut(")","(") atPut("}","{") atPut("]","[")
   lastCommandOf := method(str,
-    inString := Nil
-    inComment := Nil
+    inString := nil
+    inComment := nil
     braces := list
     stack := list(0)
     for(i, 0, str size - 1,
       c := str slice(i,i+1)
       if (inComment and c=="\n",
-        inComment = Nil; continue)
+        inComment = nil; continue)
       if (inString and c=="\"" and str slice(i-1,i)  != "\\", 
-        inString = Nil; continue)
+        inString = nil; continue)
       if (c == "#" or c=="/" and i != (str size - 1) and str slice(i+1,i+2) == "/",
         inComment = 1; continue)
       if (c == "(" or c=="{" or c=="[",
         stack push(i+1)
         braces push(c))
       if (c == ")" or c=="}" or c=="]",
-        if (braces pop != openers at(c), return Nil, stack pop))
+        if (braces pop != openers at(c), return nil, stack pop))
       if (c == ";" or c=="\n" or c==",",
         stack pop
         stack push(i + 1))
     )
-    if (inString or inComment, return Nil)
+    if (inString or inComment, return nil)
     command := str slice(stack pop)
   )
     
@@ -45,21 +45,20 @@ Completion := Object clone do(
     if (command isNil, return list)
     
     try(
-      if(command asMutable strip == "") then (
-        msg := message(thisContext)
-      ) else (
-        msg := message(thisContext) setAttachedMessage( command asMessage )
+      msg := message(thisContext)
+      if(command asMutable strip != "",
+        msg setNext( command asMessage )
       )
     ) catch (
       return list
     )
     prefix := ""
     
-    if (command endsWithSeq(" ") isNil and msg attachedMessage, 
+    if (command endsWithSeq(" ") not and msg next, 
       m := msg
       while (m attachedMessage attachedMessage, m = m attachedMessage)
       prefix = m attachedMessage name
-      m setAttachedMessage(Nil)
+      m setAttachedMessage(nil)
     )
     
     res := softEval(context, msg)
@@ -74,9 +73,9 @@ Completion := Object clone do(
   // Tries to evaluate msg in context without doing anything that might
   // cause side effects.
   // If successful, returns the result
-  // Else, returns Nil
+  // Else, returns nil
   softEval := block(context, msg,
-    if (msg name == "" and msg arguments count == 0, return Nil)
+    if (msg name == "" and msg arguments count == 0, return nil)
     obj := context
     while (msg,
       if (msg name asNumber) then (
@@ -88,14 +87,14 @@ Completion := Object clone do(
           if (msg name == "thisContext") then (
             obj = context
           ) elseif (theslot type == "CFunction") then (
-            return Nil
+            return nil
           ) elseif (theslot type == "Block") then (
-            return Nil
+            return nil
           ) else (
             obj = theslot
           )
         ) else (
-          return Nil
+          return nil
         )
       )
       msg = msg attachedMessage
@@ -127,6 +126,6 @@ Completion := Object clone do(
     obj slotNames foreach(i,v,
       slots atPut(v,v))
     
-    Nil
+    nil
   )
 )

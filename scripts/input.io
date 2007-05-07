@@ -3,8 +3,8 @@ EventRemapper do(
   KeySyms doFile(Config scripts_dir .. "/keysyms.io")
   appendProto(KeySyms)
 
-  press := Object
-  release := Nil
+  press := true
+  release := nil
   
   mapKey(SDLK_ESCAPE, press, "endgame")
   mapKey(SDLK_TAB, press,  "map_magnify")

@@ -1,6 +1,11 @@
 Game do (
   appendProto(EventTarget)
   
-  delegate(addActor, removeActor) to(asActorStage)
-  delegate(queryActorsInSphere, queryActorsInCylinder, queryActorsInBox) to(asActorStage)
+  delegate(
+    addActor,
+    removeActor,
+    queryActorsInSphere,
+    queryActorsInCylinder,
+    queryActorsInBox
+    ) to (asActorStage)
 )

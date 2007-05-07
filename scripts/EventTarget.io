@@ -46,9 +46,9 @@ EventTarget := Object clone do(
   // "MessageHandler" object. The handler can then remove itself from
   // The actor it is registered in.
   MessageHandler := Object clone do (
-    name := Nil
-    registeredIn := Nil
-    action := Nil
+    name := nil
+    registeredIn := nil
+    action := nil
     remove := method( registeredIn handlers removeAt(name) )
   )
   
@@ -110,6 +110,6 @@ EventTarget := Object clone do(
       if (handler action, return handler)
       obj = obj ancestorWithSlot("handlers")
     )
-    Nil
+    nil
   )
 )

@@ -21,8 +21,8 @@ Tank do (
       integral   := ((integral + dt*diff) clip (-0.3,0.3))
       derivative := ((diff-old_diff) / dt)
       
-      me controls throttle := ((1.5 * diff + 2.5 * integral + 0.005 * derivative) clip(-1,1))
-      //writeln("speed: ",speed," target: ",self target_speed," control: ", me controls throttle,
+      me controls setFloat("throttle", ((1.5 * diff + 2.5 * integral + 0.005 * derivative) clip(-1,1)))
+      //writeln("speed: ",speed," target: ",self target_speed," control: ", me controls float("throttle"),
       //        " int: ",integral," deriv: ", derivative)
     )
   )
@@ -45,10 +45,10 @@ Tank do (
       error := courseError
       
       derivative := ((error-old_error) / dt)
-      me controls steer := ((1.5 * error + 0.1*derivative) clip(-1,1))
-      if (me getMovementVector dot(me getFrontVector) < 0, me controls steer = - me controls steer)
+      me controls setFloat("steer", ((1.5 * error + 0.1*derivative) clip(-1,1)))
+      if (me getMovementVector dot(me getFrontVector) < 0, me controls setFloat("steer", - me controls float("steer")))
       
-      //writeln("course error: ", error, " to ", target_course entries," control:", me controls steer)
+      //writeln("course error: ", error, " to ", target_course entries," control:", me controls float("steer"))
     )
   )
   
@@ -128,8 +128,8 @@ Tank do (
     p := me location2
     v := me velocity2
     error := target_p - p
-    derivative := Nil
-    old_error := Nil
+    derivative := nil
+    old_error := nil
     
     delta_t := pass
     
@@ -255,19 +255,111 @@ Tank do (
     )
   )
   
+  ctlTurret := coro(me, arg_target_angle,
+    if((self ?target_angle) isNil, self target_angle := arg_target_angle)
+    
+    loop(
+      dt := pass
+      
+      diff := self target_angle - (me controls float("turret_angle"))
+      while(diff >  (Number pi), diff = diff - (Number pi * 2))
+      while(diff < (-Number pi), diff = diff + (Number pi * 2))
+      
+      "diff: #{diff}" interpolate println
+      me controls setFloat("turret_steer", (1.5 * diff) clip(-1,1))
+    )
+  )
+
+  ctlCannon := coro(me, arg_target_angle,
+    if((self ?target_angle) isNil, self target_angle := arg_target_angle)
+    
+    diff := self target_angle - (me controls float("cannon_angle"))
+    while(diff > (Number pi), diff = diff - (Number pi * 2))
+    integral := 0
+    loop(
+      dt := pass
+      old_diff := diff
+      
+      diff := self target_angle - (me controls float("cannon_angle"))
+      while(diff > (Number pi), diff = diff - (Number pi * 2))
+      integral := ((integral + dt*diff) clip(-0.3,0.3))
+      derivative := ((diff - old_diff) / dt)
+      
+      me controls setFloat("cannon_steer", (1.5 * diff + 2.5 * integral + 0.005 * derivative) clip(-1,1))
+    )
+  )
+
+  aimRelative := coro(me, arg_target_dir,
+    if((self ?target_dir) isNil, self target_dir := arg_target_dir)
+    
+    self cc := Tank ctlCannon clone start(me)
+    self ct := Tank ctlTurret clone start(me)
+    
+    manage(cc)
+    manage(ct)
+    
+    loop(
+      self target_dir = self target_dir norm
+      cc target_angle := self target_dir at(1,0) atan
+      ct target_angle := self target_dir at(0,0) atan2(self target_dir at(2,0))
+      pass
+    )
+  )
+  
+  aimAbsolute := coro(me, arg_target_dir,
+    if((self ?target_dir) isNil, self target_dir := arg_target_dir)
+    
+    self ar := Tank aimRelative clone start(me)
+    manage(ar)
+    
+    loop(
+      orient := me getOrientation transpose
+      ar target_dir := orient * self target_dir
+      pass
+    )
+  )
+  
+  aimAtAndFire := coro(me,
+    
+    self aa := Tank aimAbsolute clone start(me, vector(1,0,0))
+    manage(aa)
+    
+    weapon := me armament weapon("Vulcan")
+    weapon setRoundsLeft(10000000)
+    
+    target := nil
+    loop(
+      if (target isNil not,
+        if(target isAlive,
+          aa target_dir := ((target getLocation) - (me getLocation))
+          weapon trigger
+        ,
+          weapon release
+          target = nil
+        )
+      )
+      if (target isNil,
+        candidates := Game queryActorsInSphere(me getLocation, 5000)
+        "Candidates are #{candidates map(type)}" interpolate println
+        candidates foreach(c,
+          if (c type == "Drone",
+            target = c
+            break
+          )
+        )
+      )
+      pass
+    )
+  )
+  
+  
   ai := coro(me,
-    x := vector(6543,1416)
-    self fp := Tank followPath clone start(me, list(
-      x+vector(0,0),
-      x+vector(0,-200),
-      x+vector(200,400),
-      x+vector(400,400),
-      x+vector(400,000),
-      x+vector(600,-100),
-      x+vector(600,-200),
-      x+vector(400,-400)))
-    manage(fp)
-    while(1, pass)
+    #self aaf := Tank aimAtAndFire clone start(me)
+    #manage(aaf)
+    
+    loop(
+      pass
+    )
   )
   init := method(
     self ai := ai clone start(self)
@@ -275,3 +367,4 @@ Tank do (
 )
 
 Game postFrame := method(yield)
+
