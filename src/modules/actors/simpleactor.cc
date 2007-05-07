@@ -22,9 +22,6 @@ SimpleActor::SimpleActor( Ptr<IGame> game)
 }
 
 SimpleActor::~SimpleActor() {
-    if (self) {
-        IoState_stopRetaining_(IOSTATE, self);
-    }
 }
 
 void SimpleActor::createIoObject() {
@@ -33,11 +30,11 @@ void SimpleActor::createIoObject() {
 
 void SimpleActor::setIoObject(IoObject *newself) {
     if (self) {
-        IoState_stopRetaining_(IOSTATE, self);
+        IoStateEx_removeCoupling(this, self);
     }
     self = newself;
-    if (self) {
-        IoState_retain_(IOSTATE, self);
+    if (self) {        
+        IoStateEx_coupleLifetime(this, self);
     }
 }
 
