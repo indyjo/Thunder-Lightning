@@ -274,9 +274,9 @@ void SimpleActor::draw() {
         renderer->setCullMode(JR_CULLMODE_CULL_NEGATIVE);
         renderer->setAlpha(1);
         renderer->setColor(Vector(1,1,1));
-        renderer->disableLighting();
         
         model->draw(*renderer, Mmodel, Rotation);
+        renderer->disableLighting();
     }
     if (skeleton) {
         skeleton->draw(*thegame->getRenderer());
