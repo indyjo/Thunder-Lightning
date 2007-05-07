@@ -1,3 +1,6 @@
+// for ls_message
+#include "landscape.h"
+
 #include "DataNode.h"
 
 const DataNodeBase & DataNodeBase::operator= (const DataNodeBase &other) {
@@ -34,17 +37,25 @@ DataNodeBase::Strings & DataNodeBase::strings() const {
     return *_strings;
 }
 
+DataNodeBase::Vectors & DataNodeBase::vectors() const {
+    if (!hasVectors()) const_cast<DataNodeBase*>(this)->_vectors = new Vectors;
+    return *_vectors;
+}
+
 void DataNode::setBool(const DataNode::Key& key, bool value)
-{ bools().insert(std::make_pair(key, value)); }
+{ bools()[key] = value; }
  
 void DataNode::setInt(const DataNode::Key& key, int value)
-{ ints().insert(std::make_pair(key, value)); }
+{ ints()[key] = value; }
 
 void DataNode::setFloat(const DataNode::Key& key, float value)
-{ floats().insert(std::make_pair(key, value)); }
+{ floats()[key] = value; }
 
 void DataNode::setString(const DataNode::Key& key, const std::string &value)
-{ strings().insert(std::make_pair(key, value)); }
+{ strings()[key] = value; }
+
+void DataNode::setVector(const DataNode::Key& key, const Vector &value)
+{ vectors()[key] = value; }
 
 
 bool DataNode::hasBool(const DataNode::Key& key) const
@@ -58,6 +69,9 @@ bool DataNode::hasFloat(const DataNode::Key& key) const
 
 bool DataNode::hasString(const DataNode::Key& key) const
 { return hasStrings() && strings().find(key) != strings().end(); }
+
+bool DataNode::hasVector(const DataNode::Key& key) const
+{ return hasVectors() && vectors().find(key) != vectors().end(); }
 
 
 bool DataNode::getBool(const DataNode::Key& key, bool default_value) const {
@@ -82,6 +96,12 @@ std::string DataNode::getString(const DataNode::Key& key, const std::string &def
     if (!hasStrings()) return default_value;
     Strings::iterator iter = strings().find(key);
     return (iter != strings().end()) ? iter->second : default_value;
+}
+
+Vector DataNode::getVector(const DataNode::Key& key, const Vector &default_value) const {
+    if (!hasVectors()) return default_value;
+    Vectors::iterator iter = vectors().find(key);
+    return (iter != vectors().end()) ? iter->second : default_value;
 }
 
 /*
