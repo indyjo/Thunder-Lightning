@@ -147,12 +147,12 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
 
     personality.randomize();
     context = new Context(
+    	this,
     	&flight_info,
     	&auto_pilot,
     	flight_controls,
     	thegame,
     	terrain,
-    	this,
     	targeter,
         *armament,
     	mtasker);
@@ -183,7 +183,7 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
             cfg->query("Drone_engine_sound")));
             
 	ls_message("</Drone::Drone>\n");
-}         
+}
 
 Drone::~Drone() {
 	ls_message("<Drone::~Drone()>\n");

@@ -26,23 +26,23 @@ struct Rating {
 
 
 struct Context : public Object {
+    IActor* actor;
 	FlightInfo *fi;
 	AutoPilot *ap;
 	Ptr<FlightControls> controls;
     Ptr<IGame> thegame;
 	Ptr<ITerrain> terrain;
-    Ptr<IActor> actor;
     Ptr<Targeter> targeter;
     Armament & armament;
     MTasker<> & mtasker;
     
     inline Context(
+	    IActor* actor,
 		FlightInfo *fi,
 		AutoPilot *ap,
 		Ptr<FlightControls> controls,
 	    Ptr<IGame> thegame,
 		Ptr<ITerrain> terrain,
-	    Ptr<IActor> actor,
 	    Ptr<Targeter> targeter,
         Armament & armament,
 	    MTasker<> & mtasker)
