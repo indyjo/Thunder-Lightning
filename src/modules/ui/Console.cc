@@ -299,6 +299,7 @@ void Console::exceptionCallback(IoObject *ex) {
 
 void Console::exitCallback() {
 	putString("EXIT\n");
+    game->getEventRemapper()->triggerAction("endgame");
 }
 
 
