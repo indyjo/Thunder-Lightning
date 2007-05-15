@@ -174,14 +174,6 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
     mapTargeterEvents();
     mapArmamentEvents();
     		
-    engine_sound_src = thegame->getSoundMan()->requestSource();
-    engine_sound_src->setPosition(getLocation());
-    engine_sound_src->setVelocity(getMovementVector());
-    engine_sound_src->setLooping(true);
-    engine_sound_src->setGain(cfg->queryFloat("Drone_engine_gain"));
-    engine_sound_src->play(thegame->getSoundMan()->querySound(
-            cfg->query("Drone_engine_sound")));
-            
 	ls_message("</Drone::Drone>\n");
 }
 
@@ -192,10 +184,21 @@ Drone::~Drone() {
 
 void Drone::onLinked() {
     thegame->getCollisionMan()->add(this);
+    
+    engine_sound_src = thegame->getSoundMan()->requestSource();
+    engine_sound_src->setPosition(getLocation());
+    engine_sound_src->setVelocity(getMovementVector());
+    engine_sound_src->setLooping(true);
+    engine_sound_src->setGain(thegame->getConfig()->queryFloat("Drone_engine_gain"));
+    engine_sound_src->play(thegame->getSoundMan()->querySound(
+            thegame->getConfig()->query("Drone_engine_sound")));
+            
 }
 
 void Drone::onUnlinked() {
     thegame->getCollisionMan()->remove(this);
+    
+    engine_sound_src->stop();
 }
 
 void Drone::action() {
