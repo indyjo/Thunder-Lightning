@@ -105,6 +105,7 @@ private:
 
     Ptr<IView> current_view;
     Ptr<IView> previous_view;
+    bool view_is_external;
     Ptr<IActor> current_actor;
     
     Ptr<ICamera> camera;

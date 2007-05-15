@@ -25,6 +25,7 @@
 #include <modules/scripting/IoScriptingManager.h>
 #include <modules/scripting/mappings.h>
 #include <modules/actors/RigidActor.h>
+#include <modules/actors/Observer.h>
 #include <modules/config/config.h>
 
 
@@ -373,7 +374,6 @@ void Game::setCurrentView(Ptr<IView> view)
         setGunsight(view->getGunsight());
     } else {
         setGunsight(0);
-        previous_view = current_view;
     }
     current_view = view;
 }
@@ -824,10 +824,22 @@ void Game::setView(int n) {
 }
 
 void Game::externalView() {
-	if (current_view) {
-		setCurrentView(0);
-    } else if (previous_view) {
+	if (view_is_external) {
         setCurrentView(previous_view);
+        view_is_external = false;
+    } else {
+        previous_view = current_view;
+        
+        Ptr<Observer> observer = new Observer(this);
+        if (current_view) {
+            observer->setLocation(current_view->getLocation());
+            Vector up, right, front;
+            current_view->getOrientation(&up, &right, &front);
+            observer->setOrientation(up, right, front);
+        }
+        addWeakActor(ptr(observer));
+		setCurrentView(observer->getView(0));
+		view_is_external = true;
 	}
 }
 

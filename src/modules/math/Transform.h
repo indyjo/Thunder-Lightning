@@ -23,6 +23,9 @@ public:
     inline const Quat & quat() const { return q; }
     inline const Vec & vec() const { return t; }
 
+    inline Quat & quat() { return q; }
+    inline Vec & vec() { return t; }
+
     inline XTransform operator* (const XTransform & trans) const {
         return XTransform(q*trans.q, q.rot(trans.t) + t);
     }

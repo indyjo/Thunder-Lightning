@@ -9,6 +9,7 @@ libengines_a_SOURCES = \
     carengine.h carengine.cc                    \
     newtonianengine.h newtonianengine.cc        \
     missileengine.h missileengine.cc            \
+    ObserverEngine.cc ObserverEngine.h          \
     flightengine.h flightengine.cc              \
     flightengine2.h flightengine2.cc            \
     flightengine3.h flightengine3.cc            \
