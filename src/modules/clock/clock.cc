@@ -7,9 +7,9 @@ Clock::Clock()
 : time_factor(1),
   frame_delta(0), real_frame_delta(0),
   step_delta(0), real_step_delta(0),
-  time_left(0), pause_mode(false)
+  time_left(0), pause_mode(false),
+  initialized(false)
 {
-    ticks = measureTicks();
 }
 
 void Clock::setTimeFactor(double tf) {
@@ -22,6 +22,10 @@ void Clock::setTimeFactor(double tf) {
 
 void Clock::update() {
     int new_ticks = measureTicks();
+    if (!initialized) {
+        ticks = new_ticks;
+        initialized = true;
+    }
     real_frame_delta = (double)(new_ticks - ticks) * TICK_SECS;
     if (!pause_mode) {
         frame_delta = time_factor * real_frame_delta;
@@ -32,7 +36,10 @@ void Clock::update() {
 
 bool Clock::catchup(double time) {
     if (pause_mode) return false;
-    if (time_left == 0.0) return false;
+    if (time_left <= 0.0) {
+        time_left = step_delta = real_step_delta = 0;
+        return false;
+    }
     if (time_left < time) time = time_left;
     time_left -= time;
     step_delta = time;

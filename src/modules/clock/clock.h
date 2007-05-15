@@ -9,7 +9,7 @@ class Clock : public Object {
     double frame_delta, real_frame_delta;
     double step_delta, real_step_delta;
     double time_left;
-    bool pause_mode;
+    bool pause_mode, initialized;
     
 public:
     Clock();
