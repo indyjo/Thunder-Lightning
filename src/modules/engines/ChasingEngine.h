@@ -1,5 +1,5 @@
-#ifndef NEWTONIANENGINE_H
-#define NEWTONIANENGINE_H
+#ifndef CHASINGENGINE_H
+#define CHASINGENGINE_H
 
 #include <landscape.h>
 #include <interfaces/IGame.h>
