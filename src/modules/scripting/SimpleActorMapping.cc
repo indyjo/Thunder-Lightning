@@ -27,8 +27,6 @@ namespace {
 			IoObject_setSlot_to_(lobby, IOSYMBOL("SimpleActor"), self);
 		}
 		
-		TAG_FUNC
-		
 		static IoObject *proto(void *state) {
 			IoMethodTable methodTable[] = {
 				{"asActor",
@@ -61,6 +59,7 @@ namespace {
 		}
 
 		CREATE_FUNC(SimpleActor)
+		TAG_FUNC
 		
 		static IoObject * rawClone(IoObject *self) 
 		{ 
@@ -71,6 +70,14 @@ namespace {
 			retarget(clone, new SimpleActor(game));
 			return clone;
 		}
+		
+    	static void free(IoObject * self) {
+    		if (IoObject_dataPointer(self)) {
+    		    SimpleActor* obj = getObject(self);
+    		    obj->rawResetIoObject();
+    		    obj->unref();
+    		}
+    	}
 		
 		SETTER(Ptr<Model>, setModel)
 		//GETTER(Ptr<Engine>, getEngine)

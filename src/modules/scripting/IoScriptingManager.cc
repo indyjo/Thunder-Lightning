@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstring>
 #include <cassert>
 #include <vector>
@@ -16,6 +17,7 @@ struct IoStateEx {
 
 namespace {
 	typedef IoCallbackContext Ctx;
+	
 	void globalPrintCallback(Ctx *ctx, int length, const char *str) {
 		if (ctx) {
 		    char * s = new char[length+1];
@@ -23,8 +25,18 @@ namespace {
 		    ctx->printCallback(s);
 		}
 	}
+	
+	bool global_inside_exception = false;
 	void globalExceptionCallback(Ctx *ctx, IoObject *e) {
-		if(ctx) ctx->exceptionCallback(e);
+	    if (global_inside_exception) {
+	        ls_error("Error: exception occurred inside exception handler.\n");
+	        if(ctx) ctx->exceptionCallback(e);
+	        //exit(-1);
+	    } else {
+	        global_inside_exception = true;
+		    if(ctx) ctx->exceptionCallback(e);
+		    global_inside_exception = false;
+		}
 	}
 	void globalExitCallback(Ctx *ctx) {
 		if(ctx) ctx->exitCallback();
@@ -35,11 +47,12 @@ namespace {
 			ls_message("%s",str);
 		}
 		virtual void exceptionCallback(IoObject * e) {
-			ls_error("Io Exception has occurred.");
+			ls_error("Io Exception has occurred.\n");
 			IoCoroutine_rawPrintBackTrace(e);
 		}
 		virtual void exitCallback() {
-			ls_warning("Io has called exit - ignored.\n");
+			ls_warning("Io has called exit.\n");
+			exit(-1);
 		}
 	} default_context;
 	
@@ -103,7 +116,7 @@ IoScriptingManager::IoScriptingManager(Ptr<IGame> game)
 IoScriptingManager::~IoScriptingManager()
 {
 	ls_message("Killing Io.\n");
-	IoState_free(main_state);
+	removeIoStateEx(main_state);
 	ls_message("Done.\n");
 }
 

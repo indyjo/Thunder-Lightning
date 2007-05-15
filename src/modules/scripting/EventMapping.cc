@@ -26,6 +26,7 @@ namespace {
 				{"mapRelativeMouseAxes", mapRelativeMouseAxes},
 				{"mapAbsoluteMouseAxes", mapAbsoluteMouseAxes},
                 {"controls", controls},
+                {"trigger", triggerAction},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
@@ -108,6 +109,15 @@ namespace {
 			BEGIN_FUNC("EventRemapper.controls")
 			return wrapObject<Ptr<DataNode> >(
 			    getObject(self)->getControls(),
+			    IOSTATE);
+		}
+		
+        static IoObject * triggerAction
+		(IoObject *self, IoObject *locals, IoMessage *m) {
+			BEGIN_FUNC("EventRemapper.trigger")
+			char * action = IoMessage_locals_cStringArgAt_(m, locals, 0);
+			return wrapObject<bool>(
+			    getObject(self)->triggerAction(action),
 			    IOSTATE);
 		}
 	};

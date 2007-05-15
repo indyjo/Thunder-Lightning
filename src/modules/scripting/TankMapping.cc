@@ -66,6 +66,16 @@ namespace {
             }
 			return peer;
 		}
+		
+    	static void free(IoObject * self) {
+    		if (IoObject_dataPointer(self)) {
+    		    Tank* obj = getObject(self);
+    		    obj->rawResetIoObject();
+    		    obj->unref();
+    		}
+    	}
+
+		TAG_FUNC
 	};
 }
 

@@ -41,6 +41,8 @@ public:
 
     void createIoObject();
     void setIoObject(IoObject *self);
+    /// Called by Io object's free function
+    inline void rawResetIoObject() { self=0; }
     
     void onLinked();
     void onUnlinked();

@@ -17,6 +17,15 @@ namespace {
 			IoObject_setSlot_to_(lobby, IOSYMBOL("Drone"), self);
 		}
 		
+    	static void free(IoObject * self) {
+			//ls_message("Freed %s\n", INFO(self));
+    		if (IoObject_dataPointer(self)) {
+    		    Drone* obj = getObject(self);
+    		    obj->rawResetIoObject();
+    		    obj->unref();
+    		}
+    	}
+
 		TAG_FUNC
 		
 		static IoObject *proto(void *state) {
@@ -39,8 +48,7 @@ namespace {
 		{ 
 			Ptr<IGame> game = unwrapObject<Ptr<IGame> >(
 				getProtoObject<Ptr<IGame> >(IOSTATE));
-			IoObject *peer = IoObject_rawClonePrimitive(
-				IoState_protoWithInitFunction_(IOSTATE, proto));
+			IoObject *peer = IoObject_rawClonePrimitive(self);
             Drone *clone = new Drone(game, peer);
 			retarget(peer, clone);
             if (getObject(self)) {
@@ -54,6 +62,7 @@ namespace {
             }
 			return peer;
 		}
+		
 	};
 }
 
