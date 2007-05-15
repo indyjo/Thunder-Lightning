@@ -41,7 +41,9 @@ using namespace std;
 Game * Game::the_game = 0;
 
 Game::Game(int argc, const char **argv)
-: argc(argc), argv(argv), game_speed(1.0), debug_mode(false)
+: argc(argc), argv(argv)
+, debug_mode(false)
+, view_is_external(false)
 {
     the_game = this;
 
@@ -142,17 +144,10 @@ Game::Game(int argc, const char **argv)
     }
     ls_message("Done initializing video.\n");
 
-    pause = false;
-
-    mouse_relx=mouse_rely=0;
-    mouse_buttons=0;
-    
     if (config->queryBool("Game_grab_mouse",false)) {
 	    SDL_WM_GrabInput(SDL_GRAB_ON);
 	    SDL_ShowCursor(SDL_DISABLE);
     }
-
-    key_tab_old=false;
 
     ls_message("Initializing managers... ");
     texman = new TextureManager(*renderer);
@@ -180,83 +175,6 @@ Game::Game(int argc, const char **argv)
         ls_message("done\n");
         stat.endJob();
     }
-    //renderer->setClipRange(CLIP_MIN_RANGE, CLIP_RANGE);
-
-    /*
-    Ptr<Drone> drone;
-    Ptr<SmokeTrail> smoke;
-
-    for(int i=0; i<1; i++) {
-        drone = new Drone(this);
-        Vector p = Vector(
-            1000.0f*RAND,
-            0.0f,
-            1000.0f*RAND + 1000);
-        p[1] = std::max(getTerrain()->getHeightAt(p[0],p[2])+300.0f, INITIAL_ALTITUDE);
-        Vector v = Vector(0,0,0);
-        drone->setLocation(p);
-        drone->setMovementVector(v);
-        drone->setControlMode(IActor::AUTOMATIC);
-        float r = RAND;
-        if (3*r<1) drone->setFaction(Faction::basic_factions.faction_a);
-        else if (3*r<2) drone->setFaction(Faction::basic_factions.faction_b);
-        else drone->setFaction(Faction::basic_factions.faction_c);
-
-        addActor( drone );
-        //smoke = new SmokeTrail(this);
-        //smoke->follow(drone);
-        //addActor( smoke );
-    }
-    
-    setCurrentView(drone->getView(0));
-    setCurrentlyControlledActor(drone);*/
-
-    /*
-    for(int i=0; i<25; ++i) {
-        Ptr<Tank> tank = new Tank(this);
-        
-        float r = RAND;
-        if (3*r<1) tank->setFaction(Faction::basic_factions.faction_a);
-        else if (3*r<2) tank->setFaction(Faction::basic_factions.faction_b);
-        else tank->setFaction(Faction::basic_factions.faction_c);
-        
-        tank->setLocation(Vector(RAND*15000,0,RAND*15000));
-        addActor(tank);
-    }
-    */
-    /*
-    Ptr<RigidActor> a = new RigidActor(
-    	this,
-    	collisionman->queryGeometry(
-        	(std::string()+config->query("model_dir")+
-    			"/asteroid/asteroid.bounds").c_str()
-        ));
-    a->setModel(modelman->query(
-    	(std::string()+config->query("model_dir")+
-    		"/asteroid/asteroid.obj").c_str()));
-    a->setLocation(Vector(0, 500, 1000));
-    a->getEngine()->construct(1e5, 1e7, 1e7, 5e6);
-    //a->getEngine()->applyAngularImpulse(Vector(10000,100,5000));
-    Ptr<TargetInfo> ti = new TargetInfo("Asteroid", 50, TargetInfo::AIRCRAFT);
-    a->setTargetInfo(ti);
-    addActor(a);
-    
-	a = new RigidActor(
-    	this,
-    	collisionman->queryGeometry(
-        	(std::string()+config->query("model_dir")+
-    			"/asteroid/asteroid.bounds").c_str()
-        ));
-    a->setModel(modelman->query(
-    	(std::string()+config->query("model_dir")+
-    		"/asteroid/asteroid.obj").c_str()));
-    a->setLocation(Vector(00, 500, 2040));
-    a->getEngine()->construct(1e5, 1e7, 1e7, 5e6);
-    a->getEngine()->setAngularMomentum(Vector(-1e7,1e5, 1e6));
-    a->getEngine()->setLinearMomentum(Vector(0,0,-1e7));
-    a->setTargetInfo(new TargetInfo("Asteroid2", 50, TargetInfo::AIRCRAFT));
-    addActor(a);
-    */
     
     console = new UI::Console(this, getScreenSurface());
     addMappings(this, io_scripting_manager->getMainState());
@@ -439,23 +357,9 @@ void Game::infoMessage(const char * msg, const Vector color) {
     info_message_signal(msg,color);
 }
 
-void Game::getMouseState(float *mx, float *my, int *buttons)
-{
-    *mx=mouse_relx;
-    *my=mouse_rely;
-    *buttons=mouse_buttons;
-}
-
 double Game::getTimeDelta()
 {
-    //return (double) (ticks_now - ticks_old) * game_speed;
-    //return timeaccum;
     return clock->getStepDelta() * 1000.0;
-}
-
-double Game::getTime()
-{
-    return (double) 0.0;
 }
 
 Ptr<IView> Game::getCurrentView()
@@ -709,59 +613,13 @@ void Game::initControls()
 void Game::doEvents()
 {
     SDL_Event event;
-    int x,y;
-    int dummy;
-
-    mouse_relx = mouse_rely = 0;
-    mouse_buttons = 0;
-
+    
     event_remapper->beginEvents();
     while(SDL_PollEvent(&event)) { // Loop while there are events on the queue
-        switch(event.type) {
-        case SDL_KEYDOWN:
-            //ls_message("Key pressed: %s\n",
-            //        SDL_GetKeyName(event.key.keysym.sym));
-            //keyboard_sig.emit(event.key.keysym.sym, true);
-            break;
-        case SDL_KEYUP:
-            //ls_message("Key released: %s\n",
-            //        SDL_GetKeyName(event.key.keysym.sym));
-            //keyboard_sig.emit(event.key.keysym.sym, false);
-            break;
-        case SDL_MOUSEMOTION:
-            mouse_relx += event.motion.xrel;
-            mouse_rely += event.motion.yrel;
-            //ls_message("Mouse motion: %d %d\n", mouse_relx, mouse_rely);
-            break;
-        case SDL_MOUSEBUTTONDOWN:
-            mouse_buttons |= event.button.button;
-            break;
-        }
         event_remapper->feedEvent(event);
     }
     event_remapper->endEvents();
 }
-
-// void Game::doTime()
-// {
-//     timeval tval;
-//     double timedelta;
-//
-//     gettimeofday(&tval,0);
-//     timeold=timenow;
-//     //ls_message("Gettimeofday: %d.%d\n", tval.tv_sec, tval.tv_usec);
-//     timenow=(tval.tv_sec)*1000.0+(tval.tv_usec)/1000.0;
-//     //ls_message("Current timenow: %f\n", timenow);
-//     if (pause) {
-//         timeold = timenow;
-//         timedelta = 0;
-//         timeaccum=0;
-//     } else {
-//         timedelta=timenow-timeold;
-//         timeaccum=(timeaccum*(TIME_ACCUM-1.0)+timedelta)/TIME_ACCUM;
-//     }
-//     //ls_message("Time since last frame (accum): %f (real): %f\n",timeaccum,timedelta);
-// }
 
 #define MAX_STEP_SECONDS (1.0 / 15.0)
 
@@ -779,9 +637,6 @@ void Game::preFrame()
         collisionman->run(this, clock->getStepDelta());
         cleanupActors();
         setupActors();
-#ifdef NDEBUG
-        break;
-#endif
     }
 
     if (current_view) {

@@ -55,13 +55,8 @@ struct IGame : virtual public Object, virtual public IActorStage
     /// Allow listeners to hook into infoMessages
     InfoMessageSignal info_message_signal;
     
-    /// Obsolete user input function. Replaced by event and axis remapper.
-    virtual void getMouseState(float *mx, float *my, int *buttons)=0;
-    
     /// Obsolete time delta function. Replaced by Clock.
     virtual double  getTimeDelta()=0;
-    /// Obsolete time function. Replaced by Clock.
-    virtual double  getTime()=0;
     
     /// More or less obsolete debugging function
     virtual void drawDebugTriangleAt(const Vector & p) = 0;

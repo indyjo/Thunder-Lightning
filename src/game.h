@@ -42,9 +42,7 @@ public:
     virtual Ptr<IoScriptingManager> getIoScriptingManager();
     virtual void infoMessage(const char * msg, const Vector color);
     
-    virtual void getMouseState(float *mx, float *my, int *buttons);
     virtual double  getTimeDelta();
-    virtual double  getTime();
     virtual void drawDebugTriangleAt(const Vector & p);
     virtual bool debugMode();
 
@@ -95,6 +93,7 @@ private:
     int argc;
     const char **argv;
     
+    bool game_done;
     bool debug_mode;
 
     SDL_Surface *surface;
@@ -103,7 +102,6 @@ private:
     Ptr<TextureManager> texman;
 
     Ptr<EventRemapper> event_remapper;
-    KeyboardSignal keyboard_sig;
 
     Ptr<IView> current_view;
     Ptr<IView> previous_view;
@@ -131,13 +129,5 @@ private:
     Ptr<Environment> environment;
 	Ptr<IoScriptingManager> io_scripting_manager;
     Ptr<UI::Console> console;
-
-    Uint32 ticks_now, ticks_old;
-    int mouse_relx, mouse_rely;
-    int mouse_buttons;
-    jBool game_done;
-
-    bool key_tab_old;
-    bool pause;
-    float game_speed;
 };
+
