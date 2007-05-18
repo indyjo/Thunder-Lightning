@@ -28,7 +28,7 @@ Coro := Object clone do(
 
     // Pass control to the next Io actor
     pass := method(
-        sleep( 0.25 + 0.05 * Random value )
+        sleep( 0.1 + 0.05 * Random value )
     )
     
     sleep := method(timetowait,

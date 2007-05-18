@@ -33,7 +33,7 @@ Config do(
   
   
   // Game config
-  Game_enable_SDL_parachute := "false"
+  Game_enable_SDL_parachute := "true"
   Screen_mode := "0"
   Game_grab_mouse := if(Screen_mode == "0", "false", "true")
   Game_fullscreen := if(Screen_mode == "0", "false", "true")
