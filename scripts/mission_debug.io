@@ -10,4 +10,5 @@ MissionDebug init := method(
     "MissionDebug init end" println
 )
 
-Game mission := MissionDebug clone
+MissionDebug
+

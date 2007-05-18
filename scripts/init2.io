@@ -26,7 +26,8 @@ doFile(path .. "/Completion.io")
 doFile(path .. "/Drone.io")
 doFile(path .. "/Tank.io")
 doFile(path .. "/DataNode.io")
-
+doFile(path .. "/Objective.io")
+doFile(path .. "/Mission.io")
 
 complete := method(str, context,
   l := list("ErrorWhileCompleting")
@@ -44,12 +45,5 @@ complete := method(str, context,
 
 rand2 := method(2*(Random value)-1)
 randvec := method(vector(rand2,rand2,rand2))
-
-"init2.io: Loading mission." println
-#doFile(path .. "/Intro.io")
-#doFile(path .. "/mission_default.io")
-#doFile(path .. "/mission_debug.io")
-doFile(path .. "/mission_simple.io")
-"init2.io: Mission loaded." println
 
 "Io: Exiting init2.io\n" print

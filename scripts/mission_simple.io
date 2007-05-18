@@ -1,5 +1,4 @@
-MissionSimple := Object clone
-MissionSimple init := method(
+startup := method(
     mypos := vector(11341,1518,-1008)
     myorient := matrix(-0.496, -0.181, -0.849
                        -0.101,  0.983, -0.151
@@ -61,4 +60,3 @@ MissionSimple init := method(
     self home := method( Game setControlledActor(me); Game setView(me, 0) )
 )
 
-Game mission := MissionSimple clone

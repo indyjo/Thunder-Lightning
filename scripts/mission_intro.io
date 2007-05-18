@@ -1,34 +1,22 @@
-Sequence say := method(
-    color := vector(0.6,0.8,1)
+Sequence say := method(color,
+    if (color isNil, color := vector(0.6,0.8,1))
     Game infoMessage(self, color)
     nil
 )
 
-Game on("toggle-introduction",
-    if (intro running, intro interrupt, intro init; intro start)
-)
-
-choose := method(
-    n := call argCount
-    if (n == 0, return nil)
-    r := n * Random value
-    return call evalArgAt(r floor)
-)
-
-intro := coro(dummy,
+Intro := coro(mission,
+    red := vector(1,0,0)
+    yellow := vector(1,1,0)
+    
     ex := try (
-        my_watchdog := watchdog clone
-        my_watchdog start(me, self)
-        
-        "Welcome to Thunder&Lightning!" say
+        mission lockCleanup
+        "Welcome to Thunder&Lightning!" say(red)
         sleep(8)
-        "This is Commander Wilson, your flight instructor." say
+        "To skip this tutorial and go to the real action, press the (I) key." say(red)
+        sleep(10)
+        "This is Commander Wilson, your flight instructor."
         sleep(8)
         "We will go through some basics for your first flight." say
-        sleep(10)
-        "You can end this introduction at any time by pressing the (I) key." say
-        sleep(5)
-        "Start it again by pressing the (I) key a second time." say
         sleep(10)
         "The Lightning is controlled using the mouse and the keyboard." say
         sleep(2)
@@ -38,25 +26,25 @@ intro := coro(dummy,
         sleep(8)
         "The throttle can be set from 0% to 100% using keys 1,2,3,...,8,9,0." say
         sleep(8)
-        ("Currently, your throttle is set to " .. (me controls float("throttle") * 100) .. "%") say
+        ("Currently, your throttle is set to " .. (mission me controls float("throttle") * 100) .. "%") say
         "First of all, get us into a safer altitude, please." say
         sleep(5)
-        "4000 meters should be enough. " say
+        "3000 meters should be enough. " say
         sleep(5)
         "Oh, the altitude is indicated on the right side of the HUD." say
         while (Object,
             8 repeat(
                 sleep(1)
-                if (me getLocation at(1,0) >= 4000,
+                if (mission me getLocation at(1,0) >= 3000,
                     break
                 )
             )
-            if (me getLocation at(1,0) >= 4000,
+            if (mission me getLocation at(1,0) >= 3000,
                 break
             )
             
             choose(
-                "I am waiting for you to climb up to 4000, kid!",
+                "I am waiting for you to climb up to 3000, kid!",
                 "I know you can do it!",
                 "Just pull the stick and climb, it's easy!",
                 "Make sure the nose is over the horizon!",
@@ -71,11 +59,11 @@ intro := coro(dummy,
         sleep(8)
         "The big number to the left of them displays your height over ground." say
         sleep(8)
-        ("Our current altitude is " .. (me getLocation at(1,0) floor) .. " meters above sea level.") say
+        ("Our current altitude is " .. (mission me getLocation at(1,0) floor) .. " meters above sea level.") say
         sleep(8)
         "In a similiar setup, you find your airspeed indicator on the left side."
         sleep(8)
-        ("Our current speed is " .. ((me getMovementVector length * 3.6) floor) .. "km/h.") say
+        ("Our current speed is " .. ((mission me getMovementVector length * 3.6) floor) .. "km/h.") say
         sleep(8)
         "On the lower edge of the screen, you can see which weapon is selected" say
         "as your primary and secondary weapon." say
@@ -105,11 +93,10 @@ intro := coro(dummy,
         sleep(8)
         "Finally, Z (or Y) selects the nearest target." say
         sleep(8)
-        
         "Are you ready for a challenge? Let's try your combat skills!" say
         sleep(5)
         
-        him := addEnemy
+        mission him := mission addEnemy
         sleep(3)
         "There's an enemy fighter directly in front of you. Get him!" say
         loop(
@@ -135,73 +122,109 @@ intro := coro(dummy,
         "This is the end of the introduction." say
         sleep(4)
         "Now have some fun flying, evading and shooting!" say
-        sleep(4)
-        "And remember you can restart this introduction with the (I) key!" say
         sleep(8)
-        "Thunder&Lightning was programmed by Jonas Eschenburg" say
-        sleep(4)
-        "Special thanks to Sam Lantinga, Steve Dekorte and others." say
+        "Thunder&Lightning was programmed by Jonas Eschenburg" say(red)
+        sleep(2)
+        "http://tnlgame.net" say(red)
+        sleep(4)    survivalWatchdog interrupt
+
+        "Special thanks to Sam Lantinga for SDL, Steve Dekorte for Io and others." say(red)
         
-        my_watchdog interrupt
+        mission unlockCleanup
     )
     ex catch(InterruptedException,
         interruptReq = nil
-        if(me isAlive,
-            "Introduction was aborted. Restart with (I) key." say
+        if(mission me isAlive,
+            "Introduction was aborted." say(red)
         ,
-            "I think he's crashed, Jim!" say
+            "I think he's crashed, Jim!" say(yellow)
             sleep(8)
             "Yeah, seems this novice pilot wasn't so smart after all!" say
             sleep(5)
             "Get me a new one, will you?" say
         )
+        mission unlockCleanup
     ) catch(Exception,
+        "An exception occurred during intro. See console (F11) for details." say(red)
         ex showStack
     )
 )
 
-setupScene := method(
-    Lobby us := Faction clone do (
-        setName("Green")
-        setDefaultAttitude(HOSTILE)
-        setAttitudeTowards(thisContext, FRIENDLY)
-    )
-    Lobby me := Drone clone
-    Game addActor(me)
-    me setLocation(vector(11341,1518,-1008))
-    me setMovementVector(vector(-98.71, -14.53, -57.98))
-    me setOrientation(matrix(
-        -0.496, -0.181, -0.849
-        -0.101,  0.983, -0.151
-        0.862,  0.011, -0.506))
-    me setFaction(us)
-    
-    Game setControlledActor(me)
-    Game setView(me, 0)
+Intro choose := method(
+    n := call argCount
+    if (n == 0, return nil)
+    r := n * Random value
+    return call evalArgAt(r floor)
 )
 
-addEnemy := method(
-    them := Faction clone do (
-        setName("Red")
-        setDefaultAttitude(HOSTILE)
-        setAttitudeTowards(thisContext, FRIENDLY)
-    )
-    Lobby him := Drone clone
-    Game addActor(him)
-    him setLocation(me getLocation + (1000*(me getFrontVector)))
-    him setMovementVector(me getMovementVector)
-    him setOrientation( me getOrientation )
-    him setFaction(them)
-    him setControlMode(Actor AUTOMATIC)
-    return him
-)
-
-watchdog := coro(actor, target_coro,
+SurvivalWatchdog := coro(actor, target_coro,
     while (actor isAlive,
-        pass(0.5)
+        sleep(0.5)
     )
     target_coro interrupt
 )
 
-setupScene
-intro start
+addEnemy := method(
+    enemy := Drone clone
+    Game addActor(enemy)
+    enemy setLocation(me getLocation + (1000*(me getFrontVector)))
+    enemy setMovementVector(me getMovementVector)
+    enemy setOrientation( me getOrientation )
+    enemy setFaction(them)
+    enemy setControlMode(Actor AUTOMATIC)
+    
+    killObjective := KillObjective clone
+    killObjective target := enemy
+    
+    objectives append(killObjective)
+    
+    enemy
+)
+
+startup := method(
+    Game on("toggle-introduction",
+        MissionManager introMission intro interrupt    
+        MissionManager introMission abort
+        thisHandler remove
+    )
+
+    if (?(me) isNil,
+        self me := Drone clone
+        Game addActor(me)
+        me setLocation(vector(11341,1518,-1008))
+        me setMovementVector(vector(-98.71, -14.53, -57.98))
+        me setOrientation(matrix(
+            -0.496, -0.181, -0.849
+            -0.101,  0.983, -0.151
+            0.862,  0.011, -0.506))
+        me setFaction(us)
+    )
+    
+    Game setControlledActor(me)
+    Game setView(me, 0)
+    
+    self intro := Intro clone start(self)
+
+    runningObjective := UndecidedWhileCoroRunningObjective clone
+    runningObjective target := self intro
+    
+    surviveObjective := SurviveObjective clone
+    surviveObjective target := me
+    
+    objectives = list(runningObjective, surviveObjective)
+
+    # Start a survival watchdog to watch me and interrupt intro when dead
+    self survivalWatchdog := SurvivalWatchdog clone
+    survivalWatchdog start(me, intro)
+
+    "Intro mission started" println
+)
+
+cleanup := method(
+    survivalWatchdog interrupt
+
+    me := him := nil
+    
+    objectives := list()
+)
+
