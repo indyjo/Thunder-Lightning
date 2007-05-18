@@ -9,6 +9,7 @@ public:
     Observer(Ptr<IGame>);
 
     virtual void action();
+    virtual void draw();
     
 protected:
     void mapEvents();

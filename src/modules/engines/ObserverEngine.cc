@@ -11,7 +11,17 @@ ObserverEngine::ObserverEngine(Ptr<IGame> game)
 void ObserverEngine::setControls(Ptr<DataNode> controls) { this->controls = controls; }
 
 void ObserverEngine::run() {
-    float delta_t = clock->getStepDelta();
+    float delta_t;
+    
+    // A speciality of the observer is to call action() while paused, so we need
+    // to use a different delta_t while paused. Also we don't use the usual
+    // getStepDelta() but getRealStepDelta() to make camera motion speed
+    // independent of time factor. This creates a nice Matrix-slomo-like effect.
+    if (clock->isPaused()) {
+        delta_t = clock->getRealFrameDelta();
+    } else {
+        delta_t = clock->getRealStepDelta();
+    }
     
     v += Vector(
         delta_t*controls->getFloat("accel_x"),

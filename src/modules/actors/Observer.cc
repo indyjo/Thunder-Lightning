@@ -41,6 +41,15 @@ void Observer::action() {
     SimpleActor::action();
 }
 
+void Observer::draw() {
+    if(thegame->getClock()->isPaused()) {
+        // trigger action while paused so the observer can be moved in pause mode
+        action();
+    }
+    
+    // nothing to draw
+}
+
 void Observer::mapEvents() {
     Ptr<EventSheet> sheet = getEventSheet();
     sheet->map("+primary", SigC::bind(SigC::slot(*this, &Observer::setDollying), true));
