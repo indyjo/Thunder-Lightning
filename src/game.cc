@@ -709,7 +709,6 @@ void Game::postFrame()
         if (IoObject_rawGetSlot_(self, IOSYMBOL("postFrame"))) {
             IoMessage *msg =
                 IoMessage_newWithName_label_(IOSTATE, IOSYMBOL("postFrame"),IOSYMBOL("Game::postFrame"));
-	            IoState_stackRetain_(IOSTATE, msg);
             IoState_tryToPerform(IOSTATE, self, IOSTATE->lobby, msg);
         }
         IoState_popRetainPool(IOSTATE);
