@@ -11,6 +11,8 @@ GunsightModule::GunsightModule(
 :   width(w), height(h), name(name), offset(0,0,0)
 { }
 
+void GunsightModule::enable() { }
+void GunsightModule::disable() { }
 
 void PlaceholderModule::draw(FlexibleGunsight &) {
 }
@@ -109,3 +111,19 @@ void FlexibleGunsight::draw() {
 	renderer->setCoordSystem(JR_CS_WORLD);
 	renderer->enableFog();
 }
+
+void FlexibleGunsight::enable() {
+	typedef Modules::iterator Iter;
+	for(Iter i=modules.begin(); i!=modules.end(); ++i) {
+	    (*i)->enable();
+	}
+}
+
+void FlexibleGunsight::disable() {
+	typedef Modules::iterator Iter;
+	for(Iter i=modules.begin(); i!=modules.end(); ++i) {
+	    (*i)->disable();
+	}
+}
+
+

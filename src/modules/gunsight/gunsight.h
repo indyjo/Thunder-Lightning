@@ -35,6 +35,10 @@ public:
     
     inline const std::string & getName() const { return name; }
     virtual void draw(FlexibleGunsight &)=0;
+
+    // default to doing nothing
+    virtual void enable();
+    virtual void disable();
 };
 
 
@@ -82,6 +86,9 @@ public:
     // IDrawable implementation
     virtual void draw();
     
+    // Module enabling/disabling
+    void enable();
+    void disable();
 };
 
 struct PlaceholderModule : public GunsightModule {

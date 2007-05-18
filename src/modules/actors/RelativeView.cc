@@ -1,4 +1,5 @@
 #include <interfaces/IActor.h>
+#include <modules/gunsight/gunsight.h>
 #include "RelativeView.h"
 
 RelativeView::RelativeView(
@@ -82,3 +83,13 @@ Ptr<IActor> RelativeView::getViewSubject() {
 Ptr<IDrawable> RelativeView::getGunsight() {
     return gunsight;
 }
+
+void RelativeView::enable() {
+    if(gunsight) gunsight->enable();
+}
+
+void RelativeView::disable() {
+    if(gunsight) gunsight->disable();
+}
+
+

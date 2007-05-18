@@ -1,4 +1,5 @@
 #include <interfaces/IActor.h>
+#include <modules/gunsight/gunsight.h>
 
 #include "SimpleView.h"
 
@@ -56,4 +57,13 @@ Ptr<IActor> SimpleView::getViewSubject() {
 Ptr<IDrawable> SimpleView::getGunsight() {
 	return gunsight;
 }
+
+void SimpleView::enable() {
+    if(gunsight) gunsight->enable();
+}
+
+void SimpleView::disable() {
+    if(gunsight) gunsight->disable();
+}
+
 

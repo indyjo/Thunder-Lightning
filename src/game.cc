@@ -371,9 +371,14 @@ Ptr<IView> Game::getCurrentView()
 void Game::setCurrentView(Ptr<IView> view)
 {
     if (view) {
+        view->enable();
         setGunsight(view->getGunsight());
     } else {
         setGunsight(0);
+    }
+    
+    if (current_view) {
+        current_view->disable();
     }
     current_view = view;
 }
@@ -817,6 +822,8 @@ void Game::decelerateSpeed() {
 }
 
 void Game::setView(int n) {
+    if (view_is_external)
+        return;
 	if (!current_view || !current_view->getViewSubject()) return;
 	if (n >= current_view->getViewSubject()->getNumViews()) return;
 	setCurrentView(current_view->getViewSubject()->getView(n));
@@ -826,6 +833,9 @@ void Game::externalView() {
 	if (view_is_external) {
         setCurrentView(previous_view);
         view_is_external = false;
+        if (current_view->getViewSubject()->hasControlMode(IActor::MANUAL)) {
+            current_view->getViewSubject()->setControlMode(IActor::MANUAL);
+        }
     } else {
         previous_view = current_view;
         
@@ -835,6 +845,11 @@ void Game::externalView() {
             Vector up, right, front;
             current_view->getOrientation(&up, &right, &front);
             observer->setOrientation(up, right, front);
+            if (current_view->getViewSubject()->hasControlMode(IActor::AUTOMATIC)) {
+                current_view->getViewSubject()->setControlMode(IActor::AUTOMATIC);
+            } else {
+                current_view->getViewSubject()->setControlMode(IActor::UNCONTROLLED);
+            }
         }
         addWeakActor(ptr(observer));
 		setCurrentView(observer->getView(0));
@@ -846,7 +861,11 @@ void Game::nextTarget() {
     typedef const std::vector<Ptr<IActor> > List;
     typedef List::const_iterator Iter;
     
-    //if (!current_view || !current_view->getViewSubject()) return;
+    // In case of external view, this is equivalent to switching back to internal
+    if (view_is_external) {
+        externalView();
+        return;
+    }
     
     List & list = actors;
     Iter current = list.begin();

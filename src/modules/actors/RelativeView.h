@@ -4,12 +4,14 @@
 #include <landscape.h>
 #include <interfaces/IView.h>
 
+class FlexibleGunsight;
+
 class RelativeView : virtual public IView {
     Ptr<IActor> subject;
     Ptr<IPositionProvider> position;
     Ptr<IMovementProvider> movement;
     Vector p,up,right,front;
-    Ptr<IDrawable> gunsight;
+    Ptr<FlexibleGunsight> gunsight;
 public:
     RelativeView(Ptr<IActor> subject,
         const Vector & p,
@@ -35,6 +37,8 @@ public:
     // IView
     virtual Ptr<IActor> getViewSubject();
     virtual Ptr<IDrawable> getGunsight();
+    virtual void enable();
+    virtual void disable();    
 };
 
 

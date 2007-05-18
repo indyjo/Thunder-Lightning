@@ -12,6 +12,8 @@ struct IView : virtual public IPositionProvider,
 {
     virtual Ptr<IActor> getViewSubject()=0;
     virtual Ptr<IDrawable> getGunsight()=0;
+    virtual void enable()=0;
+    virtual void disable()=0;
 };
 
 #endif

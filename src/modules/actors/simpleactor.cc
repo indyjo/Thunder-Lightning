@@ -3,6 +3,7 @@
 #include <interfaces/IProjectile.h>
 #include <modules/clock/clock.h>
 #include <modules/engines/newtonianengine.h>
+#include <modules/gunsight/gunsight.h>
 #include <modules/scripting/IoScriptingManager.h>
 #include <modules/scripting/mappings.h>
 #include <modules/weaponsys/Armament.h>
@@ -161,35 +162,48 @@ int SimpleActor::getNumViews() { return 4; }
 
 Ptr<IView> SimpleActor::getView(int n) { 
     // TODO: this should be implemented in Io
+    
+    Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
+	gunsight->addDebugInfo(thegame, this);
+	if (targeter) {
+	    gunsight->addTargeting(this, targeter);
+	}
+    gunsight->addInfoMessage(thegame);
+
 	switch(n) {
 	case 0:
+	    gunsight->addBasicCrosshairs();
 		return new RelativeView(
             this,
             Vector(0,0,0),
             Vector(1,0,0),
             Vector(0,1,0),
-            Vector(0,0,1));
+            Vector(0,0,1),
+            gunsight);
     case 1:
     	return new RelativeView(
             this,
             Vector(0,0,0),
             Vector(-1,0,0),
             Vector(0,1,0),
-            Vector(0,0,-1));
+            Vector(0,0,-1),
+            gunsight);
     case 2:
     	return new RelativeView(
             this,
             Vector(0,0,0),
             Vector(0,0,1),
             Vector(0,1,0),
-            Vector(-1,0,0));
+            Vector(-1,0,0),
+            gunsight);
     case 3:
     	return new RelativeView(
             this,
             Vector(0,0,0),
             Vector(0,0,-1),
             Vector(0,1,0),
-            Vector(1,0,0));
+            Vector(1,0,0),
+            gunsight);
     default:
     	return 0;
 	}

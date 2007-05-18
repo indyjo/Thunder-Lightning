@@ -4,6 +4,8 @@
 #include <landscape.h>
 #include <interfaces/IView.h>
 
+class FlexibleGunsight;
+
 class SimpleView : virtual public IView {
 public:
     SimpleView(Ptr<IActor> subject, Ptr<IDrawable> gunsight=0);
@@ -23,13 +25,16 @@ public:
     virtual Ptr<IActor> getViewSubject();
     virtual Ptr<IDrawable> getGunsight();
     
+    virtual void enable();
+    virtual void disable();    
+    
 protected:
 	// To be overwritten by subclasses
 	virtual void getPositionAndOrientation(
 		Vector *pos, Matrix3 *orient)=0;
 		
     Ptr<IActor> subject;
-    Ptr<IDrawable> gunsight;
+    Ptr<FlexibleGunsight> gunsight;
 };
 
 #endif

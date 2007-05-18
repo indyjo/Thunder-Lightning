@@ -17,6 +17,7 @@ struct MissileWarningModule : public GunsightModule, public SigObject {
 	Ptr<IFontMan> fontman;
     Ptr<SoundMan> soundman;
     Ptr<SoundSource> sndsource;
+    SigC::Connection connection;
 	
 	MissileWarningModule(const char *name, Ptr<IGame> game, Ptr<SimpleActor> actor)
 	:	GunsightModule(name, 200, 25),
@@ -24,8 +25,9 @@ struct MissileWarningModule : public GunsightModule, public SigObject {
         fontman(game->getFontMan()),
         soundman(game->getSoundMan())
 	{
-        actor->message_signal.connect(
+        connection = actor->message_signal.connect(
             SigC::slot(*this, &MissileWarningModule::onMessage));
+        connection.block(true);
         sndsource = soundman->requestSource();
         sndsource->setLooping(true);
     }
@@ -44,11 +46,6 @@ struct MissileWarningModule : public GunsightModule, public SigObject {
         Ptr<IActor> missile = unwrapObject<Ptr<IActor> >(io_missile);
 
         missiles.push_back(missile);
-
-        if (!sndsource->isPlaying()) {
-            sndsource->play(soundman->querySound("missile-warning.wav"));
-            sndsource->setLooping(true);
-        }
     }
 
     void updateMissileList() {
@@ -84,6 +81,11 @@ struct MissileWarningModule : public GunsightModule, public SigObject {
         std::pair<Ptr<IActor>, float> closest = closestMissile();
         if (!closest.first) return;
 
+        if (!sndsource->isPlaying()) {
+            sndsource->play(soundman->querySound("missile-warning.wav"));
+            sndsource->setLooping(true);
+        }
+
         float pitch = 2.0f*3000 / (closest.second + 3000);
 
         sndsource->setPosition(actor->getLocation());
@@ -105,6 +107,15 @@ struct MissileWarningModule : public GunsightModule, public SigObject {
 		char buf[256];
         snprintf(buf,256,"MISSILE WARNING\n", closest.second);
 		fontman->print(buf);
+	}
+	
+	void enable() {
+        connection.block(false);
+	}
+	
+	void disable() {
+        connection.block(true);
+	    sndsource->stop();
 	}
 };
 
@@ -139,12 +150,14 @@ struct InfoMessageModule : public GunsightModule, public SigObject {
     TimestampedStrings messages;
     Ptr<Clock> clock;
 	Ptr<IFont> font;
+    SigC::Connection connection;
 	
 	InfoMessageModule(const char *name, Ptr<IGame> game)
         :	GunsightModule(name, game->getScreenSurface().getWidth(), game->getScreenSurface().getHeight()*0.4f)
 	{
-        game->info_message_signal.connect(
+        connection = game->info_message_signal.connect(
             SigC::slot(*this, &InfoMessageModule::onMessage));
+        connection.block(true);
         clock = game->getClock();
         game->getFontMan()->selectFont(IFontMan::FontSpec("dungeon", 12, IFontMan::FontSpec::BOLD));
         font = game->getFontMan()->getFont();
@@ -200,8 +213,15 @@ struct InfoMessageModule : public GunsightModule, public SigObject {
         }
         
         r->popMatrix();
-
-
+	}
+	
+	void enable() {
+        connection.block(false);
+	}
+	
+	void disable() {
+        connection.block(true);
+        messages.clear();
 	}
 };
 
