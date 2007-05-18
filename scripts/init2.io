@@ -3,18 +3,17 @@
 path := Config scripts_dir
 Importer addSearchPath(path)
 
-//Object setSlot("old_doFile", Object getSlot("doFile"))
-
 if(Number hasSlot("pi") not, Number pi := 2 * 0 acos)
 if(Number hasSlot("e") not, Number e := 1 exp)
 
 Object oldDoFile := Object getSlot("doFile")
 Object doFile := method(file,
   ("Executing " .. file .. ".") println
-  oldDoFile(file)
+  result := call delegateToMethod(self, "oldDoFile")
   ("Done with " .. file .. ".") println
-  nil
+  getSlot("result")
 )
+doFile(path .. "/input.io")
 doFile(path .. "/delegate.io")
 doFile(path .. "/Coro.io")
 doFile(path .. "/EventTarget.io")
@@ -22,7 +21,6 @@ doFile(path .. "/Game.io")
 doFile(path .. "/Matrix.io")
 doFile(path .. "/Actor.io")
 doFile(path .. "/inspect.io")
-doFile(path .. "/input.io")
 doFile(path .. "/Faction.io")
 doFile(path .. "/Completion.io")
 doFile(path .. "/Drone.io")
