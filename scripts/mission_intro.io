@@ -102,11 +102,11 @@ Intro := coro(mission,
         loop(
             8 repeat(
                 sleep(1)
-                if (him isAlive not,
+                if (mission him isAlive not,
                     break
                 )
             )
-            if (him isAlive not,
+            if (mission him isAlive not,
                 break
             )
             
