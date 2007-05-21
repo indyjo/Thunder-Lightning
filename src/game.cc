@@ -915,25 +915,33 @@ void Game::nextTarget() {
     		current_view->getViewSubject());
     }
     if (current == list.end()) current = list.begin();
-    if (current==list.end()) return;
+    if (current==list.end()) {
+        // If the list is completely empty, switch to external view
+        externalView();
+        return;
+    }
     
+    Iter next = current;
     if (debugMode()) {
-    	current++;
+    	++next;
     } else {
-        Iter next = current;
-        while (++next != current) {
+        ++next;
+        while (next != current) {
             if (next == list.end()) next = list.begin();
             if ((*next)->hasControlMode(IActor::MANUAL) &&
                 (*next)->getFaction() == current_faction)
             {
                 break;
     		}
+    		++next;
     	}
-    	current = next;
     }
-    if (current == list.end()) current = list.begin();
+    if (next == current) {
+        // If we couldn't find any other actor, do nothing.
+        return;
+    }
     
-    setCurrentView((*current)->getView(0));
+    setCurrentView((*next)->getView(0));
     
     // Make sure no actor is under manual control now
     setCurrentlyControlledActor(0);
