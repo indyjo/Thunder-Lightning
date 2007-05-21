@@ -583,6 +583,23 @@ void Game::initControls()
     r->map("-right", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_car_steer_right", 0.0f));
     
+    r->map("+forward", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_strafe_up", 1.0f));
+    r->map("-forward", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_strafe_up", 0.0f));
+    r->map("+backward", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_strafe_down", -1.0f));
+    r->map("-backward", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_strafe_down", 0.0f));
+    r->map("+left", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_strafe_left", -1.0f));
+    r->map("-left", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_strafe_left", 0.0f));
+    r->map("+right", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_strafe_right", 1.0f));
+    r->map("-right", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_strafe_right", 0.0f));
+
     r->addAxisManipulator(
         AxisManipulator(new LinearAxisTransform(1.0f/5, 0.0f), "mouse_turret_steer")
         .input("mouse_rel_x"));
@@ -617,7 +634,16 @@ void Game::initControls()
    	r->addAxisManipulator(
    		AxisManipulator(new SumAxesTransform(), "tank_cannon_steer")
    		.input("mouse_cannon_steer"));
-   	
+   		
+    // Strafing
+    r->addAxisManipulator(
+    	AxisManipulator(new SumAxesTransform(), "strafe_horizontal")
+    	.input("kbd_strafe_left")
+    	.input("kbd_strafe_right"));
+    r->addAxisManipulator(
+    	AxisManipulator(new SumAxesTransform(), "strafe_vertical")
+    	.input("kbd_strafe_up")
+    	.input("kbd_strafe_down"));
 }
 
 void Game::doEvents()
@@ -940,3 +966,4 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
+

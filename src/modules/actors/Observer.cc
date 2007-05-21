@@ -38,6 +38,9 @@ void Observer::action() {
         c->setFloat("rotate_x", 0.2f*e->getAxis("mouse_rel_y") / delta_t);
     }
     
+    c->setFloat("accel_x", c->getFloat("accel_x") + 5*e->getAxis("strafe_horizontal"));
+    c->setFloat("accel_y", c->getFloat("accel_y") + 5*e->getAxis("strafe_vertical"));
+    
     SimpleActor::action();
 }
 
