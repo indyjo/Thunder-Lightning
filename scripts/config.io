@@ -165,10 +165,7 @@ Config do(
   DumbMissile_model                := model_dir .. "/missiles/dumbmissile.obj"
   SmartMissile_model               := model_dir .. "/missiles/smartmissile.obj"
   Missile_engine_sound             := "rocket-engine-1.wav"
-  Missile_Ka                       := "20"
-  Missile_Kb                       := "0.1"
-  Missile_Kc                       := "0"
-  
+
   Missile_Kp                       := "1"
   Missile_Ki                       := "0"
   Missile_Kd                       := "5"

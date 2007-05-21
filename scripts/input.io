@@ -10,15 +10,6 @@ EventRemapper do(
   mapKey(SDLK_TAB, press,  "map_magnify")
   mapKey(SDLK_TAB, release, "map_demagnify")
 
-  //mapKey(SDLK_w, press,  "+strafe_forward")
-  //mapKey(SDLK_w, release, "-strafe_forward")
-  //mapKey(SDLK_s, press,  "+strafe_backward")
-  //mapKey(SDLK_s, release, "-strafe_backward")
-  //mapKey(SDLK_a, press,  "+strafe_left")
-  //mapKey(SDLK_a, release, "-strafe_left")
-  //mapKey(SDLK_d, press,  "+strafe_right")
-  //mapKey(SDLK_d, release, "-strafe_right")
-
   mapKey(SDLK_UP, press, "+forward")
   mapKey(SDLK_UP, release, "-forward")
   mapKey(SDLK_DOWN, press, "+backward")
