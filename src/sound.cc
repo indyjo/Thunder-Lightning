@@ -12,7 +12,19 @@
 
 using namespace std;
 
+#ifdef NDEBUG
+// The release version causes a warning and the values are ignored
+#define CHECKFLOAT(f)                                               \
+    if ((f) != (f) || 2*(f) == (f) && (f) != 0)                     \
+    {                                                               \
+        ls_warning("Invalid float value detected: ignored.\n");       \
+        return;                                                     \
+    }
+#else
+// The debug version causes a segfault to enable debugging
 #define CHECKFLOAT(f) if ((f) != (f) || 2*(f) == (f) && (f) != 0) { *(char*)0x0 = 'X'; }
+#endif
+
 #define CHECKVECTOR(v) CHECKFLOAT(v[0]); CHECKFLOAT(v[1]); CHECKFLOAT(v[2]);
 
 static void alCheck() {
