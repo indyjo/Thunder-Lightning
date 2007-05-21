@@ -116,6 +116,11 @@ Game::Game(int argc, const char **argv)
         SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, config->queryInt("Game_blue_bits", 5) );
         SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, config->queryInt("Game_zbuffer_bits", 16) );
         SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+        if (config->queryBool("Game_fsaa_enabled", false)) {
+            SDL_GL_SetAttribute (SDL_GL_MULTISAMPLEBUFFERS, 1);
+            SDL_GL_SetAttribute (SDL_GL_MULTISAMPLESAMPLES,
+                config->queryInt("Game_fsaa_samples", 4));
+        }
         if(fullscreen) {
             surface = SDL_SetVideoMode(xres, yres, 32,
                     SDL_OPENGL | SDL_FULLSCREEN);
