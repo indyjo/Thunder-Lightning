@@ -675,6 +675,12 @@ void Game::preFrame()
         setupActors();
     }
 
+    // Upon death of current view subject, switch to external perspective
+    if (current_view && !current_view->getViewSubject()->isAlive()) {
+        externalView();
+        event_remapper->triggerAction("current_view_subject_killed");
+    }
+    
     if (current_view) {
         camera->alignWith(&*current_view);
         camera->getCamera(&jcamera);
