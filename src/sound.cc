@@ -425,9 +425,11 @@ Ptr<SoundSource> SoundMan::requestSource() {
 }
 
 bool invalid(WeakPtr<SoundSource> s) { return !s.valid(); }
-bool playing(WeakPtr<SoundSource> s) { return s->isAudible() && s->isPlaying(); }
-bool not_playing(SoundSource* s) { return !s->isPlaying(); }
-bool not_playing_ptr(Ptr<SoundSource> s) { return !s->isPlaying(); }
+bool playing(WeakPtr<SoundSource> s) {
+    Ptr<SoundSource> p = s.lock();
+    return p && p->isAudible() && p->isPlaying();
+}
+bool not_playing(Ptr<SoundSource> p) { return !p->isPlaying(); }
 
 void SoundMan::update(float delta_t) {
     typedef vector<WeakPtr<SoundSource> >::iterator WSI;
@@ -438,7 +440,7 @@ void SoundMan::update(float delta_t) {
         remove_if(
             managed_sources.begin(),
             managed_sources.end(),
-            not_playing_ptr)
+            not_playing)
         - managed_sources.begin());
     
     // remove all deleted sources from the list of all sources

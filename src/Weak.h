@@ -39,6 +39,13 @@ public:
             , peer(other?other->getPeer():Ptr<WeakPeer>(0))
     { }
     
+    inline Ptr<T> lock() const {
+        if (valid()) {
+            return p;
+        } else {
+            return 0;
+        }
+    }
     inline WeakPtr<T> & operator= (T * obj) {
         p=obj;
         if(p) peer=obj->getPeer();
@@ -49,10 +56,8 @@ public:
         if(p) peer=p->getPeer();
         return *this;
     };
-    inline T & operator*  () const { return *p; };
-    inline T * operator-> () const { return p; };
-    inline operator bool() const { return p!=0 && peer->object_alive; }
     inline bool valid() const { return p!=0 && peer->object_alive; }
+    inline operator bool() const { return valid(); }
     inline bool operator==(const WeakPtr<T> & ptr) const { return p == ptr.p; }
     inline bool operator!=(const WeakPtr<T> & ptr) const { return p != ptr.p; }
     inline bool operator<(const WeakPtr<T> & ptr) const { return p < ptr.p; }

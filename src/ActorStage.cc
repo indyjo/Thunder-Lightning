@@ -84,15 +84,19 @@ void ActorStage::cleanupActors() {
 void ActorStage::setupActors() {
 	for(int i=0; i<actors.size(); ++i)
 		actors[i]->action();
-	for(int i=0; i<weak_actors.size(); ++i)
-        if(weak_actors[i].valid()) weak_actors[i]->action();
+	for(int i=0; i<weak_actors.size(); ++i) {
+	    Ptr<IActor> p = weak_actors[i].lock();
+        if(p) p->action();
+    }
 }
 
 void ActorStage::drawActors() {
 	for(int i=0; i<actors.size(); ++i)
 		actors[i]->draw();
-	for(int i=0; i<weak_actors.size(); ++i)
-        if(weak_actors[i].valid()) weak_actors[i]->draw();
+	for(int i=0; i<weak_actors.size(); ++i) {
+	    Ptr<IActor> p = weak_actors[i].lock();
+        if(p) p->draw();
+    }
 }
 
 void ActorStage::removeAllActors() {
