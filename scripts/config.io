@@ -64,6 +64,10 @@ Config do(
   Game_blue_bits    := "5"
   Game_zbuffer_bits := "1"
   
+  // Full screen antialiasing.
+  Game_fsaa_enabled := "false"
+  Game_fsaa_samples := "2"
+  
   Game_loading_screen := texture_dir .. "/loading-screen.spr"
   
   // Controls config
