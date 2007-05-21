@@ -14,7 +14,7 @@ Intro := coro(mission,
         sleep(8)
         "To skip this tutorial and go to the real action, press the (I) key." say(red)
         sleep(10)
-        "This is Commander Wilson, your flight instructor."
+        "This is Commander Wilson, your flight instructor." say
         sleep(8)
         "We will go through some basics for your first flight." say
         sleep(10)
@@ -26,7 +26,8 @@ Intro := coro(mission,
         sleep(8)
         "The throttle can be set from 0% to 100% using keys 1,2,3,...,8,9,0." say
         sleep(8)
-        ("Currently, your throttle is set to " .. (mission me controls float("throttle") * 100) .. "%") say
+        throttle := mission me controls float("throttle") * 100
+        "Currently, your throttle is set to #{throttle}%" interpolate say
         "First of all, get us into a safer altitude, please." say
         sleep(5)
         "3000 meters should be enough. " say
@@ -53,28 +54,26 @@ Intro := coro(mission,
         )
         "Ok, now we're high enough." say
         sleep(8)
-        "Good, you alrady know where the altitude and height indicators are." say
-        sleep(8)
-        "The small numbers arranged like ladder steps are steps of 50m of altitude." say
-        sleep(8)
+        "The small numbers arranged like ladder steps each mark 50m of altitude." say
+        sleep(2)
         "The big number to the left of them displays your height over ground." say
         sleep(8)
-        ("Our current altitude is " .. (mission me getLocation at(1,0) floor) .. " meters above sea level.") say
+        "Our current altitude is #{mission me getLocation at(1,0) floor}m above sea level." interpolate say
         sleep(8)
-        "In a similiar setup, you find your airspeed indicator on the left side."
+        "In a similiar setup, you find your airspeed indicator on the left side." say
         sleep(8)
-        ("Our current speed is " .. ((mission me getMovementVector length * 3.6) floor) .. "km/h.") say
+        "Our current speed is #{(mission me getMovementVector length * 3.6) floor} km/h." interpolate say
         sleep(8)
         "On the lower edge of the screen, you can see which weapon is selected" say
         "as your primary and secondary weapon." say
         sleep(8)
-        "Change the primary weapon on the left with the Backspace key and" say
+        "Change the primary weapon on the left with the Backspace key" say
         "and fire it with the left mouse button or Ctrl." say
         sleep(8)
-        "Switch the secondary weapon on the right with the Enter key and" say
-        "fire it with the right mouse button or Space." say
+        "Switch the secondary weapon on the right with the Enter key" say
+        "and fire it with the right mouse button or Space." say
         sleep(8)
-        "Your primary weapon is a 4-barrel Vulcan cannon." say
+        "Your primary weapon is a 2-barrel Vulcan cannon." say
         sleep(8)
         "Your secondary weapons are Sidewinder and Hydra missiles." say
         sleep(8)
@@ -83,7 +82,7 @@ Intro := coro(mission,
         sleep(8)
         "The Hydra is an unguided but powerful ground attack rocket." say
         sleep(8)
-        "To use the Sidewinders, you must lock on a target." say
+        "To use the Sidewinders, you must lock on to a target." say
         sleep(8)
         "Use the T key to cycle through all targets. Use R to reverse-cycle." say
         sleep(8)
@@ -126,7 +125,9 @@ Intro := coro(mission,
         "Thunder&Lightning was programmed by Jonas Eschenburg" say(red)
         sleep(2)
         "http://tnlgame.net" say(red)
-        sleep(4)    survivalWatchdog interrupt
+        sleep(4)
+        
+        mission survivalWatchdog interrupt
 
         "Special thanks to Sam Lantinga for SDL, Steve Dekorte for Io and others." say(red)
         
@@ -167,7 +168,13 @@ SurvivalWatchdog := coro(actor, target_coro,
 addEnemy := method(
     enemy := Drone clone
     Game addActor(enemy)
-    enemy setLocation(me getLocation + (1000*(me getFrontVector)))
+    // set enemy's location to 1000m to the front, but not below zero
+    x := me getLocation + (1000*(me getFrontVector))
+    security_altitude := Terrain heightAt(x at(0,0), x at(2,0)) + 500
+    if (x at(1,0) < security_altitude,
+        x atSet(1,0, security_altitude)
+    )
+    enemy setLocation(x)
     enemy setMovementVector(me getMovementVector)
     enemy setOrientation( me getOrientation )
     enemy setFaction(them)
