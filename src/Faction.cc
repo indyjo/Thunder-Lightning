@@ -35,11 +35,11 @@ const Faction::BasicFactions Faction::basic_factions;
 Faction::~Faction() {
 }
 
-void Faction::setAttitudeTowards(Ptr<Faction> f, Attitude a) {
+void Faction::setAttitudeTowards(WeakPtr<Faction> f, Attitude a) {
     attitudes.insert(std::make_pair(f,a));
 }
 
-Faction::Attitude Faction::getAttitudeTowards(Ptr<Faction> f) {
+Faction::Attitude Faction::getAttitudeTowards(WeakPtr<Faction> f) {
 	/*{
 		std::map<Ptr<Faction>, Attitude>::iterator i;
 		ls_message("Attitude of %s towards %p \"%s\":",
@@ -51,7 +51,7 @@ Faction::Attitude Faction::getAttitudeTowards(Ptr<Faction> f) {
 		}
 		ls_message("\n");
 	}*/
-    std::map<Ptr<Faction>, Attitude>::iterator i = attitudes.find(f);
+    std::map<WeakPtr<Faction>, Attitude>::iterator i = attitudes.find(f);
     
     if (i==attitudes.end())
         return default_attitude;

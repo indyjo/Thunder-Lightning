@@ -4,9 +4,9 @@
 #include <map>
 #include <string>
 #include <landscape.h>
-#include "object.h"
+#include "Weak.h"
 
-class Faction : public Object {
+class Faction : public Object, public Weak {
 public:
     static const struct BasicFactions {
         BasicFactions();
@@ -26,13 +26,13 @@ public:
     void setDefaultAttitude(Attitude a) { default_attitude = a; }
     Attitude getDefaultAttitude() { return default_attitude; }
 
-    void setAttitudeTowards(Ptr<Faction>, Attitude);
-    Attitude getAttitudeTowards(Ptr<Faction>);
+    void setAttitudeTowards(WeakPtr<Faction>, Attitude);
+    Attitude getAttitudeTowards(WeakPtr<Faction>);
 
 private:
     std::string name;
     Attitude default_attitude;
-    std::map<Ptr<Faction>, Attitude> attitudes;
+    std::map<WeakPtr<Faction>, Attitude> attitudes;
 };
 
 
