@@ -864,8 +864,14 @@ void Game::externalView() {
 	if (view_is_external) {
         setCurrentView(previous_view);
         view_is_external = false;
-        if (current_view->getViewSubject()->hasControlMode(IActor::MANUAL)) {
-            current_view->getViewSubject()->setControlMode(IActor::MANUAL);
+        
+        // After switching back to a dead actor, immediately switch to the next.
+        // Otherwise, release control from whatever the previous actor was but
+        // don't take over control yet.
+        if ( ! current_view->getViewSubject()->isAlive()) {
+            nextTarget();
+        } else {
+            setCurrentlyControlledActor(0);
         }
     } else {
         previous_view = current_view;
@@ -876,14 +882,10 @@ void Game::externalView() {
             Vector up, right, front;
             current_view->getOrientation(&up, &right, &front);
             observer->setOrientation(up, right, front);
-            if (current_view->getViewSubject()->hasControlMode(IActor::AUTOMATIC)) {
-                current_view->getViewSubject()->setControlMode(IActor::AUTOMATIC);
-            } else {
-                current_view->getViewSubject()->setControlMode(IActor::UNCONTROLLED);
-            }
         }
         addWeakActor(ptr(observer));
 		setCurrentView(observer->getView(0));
+		setCurrentlyControlledActor(observer);
 		view_is_external = true;
 	}
 }
@@ -898,6 +900,8 @@ void Game::nextTarget() {
         return;
     }
     
+    Ptr<Faction> current_faction = getCurrentView()->getViewSubject()->getFaction();
+    
     List & list = actors;
     Iter current = list.begin();
     if(current_view && current_view->getViewSubject()) {
@@ -910,19 +914,23 @@ void Game::nextTarget() {
     if (debugMode()) {
     	current++;
     } else {
-    	Iter next = current;
-    	while (++next != current) {
-    		if (next == list.end()) next = list.begin();
-    		if ((*next)->hasControlMode(IActor::MANUAL))
-    			break;
+        Iter next = current;
+        while (++next != current) {
+            if (next == list.end()) next = list.begin();
+            if ((*next)->hasControlMode(IActor::MANUAL) &&
+                (*next)->getFaction() == current_faction)
+            {
+                break;
+    		}
     	}
     	current = next;
     }
     if (current == list.end()) current = list.begin();
     
-    ls_message("Game: Switching to %s at: ", typeid(*(*current)).name());
-    (*current)->getLocation().dump();
     setCurrentView((*current)->getView(0));
+    
+    // Make sure no actor is under manual control now
+    setCurrentlyControlledActor(0);
 }
 
 void Game::toggleControlMode() {
