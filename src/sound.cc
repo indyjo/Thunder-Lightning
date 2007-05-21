@@ -8,7 +8,7 @@
 #include "sound.h"
 
 //#include <AL/alu.h>
-#include <alut.h>
+#include <AL/alut.h>
 
 using namespace std;
 
