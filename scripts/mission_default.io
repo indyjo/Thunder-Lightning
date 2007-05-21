@@ -20,10 +20,36 @@ addSurviveObjective := method(target,
     anyObjective objectives append(target)
 )
 
+Briefing := coro(dummy,
+    "Commander!" say
+    sleep(2)
+    "Our spy satellite has spotted tank movements on the island." say
+    sleep(6)
+    "We have credible intelligence that a group of three tanks has" say
+    sleep(2)
+    "equipped with new artificial intelligence software." say
+    sleep(6)
+    "The new AI is not yet completely developed." say
+    sleep(6)
+    "But we believe it might give the enemy a crucial advantage." say
+    sleep(6)
+    "All three tanks equipped with the new AI have to be destroyed!" say
+    sleep(6)
+    "Beware, there are enemy drones and anti-air tanks in the area." say
+    sleep(6)
+    "You have been assigned a wingman to assist you." say
+    sleep(6)
+    "Good luck, commander!" say
+)
+
+briefing := nil
+
 startup := method(
     "DefaultMission startup begin" println
     
-    objectives := list()
+    briefing = Briefing clone start
+    
+    objectives = list()
     
     tank := Tank clone
     tank setLocation(vector(6543,0,1416))
@@ -80,10 +106,10 @@ startup := method(
         loop(pass)
       ) start(tank4, tanks)
       Game addActor(tank4)
-      addKillObjective(tank4)
+      //addKillObjective(tank4)
     )
 
-    ndrones := 5
+    ndrones := 3
     for(i,0,ndrones-1,
         drone := Drone clone
         R := Matrix rotation3(vector(0,1,0), 2*i*(Number pi)/ndrones)
@@ -92,7 +118,7 @@ startup := method(
         loc := R * vector(0,2000,-8000)
         drone setLocation(loc)
         drone setControlMode(Actor AUTOMATIC)
-        drone setFaction( choose(us,them) )
+        drone setFaction( choose(them) )
         Game addActor(drone)
     )
 
@@ -117,12 +143,19 @@ startup := method(
     Game addActor(wingman_1)
     addSurviveObjective(wingman_1)
     
+    method(
     self wingman_2 := me clone
     wingman_2 setLocation( me getLocation - 30*me getRightVector + 480*me getFrontVector + 80*me getUpVector)
     wingman_2 setControlMode(Actor AUTOMATIC)
     Game addActor(wingman_2)
     addSurviveObjective(wingman_2)
+    )
 
     "DefaultMission startup end" println
+)
+
+cleanup := method(
+    briefing interrupt
+    briefing = nil
 )
 
