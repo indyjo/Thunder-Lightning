@@ -78,12 +78,12 @@ fi
 
 AC_ARG_WITH(
     io-cflags,
-    [  --with-io-cflags=PATH        Additional Io cflags],
-    IO_CFLAGS="$IO_CFLAGS $withval")
+    [  --with-io-cflags=PATH        Specify Io cflags],
+    IO_CFLAGS="$withval")
 AC_ARG_WITH(
     io-libs,
-    [  --with-io-libs=PATH          Additional Io libs],
-    IO_LIBS="$IO_LIBS $withval")
+    [  --with-io-libs=PATH          Specify Io libs],
+    IO_LIBS="$withval")
 CXXFLAGS="$CXXFLAGS $IO_CFLAGS"
 AC_SUBST(IO_LIBS)
 
@@ -95,12 +95,12 @@ PKG_CHECK_MODULES(
     AC_MSG_WARN([Warning: could not find SigC++ via pkg-config.]))
 AC_ARG_WITH(
     sigc-cflags,
-    [  --with-sigc-cflags=PATH      Additional SigC++ cflags],
-    SIGC_CFLAGS="$SIGC_CFLAGS $withval")
+    [  --with-sigc-cflags=PATH      Specify SigC++ cflags],
+    SIGC_CFLAGS="$withval")
 AC_ARG_WITH(
     sigc-libs,
-    [  --with-sigc-libs=PATH        Additional SigC++ libs],
-    SIGC_LIBS="$SIGC_LIBS $withval")
+    [  --with-sigc-libs=PATH        Specify SigC++ libs],
+    SIGC_LIBS="$withval")
 CXXFLAGS="$CXXFLAGS $SIGC_CFLAGS"
 
 AM_PATH_SDL(1.2.0, , AC_MSG_ERROR([SDL verion 1.2.0+ needed]))
