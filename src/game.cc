@@ -106,10 +106,23 @@ Game::Game(int argc, const char **argv)
         int xres = config->queryInt("Game_xres", 1024);
         int yres = config->queryInt("Game_yres", 768);
         bool fullscreen = config->queryBool("Game_fullscreen", false);
+        bool autores = config->queryBool("Game_auto_resolution", false);
+        
+        if (autores) {
+            const SDL_VideoInfo * info = SDL_GetVideoInfo();
+            xres = info->current_w;
+            yres = info->current_h;
+            char buf[16];
+            sprintf(buf, "%d", xres);
+            config->set("Game_xres", buf);
+            sprintf(buf, "%d", yres);
+            config->set("Game_yres", buf);
+        }
 
-        ls_message("Requested mode: %dx%d %s\n",
+        ls_message("Requested mode: %dx%d (%s, %s)\n",
                 xres, yres,
-                fullscreen?"(fullscreen)":"(in a window)");
+                fullscreen?"fullscreen":"in a window",
+                autores?"auto-detected":"manual");
 
         SDL_GL_SetAttribute( SDL_GL_RED_SIZE, config->queryInt("Game_red_bits", 5) );
         SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, config->queryInt("Game_green_bits", 5) );
