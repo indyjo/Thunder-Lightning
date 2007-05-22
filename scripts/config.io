@@ -32,33 +32,23 @@ Config do(
   scripts_dir := data_dir .. "/scripts"
   
   
-  // Game config
+  // Try to restore graphics and keyboard after a program crash
   Game_enable_SDL_parachute := "true"
-  Screen_mode := "0"
-  Game_grab_mouse := if(Screen_mode == "0", "false", "true")
-  Game_fullscreen := if(Screen_mode == "0", "false", "true")
-  if(Screen_mode == "0") then(
-    Game_xres       := "800"
-    Game_yres       := "600"
-  ) elseif (Screen_mode == "1") then (
-    Game_xres       := "800"
-    Game_yres       := "600"
-  ) elseif (Screen_mode == "2") then (
-    Game_xres       := "1024"
-    Game_yres       := "768"
-  ) elseif (Screen_mode == "3") then (
-    Game_xres       := "1280"
-    Game_yres       := "1024"
-  ) elseif (Screen_mode == "4") then (
-    Game_xres       := "1400"
-    Game_yres       := "1050"
-  ) elseif (Screen_mode == "5") then (
-    Game_xres       := "1600"
-    Game_yres       := "1200"
-  ) else (
-    Exception raise("Unknown screen mode" , "Encountered unknown screen mode " .. Screen_mode .. " while reading configuration")
-  )
   
+  // Whether or not the game should run fullscreen ("true") or windowed ("false")
+  Game_fullscreen := "true"
+  
+  // Only grab the mouse if the game is to run fullscreen
+  Game_grab_mouse := Game_fullscreen
+  
+  // Only autodetect resolution if the game is to run fullscreen
+  Game_auto_resolution := Game_fullscreen
+  
+  // Resolution if Game_autodetect_resolution is set to "false"
+  Game_xres       := "800"
+  Game_yres       := "600"
+  
+  // Minimum bit numbers for color and depth channels
   Game_red_bits     := "5"
   Game_green_bits   := "5"
   Game_blue_bits    := "5"
