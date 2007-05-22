@@ -33,18 +33,43 @@ AC_ARG_WITH(
 AC_SUBST(OPENGL_CFLAGS)
 AC_SUBST(OPENGL_LIBS)
 
+PKG_CHECK_MODULES(
+    OPENAL,
+    openal,
+    [],
+    AC_MSG_WARN([Warning: could not find OpenAL via pkg-config.]))
 AC_ARG_WITH(
     openal-cflags,
     [  --with-openal-cflags=PATH    Specify OpenAL cflags],
-    OPENAL_CFLAGS="$withval", OPENAL_CFLAGS="")
+    OPENAL_CFLAGS="$withval")
 AC_ARG_WITH(
     openal-libs,
     [  --with-openal-libs=PATH      Specify OpenAL libs],
-    OPENAL_LIBS="$withval", OPENAL_LIBS="-lopenal")
+    OPENAL_LIBS="$withval")
 CXXFLAGS="$CXXFLAGS $OPENAL_CFLAGS"
-LDFLAGS="$LDFLAGS $OPENAL_LDFLAGS"
+LDFLAGS="$LDFLAGS $OPENAL_LIBS"
 AC_SUBST(OPENAL_CFLAGS)
 AC_SUBST(OPENAL_LIBS)
+
+PKG_CHECK_MODULES(
+    ALUT,
+    freealut,
+    [],
+    AC_MSG_WARN([Warning: could not find ALut via pkg-config.]))
+AC_ARG_WITH(
+    alut-cflags,
+    [  --with-alut-cflags=PATH    Specify ALut cflags],
+    OPENAL_CFLAGS="$withval")
+AC_ARG_WITH(
+    alut-libs,
+    [  --with-alut-libs=PATH      Specify ALut libs],
+    ALUT_LIBS="$withval")
+CXXFLAGS="$CXXFLAGS $ALUT_CFLAGS"
+LDFLAGS="$LDFLAGS $ALUT_LIBS"
+AC_SUBST(ALUT_CFLAGS)
+AC_SUBST(ALUT_LIBS)
+
+
 
 AC_ARG_WITH(
     libpng-cflags,
