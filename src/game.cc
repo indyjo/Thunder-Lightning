@@ -986,7 +986,6 @@ void Game::actionTriggered(const char *action) {
 
     
     IoObject * result = IoState_tryToPerform(IOSTATE, self, IOSTATE->lobby, message);
-    IoState_stackRetain_(IOSTATE, result);
 }
 
 int main(int argc, char *argv[])
