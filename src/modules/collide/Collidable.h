@@ -85,15 +85,19 @@ public:
             getNoCollideRoot() == other->getNoCollideRoot();
     }
 
-    // These three methods have to be implemented by the derived class
+    // The following three methods have to be implemented by the derived class
 
     // Query the state of the transforms after delta_t seconds.
     // If delta_t == 0 this just copies the current state
-    // negative delta_t values are forbidden
+    // negative delta_t values are forbidden.
+    // @note For static collidables (without RigidBody) it is allowed to simply
+    //       return the current state.
     virtual void integrate(float delta_t, Transform * transforms) = 0;
 
     // Update the state of the object and signal that delta_t seconds have passed
     // since the last update.
+    // @note For static collidables (without RigidBody) it is allowed to ignore
+    //       this.
     virtual void update(float delta_t, const Transform * new_transforms) = 0;
 
     // Signal the object that a collision is about to happen.

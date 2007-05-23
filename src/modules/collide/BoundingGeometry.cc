@@ -44,7 +44,7 @@ std::istream & operator>> (std::istream & in, BoundingGeometry & bg) {
 
     in >> bg.bounding_radius;
 
-    in >> s; // read '('
+    expect(in, "(");
 
     while(true) {
         in >> s;
@@ -52,7 +52,7 @@ std::istream & operator>> (std::istream & in, BoundingGeometry & bg) {
         bg.domains.push_back(s);
     }
 
-    in >> s; // read '('
+    expect(in, "(");
     while(true) {
         in >> s;
         if (s == ")") break;
@@ -60,7 +60,7 @@ std::istream & operator>> (std::istream & in, BoundingGeometry & bg) {
     }
 
     in >> bg.root;
-    in >> s; // read ')'
+    expect(in, ")");
 
     check(in);
     return in;

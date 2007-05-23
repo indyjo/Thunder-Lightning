@@ -71,3 +71,21 @@ float RigidBody::collisionImpulseMagnitude(
 
     return x1 / (x2 + x5);
 }
+
+float RigidBody::collisionImpulseMagnitude(
+        float e,
+        const RigidBody & A,
+        const Vector & p, const Vector & n)
+{
+    const Matrix3 & A_I_inv = A.I_inv_wcs;
+    const Vector & A_x = A.getState().x;
+    Vector A_r = p - A_x;
+
+    float x1 = -(1+e)*(A.v*n);
+    float x2 = A.getBase().M_inv;
+    Vector x3 = (A_I_inv * (A_r % n)) % A_r;
+    float x5 = n * x3;
+
+    return x1 / (x2 + x5);
+}
+

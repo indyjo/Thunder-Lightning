@@ -121,9 +121,31 @@ public:
         torque = Vector(0,0,0);
     }
 
+    /// Calculates the magnitude of the impulse to apply on RigidBody A in
+    /// direction of Vector n and on RigidBody B in direction of -n if they
+    /// collide in global point p.
+    /// @param e Elasticity factor (1 meaning completely elastic collision,
+    ///                             0 completely unelastic)
+    /// @param A RigidBody A
+    /// @param B RigidBody B
+    /// @param p The point in global coordinate space where the collision happens
+    /// @param n The normal at the point of collision (pointing towards A?)
     static float collisionImpulseMagnitude(
         float e,
         const RigidBody & A, const RigidBody & B,
+        const Vector & p, const Vector & n);
+    
+    /// Calculates the magnitude of the impulse to apply on RigidBody A in
+    /// direction of Vector n if it collides with an infinitely heavy body
+    /// in global point p.
+    /// @param e Elasticity factor (1 meaning completely elastic collision,
+    ///                             0 completely unelastic)
+    /// @param A RigidBody A
+    /// @param p The point in global coordinate space where the collision happens
+    /// @param n The normal at the point of collision (pointing towards A?)
+    static float collisionImpulseMagnitude(
+        float e,
+        const RigidBody & A,
         const Vector & p, const Vector & n);
 
 protected:

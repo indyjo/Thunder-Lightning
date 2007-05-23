@@ -120,7 +120,16 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
         GeometryInstance & instance = *i->second;
 
         collidable->integrate(0.0f,    instance.transforms_0);
-        collidable->integrate(delta_t, instance.transforms_1);
+        if (collidable->getRigid()) {
+            collidable->integrate(delta_t, instance.transforms_1);
+        } else {
+            // non-rigid collidables are treated as static, which we enforce 
+            // by just copying the first transform.
+            int n = collidable->getBoundingGeometry()->getNumOfTransforms();
+            for(int j=0; j<n; ++j) {
+                instance.transforms_1[j] = instance.transforms_0[j];
+            }
+        }
     }
 
     while (delta_t > 0) {
