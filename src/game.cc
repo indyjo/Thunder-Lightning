@@ -937,16 +937,18 @@ void Game::nextTarget() {
     Iter next = current;
     if (debugMode()) {
     	++next;
+        if (next == list.end()) next = list.begin();
     } else {
         ++next;
+        if (next == list.end()) next = list.begin();
         while (next != current) {
-            if (next == list.end()) next = list.begin();
             if ((*next)->hasControlMode(IActor::MANUAL) &&
                 (*next)->getFaction() == current_faction)
             {
                 break;
     		}
     		++next;
+            if (next == list.end()) next = list.begin();
     	}
     }
     if (next == current) {
