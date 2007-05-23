@@ -120,12 +120,6 @@ Config do(
   Player_model_file                := Player_model_path .. "/thunder.obj"
   Player_model_bounds              := Player_model_path .. "/thunder.bounds"
 
-  // Drone configuration
-  //Drone_model_path                 := model_dir .. "/thunder"
-  //Drone_inside_model_file          := Drone_model_path .. "/thunder.obj"
-  //Drone_outside_model_file         := Drone_model_path .. "/thunder.obj"
-  //Drone_model_bounds               := Drone_model_path .. "/thunder.bounds"
-  
   Drone_model_path                 := model_dir .. "/lightning"
   Drone_skeleton                   := Drone_model_path .. "/lightning.spec"
   Drone_inside_model_file          := Drone_model_path .. "/lightning-with-interior.obj"
@@ -140,7 +134,9 @@ Config do(
   Drone_wheel_model_file           := model_dir .. "/misc/tire.obj"
 
   // Tank configuration
-  Tank_skeleton                    := model_dir .. "/newtank/Tank.spec"
+  Tank_model_path                  := model_dir .. "/newtank"
+  Tank_skeleton                    := Tank_model_path .. "/Tank.spec"
+  Tank_model_bounds                := Tank_model_path .. "/Tank.bounds"
   Tank_cannon_sound                := "cannon-shoot-1.wav"
   Tank_engine_sound_low            := "car-engine-1-loop.wav"
   Tank_engine_sound_high           := "car-engine-2-loop.wav"
