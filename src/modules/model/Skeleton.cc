@@ -160,6 +160,19 @@ void Skeleton::setBoneTransform(const std::string & name, const Transform & xfor
     bone->setTransform(xform);
 }
 
+const Transform Skeleton::getBoneTransform(const std::string & name) {
+    Ptr<Bone> bone = getBone(name);
+    if (!bone) return Transform::identity();
+    return bone->getTransform();
+}
+
+const Transform Skeleton::getEffectiveBoneTransform(const std::string & name) {
+    Ptr<Bone> bone = getBone(name);
+    if (!bone) return Transform::identity();
+    return bone->getEffectiveTransform();
+}
+
+
 void Skeleton::setRootBoneTransform(const Transform & xform) {
     if (!root_bone) return;
     root_bone->setTransform(xform);

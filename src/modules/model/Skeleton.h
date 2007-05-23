@@ -96,9 +96,21 @@ public:
     /// Sets the local transform of the bone with the given name.
     /// If the name cannot be resolved, does nothing.
     void setBoneTransform(const std::string &, const Transform &);
+    /// Gets the local transform of the bone with the given name.
+    /// If the name cannot be resolved, returns an identity Transform.
+    const Transform getBoneTransform(const std::string &);
 
-    /// Sets the local transform of the root bone.
+    /// Gets the effective transform of the bone with the given name.
+    /// The effective transform includes the translation of the pivot
+    /// point relative to the parent.
+    const Transform getEffectiveBoneTransform(const std::string &);
+
+    /// Sets the (local==global) transform of the root bone.
     void setRootBoneTransform(const Transform &);
+
+    /// Gets the (local==global) transform of the root bone.
+    inline const Transform & getRootBoneTransform()
+    { return root_bone->getTransform(); }
     
     /// Returns the bone with the given name.
     /// If the name cannot be resolved, returns 0
