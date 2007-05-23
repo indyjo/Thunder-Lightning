@@ -40,14 +40,14 @@ Mission do(
   
   start := method(
     if (status == UNSTARTED,
-      self println
+      //self println
       self startup
       setStatus(RUNNING)
       completionWatchdog start(self)
     )
     status
   )
-  abort :=   method( if(status == RUNNING, endWithStatus(ABORTING)) ; status )
+  abort :=   method( if(status == RUNNING, endWithStatus(ABORTED)) ; status )
   succeed := method( if(status == RUNNING, endWithStatus(SUCCESS)) ; status )
   fail :=    method( if(status == RUNNING, endWithStatus(FAILURE)) ; status )
   

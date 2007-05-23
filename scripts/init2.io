@@ -5,6 +5,9 @@ Importer addSearchPath(path)
 
 if(Number hasSlot("pi") not, Number pi := 2 * 0 acos)
 if(Number hasSlot("e") not, Number e := 1 exp)
+Object rand2 := method(2*(Random value)-1)
+Object randvec := method(vector(rand2,rand2,rand2))
+
 
 Object oldDoFile := Object getSlot("doFile")
 Object doFile := method(file,
@@ -42,8 +45,5 @@ complete := method(str, context,
   
   return l
 )
-
-rand2 := method(2*(Random value)-1)
-randvec := method(vector(rand2,rand2,rand2))
 
 "Io: Exiting init2.io\n" print
