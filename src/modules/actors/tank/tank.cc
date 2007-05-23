@@ -112,6 +112,13 @@ Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
     std::string skeletonfile = thegame->getConfig()->query("Tank_skeleton");
     setSkeleton(new Skeleton(thegame, skeletonfile));
     
+    // Prepare collidable
+    setBoundingGeometry(
+        thegame->getCollisionMan()->queryGeometry(
+            thegame->getConfig()->query("Tank_model_bounds")));
+    // Don't set a rigid body, this is a static collidable!
+    setActor(this);
+    
     setArmament(new Armament(this, 0));
     
     
@@ -146,22 +153,35 @@ Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
     sound_low->setLooping(true);
     //sound_low->setGain(0.0001);
     sound_low->setReferenceDistance(5);
-    sound_low->play(thegame->getSoundMan()->querySound(
-            thegame->getConfig()->query("Tank_engine_sound_low")));
 
     sound_high = thegame->getSoundMan()->requestSource();
     sound_high->setPosition(p);
     sound_high->setLooping(true);
     sound_high->setReferenceDistance(15);
     //sound_high->setGain(0.0001);
-    sound_high->play(thegame->getSoundMan()->querySound(
-            thegame->getConfig()->query("Tank_engine_sound_high")));
 
     mapArmamentEvents();
     mapTargeterEvents();
 }
 
 Tank::~Tank() {
+}
+
+void Tank::onLinked() {
+    thegame->getCollisionMan()->add(this);
+    
+    sound_low->play(thegame->getSoundMan()->querySound(
+            thegame->getConfig()->query("Tank_engine_sound_low")));
+    sound_high->play(thegame->getSoundMan()->querySound(
+            thegame->getConfig()->query("Tank_engine_sound_high")));
+            
+}
+
+void Tank::onUnlinked() {
+    thegame->getCollisionMan()->remove(this);
+
+    sound_low->stop();
+    sound_high->stop();
 }
 
 void Tank::action() {
@@ -365,3 +385,16 @@ void Tank::shoot() {
     thegame->addActor(new Explosion(thegame, p_bullet, 0.5f, 0.0f));
     */
 }
+
+void Tank::integrate(float delta_t, Transform * transforms) {
+    // as this is a "static" actor, we only encode the current state
+    transforms[0] = skeleton->getRootBoneTransform();
+    transforms[1] = skeleton->getEffectiveBoneTransform("Turret");
+    transforms[2] = skeleton->getEffectiveBoneTransform("Cannon");
+    transforms[3] = skeleton->getEffectiveBoneTransform("MachineGun");
+}
+
+void Tank::update(float delta_t, const Transform * new_transforms) {
+    // as this is a "static" actor, we can ignore this
+}
+

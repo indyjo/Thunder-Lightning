@@ -9,17 +9,21 @@
 #include <modules/engines/tankengine.h>
 #include <modules/engines/controls.h>
 #include <modules/weaponsys/Armament.h>
+#include <modules/collide/CollisionManager.h>
 
 //struct TankBrain;
 class SoundSource;
 class EventSheet;
 class Targeter;
 
-class Tank : public SimpleActor, virtual public SigObject {
+class Tank : public SimpleActor, virtual public Collide::Collidable, virtual public SigObject {
 public:
     Tank(Ptr<IGame> thegame, IoObject * io_peer=0);
     ~Tank();
 
+    virtual void onLinked();
+    virtual void onUnlinked();
+    
     virtual void action();
 
     virtual void draw();
@@ -37,6 +41,10 @@ public:
 
     virtual bool hasControlMode(ControlMode);
     virtual void setControlMode(ControlMode);
+
+    // Collidable implementation
+    virtual void integrate(float delta_t, Transform * transforms);
+    virtual void update(float delta_t, const Transform * new_transforms);
 
 private:
     JRenderer * renderer;
