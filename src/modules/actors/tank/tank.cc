@@ -119,7 +119,7 @@ Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
     // Don't set a rigid body, this is a static collidable!
     setActor(this);
     
-    setArmament(new Armament(this, 0));
+    setArmament(new Armament(this, this));
     
     
     Ptr<Cannon> cannon=new Cannon(thegame);
