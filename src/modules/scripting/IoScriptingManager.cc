@@ -71,11 +71,11 @@ namespace {
 	    for(Iter i=state->coupled_objects.begin(); i!=state->coupled_objects.end(); ++i) {
 	        if (i->first->getRefs() >= 2) {
 	            IoObject_shouldMark(i->second);	        
-                ls_message("C++ object @%p has %d refs so IoObject @%p->%p gets marked\n",
-                    i->first, i->first->getRefs(), i->second, i->second->object);
+                //ls_message("C++ object @%p has %d refs so IoObject @%p->%p gets marked\n",
+                //    i->first, i->first->getRefs(), i->second, i->second->object);
 	        } else {
-                ls_message("C++ object @%p has %d refs so IoObject @%p->%p gets NOT marked\n",
-                    i->first, i->first->getRefs(), i->second, i->second->object);
+                //ls_message("C++ object @%p has %d refs so IoObject @%p->%p gets NOT marked\n",
+                //    i->first, i->first->getRefs(), i->second, i->second->object);
 	        }
 	    }
 	}
@@ -83,14 +83,14 @@ namespace {
 	// Callback for the lifetime coupler Io object in every IoStateEx.
 	// Called whenever one of the coupled objects has been free'd
 	void lifetime_coupler_notification(IoObject *self, IoObject *removed) {
-	    ls_message("Notification: %p collected.\n", removed);
+	    //ls_message("Notification: %p collected.\n", removed);
 	    // Delete the entry with the removed object from the list.
 	    typedef std::vector<std::pair<Object*,IoObject*> >::iterator Iter;
 	    IoStateEx *state = reinterpret_cast<IoStateEx*>(IOSTATE);
 	    for(Iter i=state->coupled_objects.begin(); i!=state->coupled_objects.end(); ++i) {
 	        if (i->second == removed) {
-                ls_message("Coupling between C++ object @%p and IoObject @%p->%p removed because the latter was free'd.\n",
-                    i->first, i->second, i->second->object);
+                //ls_message("Coupling between C++ object @%p and IoObject @%p->%p removed because the latter was free'd.\n",
+                //    i->first, i->second, i->second->object);
 	            state->coupled_objects.erase(i);
 	            break;
 	        }
@@ -158,8 +158,8 @@ void IoStateEx_coupleLifetime(Object* cpp_object, IoObject* io_object) {
     state->coupled_objects.push_back(std::make_pair(cpp_object, io_object));
     IoObject_addListener_(io_object, state->lifetime_coupler);
     IoObject_addingRef_(state->lifetime_coupler, io_object);
-    ls_message("Coupling lifetime between C++ object @%p and IoObject @%p->%p\n",
-        cpp_object, io_object, io_object->object);
+    //ls_message("Coupling lifetime between C++ object @%p and IoObject @%p->%p\n",
+    //    cpp_object, io_object, io_object->object);
 }
 
 void IoStateEx_removeCoupling(Object* cpp_object, IoObject* io_object) {
@@ -168,8 +168,8 @@ void IoStateEx_removeCoupling(Object* cpp_object, IoObject* io_object) {
     IoState* io_state = IoObject_state(io_object);
     IoStateEx* state = reinterpret_cast<IoStateEx*>(io_state);
     
-    ls_message("De-coupling lifetime between C++ object @%p and IoObject @%p->%p\n",
-        cpp_object, io_object, io_object->object);
+    //ls_message("De-coupling lifetime between C++ object @%p and IoObject @%p->%p\n",
+    //    cpp_object, io_object, io_object->object);
     for(Iter i=state->coupled_objects.begin(); i!=state->coupled_objects.end(); ++i) {
         if (i->first == cpp_object && i->second == io_object) {
             state->coupled_objects.erase(i);

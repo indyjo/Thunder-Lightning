@@ -322,7 +322,7 @@ void SmartMissile2::interceptTarget(float delta_t) {
     Vector d_error = d_error_dt.differentiate(error, delta_t);
     Vector I_error = I_error_dt.integrate(error, delta_t);
     
-    ls_message("missile %p acceleration angular: ", this); los_rotation.dump();
+    //ls_message("missile %p acceleration angular: ", this); los_rotation.dump();
     
     Ptr<IConfig> config = thegame->getConfig();
     getControls()->setVector("angular_accel",
