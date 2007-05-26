@@ -39,7 +39,7 @@ template<class T>
 void unwrap_raw(IoObject *self, T *out, int rows, int cols) {
     IoState_pushRetainPool(IOSTATE);
     IoObject *matrix = IoObject_getSlot_(IOSTATE->lobby, IOSYMBOL("Matrix"));
-    ls_message("Got matrix? Object: %p\n", matrix);
+    //ls_message("Got matrix? Object: %p\n", matrix);
     IOASS(matrix, "Could not find Matrix proto.")
     IOASS(IoObject_rawHasProto_(self, matrix), "Not a Matrix object")
     IOASS(IoNumber_asInt(IoObject_getSlot_(self,IOSYMBOL("rows"))) == rows
