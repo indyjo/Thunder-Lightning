@@ -108,7 +108,7 @@ MissionManager := Object clone do(
   introMission doFile(path .. "/mission_intro.io")
   
   missionEnded := method(mission, status,
-    "Mission ENDED" say
+    ("Mission ended: " .. status) say
     if (introMission == mission,
       defaultMission me := introMission me
       defaultMission start
@@ -116,6 +116,11 @@ MissionManager := Object clone do(
   )
   
   introMission addListener(thisContext)
+  defaultMission addListener(thisContext)
+
+
+  #debugMission2 addListener(thisContext)
+  #debugMission2 start
   introMission start
   
   defaultMission addListener(thisContext)
