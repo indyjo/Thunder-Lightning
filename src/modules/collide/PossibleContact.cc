@@ -1,14 +1,82 @@
 #include <modules/math/Collide.h>
 
+#include <string>
+#include <cassert>
+#include <cstdio>
+
+#include <TargetInfo.h>
+
 #include "Contact.h"
 #include "Primitive.h"
 #include "PossibleContact.h"
-#include <cassert>
-#include <TargetInfo.h>
+
+
+//#define DEBUG_MESSAGES
+
+#ifdef DEBUG_MESSAGES
+    #define debug_msg(...) ls_message(__VA_ARGS__)
+#else
+    #define debug_msg(...)
+#endif
+
 
 using namespace std;
 
 namespace {
+
+std::string dump_ivector(const Collide::IVector & v) {
+    char buf[256];
+    sprintf(buf, "%.2f(%.3f) %.2f(%.3f) %.2f(%.3f)",
+        v[0].middle(),v[0].length(),
+        v[1].middle(),v[1].length(),
+        v[2].middle(),v[2].length());
+    return buf;
+}
+
+std::string dump_itransform(const Collide::ITransform & x) {
+    char buf[256];
+    sprintf(buf, "[quat: %.2f(%.3f) %s] vec: %s",
+        x.quat().real().middle(), x.quat().real().length(),
+        dump_ivector(x.quat().imag()).c_str(),
+        dump_ivector(x.vec()).c_str());
+    return buf;
+}
+
+std::string dump_transform(const Transform & x) {
+    char buf[256];
+    sprintf(buf, "[quat: %.2f %.2f %.2f %.2f] vec: %.2f %.2f %.2f",
+        x.quat().real(),
+        x.quat().imag()[0],
+        x.quat().imag()[1],
+        x.quat().imag()[2],
+        x.vec()[0],
+        x.vec()[1],
+        x.vec()[2]);
+    return buf;
+}
+
+std::string dump_vector_transform(const std::vector<Transform> &list) {
+    typedef std::vector<Transform> List;
+    typedef List::const_iterator Iter;
+    std::string result;
+    for( Iter i=list.begin(); i!= list.end(); ++i) {
+        result += (i==list.begin())?"[":" [";
+        result += dump_transform(*i);
+        result += "]";
+    }
+    return result;
+}
+
+std::string dump_transform_interval(const Collide::TransformInterval & ti) {
+    char buf[1024];
+    sprintf(buf, "time_0: %s time_1: %s -> xform: %s",
+        dump_vector_transform(ti.time_0).c_str(),
+        dump_vector_transform(ti.time_1).c_str(),
+        dump_itransform(ti.interval).c_str());
+    return buf;
+}
+    
+
 template<class T>
 XTransform<T> get_transform(const T & u, int i,
                             Collide::GeometryInstance * instance)
@@ -143,6 +211,7 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
     new_contact.partners[0].domain = partners[1].domain;
     new_contact.ti[0] = ti[1];
 
+    debug_msg("subdivide() contact_%d\n", identifier);
     if (partners[1].isBox()) {
         assert(new_contact.partners[1].type == partners[0].type);
         const BoundingNode & node = *partners[1].data.node;
@@ -150,6 +219,9 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
         case BoundingNode::LEAF:
             new_contact.partners[0].type = ContactPartner::TRIANGLE;
             for(int i=0; i<node.data.leaf.n_triangles*3; i+=3) {
+                new_contact.newIdentifier();
+                debug_msg(" -> triangle contact_%d\n", new_contact.identifier);
+
                 new_contact.partners[0].data.triangle =
                     & node.data.leaf.vertices[i];
                 assert(new_contact.partners[1].type == partners[0].type);
@@ -161,6 +233,9 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
         case BoundingNode::INNER:
             new_contact.partners[0].type = ContactPartner::NODE;
             for(int i=0; i<2; i++) {
+                new_contact.newIdentifier();
+                debug_msg(" -> box contact_%d\n", new_contact.identifier);
+                
                 new_contact.partners[0].data.node = node.data.inner.children[i];
                 assert(new_contact.partners[1].type == partners[0].type);
 			    assert(new_contact.partners[0].instance->collidable->getActor()
@@ -169,6 +244,7 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
             }
             break;
         case BoundingNode::NEWDOMAIN:
+            debug_msg(" -> box contact_%d with new domain %d\n", new_contact.identifier, node.data.domain.domain_id);
             new_contact.partners[0].type = ContactPartner::NODE;
             new_contact.partners[0].data.node = node.data.domain.child;
             new_contact.partners[0].domain = node.data.domain.domain_id;
@@ -178,10 +254,14 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
             q.push(new_contact);
             break;
         case BoundingNode::TRANSFORM:
+            debug_msg(" -> box contact_%d with new transform %d\n", new_contact.identifier, node.data.transform.transform_id);
             new_contact.partners[0].type = ContactPartner::NODE;
             new_contact.partners[0].data.node = node.data.transform.child;
             new_contact.partners[0].transform = node.data.transform.transform_id;
-            {
+            
+            // Put the new transform on the stack, unless it is transform 0 which
+            // is preloaded.
+            if (new_contact.partners[0].transform != 0) {
 	            int trans = new_contact.partners[0].transform;
 	            GeometryInstance * instance = new_contact.partners[0].instance;
 	            Transform new_time_0 = interp( new_contact.t0,
@@ -190,8 +270,12 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
 	            Transform new_time_1 = interp( new_contact.t1,
 	            	instance->transforms_0 [trans],
 	            	instance->transforms_1 [trans]);
+	            debug_msg("  time_0: %s\n", dump_vector_transform(new_contact.ti[0].time_0).c_str());
+	            debug_msg("  time_1: %s\n", dump_vector_transform(new_contact.ti[0].time_1).c_str());
 	            new_contact.ti[0].time_0.push_back( new_time_0 );
 	            new_contact.ti[0].time_1.push_back( new_time_1 );
+	            debug_msg("  ->time_0: %s\n", dump_vector_transform(new_contact.ti[0].time_0).c_str());
+	            debug_msg("  ->time_1: %s\n", dump_vector_transform(new_contact.ti[0].time_1).c_str());
             }
             assert(new_contact.partners[1].type == partners[0].type);
 		    assert(new_contact.partners[0].instance->collidable->getActor()
@@ -203,6 +287,7 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
         }
     } else {
         // isSphere() == true
+        debug_msg(" -> box contact_%d from sphere\n", new_contact.identifier);
         new_contact.partners[0].type = ContactPartner::NODE;
         new_contact.partners[0].data.node = partners[1].data.geom->getRootNode();
         assert(new_contact.partners[1].type == partners[0].type);
@@ -217,13 +302,13 @@ bool PossibleContact::shouldDivideTime(const Hints & hints) {
         if (partners[1].isSphere())
             return false;
         if (partners[1].isBox())
-            return hints.box.exactness > 0.5*hints.box.max_box_dim;
+            return hints.box.exactness > 8*0.5*hints.box.max_box_dim;
         if (partners[1].isTriangle())
             return hints.triangle_sphere.must_divide_time ||
                    hints.triangle_sphere.exactness > 0.5f;
     } else if (partners[0].isBox()) {
         if (partners[1].isSphere())
-            return hints.box.exactness > 0.5*hints.box.max_box_dim;
+            return hints.box.exactness > 8*0.5*hints.box.max_box_dim;
         if (partners[1].isBox())
             return hints.box.exactness > 0.5*hints.box.max_box_dim;
         if (partners[1].isTriangle())
@@ -249,8 +334,9 @@ bool PossibleContact::shouldDivideTime(const Hints & hints) {
 
 void PossibleContact::divideTime(std::priority_queue<PossibleContact> & q) {
     float t_mid = 0.5f*(t0+t1);
-    //ls_message("dividing time: %f-%f (new midpoint:%f)\n", t0, t1, t_mid);
     PossibleContact new_0, new_1;
+    debug_msg("contact_%d dividing time: %f-%f (new midpoint:%f)\n", identifier, t0, t1, t_mid);
+    debug_msg("New contacts: contact_%d, contact_%d\n", new_0.identifier, new_1.identifier);
     ti[0].subdivide(new_0.ti[0], new_1.ti[0]);
     ti[1].subdivide(new_0.ti[1], new_1.ti[1]);
     new_0.t0 = t0;
@@ -276,7 +362,7 @@ bool PossibleContact::collide(float delta_t, Hints & hints) {
 	for (int i=0; i<2; ++i) {
 		actor = partners[i].instance->collidable->getActor();
 		if (actor->getTargetInfo()) {
-			ls_message("partner %d: %s (%s)\n", i,
+			debug_msg("partner %d: %s (%s)\n", i,
 				partners[i].isTriangle()?"triangle":(partners[i].isBox()?"box":"sphere"),
 				actor->getTargetInfo()->getTargetName().c_str());
 		}
@@ -284,19 +370,20 @@ bool PossibleContact::collide(float delta_t, Hints & hints) {
 	*/
     /*
     if (t1-t0 < 1e-7) {
-        ls_message("Time is equal! Cancelling collision test.\n");
+        debug_msg("Time is equal! Cancelling collision test.\n");
         return false;
     }
     */
     
-    //ls_message("---------- %f - %f -----------\n", t0, t1);
+    //debug_msg("---------- %f - %f -----------\n", t0, t1);
     // Sphere / Sphere test
     if (partners[0].isSphere() && partners[1].isSphere()) {
-        Vector p[2], v[2];
+        Vector p[2], q[2], v[2];
         float r[2];
         for(int i=0; i<2; i++) {
-            p[i] = global_transform(ti[i].time_0).vec();
-            v[i] = global_transform(ti[i].time_1).vec() - p[i];
+            p[i] = global_transform(ti[i].time_0).vec(); 
+            q[i] = global_transform(ti[i].time_1).vec();
+            v[i] = (q[i] - p[i]) / delta_t;
             r[i] = partners[i].instance->collidable->
                 getBoundingGeometry()->getBoundingRadius();
         }
@@ -333,6 +420,7 @@ bool PossibleContact::collide(float delta_t, Hints & hints) {
     ITransform & T0 = ti[0].interval;
     ITransform & T1 = ti[1].interval;
 
+    debug_msg("PossibleContact contact_%d performing collision test:\n", identifier);
     if (partners[0].isBox() && partners[1].isBox()) {
         IVector orient0[3], orient1[3];
         orient0[0] = T0.quat().rot(IVector(1,0,0));
@@ -352,25 +440,58 @@ bool PossibleContact::collide(float delta_t, Hints & hints) {
     }
 
     if (partners[0].isBox() && partners[1].isSphere()) {
+        debug_msg("Box <-> Sphere test.\n");
         IVector orient0[3];
         orient0[0] = T0.quat().rot(IVector(1,0,0));
         orient0[1] = T0.quat().rot(IVector(0,1,0));
         orient0[2] = T0.quat().rot(IVector(0,0,1));
+        
+        IVector box_pos = T0((IVector) partners[0].data.node->box.pos);
+        debug_msg("  time interval: %f %f\n", t0, t1);
+        debug_msg("  box pos:  %s\n", dump_ivector(box_pos).c_str());
+        debug_msg("      dim:  %.3f %.3f %.3f\n",
+            partners[0].data.node->box.dim[0],
+            partners[0].data.node->box.dim[1],
+            partners[0].data.node->box.dim[2]);
+        debug_msg("     orig:  %.3f %.3f %.3f\n",
+            partners[0].data.node->box.pos[0],
+            partners[0].data.node->box.pos[1],
+            partners[0].data.node->box.pos[2]);
+        debug_msg("    xform: %s\n", dump_transform_interval(ti[0]).c_str());
+        debug_msg("  orient_x: %s\n", dump_ivector(orient0[0]).c_str());
+        debug_msg("  orient_y: %s\n", dump_ivector(orient0[1]).c_str());
+        debug_msg("  orient_z: %s\n", dump_ivector(orient0[2]).c_str());
+        
+        debug_msg("  sphr pos: %s\n", dump_ivector(T1.vec()).c_str());
+        debug_msg("       rad: %f\n", partners[1].data.geom->getBoundingRadius());
+        debug_msg("    xform: %s\n", dump_transform_interval(ti[1]).c_str());
 
         // box / sphere intersection test
-        return intersectBoxSphere(
+        bool intersect = intersectBoxSphere(
             partners[0].data.node->box,
-            T0((IVector) partners[0].data.node->box.pos), orient0,
+            box_pos, orient0,
             partners[1].data.geom->getBoundingRadius(), T1.vec(),
             hints);
+        debug_msg("   \\_,-> %s\n", intersect?"intersect":"no intersect");
+        return intersect;
     }
 
     if (partners[0].isTriangle() && partners[1].isSphere()) {
         // triangle / sphere intersection test
-        return intersectTriangleSphere(
+        debug_msg("Triangle <-> Sphere test.\n");
+        debug_msg("  time interval: %f %f\n", t0, t1);
+        debug_msg("  corner 0: %s\n", dump_ivector(T0(partners[0].data.triangle[0])).c_str());
+        debug_msg("  corner 1: %s\n", dump_ivector(T0(partners[0].data.triangle[1])).c_str());
+        debug_msg("  corner 2: %s\n", dump_ivector(T0(partners[0].data.triangle[2])).c_str());
+        debug_msg("    xform: %s\n", dump_transform_interval(ti[0]).c_str());
+        debug_msg("  sphr pos: %s\n", dump_ivector(T1.vec()).c_str());
+        debug_msg("       rad: %f\n", partners[1].data.geom->getBoundingRadius());
+        debug_msg("    xform: %s\n", dump_transform_interval(ti[1]).c_str());
+        bool intersect = intersectTriangleSphere(
             partners[0].data.triangle, T0,
             partners[1].data.geom->getBoundingRadius(), T1.vec(),
             hints);
+        return intersect;
     }
 
     if (partners[0].isTriangle() && partners[1].isTriangle()) {
@@ -520,14 +641,14 @@ bool PossibleContact::makeContact(Contact & c, float delta_t,
         }
     }
 
-    //ls_message("p : %f %f %f\n",
+    //debug_msg("p : %f %f %f\n",
     //    c_pos[0], c_pos[1], c_pos[2]);
-    //ls_message("n : %f %f %f\n",
+    //debug_msg("n : %f %f %f\n",
     //    normal[0], normal[1], normal[2]);
     for(int i=0; i<2; i++) {
         Vector c_rel = T0[i].inv()(c_pos);
         v[i] = (T1[i](c_rel) - c_pos) / (t1-t0);
-        //ls_message("v[%d]: %f %f %f\n", i,
+        //debug_msg("v[%d]: %f %f %f\n", i,
         //    v[i][0], v[i][1], v[i][2]);
     }
 

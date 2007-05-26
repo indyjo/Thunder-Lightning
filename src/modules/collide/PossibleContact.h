@@ -21,6 +21,15 @@ struct TransformInterval {
 };
 
 struct PossibleContact {
+    // Debug identifier to trace contacts
+    inline PossibleContact() {
+        newIdentifier();
+    }
+    inline void newIdentifier() {
+        static int _next_identifier = 0;
+        identifier = _next_identifier++;
+    }
+    int identifier;
     float t0, t1;
     
     ContactPartner partners[2];
