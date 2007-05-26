@@ -14,10 +14,12 @@ addKillObjective := method(target,
 addSurviveObjective := method(target,
     if (?(anyObjective) isNil,
         self anyObjective := AnyObjective clone
+        objectives append(anyObjective)
+        anyObjective setObjectives(list())
     )
     obj := SurviveObjective clone
     obj setTarget(target)
-    anyObjective objectives append(target)
+    anyObjective objectives append(obj)
 )
 
 Briefing := coro(dummy,

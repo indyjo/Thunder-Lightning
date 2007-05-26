@@ -3,20 +3,11 @@ Mission do(
   CompletionWatchdog := coro(mission,
     loop(
       sleep(1)
-      any_undecided := false
-      any_missed := false
-      mission objectives foreach(o,
-        o evaluate switch(
-          Objective UNDECIDED, any_undecided = true; break,
-          Objective MISSED, any_missed = true; break,
-          nil
-        )
-      )
-      if (any_missed,
+      states := mission objectives map(evaluate)
+      if (states contains(Objective MISSED)) then(
         mission fail
         break
-      )
-      if (any_undecided not,
+      ) elseif (states contains(Objective UNDECIDED) not) then(
         mission succeed
         break
       )
@@ -122,8 +113,6 @@ MissionManager := Object clone do(
   #debugMission2 addListener(thisContext)
   #debugMission2 start
   introMission start
-  
-  defaultMission addListener(thisContext)
 )
 
 
