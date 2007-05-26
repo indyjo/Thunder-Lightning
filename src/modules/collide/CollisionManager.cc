@@ -1,3 +1,5 @@
+#include <string>
+#include <typeinfo>
 #include <fstream>
 #include <cstdio>
 #include <modules/math/Interval.h>
@@ -11,6 +13,15 @@
 #include "Primitive.h"
 
 #include "CollisionManager.h"
+
+//#define DEBUG_MESSAGES
+
+#ifdef DEBUG_MESSAGES
+    #define debug_msg(...) ls_message(__VA_ARGS__)
+#else
+    #define debug_msg(...)
+#endif
+
 
 using namespace std;
 
@@ -154,17 +165,26 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
         for(ContactIter i=possible_contacts.begin(); i!= possible_contacts.end(); i++) {
         	if (i->first->noCollideWith(i->second))
         		continue;
+            if (!i->first->getRigid() && !i->second->getRigid())
+                continue;
             possible.setPartner(0, geom_instances[i->first]);
             possible.setPartner(1, geom_instances[i->second]);
             queue.push(possible);
         }
+        
+        debug_msg("%d elements in queue.\n", (int)queue.size());
 
         // We have fed our queue and the main algorithm can start now.
         found_contacts = 0;
         stop_time = delta_t;
         bool found = false;
-        int iters_left = 128;
-        while(!queue.empty() && iters_left-->0) {
+        int max_iters = 2048;
+        int iter_count = 0;
+        while(!queue.empty()) {
+            if (iter_count++ == max_iters) {
+                ls_warning("Aborting collsion test because of number of iterations.\n");
+                break;
+            }
             PossibleContact pc(queue.top());
             queue.pop();
 
@@ -175,7 +195,13 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
                 continue;
             }
 
-            if (pc.collide(delta_t, hints)) {
+            bool collision = pc.collide(delta_t, hints);
+            debug_msg("%s collision test %s <-> %s\n",
+                collision?"positive":"negative",
+                pc.partners[0].isTriangle()?"Triangle":(pc.partners[0].isBox()?"Box":"Sphere"),
+                pc.partners[1].isTriangle()?"Triangle":(pc.partners[1].isBox()?"Box":"Sphere"));
+            
+            if (collision) {
                 if (pc.shouldDivideTime(hints)) {
                     pc.divideTime(queue);
                     continue;
@@ -212,7 +238,7 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
                             GeometryInstance *instance = partner.instance;
                             Ptr<BoundingGeometry> bounding = instance->collidable->getBoundingGeometry();
                             Transform & transform = instance->transforms_0[partner.transform];
-                            //ls_message("transform[%d]: quat(%f, %f, %f, %f)\n",
+                            //debug_msg("transform[%d]: quat(%f, %f, %f, %f)\n",
                             //    j, transform.quat().real(),transform.quat().imag()[0],transform.quat().imag()[1],transform.quat().imag()[2]);
                             //visualize_geometry(game, bounding->getRootNode(), instance);
                         }
@@ -235,15 +261,14 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
                         break;
 
                 } else {
-                    //ls_warning("Sorry, this ain't no first contact.\n");
+                    ls_warning("Sorry, this ain't no first contact.\n");
                 }
             }
         }
         
-        if (iters_left==0) {
-        	ls_warning("Aborted collision detection!\n");
-        }
-
+        debug_msg("Finished collision detection after %d iterations with %d contacts\n",
+            iter_count-1, found_contacts);
+        
         // If there was no collision we integrate up to delta_t and break
         if (found_contacts == 0) {
             for(GeomIter i=geom_instances.begin(); i!=geom_instances.end(); i++) {
