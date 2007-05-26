@@ -21,6 +21,7 @@ public:
 
     virtual void shoot(const Vector &pos, const Vector &vec, const Vector &dir);
     virtual Ptr<IActor> getSource();
+    virtual Ptr<Collide::Collidable> asCollidable();
     
     inline void setTTL(double ttl) { this->ttl = ttl; }
 

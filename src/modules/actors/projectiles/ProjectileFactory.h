@@ -10,7 +10,7 @@ typedef IFactory3<IProjectile, Ptr<IGame>, Ptr<IActor>, Ptr<IActor> > IProjectil
 
 struct ProjectileFactories {
     IProjectileFactory * dumb_missile_factory;
-    IProjectileFactory * smart_missile_factory;
+    //IProjectileFactory * smart_missile_factory;
     IProjectileFactory * smart_missile_2_factory;
 
     ProjectileFactories();

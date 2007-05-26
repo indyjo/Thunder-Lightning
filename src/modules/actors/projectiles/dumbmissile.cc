@@ -4,6 +4,7 @@
 #include <interfaces/ITerrain.h>
 #include <modules/actors/fx/explosion.h>
 #include <modules/clock/clock.h>
+#include <modules/collide/Collidable.h>
 #include <modules/model/modelman.h>
 #include <sound.h>
 #include "dumbmissile.h"
@@ -98,6 +99,8 @@ void DumbMissile::shoot(
 Ptr<IActor> DumbMissile::getSource() {
 	return source;
 }
+
+Ptr<Collide::Collidable> DumbMissile::asCollidable() { return 0; }
 
 
 #define NUM_SPARKS 25

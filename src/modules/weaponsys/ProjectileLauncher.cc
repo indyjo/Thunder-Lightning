@@ -1,3 +1,4 @@
+#include <modules/collide/Collidable.h>
 #include <modules/scripting/IoScriptingManager.h>
 #include <modules/scripting/mappings.h>
 #include "Armament.h"
@@ -11,6 +12,11 @@ bool ProjectileLauncher::canFire() {
 
 void ProjectileLauncher::onFire() {
     Ptr<IProjectile> projectile = factory->create(game, targeter->getCurrentTarget(), armament->getSourceActor());
+    
+    Ptr<Collide::Collidable> collidable = projectile->asCollidable();
+    if (collidable) {
+        collidable->setNoCollideParent(armament->getNoCollideParent());
+    }
 
     Ptr<IPositionProvider> & position = barrels[next_barrel].position;
     Vector start = position->getLocation();

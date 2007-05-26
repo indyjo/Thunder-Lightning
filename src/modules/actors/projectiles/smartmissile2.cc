@@ -174,6 +174,10 @@ Ptr<IActor> SmartMissile2::getSource() {
 	return source;
 }
 
+Ptr<Collide::Collidable> SmartMissile2::asCollidable() {
+    return this;
+}
+
 int SmartMissile2::getNumViews() { return 5; }
 
 Ptr<IView> SmartMissile2::getView(int n) { 

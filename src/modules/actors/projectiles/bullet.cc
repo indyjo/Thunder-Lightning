@@ -54,6 +54,7 @@ void Bullet::action()
 
     Vector p_old = getLocation();
     SimpleActor::action();
+    engine->applyLinearAcceleration(Vector(0,-9.81,0));
     Vector p = getLocation();
 
     if (terrain->lineCollides(p_old, p, &p)) {
@@ -91,6 +92,10 @@ void Bullet::shoot(const Vector &pos, const Vector &vec, const Vector &dir)
 
 Ptr<IActor> Bullet::getSource() {
 	return source;
+}
+
+Ptr<Collide::Collidable> Bullet::asCollidable() {
+    return this;
 }
 
 void Bullet::integrate(float delta_t, Transform * transforms) {

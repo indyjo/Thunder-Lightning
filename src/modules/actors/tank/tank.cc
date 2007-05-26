@@ -124,10 +124,11 @@ Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
     
     Ptr<Cannon> cannon=new Cannon(thegame);
     cannon->addBarrel(new SkeletonProvider(skeleton, "CannonTip", "CannonTip", "CannonTipFront"));
-    cannon->factor = 10;
+    cannon->factor = thegame->getConfig()->queryInt("Tank_cannon_factor", 10);
     armament->addWeapon(0,cannon);
     
     Ptr<Cannon> machinegun = new Cannon(thegame, "Vulcan", 1500, 4.0/60, false);
+    machinegun->factor = thegame->getConfig()->queryInt("Tank_vulcan_factor", 1);
     machinegun->addBarrel(new SkeletonProvider(skeleton, "MGTopRight", "CannonTip", "CannonTipFront"));
     machinegun->addBarrel(new SkeletonProvider(skeleton, "MGBottomLeft", "CannonTip", "CannonTipFront"));
     machinegun->addBarrel(new SkeletonProvider(skeleton, "MGTopLeft", "CannonTip", "CannonTipFront"));
