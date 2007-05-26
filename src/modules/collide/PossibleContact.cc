@@ -531,7 +531,7 @@ bool PossibleContact::makeContact(Contact & c, float delta_t,
         //    v[i][0], v[i][1], v[i][2]);
     }
 
-    if ((v[0]-v[1]) * normal >= 0) return false;
+    //if ((v[0]-v[1]) * normal >= 0) return false;
 
     for(int i=0; i<2; i++) {
         c.collidables[i] = partners[i].instance->collidable;
