@@ -374,6 +374,7 @@ Tank do (
         weapon release
 
         candidates := Game queryActorsInSphere(me getLocation, 2000)
+        candidates selectInPlace(him, me dislikes(him))
         #"Candidates are #{candidates map(type)}" interpolate println
         candidates foreach(c,
           if (c type == "Drone",
