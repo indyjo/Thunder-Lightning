@@ -350,7 +350,7 @@ Tank do (
     loop(
       if (target isNil not,
         dist := ((target getLocation) - (me getLocation)) len
-        if(target isAlive and dist <= 5000,
+        if(target isAlive and dist <= 2000,
           // still wrong: doesn't take into account the current turret/cannon state
           delta_p = ((target getLocation) - (me getLocation + 2.473674*(me getUpVector)))
           delta_p_norm = delta_p norm
@@ -361,7 +361,7 @@ Tank do (
           self eta := delta_p len / (bullet_speed - delta_v dot(delta_p_norm))
           aa target_dir := delta_v_xy + delta_p_norm*bullet_speed + vector(0,0.5*9.81*eta*eta,0)
 
-          if(aa error isNil not and aa error * delta_p len < 10 and delta_p len <= 4000,
+          if(aa error isNil not and aa error * delta_p len < 8 and delta_p len <= 1500,
             weapon trigger
           ,
             weapon release
@@ -373,7 +373,7 @@ Tank do (
       if (target isNil,
         weapon release
 
-        candidates := Game queryActorsInSphere(me getLocation, 5000)
+        candidates := Game queryActorsInSphere(me getLocation, 2000)
         #"Candidates are #{candidates map(type)}" interpolate println
         candidates foreach(c,
           if (c type == "Drone",
