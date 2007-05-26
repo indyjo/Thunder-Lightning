@@ -143,13 +143,11 @@ startup := method(
     Game addActor(wingman_1)
     addSurviveObjective(wingman_1)
     
-    method(
     self wingman_2 := me clone
     wingman_2 setLocation( me getLocation - 30*me getRightVector + 480*me getFrontVector + 80*me getUpVector)
     wingman_2 setControlMode(Actor AUTOMATIC)
     Game addActor(wingman_2)
     addSurviveObjective(wingman_2)
-    )
 
     "DefaultMission startup end" println
 )
