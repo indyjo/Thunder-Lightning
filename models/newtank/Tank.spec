@@ -1,5 +1,9 @@
 origmodel TankOrig.obj
 model Tank.obj
+
+collisionorig TankOrig-lores.obj
+collisionmodel Tank-lores.obj
+
 bounding_radius 6
 bounds Tank.bounds
 boundsexport bounds.obj
