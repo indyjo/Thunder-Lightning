@@ -42,6 +42,9 @@ bool intersectBoxSphere(const BoundingBox & box,
                         float radius, const IVector & pos2,
                         Hints & hints);
 
+bool intersectTriangleSphere(const IVector * tri,
+                             float radius, const IVector & pos2,
+                             Hints & hints);
 bool intersectTriangleSphere(const Vector * triangle,
                              const ITransform & T1,
                              float radius, const IVector & pos2,

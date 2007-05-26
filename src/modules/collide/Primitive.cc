@@ -76,18 +76,12 @@ bool intersectBoxSphere(const BoundingBox & box,
     return true;
 }
 
-bool intersectTriangleSphere(const Vector * triangle,
-                             const ITransform & T1,
+bool intersectTriangleSphere(const IVector * tri,
                              float radius, const IVector & pos2,
                              Hints & hints)
 {
     hints.triangle_sphere.must_divide_time = false;
-    // transformed triangle coords
-    IVector tri[3];
-    /*
-    ls_message("Performing triangle sphere test for triangle:\n");
-    for(int i=0; i<3; ++i) triangle[i].dump();*/
-    for(int i=0; i<3; i++) tri[i] = T1((IVector) triangle[i]);
+    
     IVector normal = (tri[1]-tri[0]) % (tri[2]-tri[0]);
     try {
         Interval length = normal.lengthSquare();
@@ -134,6 +128,20 @@ bool intersectTriangleSphere(const Vector * triangle,
     }
     hints.triangle_sphere.exactness = exactness(pos2 - dist * normal);
     return true;
+}
+
+bool intersectTriangleSphere(const Vector * triangle,
+                             const ITransform & T1,
+                             float radius, const IVector & pos2,
+                             Hints & hints)
+{
+    // transformed triangle coords
+    IVector tri[3];
+    /*
+    ls_message("Performing triangle sphere test for triangle:\n");
+    for(int i=0; i<3; ++i) triangle[i].dump();*/
+    for(int i=0; i<3; i++) tri[i] = T1((IVector) triangle[i]);
+    return intersectTriangleSphere(tri, radius, pos2, hints);
 }
 
 namespace {
