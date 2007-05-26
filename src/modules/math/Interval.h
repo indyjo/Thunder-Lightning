@@ -53,6 +53,7 @@ template<class T> struct IntervalBase {
     inline IntervalBase(const T & val) : a(val), b(val) { }
 
     inline T length() const { return b-a; }
+    inline T middle() const { return (a+b)/2; }
     
     inline friend bool operator> (const IntervalBase & X,
                                   const IntervalBase & Y)
