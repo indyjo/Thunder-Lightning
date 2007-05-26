@@ -97,6 +97,9 @@ MissionManager := Object clone do(
   
   debugMission := Mission clone
   debugMission doFile(path .. "/mission_debug.io")
+
+  debugMission2 := Mission clone
+  debugMission2 doFile(path .. "/mission_debug2.io")
   
   defaultMission := Mission clone
   defaultMission doFile(path .. "/mission_default.io")
