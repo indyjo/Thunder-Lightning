@@ -6,7 +6,7 @@
 #define ENABLE_LIGHTMAP 1
 #define ENABLE_FOG_LAYER 1
 
-#define ERROR_FACTOR 250.0
+#define ERROR_FACTOR 300.0
 //#define MAX_ERROR 0.005
 //#define MAX_ERROR 1.0
 #define MAX_ERROR 0.001
