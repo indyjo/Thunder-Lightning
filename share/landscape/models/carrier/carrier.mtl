@@ -1,0 +1,66 @@
+# Blender3D MTL File: carrier.blend
+# Material Count: 6
+newmtl Deck_carrier.png
+Ns 47.058824
+Ka 0.500000 0.500000 0.500000
+Kd 0.800000 0.800000 0.800000
+Ks 0.298674 0.298674 0.298674
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd carrier.png
+
+
+newmtl Radom_carrier.png
+Ns 339.215686
+Ka 1.000000 1.000000 1.000000
+Kd 0.640489 0.640489 0.640489
+Ks 0.912652 0.912652 0.912652
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd carrier.png
+
+
+newmtl DeckTower_carrier.png
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd carrier.png
+
+
+newmtl BayDoor
+Ns 96.078431
+Ka 0.500000 0.500000 0.500000
+Kd 0.326011 0.324562 0.354109
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+
+
+newmtl DockingBay
+Ns 109.803922
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+
+
+newmtl Hull_carrier.png
+Ns 109.803922
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd carrier.png
+
+
