@@ -97,6 +97,9 @@ MissionManager := Object clone do(
   
   introMission := Mission clone
   introMission doFile(path .. "/mission_intro.io")
+
+  carrierMission := Mission clone
+  carrierMission doFile(path .. "/mission_carrier.io")
   
   missionEnded := method(mission, status,
     ("Mission ended: " .. status) say
