@@ -32,19 +32,19 @@ void Model::parseObjFile(TextureManager & texman, const string & filename)
     string dir;
     map<std::string, Material> materials;
     
+    Ptr<MeshData> meshdata = new MeshData;
+    
     string::size_type n = filename.rfind('/');
     if ( n == string::npos ) dir = "./";
     else dir = filename.substr(0, n+1);
     ifstream in(filename.c_str());
 
-    Ptr<Object> current_object = new Object();
+    Ptr<Object> current_object = new Object(meshdata);
     objects.push_back(current_object);
     
     Ptr<Group> current_group = new Group();
     current_object->groups.push_back(current_group);
     
-    int vofs = 1, nofs = 1, tofs = 1;
-
     string op;
     while (in >> op) {
         //ls_message("[Model: Operator %s]\n", op.c_str());
@@ -53,13 +53,13 @@ void Model::parseObjFile(TextureManager & texman, const string & filename)
             Vector vec;
             in >> vec[0] >> vec[1] >> vec[2];
             //ls_message("[  vec: %f %f %f]\n", vec[0], vec[1], vec[2]);
-            current_object->vertices.push_back(vec);
+            meshdata->vertices.push_back(vec);
         } else if ( op == "vn") {       // Normal
             Vector vec;
             in >> vec[0] >> vec[1] >> vec[2];
             //ls_message("[  vn: %f %f %f]\n", vec[0], vec[1], vec[2]);
             vec.normalize();
-            current_object->normals.push_back(vec);
+            meshdata->normals.push_back(vec);
         } else if ( op == "vt") {       // UV(W)
             Vector vec;
             in >> vec[0] >> vec[1];
@@ -72,7 +72,7 @@ void Model::parseObjFile(TextureManager & texman, const string & filename)
             	in >> vec[2];
             }
             //ls_message("[  vt: %f %f %f]\n", vec[0], vec[1], vec[2]);
-            current_object->texcoords.push_back(vec);
+            meshdata->texcoords.push_back(vec);
         } else if ( op == "mtllib" ) {  // Load materials
             string mtllib;
             in >> mtllib;
@@ -109,7 +109,7 @@ void Model::parseObjFile(TextureManager & texman, const string & filename)
             		ls_error("Couldn't parse %s\n", tok);
             	}
             	
-            	Corner corner = { vv-vofs, nn-nofs, tt-tofs };
+            	Corner corner = { vv-1, nn-1, tt-1 };
             	f.push_back(corner);
         	}
         	
@@ -123,10 +123,7 @@ void Model::parseObjFile(TextureManager & texman, const string & filename)
         } else if ( op == "o" ) {
         	string objectname;
         	in >> objectname;
-        	vofs += current_object->vertices.size();
-        	nofs += current_object->normals.size();
-        	tofs += current_object->texcoords.size();
-        	current_object = new Object(objectname);
+        	current_object = new Object(meshdata, objectname);
         	objects.push_back(current_object);
         } else {
             // Unknown operator, ignore till next line
@@ -268,14 +265,14 @@ void MObject::draw(JRenderer & r)
             r.begin(JR_DRAWMODE_TRIANGLE_FAN);
             for (int j=0; j<grp->faces[i].size(); j++) {
                 const Corner & corner = grp->faces[i][j];
-                Vector vtx = vertices[corner.v];
+                Vector vtx = meshdata->vertices[corner.v];
 
                 if (corner.t>=0) {
-                    r.setUVW(Vector(texcoords[corner.t][0],
-                             1-texcoords[corner.t][1],
+                    r.setUVW(Vector(meshdata->texcoords[corner.t][0],
+                             1-meshdata->texcoords[corner.t][1],
                              0));
                 }
-                r.setNormal(normals[corner.n]);
+                r.setNormal(meshdata->normals[corner.n]);
                 r.vertex(vtx);
             }
             r.end();

@@ -21,6 +21,7 @@ class Model : virtual public ::Object {
 public:
     struct Material;
     struct Group;
+    struct MeshData;
     class Object;
 
     Model(TextureManager & texman, const std::string & filename);
@@ -57,15 +58,23 @@ struct Model::Group : public ::Object {
     : name(name) { }
 };
 
+struct Model::MeshData : public ::Object {
+    std::vector<Vector> vertices, normals, texcoords;
+};
+
 class Model::Object : public ::Object {
     friend class Model;
 
     std::string name;
     std::vector<Ptr<Group> > groups;
-    std::vector<Vector> vertices, normals, texcoords;
+    Ptr<MeshData> meshdata;
     
 public:
-    inline Object(const std::string & name="") : name(name) { }
+    inline Object(Ptr<MeshData> meshdata, const std::string & name="")
+    	: meshdata(meshdata)
+    	, name(name)
+    { }
+    
     inline const std::string & getName() { return name; }
     void draw(JRenderer &);
 };
