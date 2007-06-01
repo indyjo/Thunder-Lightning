@@ -30,6 +30,9 @@ public:
     void draw(JRenderer &, const Matrix & Mmodel, const Matrix & Mnormal);
     Ptr<Object> getObject(const std::string & name);
     
+    /// Sets the cull mode for all contained objects
+    void setCullmode(jrcullmode_t);
+    
 protected:
     void parseObjFile(TextureManager & texman, const std::string & filename);
     void parseMtlFile(TextureManager & texman, const std::string & filename,
@@ -53,9 +56,10 @@ struct Model::Group : public ::Object {
     std::string name;
     Material mtl;
     std::vector<Face> faces;
+    jrcullmode_t cullmode;
 
     inline Group(const std::string & name = "" )
-    : name(name) { }
+    : name(name), cullmode(JR_CULLMODE_CULL_NEGATIVE) { }
 };
 
 struct Model::MeshData : public ::Object {
@@ -77,6 +81,9 @@ public:
     
     inline const std::string & getName() { return name; }
     void draw(JRenderer &);
+    
+    /// Sets the cull mode for all contained groups
+    void setCullmode(jrcullmode_t);
 };
 
 #endif

@@ -230,6 +230,15 @@ Ptr<Model::Object> Model::getObject(const std::string & name) {
     return 0;
 }
 
+void Model::setCullmode(jrcullmode_t cullmode) {
+    typedef std::vector<Ptr<Object> > Objects;
+    typedef Objects::iterator Iter;
+    
+    for(Iter i=objects.begin(); i!= objects.end(); ++i) {
+        (*i)->setCullmode(cullmode);
+    }
+}
+
 // HACK
 // MSVC has issues with nested classes, so we typedef around that
 typedef Model::Object MObject;
@@ -240,9 +249,10 @@ void MObject::draw(JRenderer & r)
     
     // Todo: proper lighting
 
-    //r.setCullMode(JR_CULLMODE_NO_CULLING);
     for (int i=0; i<groups.size(); ++i) {
         Ptr<Group> grp = groups[i];
+        
+        r.setCullMode(grp->cullmode);
         
 	    r.setColor(grp->mtl.Kd);
 	    jmat->setDiffuse(grp->mtl.Kd);
@@ -279,3 +289,13 @@ void MObject::draw(JRenderer & r)
         }
     }
 }
+
+void MObject::setCullmode(jrcullmode_t cullmode) {
+    typedef std::vector<Ptr<Group> > Groups;
+    typedef Groups::iterator Iter;
+    
+    for(Iter i=groups.begin(); i!= groups.end(); ++i) {
+        (*i)->cullmode = cullmode;
+    }
+}
+

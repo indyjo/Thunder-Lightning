@@ -25,17 +25,35 @@ namespace {
 		
 		static IoObject *proto(void *state) {
 			IoMethodTable methodTable[] = {
+			    {"setCullmode", setCullmode},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
 			IoObject_tag_(self, tag(state, "Model"));
 			IoObject_setDataPointer_(self, 0);
+			IoObject_setSlot_to_(self, IOSYMBOL("NO_CULLING"),
+			    wrapObject((int)JR_CULLMODE_NO_CULLING, IOSTATE));
+			IoObject_setSlot_to_(self, IOSYMBOL("CULL_POSITIVE"),
+			    wrapObject((int)JR_CULLMODE_CULL_POSITIVE, IOSTATE));
+			IoObject_setSlot_to_(self, IOSYMBOL("CULL_NEGATIVE"),
+			    wrapObject((int)JR_CULLMODE_CULL_NEGATIVE, IOSTATE));
 			
 			IoObject_addMethodTable_(self, methodTable);
 			return self;
 		}
 		
 		CREATE_FUNC(Model)
+		
+        static IoObject * setCullmode (
+        IoObject *self, IoObject *locals, IoMessage *m) {
+        	BEGIN_FUNC("setCullmode")
+        	IOASSERT(IoMessage_argCount(m) == 1,
+        		"Expected one argument")
+        	IoObject *arg = IoMessage_locals_numberArgAt_(
+        		m, locals, 0);
+        	getObject(self)->setCullmode((jrcullmode_t)IoNumber_asInt(arg));
+        	return self;
+        }
 	};
 } // namespace
 
