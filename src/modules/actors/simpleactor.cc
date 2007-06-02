@@ -275,6 +275,8 @@ void SimpleActor::setMovementVector(const Vector & v) {
 
 // IDrawable
 void SimpleActor::draw() {
+    JRenderer *renderer = thegame->getRenderer();
+    renderer->enableLighting();
     if (model) {
         Vector right, up, front;
         getOrientation(&up, &right, &front);
@@ -283,17 +285,13 @@ void SimpleActor::draw() {
             MatrixFromColumns(right, up, front));
 
         Matrix Mmodel  = Translation * Rotation;
-        JRenderer *renderer = thegame->getRenderer();
-        renderer->enableLighting();
-        renderer->setCullMode(JR_CULLMODE_CULL_NEGATIVE);
-        renderer->setAlpha(1);
-        renderer->setColor(Vector(1,1,1));
-        
         model->draw(*renderer, Mmodel, Rotation);
         renderer->disableLighting();
     }
     if (skeleton) {
-        skeleton->draw(*thegame->getRenderer());
+        skeleton->draw(*renderer);
     }
+    renderer->disableLighting();
+
 }
 
