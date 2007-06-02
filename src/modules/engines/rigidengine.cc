@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "rigidengine.h"
 #include <modules/clock/clock.h>
 
@@ -18,6 +19,12 @@ void RigidEngine::setControls(Ptr<DataNode> controls) {
 
 void RigidEngine::run() {
     float delta_t = thegame->getClock()->getStepDelta();
+    
+    // Apply all physical effects from effectors
+    for(Effectors::iterator i=effectors.begin(); i!=effectors.end(); ++i) {
+        (*i)->applyEffect(*this);
+    }
+    
     struct RigidBodyState state = getState();
     struct RigidBodyState derivative = getDerivative();
     
@@ -99,5 +106,16 @@ void RigidEngine::update(float delta_t, const Transform * new_transforms) {
     state.x = new_transforms[0].vec();
     state.q = new_transforms[0].quat();
     setState(state);
+}
+
+void RigidEngine::addEffector(Ptr<IEffector> effector) {
+    effectors.push_back(effector);
+}
+
+void RigidEngine::removeEffector(Ptr<IEffector> effector) {
+    Effectors::iterator i = find(effectors.begin(), effectors.end(), effector);
+    if (i != effectors.end()) {
+        effectors.erase(i);
+    }
 }
 

@@ -4,6 +4,7 @@ noinst_HEADERS=\
 	ICamera.h			\
 	IConfig.h			\
 	IDrawable.h			\
+	IEffector.h			\
 	IFollower.h			\
 	IFont.h				\
 	IFontMan.h			\
