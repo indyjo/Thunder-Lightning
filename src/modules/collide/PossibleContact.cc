@@ -313,6 +313,19 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
 		    	!= new_contact.partners[1].instance->collidable->getActor());
             q.push(new_contact);
             break;
+        case BoundingNode::GATE:
+            new_contact.partners[0].type = ContactPartner::NODE;
+            for(int i=0; i<node.data.gate.n_children; ++i) {
+                new_contact.newIdentifier();
+                debug_msg(" -> node contact_%d (via gate)\n", new_contact.identifier);
+
+                new_contact.partners[0].data.node = &node.data.gate.children[i];
+                assert(new_contact.partners[1].type == partners[0].type);
+			    assert(new_contact.partners[0].instance->collidable->getActor()
+			    	!= new_contact.partners[1].instance->collidable->getActor());
+                q.push(new_contact);
+            }
+            break;
         case BoundingNode::NONE:
             break;
         }

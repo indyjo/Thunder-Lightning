@@ -16,7 +16,8 @@ struct BoundingNode {
            LEAF,
            INNER,
            NEWDOMAIN,
-           TRANSFORM } type;
+           TRANSFORM,
+           GATE } type;
     BoundingBox box;
     union {
         struct {
@@ -34,7 +35,15 @@ struct BoundingNode {
             int transform_id;
             BoundingNode * child;
         } transform;
+        struct {
+            int n_children;
+            BoundingNode *children;
+        } gate;
     } data;
+    
+    /// Returns whether the specific node type has a valid bounding box.
+    inline bool isValidBoundingBox() const
+    { return type == LEAF || type == INNER; }
 };
 
 std::ostream & operator<< (std::ostream & out, const BoundingNode & bn);

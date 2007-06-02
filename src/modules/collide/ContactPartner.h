@@ -50,6 +50,9 @@ struct ContactPartner {
         else if (isNode()) return data.node->type != BoundingNode::NONE;
         else return data.geom->getRootNode()->type != BoundingNode::NONE;
     }
+    inline bool mustSubdivide() {
+        return isNode() && !data.node->isValidBoundingBox();
+    }
 };
 
 } // namespace Collide

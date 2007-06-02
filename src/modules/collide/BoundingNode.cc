@@ -31,13 +31,25 @@ void BoundingNode::cleanup() {
     case BoundingNode::TRANSFORM:
         delete data.transform.child;
         break;
+    case BoundingNode::GATE:
+        delete [] data.gate.children;
     }
     type = BoundingNode::NONE;
 }
 
 
 std::ostream & operator<< (std::ostream & out, const BoundingNode & bn) {
-    out << "Node( " << bn.box << " ";
+    switch(bn.type) {
+    case BoundingNode::NONE:
+    case BoundingNode::LEAF:
+    case BoundingNode::INNER:
+    case BoundingNode::NEWDOMAIN:
+    case BoundingNode::TRANSFORM:
+        out << "Node( " << bn.box << " ";
+        break;
+    case BoundingNode::GATE:
+        out << "Gate( ";
+    }
     switch(bn.type) {
     case BoundingNode::NONE:
         out << "N ";
@@ -64,6 +76,12 @@ std::ostream & operator<< (std::ostream & out, const BoundingNode & bn) {
         out << "T " << bn.data.transform.transform_id << std::endl;
         out << *bn.data.transform.child << std::endl;
         break;
+    case BoundingNode::GATE:
+        out << bn.data.gate.n_children << std::endl;
+        for(int i=0; i<bn.data.gate.n_children; ++i) {
+            out << bn.data.gate.children[i] << std::endl;
+        }
+        break;
     }
     out << ")";
 
@@ -79,51 +97,69 @@ std::istream & operator>> (std::istream & in, BoundingNode & bn) {
     char c;
     int n;
 
-    expect(in, "Node(");
-
-    check(in);
-    in >> bn.box;
-    check(in);
-
     in >> s;
-    c = s[0];
-    switch(c) {
-    case 'N':
-        break;
-    case 'L':
-        bn.type = BoundingNode::LEAF;
-        in >> n;
-        bn.data.leaf.n_triangles = n;
-        //ls_message("reading %d triangles:\n",n);
-        bn.data.leaf.vertices = new Vector[n*3];
-        for(int i=0; i<n*3; i++)
-            in >> bn.data.leaf.vertices[i];
-        break;
-    case 'I':
-        bn.type = BoundingNode::INNER;
-        bn.data.inner.children[0] = new BoundingNode;
-        bn.data.inner.children[1] = new BoundingNode;
-        in >> *bn.data.inner.children[0] >> *bn.data.inner.children[1];
-        break;
-    case 'D':
-        bn.type = BoundingNode::NEWDOMAIN;
-        in >> bn.data.domain.domain_id;
-        bn.data.domain.child = new BoundingNode;
-        in >> *bn.data.domain.child;
-        break;
-    case 'T':
-        bn.type = BoundingNode::TRANSFORM;
-        in >> bn.data.transform.transform_id;
-        bn.data.transform.child = new BoundingNode;
-        in >> *bn.data.transform.child;
-        break;
-    default:
-        std::cerr << "Bad node type: " << s << std::endl;
+    if (s != "Node(" && s != "Gate(") {
+        std::cout << "Expected 'Node(' or 'Gate(' but got '" << s << "'" << std::endl;
         in.setstate(std::ios_base::failbit);
         return in;
     }
+    
+    if (s == "Gate(") {
+        bn.type = BoundingNode::GATE;
+        in >> n;
+        bn.data.gate.n_children = n;
+        bn.data.gate.children = new BoundingNode[n];
+        for (int i=0; i<n; ++i) {
+            in >> bn.data.gate.children[i];
+            check(in);
+        }
+    } else {
 
-    in >> c;
+        check(in);
+        in >> bn.box;
+        check(in);
+
+        in >> s;
+        c = s[0];
+        switch(c) {
+        case 'N':
+            break;
+        case 'L':
+            bn.type = BoundingNode::LEAF;
+            in >> n;
+            bn.data.leaf.n_triangles = n;
+            //ls_message("reading %d triangles:\n",n);
+            bn.data.leaf.vertices = new Vector[n*3];
+            for(int i=0; i<n*3; i++)
+                in >> bn.data.leaf.vertices[i];
+            break;
+        case 'I':
+            bn.type = BoundingNode::INNER;
+            bn.data.inner.children[0] = new BoundingNode;
+            bn.data.inner.children[1] = new BoundingNode;
+            in >> *bn.data.inner.children[0] >> *bn.data.inner.children[1];
+            break;
+        case 'D':
+            bn.type = BoundingNode::NEWDOMAIN;
+            in >> bn.data.domain.domain_id;
+            bn.data.domain.child = new BoundingNode;
+            in >> *bn.data.domain.child;
+            break;
+        case 'T':
+            bn.type = BoundingNode::TRANSFORM;
+            in >> bn.data.transform.transform_id;
+            bn.data.transform.child = new BoundingNode;
+            in >> *bn.data.transform.child;
+            break;
+        default:
+            std::cerr << "Bad node type: " << s << std::endl;
+            in.setstate(std::ios_base::failbit);
+            return in;
+        }
+    
+    } // if (s == "Gate(")
+    
+    in >> c; // The closing brace ')'
     check(in);
     return in;
 }

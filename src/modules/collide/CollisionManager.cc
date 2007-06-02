@@ -109,6 +109,7 @@ void visualize_geometry(Ptr<IGame> game, const BoundingNode * node,
             }
         }
         break;
+    case (BoundingNode::GATE): break;
     }
 }
 }
