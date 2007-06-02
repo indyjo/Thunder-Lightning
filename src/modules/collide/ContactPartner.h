@@ -43,11 +43,11 @@ struct ContactPartner {
     }
 
     inline bool isTriangle() { return type == TRIANGLE; }
-    inline bool isBox() { return type == NODE; }
+    inline bool isNode() { return type == NODE; }
     inline bool isSphere() { return type == GEOM; }
     inline bool canSubdivide() {
         if (isTriangle()) return false;
-        else if (isBox()) return data.node->type != BoundingNode::NONE;
+        else if (isNode()) return data.node->type != BoundingNode::NONE;
         else return data.geom->getRootNode()->type != BoundingNode::NONE;
     }
 };

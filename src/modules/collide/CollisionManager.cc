@@ -198,8 +198,8 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
             bool collision = pc.collide(delta_t, hints);
             debug_msg("%s collision test %s <-> %s\n",
                 collision?"positive":"negative",
-                pc.partners[0].isTriangle()?"Triangle":(pc.partners[0].isBox()?"Box":"Sphere"),
-                pc.partners[1].isTriangle()?"Triangle":(pc.partners[1].isBox()?"Box":"Sphere"));
+                pc.partners[0].isTriangle()?"Triangle":(pc.partners[0].isNode()?"Node":"Sphere"),
+                pc.partners[1].isTriangle()?"Triangle":(pc.partners[1].isNode()?"Node":"Sphere"));
             
             if (collision) {
                 if (pc.shouldDivideTime(hints)) {

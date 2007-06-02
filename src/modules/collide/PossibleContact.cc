@@ -228,8 +228,9 @@ void PossibleContact::setPartner(int i, GeometryInstance * instance) {
 }
 	
 bool PossibleContact::mustSubdivide() {
-    if (partners[0].isTriangle() && partners[1].isBox()) return true;
-    if (partners[0].isBox() && partners[1].isTriangle()) return true;
+    if (partners[0].mustSubdivide() || partners[1].mustSubdivide()) return true;
+    if (partners[0].isTriangle() && partners[1].isNode()) return true;
+    if (partners[0].isNode() && partners[1].isTriangle()) return true;
     return false;
 }
 
@@ -252,7 +253,7 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
     new_contact.ti[0] = ti[1];
 
     debug_msg("subdivide() contact_%d\n", identifier);
-    if (partners[1].isBox()) {
+    if (partners[1].isNode()) {
         assert(new_contact.partners[1].type == partners[0].type);
         const BoundingNode & node = *partners[1].data.node;
         switch(node.type) {
@@ -274,7 +275,7 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
             new_contact.partners[0].type = ContactPartner::NODE;
             for(int i=0; i<2; i++) {
                 new_contact.newIdentifier();
-                debug_msg(" -> box contact_%d\n", new_contact.identifier);
+                debug_msg(" -> node contact_%d\n", new_contact.identifier);
                 
                 new_contact.partners[0].data.node = node.data.inner.children[i];
                 assert(new_contact.partners[1].type == partners[0].type);
@@ -284,7 +285,7 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
             }
             break;
         case BoundingNode::NEWDOMAIN:
-            debug_msg(" -> box contact_%d with new domain %d\n", new_contact.identifier, node.data.domain.domain_id);
+            debug_msg(" -> node contact_%d with new domain %d\n", new_contact.identifier, node.data.domain.domain_id);
             new_contact.partners[0].type = ContactPartner::NODE;
             new_contact.partners[0].data.node = node.data.domain.child;
             new_contact.partners[0].domain = node.data.domain.domain_id;
@@ -294,7 +295,7 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
             q.push(new_contact);
             break;
         case BoundingNode::TRANSFORM:
-            debug_msg(" -> box contact_%d with new transform %d\n", new_contact.identifier, node.data.transform.transform_id);
+            debug_msg(" -> node contact_%d with new transform %d\n", new_contact.identifier, node.data.transform.transform_id);
             new_contact.partners[0].type = ContactPartner::NODE;
             new_contact.partners[0].data.node = node.data.transform.child;
             new_contact.partners[0].transform = node.data.transform.transform_id;
@@ -332,15 +333,15 @@ bool PossibleContact::shouldDivideTime(const Hints & hints) {
     if (partners[0].isSphere()) {
         if (partners[1].isSphere())
             return false;
-        if (partners[1].isBox())
+        if (partners[1].isNode())
             return hints.box.exactness > 8*0.5*hints.box.max_box_dim;
         if (partners[1].isTriangle())
             return hints.triangle_sphere.must_divide_time ||
                    hints.triangle_sphere.exactness > 0.5f;
-    } else if (partners[0].isBox()) {
+    } else if (partners[0].isNode()) {
         if (partners[1].isSphere())
             return hints.box.exactness > 8*0.5*hints.box.max_box_dim;
-        if (partners[1].isBox())
+        if (partners[1].isNode())
             return hints.box.exactness > 0.5*hints.box.max_box_dim;
         if (partners[1].isTriangle())
             return false;
@@ -348,7 +349,7 @@ bool PossibleContact::shouldDivideTime(const Hints & hints) {
         if (partners[1].isSphere())
             return hints.triangle_sphere.must_divide_time ||
                    hints.triangle_sphere.exactness > 0.5f;
-        if (partners[1].isBox())
+        if (partners[1].isNode())
             return false;
         if (partners[1].isTriangle())
             return hints.triangle_triangle.must_divide_time ||
@@ -358,8 +359,8 @@ bool PossibleContact::shouldDivideTime(const Hints & hints) {
     // should never be called.
     ls_error("This should not happen!\n");
     ls_error("%d %d %d , %d %d %d\n",
-        partners[0].isSphere(),partners[0].isBox(),partners[0].isTriangle(),
-        partners[1].isSphere(),partners[1].isBox(),partners[1].isTriangle());
+        partners[0].isSphere(),partners[0].isNode(),partners[0].isTriangle(),
+        partners[1].isSphere(),partners[1].isNode(),partners[1].isTriangle());
     return t1 - t0 > 0.001f;
 }
 
@@ -394,7 +395,7 @@ bool PossibleContact::collide(float delta_t, Hints & hints) {
 		actor = partners[i].instance->collidable->getActor();
 		if (actor->getTargetInfo()) {
 			debug_msg("partner %d: %s (%s)\n", i,
-				partners[i].isTriangle()?"triangle":(partners[i].isBox()?"box":"sphere"),
+				partners[i].isTriangle()?"triangle":(partners[i].isNode()?"box":"sphere"),
 				actor->getTargetInfo()->getTargetName().c_str());
 		}
 	}
@@ -442,7 +443,7 @@ bool PossibleContact::collide(float delta_t, Hints & hints) {
     }
 
     if (partners[0].isSphere() &&
-    		(partners[1].isBox() || partners[1].isTriangle()))
+    		(partners[1].isNode() || partners[1].isTriangle()))
     {
         swap(partners[0], partners[1]);
         swap(ti[0], ti[1]);
@@ -452,7 +453,7 @@ bool PossibleContact::collide(float delta_t, Hints & hints) {
     ITransform & T1 = ti[1].xform_in_interval;
 
     debug_msg("PossibleContact contact_%d performing collision test:\n", identifier);
-    if (partners[0].isBox() && partners[1].isBox()) {
+    if (partners[0].isNode() && partners[1].isNode()) {
         IVector orient0[3], orient1[3];
         orient0[0] = T0.quat().rot(IVector(1,0,0));
         orient0[1] = T0.quat().rot(IVector(0,1,0));
@@ -470,7 +471,7 @@ bool PossibleContact::collide(float delta_t, Hints & hints) {
             hints);
     }
 
-    if (partners[0].isBox() && partners[1].isSphere()) {
+    if (partners[0].isNode() && partners[1].isSphere()) {
         debug_msg("Box <-> Sphere test.\n");
         IVector orient0[3];
         orient0[0] = T0.quat().rot(IVector(1,0,0));
