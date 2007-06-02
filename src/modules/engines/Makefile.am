@@ -5,6 +5,7 @@ INCLUDES = -I${top_srcdir}/src
 libengines_a_SOURCES = \
     controls.h controls.cc                      \
     ChasingEngine.h ChasingEngine.cc            \
+    effectors.h effectors.cc                    \
     engine.h                                    \
     carengine.h carengine.cc                    \
     newtonianengine.h newtonianengine.cc        \
