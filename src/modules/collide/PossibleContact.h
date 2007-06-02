@@ -14,8 +14,8 @@ union Hints;
 /// Represents an interpolated movement between two
 /// hierarchical transformations
 struct TransformInterval {
-	std::vector<Transform> time_0, time_1;
-	XTransform<Interval> interval;
+	std::vector<Transform> xforms_at_t0, xforms_at_t1;
+	XTransform<Interval> xform_in_interval;
 	
 	void subdivide(TransformInterval & ti0, TransformInterval & ti1);
 };

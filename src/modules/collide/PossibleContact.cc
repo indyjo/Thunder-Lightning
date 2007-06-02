@@ -1,5 +1,6 @@
 #include <modules/math/Collide.h>
 
+#include <algorithm>
 #include <string>
 #include <cassert>
 #include <cstdio>
@@ -69,10 +70,10 @@ std::string dump_vector_transform(const std::vector<Transform> &list) {
 
 std::string dump_transform_interval(const Collide::TransformInterval & ti) {
     char buf[1024];
-    sprintf(buf, "time_0: %s time_1: %s -> xform: %s",
-        dump_vector_transform(ti.time_0).c_str(),
-        dump_vector_transform(ti.time_1).c_str(),
-        dump_itransform(ti.interval).c_str());
+    sprintf(buf, "xforms_at_t0: %s xforms_at_t1: %s -> xform: %s",
+        dump_vector_transform(ti.xforms_at_t0).c_str(),
+        dump_vector_transform(ti.xforms_at_t1).c_str(),
+        dump_itransform(ti.xform_in_interval).c_str());
     return buf;
 }
     
@@ -98,6 +99,30 @@ XTransform<T> get_transform(const T & u, int i,
 }
 
 template<class T>
+std::vector<XTransform<T> >
+get_transform_stack(const T & u, int i,
+                    Collide::GeometryInstance * instance)
+{
+    std::vector<XTransform<T> > stack;
+    Ptr<Collide::BoundingGeometry> geom =
+        instance->collidable->getBoundingGeometry();
+    
+    stack.push_back(interp(u,
+        (XTransform<T>) instance->transforms_0[i],
+        (XTransform<T>) instance->transforms_1[i]));
+    int j;
+    while (i != (j=geom->getParentOfTransform(i))) {
+        i = j;
+        stack.push_back(interp(u,
+            (XTransform<T>) instance->transforms_0[i],
+            (XTransform<T>) instance->transforms_1[i]));
+    }
+    
+    std::reverse(stack.begin(), stack.end());
+    return stack;
+}
+
+template<class T>
 XTransform<T> global_transform(vector<XTransform<T> > & locals)
 {
     XTransform<T> transform = locals[0];
@@ -107,7 +132,7 @@ XTransform<T> global_transform(vector<XTransform<T> > & locals)
 }
 
 
-XTransform<Interval> get_interval(
+XTransform<Interval> get_inbetween_xform(
 	const vector<Transform> & transforms_0,
 	const vector<Transform> & transforms_1)
 {
@@ -124,14 +149,29 @@ XTransform<Interval> get_interval(
 }
 
 void divide_transform_stack(
-	const vector<Transform> & time_0, const vector<Transform> & time_1,
+	const vector<Transform> & xforms_at_t0,
+	const vector<Transform> & xforms_at_t1,
 	vector<Transform> & result)
 {
-    for(int i=0; i<time_0.size(); ++i) {
-    	result.push_back(interp(0.5, time_0[i], time_1[i]));
+    for(int i=0; i<xforms_at_t0.size(); ++i) {
+    	result.push_back(interp(0.5, xforms_at_t0[i], xforms_at_t1[i]));
     }
 }
 
+Collide::TransformInterval
+make_transform_interval(
+    int xform_id,
+    Collide::GeometryInstance * instance,
+    float t0,
+    float t1)
+{
+    Collide::TransformInterval result;
+    result.xforms_at_t0 = get_transform_stack(t0, xform_id, instance);
+    result.xforms_at_t1 = get_transform_stack(t1, xform_id, instance);
+    result.xform_in_interval = get_inbetween_xform(
+        result.xforms_at_t0, result.xforms_at_t1);
+    return result;
+}
 
 /*
 template<class T>
@@ -164,27 +204,27 @@ namespace Collide {
 void TransformInterval::subdivide(
 	TransformInterval & res_0, TransformInterval & res_1)
 {
-	res_0.time_0 = time_0;
-	res_0.time_1.clear();
-	res_0.time_1.reserve(time_0.size());
-	divide_transform_stack(time_0, time_1, res_0.time_1);
+	res_0.xforms_at_t0 = xforms_at_t0;
+	res_0.xforms_at_t1.clear();
+	res_0.xforms_at_t1.reserve(xforms_at_t0.size());
+	divide_transform_stack(xforms_at_t0, xforms_at_t1, res_0.xforms_at_t1);
 	
-	res_1.time_0 = res_0.time_1;
-	res_1.time_1 = time_1;
+	res_1.xforms_at_t0 = res_0.xforms_at_t1;
+	res_1.xforms_at_t1 = xforms_at_t1;
 	
-	res_0.interval = get_interval(res_0.time_0, res_0.time_1);
-	res_1.interval = get_interval(res_1.time_0, res_1.time_1);
+	res_0.xform_in_interval = get_inbetween_xform(res_0.xforms_at_t0, res_0.xforms_at_t1);
+	res_1.xform_in_interval = get_inbetween_xform(res_1.xforms_at_t0, res_1.xforms_at_t1);
 }
 
 void PossibleContact::setPartner(int i, GeometryInstance * instance) {
 	partners[i] = ContactPartner(
 		instance,
 		ptr(instance->collidable->getBoundingGeometry()));
-	ti[i].time_0.clear();
-	ti[i].time_1.clear();
-	ti[i].time_0.push_back(instance->transforms_0[0]);
-	ti[i].time_1.push_back(instance->transforms_1[0]);
-	ti[i].interval = get_interval(ti[i].time_0, ti[i].time_1);
+	ti[i].xforms_at_t0.clear();
+	ti[i].xforms_at_t1.clear();
+	ti[i].xforms_at_t0.push_back(instance->transforms_0[0]);
+	ti[i].xforms_at_t1.push_back(instance->transforms_1[0]);
+	ti[i].xform_in_interval = get_inbetween_xform(ti[i].xforms_at_t0, ti[i].xforms_at_t1);
 }
 	
 bool PossibleContact::mustSubdivide() {
@@ -259,24 +299,15 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
             new_contact.partners[0].data.node = node.data.transform.child;
             new_contact.partners[0].transform = node.data.transform.transform_id;
             
-            // Put the new transform on the stack, unless it is transform 0 which
-            // is preloaded.
-            if (new_contact.partners[0].transform != 0) {
-	            int trans = new_contact.partners[0].transform;
-	            GeometryInstance * instance = new_contact.partners[0].instance;
-	            Transform new_time_0 = interp( new_contact.t0,
-	            	instance->transforms_0 [trans],
-	            	instance->transforms_1 [trans]);
-	            Transform new_time_1 = interp( new_contact.t1,
-	            	instance->transforms_0 [trans],
-	            	instance->transforms_1 [trans]);
-	            debug_msg("  time_0: %s\n", dump_vector_transform(new_contact.ti[0].time_0).c_str());
-	            debug_msg("  time_1: %s\n", dump_vector_transform(new_contact.ti[0].time_1).c_str());
-	            new_contact.ti[0].time_0.push_back( new_time_0 );
-	            new_contact.ti[0].time_1.push_back( new_time_1 );
-	            debug_msg("  ->time_0: %s\n", dump_vector_transform(new_contact.ti[0].time_0).c_str());
-	            debug_msg("  ->time_1: %s\n", dump_vector_transform(new_contact.ti[0].time_1).c_str());
-            }
+            new_contact.ti[0] = make_transform_interval(
+                new_contact.partners[0].transform, // the transform id
+                new_contact.partners[0].instance,  // the geometry instance with link to the collidable (which has BoundingGeometry)
+                new_contact.t0, new_contact.t1);   // the relevant time interval
+            
+            debug_msg("  ->xforms_at_t0:      \n\t%s\n", dump_vector_transform(new_contact.ti[0].xforms_at_t0).c_str());
+            debug_msg("  ->xforms_at_t1:      \n\t%s\n", dump_vector_transform(new_contact.ti[0].xforms_at_t1).c_str());
+            debug_msg("  ->xform_in_interval: \n\t%s\n", dump_itransform(new_contact.ti[0].xform_in_interval).c_str());
+            
             assert(new_contact.partners[1].type == partners[0].type);
 		    assert(new_contact.partners[0].instance->collidable->getActor()
 		    	!= new_contact.partners[1].instance->collidable->getActor());
@@ -381,8 +412,8 @@ bool PossibleContact::collide(float delta_t, Hints & hints) {
         Vector p[2], q[2], v[2];
         float r[2];
         for(int i=0; i<2; i++) {
-            p[i] = global_transform(ti[i].time_0).vec(); 
-            q[i] = global_transform(ti[i].time_1).vec();
+            p[i] = global_transform(ti[i].xforms_at_t0).vec(); 
+            q[i] = global_transform(ti[i].xforms_at_t1).vec();
             v[i] = (q[i] - p[i]) / delta_t;
             r[i] = partners[i].instance->collidable->
                 getBoundingGeometry()->getBoundingRadius();
@@ -417,8 +448,8 @@ bool PossibleContact::collide(float delta_t, Hints & hints) {
         swap(ti[0], ti[1]);
     }
 
-    ITransform & T0 = ti[0].interval;
-    ITransform & T1 = ti[1].interval;
+    ITransform & T0 = ti[0].xform_in_interval;
+    ITransform & T1 = ti[1].xform_in_interval;
 
     debug_msg("PossibleContact contact_%d performing collision test:\n", identifier);
     if (partners[0].isBox() && partners[1].isBox()) {
