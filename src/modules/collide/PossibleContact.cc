@@ -90,10 +90,9 @@ XTransform<T> get_transform(const T & u, int i,
     int j;
     while (i != (j=geom->getParentOfTransform(i))) {
         i = j;
-        transform = interp(u,
+        transform = transform * interp(u,
             (XTransform<T>) instance->transforms_0[i],
-            (XTransform<T>) instance->transforms_1[i])
-            * transform;
+            (XTransform<T>) instance->transforms_1[i]);
     }
     return transform;
 }
@@ -127,7 +126,7 @@ XTransform<T> global_transform(vector<XTransform<T> > & locals)
 {
     XTransform<T> transform = locals[0];
     for( int i=1; i<locals.size(); ++i)
-    	transform = locals[i] * transform;
+    	transform = transform * locals[i];
     return transform;
 }
 
@@ -141,9 +140,9 @@ XTransform<Interval> get_inbetween_xform(
         (ITransform) transforms_0[0],
         (ITransform) transforms_1[0]);
     for(int i=1; i<transforms_0.size(); ++i) {
-    	transform = interp(Interval(0.0f,1.0f),
+    	transform = transform * interp(Interval(0.0f,1.0f),
     		(ITransform) transforms_0[i],
-        	(ITransform) transforms_1[i]) * transform;
+        	(ITransform) transforms_1[i]);
     }
     return transform;
 }
