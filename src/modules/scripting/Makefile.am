@@ -9,6 +9,7 @@ libscripting_a_SOURCES = \
 	ActorMapping.cc \
 	ActorStageMapping.cc \
 	ArmamentMapping.cc \
+	CarrierMapping.cc \
 	ClockMapping.cc \
 	ConfigMapping.cc \
 	DataNodeMapping.cc \

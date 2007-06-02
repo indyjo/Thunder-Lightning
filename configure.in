@@ -152,6 +152,7 @@ src/interfaces/Makefile
 src/modules/Makefile
 src/modules/LoDTerrain/Makefile
 src/modules/actors/Makefile
+src/modules/actors/carrier/Makefile
 src/modules/actors/drone/Makefile
 src/modules/actors/fx/Makefile
 src/modules/actors/projectiles/Makefile

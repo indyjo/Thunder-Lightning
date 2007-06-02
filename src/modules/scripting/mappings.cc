@@ -19,6 +19,7 @@ class Model;
 class Armament;
 class Weapon;
 class Targeter;
+class Carrier;
 
 void addBasicMappings(Ptr<IGame> game, IoState * state) {
 	addMapping<IGame>(game, state);
@@ -50,4 +51,6 @@ void addMappings(Ptr<IGame> game, IoState * state) {
     addMapping<Weapon>(game,state);
     addMapping<Targeter>(game,state);
 	addMapping<ITerrain>(game,state);
+	addMapping<Carrier>(game,state);
 }
+

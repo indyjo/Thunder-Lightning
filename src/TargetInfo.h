@@ -24,6 +24,8 @@ public:
                                 MISSILE,
                                 VEHICLE,
                                 BUILDING,
+                                NAVAL,
+                                SHIP,
                                 
                                 DEBUG,
                                 NAVPOINT,
@@ -31,7 +33,8 @@ public:
                                 BULLET,
                                 DUMB_MISSILE,
                                 GUIDED_MISSILE,
-                                TANK;
+                                TANK,
+                                CARRIER;
 
 public:
     TargetInfo( const std::string & name,

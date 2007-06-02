@@ -20,6 +20,7 @@ tnl_bin_SOURCES = game.cc game.h landscape.h \
 tnl_libs = \
     modules/scripting/libscripting.a \
     modules/LoDTerrain/libLoDTerrain.a \
+    modules/actors/carrier/libcarrier.a \
     modules/actors/drone/libdrone.a \
     modules/actors/tank/libtank.a \
     modules/actors/projectiles/libprojectiles.a \

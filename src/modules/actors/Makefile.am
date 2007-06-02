@@ -1,4 +1,5 @@
 SUBDIRS =       \
+    carrier     \
     drone       \
     fx          \
     projectiles \
