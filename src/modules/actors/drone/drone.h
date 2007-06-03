@@ -16,7 +16,7 @@
 #include <modules/scripting/IoIncludes.h>
 
 
-class FlightEngine2;
+class RigidEngine;
 struct Idea;
 class PatrolIdea;
 struct Rating;
@@ -99,7 +99,7 @@ private:
     Ptr<Model> wheel_model;
 
     // flight stuff
-    Ptr<FlightEngine2> engine;
+    Ptr<RigidEngine> engine;
     FlightInfo flight_info;
     Ptr<FlightControls> flight_controls;
     AutoPilot auto_pilot;

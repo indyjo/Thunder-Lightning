@@ -8,7 +8,8 @@
 #include <modules/actors/projectiles/smartmissile.h>
 #include <modules/actors/projectiles/smartmissile2.h>
 #include <modules/clock/clock.h>
-#include <modules/engines/flightengine2.h>
+#include <modules/engines/effectors.h>
+#include <modules/engines/rigidengine.h>
 #include <modules/gunsight/gunsight.h>
 #include <modules/math/SpecialMatrices.h>
 #include <modules/model/Skeleton.h>
@@ -103,8 +104,12 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
         TargetInfo::AIRCRAFT));
 
     flight_controls = new FlightControls(controls);
-    engine = new FlightEngine2(thegame);
+    engine = new RigidEngine(thegame);
+    engine->construct(2000, 200000, 160000, 100000);
+    engine->addEffector( new Effectors::Flight(flight_controls) );
+    engine->addEffector( Effectors::Gravity::getInstance() );
     setEngine(engine);
+    
     flight_controls->setThrottle(1.0f);
 
     // Load drone model and skeleton, even if there are no moving parts
@@ -389,7 +394,7 @@ void Drone::applyDamage(float damage, int domain, Ptr<IProjectile> projectile) {
     	explode(false);
     }
     this->damage += damage;
-    engine->setMaxThrust( 40000 * (1-damage) );
+    //engine->setMaxThrust( 40000 * (1-damage) );
     if (this->damage > 1.0) explode();
 }
 
