@@ -147,40 +147,40 @@ void Wheel::applyEffect(RigidBody &rigid) {
     // the rigid body's orientation
     Quaternion q = rigid.getState().q;
     Vector up = q.rot(Vector(0,1,0));
-    Vector right = q.rot(params.axis);
-    Vector front = right % up;
-    front.normalize();
     
-	// wheel position in WCS
-	Vector w = rigid.getState().x + q.rot(params.pos);
-	
-	// point of contact and respective normal vector
-	Vector x, normal;
-	// do the actual intersection test
-	contact = terrain->lineCollides(w+params.range*up, w, &x, &normal);
-	
-	if (contact) {
-		current_pos = x;
-		// velocity of the wheel in WCS
-	    Vector v = rigid.getVelocityAt(x);
+    // wheel position in WCS
+    Vector w = rigid.getState().x + q.rot(params.pos);
+    
+    // point of contact and respective normal vector
+    Vector x, normal;
+    
+    // do the actual intersection test
+    contact = terrain->lineCollides(w+params.range*up, w, &x, &normal);
+    
+    if (contact) {
+        Vector right = q.rot(params.axis);
+        Vector front = right % normal;
+        front.normalize();
+        right = normal % front;
+        right.normalize();
 
-		// relative load in interval [0..1]
-		current_load = (x-w).length() / params.range;
-		
-		const static float load_x[] = {0, 0.15, 1};
-		const static float load_y[] = {0, 0.6, 1};
-		//current_load = interp(sizeof(load_x)/sizeof(float), current_load, load_x, load_y);
-	
-		// spring force along normal
-		rigid.applyForceAt(params.force * current_load * normal, x);
-		// spring damping along up
-		rigid.applyForceAt(-params.damping  * up * (up*v), x);
-		// friction along front
-		rigid.applyForceAt(-current_load * params.drag_long * front*(front*v), x);
+        current_pos = x;
+        // velocity of the wheel in WCS
+        Vector v = rigid.getVelocityAt(x);
+
+        // relative load in interval [0..1]
+        current_load = (x-w).length() / params.range;
+        
+        // spring force along normal
+        rigid.applyForceAt(params.force * current_load * normal, x);
+        // spring damping along up
+        rigid.applyForceAt(-params.damping  * up * (up*v), x);
+        // friction along front
+        rigid.applyForceAt(-params.drag_long * front*(front*v), x);
         // sideways friction
-		rigid.applyForceAt(-current_load * params.drag_lat * right*(right*v), x);
-	} else {
-		current_pos = w;
+        rigid.applyForceAt(-params.drag_lat * right*(right*v), x);
+    } else {
+        current_pos = w;
     }
 }
 

@@ -43,7 +43,7 @@ public:
         : terrain(terrain)
     { setParams(params); }
     
-    const Params & getParams() { return params; }
+    Params & getParams() { return params; }
     const Vector & getCurrentPos() { return current_pos; }
     const float  getCurrentLoad() { return current_load; }
     const bool hasContact() { return contact; }
