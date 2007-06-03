@@ -24,6 +24,7 @@ class Targeter;
 class SoundSource;
 struct Context;
 
+namespace Effectors { class Wheel; }
 
 class EventSheet;
 
@@ -37,17 +38,6 @@ struct Personality {
     
     float evaluate(const Rating & r);
     void randomize();
-};
-
-struct Wheel {
-	Vector pos;
-	float range, force, damping, drag_long, drag_lat;
-};
-
-struct WheelState {
-	bool contact;
-	Vector pos;
-	float pressure;
 };
 
 class Drone : public SimpleActor, public Collide::Collidable, virtual public SigObject {
@@ -78,7 +68,6 @@ public:
     virtual void setControlMode(ControlMode);
     
 private:
-    void doWheels();
     void drawWheels();
     
 private:
@@ -103,7 +92,7 @@ private:
     FlightInfo flight_info;
     Ptr<FlightControls> flight_controls;
     AutoPilot auto_pilot;
-    WheelState wheel_states[3];
+    Ptr<Effectors::Wheel> wheels[3];
 
     float damage;
     MTasker<> mtasker;

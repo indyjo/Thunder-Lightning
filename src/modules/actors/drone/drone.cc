@@ -110,15 +110,15 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
     engine->addEffector( Effectors::Gravity::getInstance() );
     
 	static const Effectors::Wheel::Params wheel_params[3] = {
-	    {Vector(    0, -1.7,  2.92), Vector(1,0,0), 1, 500000, 15000, 500, 100000},
-	    {Vector(-1.55, -1.4, -2.63), Vector(1,0,0), 1, 500000, 15000, 12500, 100000},
-	    {Vector( 1.55, -1.4, -2.63), Vector(1,0,0), 1, 500000, 15000, 12500, 100000}
+	    {Vector(    0, -1.7,  2.92), Vector(1,0,0), 1, 500000, 15000, 50, 10000},
+	    {Vector(-2, -1.4, -2.63), Vector(1,0,0), 1, 500000, 15000, 50, 1000},
+	    {Vector( 2, -1.4, -2.63), Vector(1,0,0), 1, 500000, 15000, 50, 1000}
 	};
+	for (int i=0; i<3; ++i) {
+	    wheels[i] = new Effectors::Wheel(terrain, wheel_params[i]);
+	    engine->addEffector( wheels[i] );
+	}
 	
-	engine->addEffector( new Effectors::Wheel(terrain, wheel_params[0]) );
-	engine->addEffector( new Effectors::Wheel(terrain, wheel_params[1]) );
-	engine->addEffector( new Effectors::Wheel(terrain, wheel_params[2]) );
-
     setEngine(engine);
     
     flight_controls->setThrottle(1.0f);
@@ -283,6 +283,12 @@ void Drone::action() {
         }
         */
     }
+
+    // set brake factors on main landing gear
+    wheels[1]->getParams().drag_long = 50 + 950*controls->getFloat("brake", 0);
+    wheels[2]->getParams().drag_long = 50 + 950*controls->getFloat("brake", 0);
+
+    // cheap-ass crash detection
     Vector p = getLocation();
     if (p[1] < terrain->getHeightAt(p[0],p[2])) {
         p[1] = terrain->getHeightAt(p[0],p[2]);
@@ -290,13 +296,13 @@ void Drone::action() {
         explode();
     }
     
+    // cheap-ass damage modelling
     if (damage > 0.7) {
     	flight_controls->setRudder(1);
     	flight_controls->setAileron(-1);
     	flight_controls->setElevator(-0.2);
     }
     
-    doWheels();
     SimpleActor::action();
     
     engine_sound_src->setPosition(getLocation());
@@ -540,12 +546,8 @@ void Drone::setControlMode(ControlMode m) {
     }
 }
 
-void Drone::doWheels() {
-}
-
 void Drone::drawWheels() {
-/*
-	if (flight_info.getCurrentHeight() > 20) return;
+	if (flight_info.getCurrentHeight() > 50) return;
 	if (!wheel_model) {
 		Ptr<IConfig> cfg = thegame->getConfig();
 	    std::string model_file = cfg->query("Drone_wheel_model_file");
@@ -564,9 +566,9 @@ void Drone::drawWheels() {
 	for(int i=0; i<3; ++i) {
 		//if (!wheel_states[i].contact) continue;
     	Matrix Translation =
-    		TranslateMatrix<4,float>(wheel_states[i].pos);
+    		TranslateMatrix<4,float>(wheels[i]->getCurrentPos());
     	Matrix Mmodel  = Translation * Rotation;
     	wheel_model->draw(*renderer, Mmodel, Rotation);
 	}
-*/
 }
+
