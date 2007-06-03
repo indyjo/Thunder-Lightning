@@ -108,6 +108,17 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
     engine->construct(2000, 200000, 160000, 100000);
     engine->addEffector( new Effectors::Flight(flight_controls) );
     engine->addEffector( Effectors::Gravity::getInstance() );
+    
+	static const Effectors::Wheel::Params wheel_params[3] = {
+	    {Vector(    0, -1.7,  2.92), Vector(1,0,0), 1, 500000, 15000, 500, 100000},
+	    {Vector(-1.55, -1.4, -2.63), Vector(1,0,0), 1, 500000, 15000, 12500, 100000},
+	    {Vector( 1.55, -1.4, -2.63), Vector(1,0,0), 1, 500000, 15000, 12500, 100000}
+	};
+	
+	engine->addEffector( new Effectors::Wheel(terrain, wheel_params[0]) );
+	engine->addEffector( new Effectors::Wheel(terrain, wheel_params[1]) );
+	engine->addEffector( new Effectors::Wheel(terrain, wheel_params[2]) );
+
     setEngine(engine);
     
     flight_controls->setThrottle(1.0f);
@@ -530,86 +541,10 @@ void Drone::setControlMode(ControlMode m) {
 }
 
 void Drone::doWheels() {
-    Vector p = getLocation();
-   	if (p[1] < terrain->getHeightAt(p[0],p[2])+20 && this==&*thegame->getCurrentlyControlledActor()) {
-	    Vector wheels[3];
-	    int nwheels = sizeof(wheels)/sizeof(Vector);
-	    //wheels[0]=Vector(    0, -3,5);
-	    //wheels[1]=Vector(-1.65, -3,-0.965); 
-	    //wheels[2]=Vector( 1.65, -3,-0.965);
-	    wheels[0]=Vector(    0, -1.7, 2.92);
-	    wheels[1]=Vector(-1.55, -1.4,-2.63); 
-	    wheels[2]=Vector( 1.55, -1.4,-2.63); 
-	    float range[3] = {1,1,1};
-	    float forces[3] = { 500000, 500000, 500000 };
-	    float dampings[3] = { 15000, 15000, 15000 };
-	    float drag_long[3] = { 500, 12500, 12500 };
-	    float drag_lat[3] = {100000, 100000, 100000 };
-	    Matrix3 M,M_inv;
-	    engine->getState().q.toMatrix(M);
-	    M_inv = M;
-	    M_inv.transpose();
-	    
-	    Vector up,right,front;
-	    getOrientation(&up,&right,&front);
-	    //ls_message("-----\n");
-	    for(int i=0; i<nwheels; ++i) {
-	    	Vector w = M * wheels[i] + p;
-	    	Vector v = engine->getVelocityAt(w);
-	    	Vector x, normal;
-	    	wheel_states[i].contact =
-	    		terrain->lineCollides(w+range[i]*up, w, &x, &normal);
-	    	if (!wheel_states[i].contact)
-	    		wheel_states[i].pos = w;
-	    	if (wheel_states[i].contact) {
-	    		float pressure = (x-w).length() / (range[i]);
-	    		wheel_states[i].pos = x;
-	    		wheel_states[i].pressure = pressure;
-	    		
-	    		/*
-	    		ls_message("wheel %d pressure: %f\n", i, pressure);
-	    		ls_message("normal wheel pos:  "); w.dump();
-	    		ls_message("current wheel pos: "); x.dump();
-                ls_message("terrain normal: "); normal.dump();
-                ls_message("M:\n");M.dump();
-	    		ls_message("M_inv:\n");M_inv.dump();
-	    		ls_message("up:"); up.dump();
-	    		ls_message("M_inv*up:");(M_inv*up).dump();
-	    		ls_message("force:");(M_inv * (forces[i] * pressure * up)).dump();
-	    		ls_message("at:");(M_inv*(w-p)).dump();
-	    		*/
-                Vector old_P = engine->getDerivative().P;
-                Vector force;
-                
-                force = forces[i] * pressure * normal;
-                //ls_message("force: %f %f %f\n", force[0], force[1], force[2]);
-	    		engine->applyForceAt(force, x);
-                
-                force = -dampings[i]  * up * (up*v);
-                //ls_message("force: %f %f %f\n", force[0], force[1], force[2]);
-	    		engine->applyForceAt(force, x);
-	    		
-                force = -pressure * drag_long[i] * front*(front*v);
-                //ls_message("force: %f %f %f\n", force[0], force[1], force[2]);
-	    		engine->applyForceAt(force, x);
-
-                force = -pressure * drag_lat[i] * right*(right*v);
-                //ls_message("force: %f %f %f\n", force[0], force[1], force[2]);
-	    		engine->applyForceAt(force, x);
-                
-                Vector P = engine->getDerivative().P;
-                Vector dP = P - old_P;
-                //ls_message("dP: %f %f %f\n",dP[0],dP[1],dP[2]);
-                //ls_message("P: %f %f %f\n",P[0],P[1],P[2]);
-	    		//float h1 = terrain->getHeightAt(
-	    		//Vector P_lat = right * (right*engine->getMomentumAt(w));
-	    		//engine->apply
-	    	}
-	    }
-   	}
 }
 
 void Drone::drawWheels() {
+/*
 	if (flight_info.getCurrentHeight() > 20) return;
 	if (!wheel_model) {
 		Ptr<IConfig> cfg = thegame->getConfig();
@@ -633,4 +568,5 @@ void Drone::drawWheels() {
     	Matrix Mmodel  = Translation * Rotation;
     	wheel_model->draw(*renderer, Mmodel, Rotation);
 	}
+*/
 }
