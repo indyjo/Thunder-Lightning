@@ -50,6 +50,9 @@ public:
     // Effectors management
     void addEffector(Ptr<IEffector> effector);
     void removeEffector(Ptr<IEffector> effector);
+    
+private:
+    void clearAndApplyEffectors();
 };
 
 

@@ -17,22 +17,15 @@ RigidEngine::RigidEngine(Ptr<IGame> thegame)
 void RigidEngine::setControls(Ptr<DataNode> controls) {
 }
 
-void RigidEngine::run() {
-    float delta_t = thegame->getClock()->getStepDelta();
-    
+void RigidEngine::clearAndApplyEffectors() {
+    clearForces();
     // Apply all physical effects from effectors
     for(Effectors::iterator i=effectors.begin(); i!=effectors.end(); ++i) {
         (*i)->applyEffect(*this);
     }
-    
-    struct RigidBodyState state = getState();
-    struct RigidBodyState derivative = getDerivative();
-    
-    state.P += delta_t * derivative.P;
-    state.L += delta_t * derivative.L;
+}
 
-    setState(state);
-    clearForces();
+void RigidEngine::run() {
 }
 
 
@@ -94,18 +87,85 @@ void RigidEngine::setMovementVector(const Vector & new_v) {
 
 
 void RigidEngine::integrate(float delta_t, Transform * transforms) {
-    struct RigidBodyState state = getState();
-    struct RigidBodyState derivative = getDerivative();
-    state.x += delta_t * derivative.x;
-    state.q += delta_t * derivative.q;
-    transforms[0] = Transform(state.q.normalize(), state.x);
+    clearAndApplyEffectors();
+    struct RigidBodyState y = getState();
+    struct RigidBodyState k1 = getDerivative();
+    
+    struct RigidBodyState y_k1 = y;
+    y_k1.x += 0.5f*delta_t * k1.x;
+    y_k1.q = (y_k1.q + 0.5f*delta_t * k1.q).normalize();
+    y_k1.P += 0.5f*delta_t * k1.P;
+    y_k1.L += 0.5f*delta_t * k1.L;
+    setState(y_k1);
+    clearAndApplyEffectors();
+    struct RigidBodyState k2 = getDerivative();
+    
+    struct RigidBodyState y_k2 = y;
+    y_k2.x += 0.5f*delta_t * k2.x;
+    y_k2.q = (y_k2.q + 0.5f*delta_t * k2.q).normalize();
+    y_k2.P += 0.5f*delta_t * k2.P;
+    y_k2.L += 0.5f*delta_t * k2.L;
+    setState(y_k2);
+    clearAndApplyEffectors();
+    struct RigidBodyState k3 = getDerivative();
+    
+    struct RigidBodyState y_k3 = y;
+    y_k3.x += delta_t * k3.x;
+    y_k3.q = (y_k3.q + delta_t * k3.q).normalize();
+    y_k3.P += delta_t * k3.P;
+    y_k3.L += delta_t * k3.L;
+    setState(y_k3);
+    clearAndApplyEffectors();
+    struct RigidBodyState k4 = getDerivative();
+    
+    struct RigidBodyState result = y;
+    result.x += delta_t / 6 * (k1.x + 2*k2.x + 2*k3.x + k4.x);
+    result.q = (result.q + delta_t / 6 * (k1.q + 2.0f*k2.q + 2.0f*k3.q + k4.q)).normalize();
+    
+    transforms[0] = Transform(result.q.normalize(), result.x);
+    
+    setState(y);
 }
 
 void RigidEngine::update(float delta_t, const Transform * new_transforms) {
-    struct RigidBodyState state = getState();
-    state.x = new_transforms[0].vec();
-    state.q = new_transforms[0].quat();
-    setState(state);
+    clearAndApplyEffectors();
+    struct RigidBodyState y = getState();
+    struct RigidBodyState k1 = getDerivative();
+    
+    struct RigidBodyState y_k1 = y;
+    y_k1.x += 0.5f*delta_t * k1.x;
+    y_k1.q = (y_k1.q + 0.5f*delta_t * k1.q).normalize();
+    y_k1.P += 0.5f*delta_t * k1.P;
+    y_k1.L += 0.5f*delta_t * k1.L;
+    setState(y_k1);
+    clearAndApplyEffectors();
+    struct RigidBodyState k2 = getDerivative();
+    
+    struct RigidBodyState y_k2 = y;
+    y_k2.x += 0.5f*delta_t * k2.x;
+    y_k2.q = (y_k2.q + 0.5f*delta_t * k2.q).normalize();
+    y_k2.P += 0.5f*delta_t * k2.P;
+    y_k2.L += 0.5f*delta_t * k2.L;
+    setState(y_k2);
+    clearAndApplyEffectors();
+    struct RigidBodyState k3 = getDerivative();
+    
+    struct RigidBodyState y_k3 = y;
+    y_k3.x += delta_t * k3.x;
+    y_k3.q = (y_k3.q + delta_t * k3.q).normalize();
+    y_k3.P += delta_t * k3.P;
+    y_k3.L += delta_t * k3.L;
+    setState(y_k3);
+    clearAndApplyEffectors();
+    struct RigidBodyState k4 = getDerivative();
+    
+    struct RigidBodyState result = y;
+    result.x = new_transforms[0].vec();
+    result.q = (result.q + delta_t / 6 * (k1.q + 2.0f*k2.q + 2.0f*k3.q + k4.q)).normalize();
+    result.P += delta_t / 6 * (k1.P + 2*k2.P + 2*k3.P + k4.P);
+    result.L += delta_t / 6 * (k1.L + 2*k2.L + 2*k3.L + k4.L);
+    
+    setState(result);
 }
 
 void RigidEngine::addEffector(Ptr<IEffector> effector) {
