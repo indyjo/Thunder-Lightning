@@ -160,5 +160,10 @@ Config do(
   Cannon_sound                     := "cannon-shoot-1.wav"
   Cannon_muzzle_velocity           := "1200"
 
+  // Carrier configuration
+  Carrier_model_path               := model_dir .. "/carrier"
+  Carrier_skeleton                 := Carrier_model_path .. "/Carrier.spec"
+  Carrier_model_bounds             := Carrier_model_path .. "/carrier.bounds"
+  
 ) // Config do
 
