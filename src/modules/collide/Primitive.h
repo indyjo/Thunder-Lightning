@@ -11,6 +11,9 @@ namespace Collide {
 typedef XTransform<Interval> ITransform;
 typedef XVector<3,Interval> IVector;
 
+class BoundingNode;
+struct GeometryInstance;
+
 union Hints {
     struct {
         float exactness;
@@ -55,6 +58,13 @@ bool intersectTriangleTriangle(const Vector * triangle1,
                                const Vector * triangle2,
                                const ITransform & T2,
                                Hints & hints);
+                               
+bool intersectLineNode(const Vector &a, const Vector &b,
+                       int xform_id,
+                       const Transform & xform,
+                       const GeometryInstance * geom_instance,
+                       const BoundingNode * node,
+                       Vector * out_x=0, Vector *out_normal=0);
 
 } // namespace Collide
 

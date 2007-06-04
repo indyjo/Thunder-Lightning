@@ -1,5 +1,31 @@
-#include "Primitive.h"
+//#define DEBUG_MESSAGES
+
+#ifdef DEBUG_MESSAGES
+    #include <landscape.h>
+    
+    static int _counter=0; \
+    
+    #define debug_msg(...) \
+        for(int i=0; i<_counter; ++i) ls_message(" "); \
+        ls_message(__VA_ARGS__)
+    
+    #define begin_func \
+        _counter++;
+        
+    #define end_func \
+        _counter--;
+        
+#else
+    #define debug_msg(...)
+    #define begin_func
+    #define end_func
+#endif
+
 #include <stdexcept>
+#include "GeometryInstance.h"
+#include "BoundingNode.h"
+
+#include "Primitive.h"
 
 namespace {
 
@@ -345,5 +371,274 @@ bool intersectTriangleTriangle(const Vector * triangle1,
     }
     return false;
 }
+
+Transform get_transform(int xform_id, const Collide::GeometryInstance * geom_instance)
+{
+    Ptr<BoundingGeometry> geom = geom_instance->collidable->getBoundingGeometry();
+    Transform xform = geom_instance->transforms_0[xform_id];
+    
+    int new_id;
+    while (xform_id != (new_id=geom->getParentOfTransform(xform_id))) {
+        xform_id = new_id;
+        xform = xform * geom_instance->transforms_0[xform_id];
+    }
+    return xform;
+}
+
+bool intersectLineBox(bool solid_box,
+                      const Vector &a, const Vector &b,
+                      const BoundingBox & box,
+                      const Transform & xform,
+                      Vector *out_x=0, Vector *out_normal=0)
+{
+    Transform inv = xform.inv();
+    Vector a_local = inv(a) - box.pos;
+    Vector b_local = inv(b) - box.pos;
+    debug_msg("Local a: %.2f %.2f %.2f -> b: %.2f %.2f %.2f\n",
+        a_local[0],a_local[1],a_local[2],b_local[0],b_local[1],b_local[2]);
+    
+    int outside_bits_a = 0, outside_bits_b = 0;
+    for (int i=0; i<3; ++i) {
+        outside_bits_a |= (a_local[i] < -box.dim[i]) ? 1 <<  i    : 0;
+        outside_bits_a |= (a_local[i] >  box.dim[i]) ? 1 << (i+3) : 0;
+        outside_bits_b |= (b_local[i] < -box.dim[i]) ? 1 <<  i    : 0;
+        outside_bits_b |= (b_local[i] >  box.dim[i]) ? 1 << (i+3) : 0;
+        
+        if ( 0 != (outside_bits_a & outside_bits_b) ) {
+            // if we detect that a and b are both on the outer side of a wall,
+            // we can be sure that there is no intersection
+            debug_msg("outside_bits_a: %x outside_bits_b: %x\n", outside_bits_a, outside_bits_b);
+            debug_msg("  so I'll exit!\n");
+            return false;
+        }
+    }
+    debug_msg("outside_bits_a: %x outside_bits_b: %x\n", outside_bits_a, outside_bits_b);
+    
+    // if a is completely inside and we're supposed to regard the box as solid
+    if (outside_bits_a == 0 && solid_box) {
+        if (out_x) *out_x = a;
+        if (out_normal) {
+            Vector d = a-b; // the normal will be parallel with line(a,b) facing a
+            float len = d.length();
+            if (len > 1e-5) {
+                *out_normal = d / len;
+            } else {
+                *out_normal = Vector(1,0,0);
+            }
+        }
+        debug_msg("exiting because a is inside box.\n");
+        return true;
+    }
+            
+    // The walls we need to test are those where one point is inside
+    // and the other one is outside.
+    int walls_to_test = outside_bits_a ^ outside_bits_b;
+
+    // Further, we do some sort of backface culling and only test against
+    // walls facing point a.
+    // If a is inside the box, these are all walls (no change), else
+    // these are exactly those where a is outside.
+    if (outside_bits_a != 0) {
+        walls_to_test &= outside_bits_a;
+    }
+
+    debug_msg("walls to test: %x\n", walls_to_test);
+    
+    // Now we test each required wall against an intersection. If we get one,
+    // it is automatically the right one, thanks to the above logic :-)
+    Vector d = b_local-a_local;
+    for(int i=0; i<3; ++i) {
+        if (walls_to_test & (1 << i)) {
+            // NEGATIVE side
+            //a.i + lambda*d.i = -dim.i;
+            //=> x = a+ (-dim.i-a.i)/d.i * d
+            Vector x = a_local + (-box.dim[i]-a_local[i]) / d[i] * d;
+            if ( std::abs(x[(i+1)%3]) <= box.dim[(i+1)%3] &&
+                 std::abs(x[(i+2)%3]) <= box.dim[(i+2)%3] )
+            {
+                // we got an intersection, hooray!
+                if (out_x) *out_x = xform(x + box.pos);
+                if (out_normal) {
+                    Vector n;
+                    for(int j=0; j<3; ++j) n[j] = (j==i)?-1:0;
+                    if (outside_bits_a == 0) n = -n;
+                    *out_normal = xform.quat().rot(n);
+                }
+                debug_msg("found: NEGATIVE side %d\n", i);
+                return true;
+            }
+        }
+            
+        if (walls_to_test & (1 << (i+3))) {
+            // POSITIVE side
+            //a.i + lambda*d.i = dim.i;
+            //=> x = a+ (dim.i-a.i)/d.i * d
+            Vector x = a_local + (box.dim[i]-a_local[i]) / d[i] * d;
+            if ( std::abs(x[(i+1)%3]) <= box.dim[(i+1)%3] &&
+                 std::abs(x[(i+2)%3]) <= box.dim[(i+2)%3] )
+            {
+                // we got an intersection, hooray!
+                if (out_x) *out_x = xform(x + box.pos);
+                if (out_normal) {
+                    Vector n;
+                    for(int j=0; j<3; ++j) n[j] = (j==i)?1:0;
+                    if (outside_bits_a == 0) n = -n;
+                    *out_normal = xform.quat().rot(n);
+                }
+                debug_msg("found: POSITIVE side %d\n", i);
+                return true;
+            }
+        }
+    }
+    
+    debug_msg("not found.\n");
+    return false;
+}
+
+bool intersectLineNode(const Vector &a, const Vector &b,
+                       int xform_id,
+                       const Transform & xform,
+                       const GeometryInstance * geom_instance,
+                       const BoundingNode * node,
+                       Vector * out_x, Vector *out_normal)
+{
+    begin_func
+    debug_msg("Testing line %.2f %.2f %.2f -> %.2f %.2f %.2f against:\n",
+        a[0],a[1],a[2],b[0],b[1],b[2]);
+    switch(node->type) {
+    case BoundingNode::NONE:
+        debug_msg("NONE\n");
+        debug_msg(" with bounds at %.2f %.2f %.2f (%.2f %.2f %.2f)\n",
+            node->box.pos[0],node->box.pos[1],node->box.pos[2],
+            node->box.dim[0],node->box.dim[1],node->box.dim[2]);
+        break;
+    case BoundingNode::LEAF:
+        debug_msg("LEAF\n");
+        debug_msg(" with bounds at %.2f %.2f %.2f (%.2f %.2f %.2f)\n",
+            node->box.pos[0],node->box.pos[1],node->box.pos[2],
+            node->box.dim[0],node->box.dim[1],node->box.dim[2]);
+        break;
+    case BoundingNode::INNER:
+        debug_msg("INNER\n");
+        debug_msg(" with bounds at %.2f %.2f %.2f (%.2f %.2f %.2f)\n",
+            node->box.pos[0],node->box.pos[1],node->box.pos[2],
+            node->box.dim[0],node->box.dim[1],node->box.dim[2]);
+        break;
+    case BoundingNode::NEWDOMAIN:
+        debug_msg("NEWDOMAIN\n");
+        break;
+    case BoundingNode::TRANSFORM:
+        debug_msg("TRANSFORM\n");
+        break;
+    case BoundingNode::GATE:
+        debug_msg("GATE\n");
+        break;
+    }
+    
+    switch(node->type) {
+    case BoundingNode::NONE:
+    case BoundingNode::LEAF:
+        {
+            bool intersect = intersectLineBox(true, // no solid box, this is an exact test
+                                              a,b,
+                                              node->box,
+                                              xform,
+                                              out_x, out_normal);
+            debug_msg(" -> %s\n", intersect?"INTERSECT":"nothing");
+            end_func
+            return intersect;
+        }
+    case BoundingNode::INNER:
+        {
+            bool boxtest = intersectLineBox(true, // solid box, this is not an exact test
+                                            a,b,
+                                            node->box, xform);
+            debug_msg(" -> %s\n", boxtest?"INTERSECT":"nothing");
+            if (!boxtest) {
+                end_func
+                return false;
+            }
+            
+            bool found = false;
+            Vector best_x, best_normal;
+            for (int i=0; i<2; ++i) {
+                Vector new_x, new_normal;
+                bool res = intersectLineNode(
+                    a,b,
+                    xform_id, xform,
+                    geom_instance,
+                    node->data.inner.children[i],
+                    &new_x, &new_normal);
+                
+                if (res && (!found || (new_x-best_x) * (b-a) < 0)) {
+                    found = true;
+                    best_x = new_x;
+                    best_normal = new_normal;
+                }
+            }
+            if (found) {
+                if (out_x) *out_x = best_x;
+                if (out_normal) *out_normal = best_normal;
+            }
+            debug_msg(" -> %s\n", found?"INTERSECT":"nothing");
+            end_func
+            return found;
+        }  
+    case BoundingNode::NEWDOMAIN:
+        {
+            bool intersect =  intersectLineNode(
+                a,b,
+                xform_id,
+                xform,
+                geom_instance,
+                node->data.domain.child,
+                out_x, out_normal);
+            debug_msg(" -> %s\n", intersect?"INTERSECT":"nothing");
+            end_func
+            return intersect;
+        }
+    case BoundingNode::TRANSFORM:
+        {
+            bool intersect = intersectLineNode(
+                a,b,
+                node->data.transform.transform_id,
+                get_transform(node->data.transform.transform_id, geom_instance),
+                geom_instance,
+                node->data.transform.child,
+                out_x, out_normal);
+            debug_msg(" -> %s\n", intersect?"INTERSECT":"nothing");
+            end_func
+            return intersect;
+        }
+    case BoundingNode::GATE:
+        {
+            bool found = false;
+            Vector best_x, best_normal;
+            for (int i=0; i<node->data.gate.n_children; ++i) {
+                Vector new_x, new_normal;
+                bool res = intersectLineNode(
+                    a,b,
+                    xform_id, xform,
+                    geom_instance,
+                    &node->data.gate.children[i],
+                    &new_x, &new_normal);
+                
+                if (res && (!found || (new_x-best_x) * (b-a) < 0)) {
+                    found = true;
+                    best_x = new_x;
+                    best_normal = new_normal;
+                }
+            }
+            if (found) {
+                if (out_x) *out_x = best_x;
+                if (out_normal) *out_normal = best_normal;
+            }
+            debug_msg(" -> %s\n", found?"INTERSECT":"nothing");
+            end_func
+            return found;
+        }
+    }
+} 
+
 
 } // namespace Collide

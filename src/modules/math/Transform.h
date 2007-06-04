@@ -43,7 +43,7 @@ public:
         return *this;
     }
     
-    inline XTransform inv() {
+    inline XTransform inv() const {
         return XTransform(q.conj(), -q.conj().rot(t));
     }
     

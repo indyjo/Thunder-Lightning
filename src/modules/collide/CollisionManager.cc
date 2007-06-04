@@ -126,12 +126,19 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
 
     int found_contacts;
 
+    // get current transforms
+    for(GeomIter i=geom_instances.begin(); i!=geom_instances.end(); i++) {
+        Ptr<Collidable> collidable = i->first;
+        GeometryInstance & instance = *i->second;
+
+        collidable->integrate(0.0f, instance.transforms_0);
+    }
+    
     // compute destination transforms at delta_t
     for(GeomIter i=geom_instances.begin(); i!=geom_instances.end(); i++) {
         Ptr<Collidable> collidable = i->first;
         GeometryInstance & instance = *i->second;
 
-        collidable->integrate(0.0f,    instance.transforms_0);
         if (collidable->getRigid()) {
             collidable->integrate(delta_t, instance.transforms_1);
         } else {
@@ -315,6 +322,75 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
     } // while delta_t > 0
 }
 
+Ptr<Collidable> CollisionManager::lineQuery(
+    const Vector &a,
+    const Vector &b,
+    Vector * out_x,
+    Vector * out_normal,
+    Ptr<Collidable> nocollide)
+{
+    BoundingBox box;
+    box.pos =(a+b)/2;
+    for(int i=0; i<3; ++i) box.dim[i] = std::abs(a[i]-b[i])/2;
+    
+    Ptr<Collidable> best_collidable;
+    Vector best_x, best_normal;
+    
+    for(GeomIter i=geom_instances.begin(); i!=geom_instances.end(); ++i) {
+        if (i->first == nocollide) {
+            continue;
+        }
+        float r = i->first->getBoundingGeometry()->getBoundingRadius();
+        Vector d = i->second->transforms_0[0].vec() - box.pos;
+        
+        // We try to sort out non-intersecting objects as fast as we can
+        // by performing an AABB-AABB test. The second AABB wraps
+        // the tested object's bounding sphere.
+        for(int j=0; j<3; ++j) {
+            if (std::abs(d[j]) > r + box.dim[j]) {
+                continue;
+            }
+        }
+        
+        // If we have come so far, we might still sort out an object with a
+        // separating axis test, i.e. a real AABB<->sphere test.
+        float d_len = d.length();
+        if (d_len > 1e-5) {
+            d /= d_len;
+            float dim_dot_abs_d =
+                box.dim[0]*std::abs(d[0]) +
+                box.dim[1]*std::abs(d[1]) +
+                box.dim[2]*std::abs(d[2]);
+            if (dim_dot_abs_d + r < d_len) {
+                continue;
+            }
+        }
+        
+        // If we have come he we must perform a fine-grained intersection test
+        Vector new_x;
+        Vector new_normal;
+        bool intersect = intersectLineNode(
+            a,b,
+            0, i->second->transforms_0[0],                  // xform_id, xform
+            i->second,                                      // geom_instance
+            i->first->getBoundingGeometry()->getRootNode(), // node
+            &new_x, &new_normal);
+            
+        
+        if (intersect && (!best_collidable || (new_x-best_x) * (b-a) < 0)) {
+            best_collidable = i->first;
+            best_x = new_x;
+            best_normal = new_normal;
+        }
+    }
+    
+    if (best_collidable) {
+        if (out_x) *out_x = best_x;
+        if (out_normal) *out_normal = best_normal;
+    }
+    
+    return best_collidable;
+}
 
 } // namespace Collide
 
