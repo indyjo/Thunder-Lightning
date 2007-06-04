@@ -87,6 +87,14 @@ void RigidEngine::setMovementVector(const Vector & new_v) {
 
 
 void RigidEngine::integrate(float delta_t, Transform * transforms) {
+    // shortcut to query current state
+    if (delta_t == 0) {
+        const struct RigidBodyState & state = getState();
+        transforms[0] = Transform(state.q.normalize(), state.x);
+        return;
+    }
+        
+
     clearAndApplyEffectors();
     struct RigidBodyState y = getState();
     struct RigidBodyState k1 = getDerivative();
