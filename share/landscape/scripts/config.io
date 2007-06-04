@@ -140,6 +140,8 @@ Config do(
   Tank_cannon_sound                := "cannon-shoot-1.wav"
   Tank_engine_sound_low            := "car-engine-1-loop.wav"
   Tank_engine_sound_high           := "car-engine-2-loop.wav"
+  Tank_cannon_factor               := "10"
+  Tank_vulcan_factor               := "0.8"
 
   // FontMan configuration
   FontMan_dir                      := fonts_dir
