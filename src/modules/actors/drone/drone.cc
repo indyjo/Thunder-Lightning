@@ -115,8 +115,7 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
 	    {Vector( 2, -1.4, -2.63), Vector(1,0,0), 1, 500000, 15000, 50, 1000}
 	};
 	for (int i=0; i<3; ++i) {
-	    wheels[i] = new Effectors::Wheel(terrain, wheel_params[i]);
-	    engine->addEffector( wheels[i] );
+	    wheels[i] = new Effectors::Wheel(terrain, thegame->getCollisionMan(), this, wheel_params[i]);
 	}
 	
     setEngine(engine);

@@ -4,7 +4,13 @@
 #include <interfaces/IEffector.h>
 #include <interfaces/ITerrain.h>
 #include <modules/math/Vector.h>
+#include <Weak.h>
 #include "controls.h"
+
+namespace Collide {
+    class CollisionManager;
+    class Collidable;
+}
 
 namespace Effectors {
 
@@ -39,9 +45,7 @@ public:
     	float range, force, damping, drag_long, drag_lat;
     };
     
-    Wheel(Ptr<ITerrain> terrain, const Params & params)
-        : terrain(terrain)
-    { setParams(params); }
+    Wheel(Ptr<ITerrain> terrain, Ptr<Collide::CollisionManager> cm, WeakPtr<Collide::Collidable> nocollide, const Params & params);
     
     Params & getParams() { return params; }
     const Vector & getCurrentPos() { return current_pos; }
@@ -54,6 +58,8 @@ public:
     
 private:
     Ptr<ITerrain> terrain;
+    Ptr<Collide::CollisionManager> collision_manager;
+    WeakPtr<Collide::Collidable> nocollide;
     Params params;
     
     // dynamic state

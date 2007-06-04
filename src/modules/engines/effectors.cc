@@ -1,3 +1,4 @@
+#include <modules/collide/CollisionManager.h>
 #include "effectors.h"
 
 namespace {
@@ -135,6 +136,17 @@ void Flight::applyEffect(RigidBody &rigid) {
     rigid.applyAngularAcceleration(-Crot_xy*V2 * omega_xy * omega_xy.length());
 }
 
+
+
+
+Wheel::Wheel(
+    Ptr<ITerrain> terrain,
+    Ptr<Collide::CollisionManager> cm,
+    WeakPtr<Collide::Collidable> nocollide,
+    const Params & params)
+    : terrain(terrain), collision_manager(cm), nocollide(nocollide)
+{ setParams(params); }
+
 void Wheel::setParams(const Wheel::Params& p) {
     this->params = p;
     current_pos = Vector(0,0,0);
@@ -156,6 +168,16 @@ void Wheel::applyEffect(RigidBody &rigid) {
     
     // do the actual intersection test
     contact = terrain->lineCollides(w+params.range*up, w, &x, &normal);
+    
+    if (!contact) {
+        contact = collision_manager->lineQuery(w+params.range*up, w, &x, &normal, nocollide.lock());
+        if (contact) {
+            Vector xloc = q.inv().rot(x - rigid.getState().x);
+            Vector nloc = q.inv().rot(normal);
+            ls_message("contact at %f %f %f normal %f %f %f\n",
+                xloc[0],xloc[1],xloc[2],nloc[0],nloc[1],nloc[2]);
+        }
+    }
     
     if (contact) {
         Vector right = q.rot(params.axis);
