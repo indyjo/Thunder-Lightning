@@ -69,6 +69,35 @@ private:
 };    
 
 
+class Thrust : public IEffector {
+    Vector max_force;
+    float throttle;
+    
+public:
+    Thrust();
+    
+    inline void setMaxForce(Vector f) { max_force = f; }
+    inline Vector getMaxForce() { return max_force; }
+    
+    inline void setThrottle(float t) { throttle = t; }
+    inline float getThrottle() { return throttle; }
+    
+    inline Vector getEffectiveForce() { return throttle*max_force; }
+
+    virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls);
+};
+
+class Missile : public IEffector {
+public:
+    virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls);
+};
+
+class MissileControl : public IEffector {
+public:
+    virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls);
+};
+
+
 } // namespace Effectors
 
 #endif

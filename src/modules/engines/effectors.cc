@@ -206,5 +206,56 @@ void Wheel::applyEffect(RigidBody &rigid) {
     }
 }
 
+Thrust::Thrust()
+    : max_force(Vector(0,0,0))
+    , throttle(0)
+{ }
+
+void Thrust::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
+    rigid.applyForce(rigid.getState().q.rot(getEffectiveForce()));
+}
+
+void Missile::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
+    const static float cw_f = 0.3;              // frontal drag coefficient
+    const static float cw_s = 1.2;              // side drag coefficient
+    const static float torque_factor_z = 300;
+    const static float torque_factor_xy = 300;
+    const static float front_area = 3.141593f * 0.13f*0.13f;
+    const static float side_area = 3.0f * 0.63f*0.63f;
+    const static float rho= 1.293;            // air density
+
+    Quaternion q=rigid.getState().q;
+    Vector d = q.rot(Vector(0,0,1));
+    Vector v = rigid.getLinearVelocity();
+
+    // stabilizing torque
+    Vector omega = rigid.getAngularVelocity();
+    Vector omega_z = d * (omega*d);
+    Vector omega_xy = omega - omega_z;
+    Vector v_z = d * (v*d);
+    Vector v_xy = v - v_z;
+    rigid.applyTorque(-torque_factor_z * rho * omega_z.length()*omega_z);
+    rigid.applyTorque(-torque_factor_xy * rho * omega_xy.length()*omega_xy);
+
+    Vector v_f = d * (v*d); // frontal component of velocity
+    Vector drag_force_f = -v_f.length() * v_f * (cw_f * front_area * rho / 2.0);
+
+    Vector v_s = v - v_f; // side component of velocity
+    Vector drag_force_s = -v_s.length() * v_s * (cw_s * side_area * rho / 2.0);
+
+    rigid.applyForce(drag_force_f + drag_force_s);
+}
+
+void MissileControl::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
+    // control
+    Vector a = controls->getVector("angular_accel");
+    float length = a.length();
+    // 10 is some random value to prevent unusually fast spinning
+    if (length > 10.0f) {
+        a *= 10/length;
+    }
+    rigid.applyAngularAcceleration(a);
+}
+
 } // namespace Effectors
 
