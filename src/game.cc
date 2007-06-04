@@ -208,7 +208,7 @@ Game::Game(int argc, const char **argv)
 		ls_message("Done excuting initial setup script: %s\n", buf);
     }
 
-    while (clock->catchup(1.0f)) ;
+    clock->skip() ;
 }
 
 Game::~Game()
@@ -671,6 +671,7 @@ void Game::doEvents()
 }
 
 #define MAX_STEP_SECONDS (1.0 / 15.0)
+#define MAX_CATCHUP_STEPS 1
 
 void Game::preFrame()
 {
@@ -682,11 +683,15 @@ void Game::preFrame()
     soundman->update(clock->getFrameDelta());
 
     // this will return false if pause is activated
-    while (clock->catchup(MAX_STEP_SECONDS)) {
+    for(int step_counter = 0;
+        step_counter < MAX_CATCHUP_STEPS && clock->catchup(MAX_STEP_SECONDS);
+        step_counter++)
+    {
         collisionman->run(this, clock->getStepDelta());
         cleanupActors();
         setupActors();
     }
+    clock->skip();
 
     // Upon death of current view subject, switch to external perspective
     if (current_view && !current_view->getViewSubject()->isAlive()) {

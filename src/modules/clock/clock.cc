@@ -47,6 +47,11 @@ bool Clock::catchup(double time) {
     return true;
 }
 
+void Clock::skip() {
+    if (pause_mode) return;
+    time_left = 0;
+}
+
 int Clock::measureTicks() {
     return SDL_GetTicks();
 }

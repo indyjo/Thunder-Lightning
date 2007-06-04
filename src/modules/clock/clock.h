@@ -30,8 +30,10 @@ public:
     // Called each frame to get the new time
     void update();
     // Called for each step of the given length.
-    // Returns false when time is caught up
+    // Returns false when time is caught up.
     bool catchup(double time);
+    // Catches up all available time left without setting delta values
+    void skip();
     
     // Start and stop pause
     inline void pause() { pause_mode = true; }
