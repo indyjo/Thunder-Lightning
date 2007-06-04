@@ -11,6 +11,9 @@ public:
     virtual void action();
     virtual void draw();
     
+    virtual int getNumViews();
+    virtual Ptr<IView> getView(int n);
+
 protected:
     void mapEvents();
     void setDollying(bool);

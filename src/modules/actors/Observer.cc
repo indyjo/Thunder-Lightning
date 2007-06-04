@@ -1,4 +1,7 @@
+#include <modules/actors/RelativeView.h>
 #include <modules/engines/ObserverEngine.h>
+#include <modules/gunsight/gunsight.h>
+#include <modules/weaponsys/Targeter.h>
 #include <remap.h>
 #include "Observer.h"
 
@@ -10,6 +13,7 @@ Observer::Observer(Ptr<IGame> thegame)
     mapEvents();
     setControlMode(MANUAL);
     setEngine(new ObserverEngine(thegame));
+    setTargeter(new Targeter(*thegame,*this));
 }
 
 void Observer::action() {
@@ -51,6 +55,26 @@ void Observer::draw() {
     }
     
     // nothing to draw
+}
+
+
+int Observer::getNumViews() {
+	return 1;
+}
+
+Ptr<IView> Observer::getView(int n) {
+    Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
+	gunsight->addDebugInfo(thegame, this);
+	//gunsight->addTargeting(this, getTargeter());
+    gunsight->addInfoMessage(thegame);
+
+	return new RelativeView(
+        this,
+        Vector(0,0,0),
+        Vector(1,0,0),
+        Vector(0,1,0),
+        Vector(0,0,1),
+        gunsight);
 }
 
 void Observer::mapEvents() {
