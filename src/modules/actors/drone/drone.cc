@@ -90,7 +90,8 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
 : SimpleActor(thegame),
   renderer(thegame->getRenderer()),
   terrain(thegame->getTerrain()), damage(0),
-  mtasker(64*1024)
+  mtasker(64*1024),
+  gear_lowered(false)
 {
 	ls_message("<Drone::Drone>\n");
     if (io_peer_init)
@@ -188,6 +189,9 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
 
     mapTargeterEvents();
     mapArmamentEvents();
+    
+    Ptr<EventSheet> sheet = getEventSheet();
+    sheet->map("landing-gear", SigC::slot(*this, &Drone::toggleLandingGear));
     		
 	ls_message("</Drone::Drone>\n");
 }
@@ -377,7 +381,10 @@ void Drone::draw() {
         skeleton->draw(*renderer);
     }
     
-    drawWheels();
+    if (isLandingGearLowered()) {
+        drawWheels();
+    }
+    
     renderer->disableLighting();
     
     if (current_idea == patrol_idea && thegame->debugMode()) {
@@ -545,8 +552,21 @@ void Drone::setControlMode(ControlMode m) {
     }
 }
 
+void Drone::setLandingGear(bool lowered) {
+    gear_lowered=lowered;
+    if (lowered) {
+        for(int i=0; i<3; ++i) {
+            engine->addEffector( wheels[i] );
+        }
+    } else {
+        for(int i=0; i<3; ++i) {
+            engine->removeEffector( wheels[i] );
+        }
+    }
+}
+
+
 void Drone::drawWheels() {
-	if (flight_info.getCurrentHeight() > 50) return;
 	if (!wheel_model) {
 		Ptr<IConfig> cfg = thegame->getConfig();
 	    std::string model_file = cfg->query("Drone_wheel_model_file");

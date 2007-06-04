@@ -67,6 +67,10 @@ public:
     virtual bool hasControlMode(ControlMode);
     virtual void setControlMode(ControlMode);
     
+    void setLandingGear(bool lowered);
+    inline bool isLandingGearLowered() { return gear_lowered; }
+    inline void toggleLandingGear() { setLandingGear(! isLandingGearLowered() ); }
+    
 private:
     void drawWheels();
     
@@ -92,6 +96,7 @@ private:
     FlightInfo flight_info;
     Ptr<FlightControls> flight_controls;
     AutoPilot auto_pilot;
+    bool gear_lowered;
     Ptr<Effectors::Wheel> wheels[3];
 
     float damage;
