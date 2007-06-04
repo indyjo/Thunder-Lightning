@@ -67,6 +67,8 @@ EventRemapper do(
   mapKey(SDLK_F9, press, "slower")
   mapKey(SDLK_F10, press, "faster")
   
+  mapKey(SDLK_l, press, "landing-gear")
+  
   mapKey(SDLK_i, press, "toggle-introduction")
   
   if (Config Controls_enable_mouse != "false",
