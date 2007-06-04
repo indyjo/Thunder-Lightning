@@ -7,6 +7,7 @@
 #include <modules/physics/RigidBody.h>
 #include <interfaces/IGame.h>
 #include <interfaces/IEffector.h>
+#include <DataNode.h>
 
 #include "engine.h"
 
@@ -17,10 +18,12 @@ protected:
     
     typedef std::vector<Ptr<IEffector> > Effectors;
     Effectors effectors;
+    Ptr<DataNode> controls;
 public:
     RigidEngine(Ptr<IGame> game);
     
     //IEngine
+    inline Ptr<DataNode> getControls() { return controls; }
     virtual void setControls(Ptr<DataNode> controls);
     virtual void run();
 

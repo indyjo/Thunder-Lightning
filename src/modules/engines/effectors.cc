@@ -24,7 +24,7 @@ namespace Effectors {
 
 Gravity::Gravity() { }
 
-void Gravity::applyEffect(RigidBody &rigid) {
+void Gravity::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
     rigid.applyLinearAcceleration(Vector(0,-9.81,0));
 }
 
@@ -37,12 +37,10 @@ Ptr<Gravity> Gravity::getInstance() {
 
 #define PI 3.14159265358979323846
 
-// Air pressure
-#define rho 1.293
-
-void Flight::applyEffect(RigidBody &rigid) {
+void Flight::applyEffect(RigidBody &rigid, Ptr<DataNode> cntrls) {
     // These are all variables involved in the flight simulation.
     // TODO: put these in a class FlightModel or similar
+    const static float rho = 1.293; // air pressure
     const static float max_thrust = 40000.0;
     const static float wing_area = 20.0;
     const static float max_torque = 600000.0f;
@@ -154,7 +152,7 @@ void Wheel::setParams(const Wheel::Params& p) {
     contact = false;
 }
 
-void Wheel::applyEffect(RigidBody &rigid) {
+void Wheel::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
     
     // the rigid body's orientation
     Quaternion q = rigid.getState().q;

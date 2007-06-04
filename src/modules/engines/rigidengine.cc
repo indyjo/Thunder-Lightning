@@ -1,6 +1,7 @@
 #include <algorithm>
 #include "rigidengine.h"
 #include <modules/clock/clock.h>
+#include <DataNode.h>
 
 RigidEngine::RigidEngine(Ptr<IGame> thegame)
 :   thegame(thegame)
@@ -12,16 +13,18 @@ RigidEngine::RigidEngine(Ptr<IGame> thegame)
         Vector(0,0,0)};
     setState(state);
     clearForces();
+    setControls(new DataNode);
 };
 
 void RigidEngine::setControls(Ptr<DataNode> controls) {
+    this->controls = controls;
 }
 
 void RigidEngine::clearAndApplyEffectors() {
     clearForces();
     // Apply all physical effects from effectors
     for(Effectors::iterator i=effectors.begin(); i!=effectors.end(); ++i) {
-        (*i)->applyEffect(*this);
+        (*i)->applyEffect(*this, getControls());
     }
 }
 

@@ -18,7 +18,7 @@ class Gravity: public IEffector {
     // private constructor to force usage of singleton
     Gravity();
 public:
-    virtual void applyEffect(RigidBody &rigid);
+    virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls);
     
     /// Singleton accessor function
     static Ptr<Gravity> getInstance();
@@ -33,7 +33,7 @@ class Flight : public IEffector {
 public:
     Flight(Ptr<FlightControls> controls) : controls(controls) { }
     
-    virtual void applyEffect(RigidBody &rigid);
+    virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls);
 };
 
 
@@ -54,7 +54,7 @@ public:
     
     void setParams(const Params&);
     
-    virtual void applyEffect(RigidBody &rigid);
+    virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls);
     
 private:
     Ptr<ITerrain> terrain;

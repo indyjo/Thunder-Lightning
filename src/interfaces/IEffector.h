@@ -4,8 +4,10 @@
 #include <object.h>
 #include <modules/physics/RigidBody.h>
 
+class DataNode;
+
 struct IEffector : public Object {
-    virtual void applyEffect(RigidBody &rigid)=0;
+    virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls)=0;
 };
 
 #endif
