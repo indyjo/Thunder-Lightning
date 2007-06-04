@@ -61,7 +61,7 @@ Config do(
   Game_loading_screen := texture_dir .. "/loading-screen.spr"
   
   // Controls config
-  Controls_enable_joystick := "false"
+  Controls_enable_joystick := "true"
   Controls_enable_mouse    := "true"
 
   // Sound config
