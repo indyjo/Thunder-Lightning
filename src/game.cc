@@ -904,7 +904,7 @@ void Game::externalView() {
         }
         addWeakActor(ptr(observer));
 		setCurrentView(observer->getView(0));
-		setCurrentlyControlledActor(observer);
+		if (!debugMode()) setCurrentlyControlledActor(observer);
 		view_is_external = true;
 	}
 }
