@@ -290,6 +290,13 @@ void Drone::action() {
     // set brake factors on main landing gear
     wheels[1]->getParams().drag_long = 50 + 950*controls->getFloat("brake", 0);
     wheels[2]->getParams().drag_long = 50 + 950*controls->getFloat("brake", 0);
+    
+    // rotate the front wheel according to rudder
+    static const float max_wheel_turn = 60*3.141593f/180; // 60 degrees max
+    wheels[0]->getParams().axis = Vector(
+        cos(max_wheel_turn * controls->getFloat("rudder")),
+        sin(max_wheel_turn * controls->getFloat("rudder")),
+        0);
 
     // cheap-ass crash detection
     Vector p = getLocation();
