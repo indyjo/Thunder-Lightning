@@ -3,12 +3,14 @@
 function on_error() {
   xset r on
   echo
-  echo TnL has exited with a non-zero return value.
-  echo This usually means that something has gone wrong and the game has crashed.
+  echo "TnL has exited with a non-zero return value."
+  echo "This usually means that something has gone wrong and the game has crashed."
   echo "  * See /tmp/stdout.txt and /tmp/stderr.txt for information"
   echo "    on what happened."
   echo "  * Visit http://tnlgame.net for information and to contact"
   echo "    the author and the community."
+  echo "  * If you want to help the author fix this bug, send a copy"
+  echo "    of /tmp/stdout.txt and /tmp/stderr.txt to bugs@tnlgame.net"
   if [[ $debug_enabled==no ]]; then
     echo "  * If you would like to debug TnL, start again with"
     echo "    tnl --debug or set TNL_DEBUG=1"
@@ -16,25 +18,12 @@ function on_error() {
   exit -1
 }
 
-param=""
-function setv() {
-  vname=$1
-  vval=$2
-  
-  eval "$vname=$vval"
-  param="$param $vname=$vval"
-}
 
 exec_dir=`dirname $0`
-
-# Set common variables
-setv base_dir                         `cd $exec_dir/..;pwd`
-setv bin_dir                          $base_dir/bin
-setv Io_init_script                   $base_dir/share/landscape/scripts/init.io
-
+base_dir=`cd $exec_dir/..;pwd`
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$base_dir/lib"
 
-command="$bin_dir/tnl-bin"
+command="$exec_dir/tnl-bin"
 
 debug_enabled=no
 verbose_enabled=no
@@ -69,13 +58,13 @@ if [[ $debug_enabled == yes ]]; then
   esac
 fi
 
-echo $command $param $@
+echo $command $@
 if [[ $debug_enabled == yes ]]; then
-  $command $param $@
+  $command $@
 elif [[ $verbose_enabled == yes ]]; then
-  $command $param $@
+  $command $@
 else
-  $command $param $@ >/tmp/stdout.txt 2>/tmp/stderr.txt
+  $command $@ >/tmp/stdout.txt 2>/tmp/stderr.txt
 fi
 if [[ $? != 0 ]]; then
   on_error
