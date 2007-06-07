@@ -93,6 +93,10 @@ void Game::initControls()
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_rudder_right", +1.0f));
     r->map("-rudder_right",  SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_rudder_right", 0.0f));
+    r->map("+brake", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_brake", 1.0));
+    r->map("-brake", SigC::bind(
+            SigC::slot(*r, &EventRemapper::setAxis), "kbd_brake", 0.0));
 
     r->addAxisManipulator(
         AxisManipulator(new SumAxesTransform(), "aileron")
@@ -115,6 +119,9 @@ void Game::initControls()
         AxisManipulator(new SelectAxisByActivityTransform(0.05f, 1.0f), "throttle")
         .input("js_throttle2")
         .input("kbd_throttle"));
+    r->addAxisManipulator(
+        AxisManipulator(new SumAxesTransform, "brake")
+        .input("kbd_brake"));
         
     r->map("+forward", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_car_throttle", 1.0f));

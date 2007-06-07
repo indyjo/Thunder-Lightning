@@ -272,6 +272,7 @@ void Drone::action() {
         flight_controls->setAileron(   thegame->getEventRemapper()->getAxis("aileron") );
         flight_controls->setElevator( -thegame->getEventRemapper()->getAxis("elevator") );
         flight_controls->setThrottle(  thegame->getEventRemapper()->getAxis("throttle") );
+        flight_controls->setBrake( thegame->getEventRemapper()->getAxis("brake") );
         /*
         char *axes[] = 
         	{"kbd_throttle",
@@ -288,6 +289,7 @@ void Drone::action() {
     }
 
     // set brake factors on main landing gear
+    wheels[0]->getParams().drag_long = 50 + 600*controls->getFloat("brake", 0);
     wheels[1]->getParams().drag_long = 50 + 950*controls->getFloat("brake", 0);
     wheels[2]->getParams().drag_long = 50 + 950*controls->getFloat("brake", 0);
     

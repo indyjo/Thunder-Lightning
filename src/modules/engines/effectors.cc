@@ -82,7 +82,9 @@ void Flight::applyEffect(RigidBody &rigid, Ptr<DataNode> cntrls) {
     }
 
     float C_L =   interp(nCL, alpha * 180 / PI, CL_x, CL_y);
+    C_L *= 1.0f - 0.3f*controls->getBrake();
     float C_D =   interp(nCD, alpha * 180 / PI, CD_x, CD_y);
+    C_D *= 1.0f + 0.1f*controls->getBrake();
     float C_D_h = interp(nCD_h, alpha_h * 180 / PI, CD_h_x, CD_h_y);
 
     float V2 = v.lengthSquare();

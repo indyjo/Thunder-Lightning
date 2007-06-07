@@ -19,6 +19,7 @@ public:
         setElevator(0);
         setAileronAndRudder(0);
         setThrottle(0);
+        setBrake(0);
     }
 
     FlightControls(Ptr<DataNode> c) : c(c)
@@ -26,6 +27,7 @@ public:
         setElevator(0);
         setAileronAndRudder(0);
         setThrottle(0);
+        setBrake(0);
     }
 
     void setElevator(float val) { c->setFloat("elevator", val); }
@@ -42,6 +44,9 @@ public:
     
     void setThrottle(float val) { c->setFloat("throttle", val); }
     float getThrottle() const { return c->getFloat("throttle"); }
+    
+    void setBrake(float val) { c->setFloat("brake", val); }
+    float getBrake() const { return c->getFloat("brake"); }
 
     Ptr<DataNode> getDataNode() { return c; }
 };
