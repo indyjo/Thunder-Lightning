@@ -29,6 +29,21 @@
 #include <modules/config/config.h>
 
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+    #define READ_PATH_FROM_ARGV0
+    #define PREFIX_IS_BINDIR
+#elif defined(__linux)
+    #define NEEDS_UNISTD
+    #define READ_PATH_FROM_PROC_SELF_EXE
+#else
+    #define READ_PATH_FROM_ARGV0
+#endif
+   
+#ifdef NEEDS_UNISTD
+#include <unistd.h>
+#endif
+
+
 #include <sound.h>
 #include <Faction.h>
 #include "game.h"
@@ -41,6 +56,47 @@ using namespace std;
 
 Game * Game::the_game = 0;
 
+
+void setup_paths(Ptr<IConfig> config, const char **argv) {
+#if defined(READ_PATH_FROM_ARGV0)
+    std::string bin = argv[0];
+#elif defined(READ_PATH_FROM_PROC_SELF_EXE)
+    std::string bin;
+    {
+        char buf[256];
+        ssize_t length = readlink("/proc/self/exe", buf, 256);
+        if (-1 == length || 256 == length) {
+            throw runtime_error("Could not open /proc/self/exe to establish binary location.");
+        }
+        buf[length] = 0; // append 0 byte to buffer
+        bin = buf;
+    }
+#endif
+
+    int last_sep = bin.find_last_of("/\\");
+    if (last_sep == std::string::npos) {
+        ls_error("Strange binary location without separators: %s\n", bin.c_str());
+        throw runtime_error("Failed to determine binary location");
+    }
+    std::string bin_dir = bin.substr(0,last_sep);
+    
+#ifdef PREFIX_IS_BINDIR
+    std::string prefix = bin_dir;
+#else
+    last_sep = bin_dir.find_last_of("/\\");
+    if (last_sep == std::string::npos) {
+        ls_error("Binary location should be something like /usr/bin but is: %s\n", bin_dir.c_str());
+        throw runtime_error("Failed to determine binary location");
+    }
+    std::string prefix = bin_dir.substr(0, last_sep);
+#endif
+    
+    config->set("base_dir",prefix.c_str());
+    config->set("bin_dir",bin_dir.c_str());
+    config->set("Io_init_script",(prefix + "/share/landscape/scripts/init.io").c_str());
+}
+
+
 Game::Game(int argc, const char **argv)
 : argc(argc), argv(argv)
 , debug_mode(false)
@@ -52,15 +108,7 @@ Game::Game(int argc, const char **argv)
     config= new Config;
 
     // Set some default locations based on the binary location given in argv[0]
-    string exe = argv[0];
-    volatile int last_sep = exe.find_last_of("/\\");
-    string exe_dir = exe.substr(0,last_sep);
-    last_sep = exe_dir.find_last_of("/\\");
-    string prefix = exe_dir.substr(0,last_sep);
-
-    config->set("base_dir",prefix.c_str());
-    config->set("bin_dir",exe_dir.c_str());
-    config->set("Io_init_script",(prefix + "/share/landscape/scripts/init.io").c_str());
+    setup_paths(config, argv);
 
     // Pass command line arguments to configuration, if any
     // The locations given above may be overridden here
