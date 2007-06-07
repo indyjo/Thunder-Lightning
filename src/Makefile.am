@@ -4,6 +4,7 @@ bin_PROGRAMS = tnl-bin
 
 tnl_bin_SOURCES = game.cc game.h landscape.h \
                         Factory.h \
+                        initControls.cc \
                         object.cc object.h \
                         util.h signals.h remap.h remap.cc \
                         sound.cc sound.h \
