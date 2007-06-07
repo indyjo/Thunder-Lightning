@@ -18,6 +18,11 @@ EventRemapper do(
   mapKey(SDLK_LEFT, release, "-left")
   mapKey(SDLK_RIGHT, press, "+right")
   mapKey(SDLK_RIGHT, release, "-right")
+  
+  mapKey(SDLK_COMMA, press, "+rudder_left")
+  mapKey(SDLK_COMMA, release, "-rudder_left")
+  mapKey(SDLK_PERIOD, press, "+rudder_right")
+  mapKey(SDLK_PERIOD, release, "-rudder_right")
 
   mapKey(SDLK_1, press, "throttle0")
   mapKey(SDLK_2, press, "throttle1")
@@ -68,6 +73,8 @@ EventRemapper do(
   mapKey(SDLK_F10, press, "faster")
   
   mapKey(SDLK_l, press, "landing-gear")
+  mapKey(SDLK_b, press, "+brake")
+  mapKey(SDLK_b, release, "-brake")
   
   mapKey(SDLK_i, press, "toggle-introduction")
   
