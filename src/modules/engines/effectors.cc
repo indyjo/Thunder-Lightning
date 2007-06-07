@@ -167,13 +167,23 @@ void Wheel::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
     // do the actual intersection test
     contact = terrain->lineCollides(w+params.range*up, w, &x, &normal);
     
+    // Rigid body (if any) and velocity of collision partner
+    Ptr<RigidBody> rigid_partner;
+    Vector v_partner(0,0,0);
+    
     if (!contact) {
-        contact = collision_manager->lineQuery(w+params.range*up, w, &x, &normal, nocollide.lock());
-        if (contact) {
+        Ptr<Collide::Collidable> collidable =
+            collision_manager->lineQuery(w+params.range*up, w, &x, &normal, nocollide.lock());
+        if (collidable) {
+            contact = true;
             Vector xloc = q.inv().rot(x - rigid.getState().x);
             Vector nloc = q.inv().rot(normal);
             ls_message("contact at %f %f %f normal %f %f %f\n",
                 xloc[0],xloc[1],xloc[2],nloc[0],nloc[1],nloc[2]);
+            rigid_partner = collidable->getRigid();
+            if (rigid_partner) {
+                v_partner = rigid_partner->getVelocityAt(x);
+            }
         }
     }
     
@@ -187,18 +197,32 @@ void Wheel::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
         current_pos = x;
         // velocity of the wheel in WCS
         Vector v = rigid.getVelocityAt(x);
+        
+        // velocity of wheel in respect to collision partner
+        Vector delta_v = v - v_partner;
 
         // relative load in interval [0..1]
         current_load = (x-w).length() / params.range;
         
+        // Accumulated force to apply on rigid and (negatively) on partner rigid
+        Vector force(0,0,0);
+        
         // spring force along normal
-        rigid.applyForceAt(params.force * current_load * normal, x);
+        force += params.force * current_load * normal;
         // spring damping along up
-        rigid.applyForceAt(-params.damping  * up * (up*v), x);
+        force += -params.damping  * up * (up*delta_v);
         // friction along front
-        rigid.applyForceAt(-params.drag_long * front*(front*v), x);
+        force += -params.drag_long * front*(front*delta_v);
         // sideways friction
-        rigid.applyForceAt(-params.drag_lat * right*(right*v), x);
+        force += -params.drag_lat * right*(right*delta_v);
+        
+        rigid.applyForceAt(force, x);
+        if (rigid_partner) {
+            // Apply the force to the collision partner
+            // FIXME: Beause of the integration scheme (every collidable
+            //        for himself), these forces are currently ignored. :-(
+            rigid_partner->applyForceAt(-force, x);
+        }
     } else {
         current_pos = w;
     }
