@@ -54,7 +54,7 @@ namespace {
 			IoObject_setDataPointer_(self, 0);
             IoObject_rawAppendProto_(self, getProtoObject<Ptr<IActor> >(IOSTATE));
 			
-			IoObject_addMethodTable_(self, methodTable);
+			IoObject_addTaglessMethodTable_(self, methodTable);
 			return self;
 		}
 

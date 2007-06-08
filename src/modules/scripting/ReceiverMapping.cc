@@ -27,7 +27,7 @@ namespace {
 			IoObject_tag_(self, tag(state, "PositionReceiver"));
 			IoObject_setDataPointer_(self, 0);
 			
-			IoObject_addMethodTable_(self, methodTable);
+			IoObject_addTaglessMethodTable_(self, methodTable);
 			return self;
 		}
 			
@@ -67,7 +67,7 @@ namespace {
 			IoObject_tag_(self, tag(state, "MovementReceiver"));
 			IoObject_setDataPointer_(self, 0);
 			
-			IoObject_addMethodTable_(self, methodTable);
+			IoObject_addTaglessMethodTable_(self, methodTable);
 			return self;
 		}
 		

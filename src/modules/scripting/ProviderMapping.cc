@@ -31,7 +31,7 @@ namespace {
 			IoObject_tag_(self, tag(state, "PositionProvider"));
 			IoObject_setDataPointer_(self, 0);
 			
-			IoObject_addMethodTable_(self, methodTable);
+			IoObject_addTaglessMethodTable_(self, methodTable);
 			return self;
 		}
 		
@@ -68,7 +68,7 @@ namespace {
 			IoObject_tag_(self, tag(state, "MovementProvider"));
 			IoObject_setDataPointer_(self, 0);
 			
-			IoObject_addMethodTable_(self, methodTable);
+			IoObject_addTaglessMethodTable_(self, methodTable);
 			return self;
 		}
 		CREATE_FUNC(IMovementProvider)

@@ -50,7 +50,7 @@ namespace {
             IoObject_rawAppendProto_(self, getProtoObject<Ptr<IMovementProvider> >(IOSTATE));
             IoObject_rawAppendProto_(self, getProtoObject<Ptr<IMovementReceiver> >(IOSTATE));
 
-			IoObject_addMethodTable_(self, methodTable);
+			IoObject_addTaglessMethodTable_(self, methodTable);
 			return self;
 		}
 		
