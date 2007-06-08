@@ -12,7 +12,7 @@ addKillObjective := method(target,
 )
 
 addSurviveObjective := method(target,
-    if (?(anyObjective) isNil,
+    if ((?anyObjective) isNil,
         self anyObjective := AnyObjective clone
         objectives append(anyObjective)
         anyObjective setObjectives(list())
@@ -124,7 +124,7 @@ startup := method(
         Game addActor(drone)
     )
 
-    if (?(me) isNil,
+    if ((?me) isNil,
         self me := Drone clone
         Game addActor(me)
         me setLocation(vector(11341,1518,-1008))

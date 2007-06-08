@@ -328,7 +328,7 @@ Tank do (
     manage(ar)
     
     loop(
-      error = ar ?error ifNilEval(Number constants inf)
+      error = (ar ?error) ifNilEval(Number constants inf)
       orient := me getOrientation transpose
       ar target_dir := orient * self target_dir
       pass
