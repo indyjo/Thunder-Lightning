@@ -2,7 +2,7 @@
 #define SPARK_H
 
 #include <cmath>
-#include <landscape.h>
+#include <tnl.h>
 #include <util.h>
 #include <modules/actors/simpleactor.h>
 #include <interfaces/IProjectile.h>

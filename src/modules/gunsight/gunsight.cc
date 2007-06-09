@@ -1,4 +1,4 @@
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IGame.h>
 #include <interfaces/ICamera.h>
 #include <modules/jogi/JRenderer.h>

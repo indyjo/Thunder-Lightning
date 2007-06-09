@@ -1,7 +1,7 @@
 #ifndef AUTOPILOT_H
 #define AUTOPILOT_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include "flightinfo.h"
 #include <modules/engines/controls.h>
 #include <modules/math/PIDController.h>

@@ -1,7 +1,7 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <DataNode.h>
 #include <interfaces/IMovementProvider.h>
 #include <interfaces/IMovementReceiver.h>

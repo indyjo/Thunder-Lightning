@@ -4,7 +4,7 @@
 #include <queue>
 #include <map>
 #include <vector>
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/physics/RigidBody.h>
 #include <modules/math/Transform.h>
 #include "BoundingBox.h"

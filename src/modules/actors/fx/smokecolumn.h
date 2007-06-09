@@ -2,7 +2,7 @@
 #define SMOKECOLUMN_H
 
 #include <list>
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/actors/simpleactor.h>
 #include <modules/math/Interval.h>
 #include <modules/texman/TextureManager.h>

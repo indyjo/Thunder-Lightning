@@ -2,7 +2,7 @@
 #define SKELETON_PROVIDER_H
 
 #include <interfaces/IPositionProvider.h>
-#include <landscape.h>
+#include <tnl.h>
 #include "Skeleton.h"
 
 struct SkeletonProvider : public IPositionProvider {

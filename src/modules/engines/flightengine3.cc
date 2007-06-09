@@ -1,6 +1,6 @@
 #include "flightengine3.h"
 
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/clock/clock.h>
 
 #define PI 3.14159265358979323846

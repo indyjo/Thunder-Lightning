@@ -1,7 +1,7 @@
 #ifndef AI_PATHMANAGER_H
 #define AI_PATHMANAGER_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <deque>
 #include "AStar.h"
 

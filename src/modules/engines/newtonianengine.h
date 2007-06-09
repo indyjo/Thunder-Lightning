@@ -1,7 +1,7 @@
 #ifndef NEWTONIANENGINE_H
 #define NEWTONIANENGINE_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IGame.h>
 #include "engine.h"
 

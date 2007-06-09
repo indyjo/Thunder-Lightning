@@ -1,7 +1,7 @@
 #ifndef RIGID_BODY_H
 #define RIGID_BODY_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/math/Quaternion.h>
 
 

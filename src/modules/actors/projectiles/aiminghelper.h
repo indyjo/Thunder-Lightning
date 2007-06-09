@@ -3,7 +3,7 @@
 
 #include <modules/math/Rendezvous.h>
 #include <modules/actors/simpleactor.h>
-#include <landscape.h>
+#include <tnl.h>
 
 class AimingHelper : public SimpleActor
 {

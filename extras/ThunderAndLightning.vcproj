@@ -858,7 +858,7 @@
 					FileType="0">
 				</File>
 				<File
-					RelativePath="..\src\landscape.h"
+					RelativePath="..\src\tnl.h"
 					FileType="0">
 				</File>
 				<File

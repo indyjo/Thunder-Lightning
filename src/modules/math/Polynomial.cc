@@ -1,4 +1,4 @@
-#include <landscape.h>
+#include <tnl.h>
 
 #include "Polynomial.h"
 

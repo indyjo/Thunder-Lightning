@@ -1,4 +1,4 @@
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/environment/environment.h>
 #include <interfaces/IMap.h>
 #include <interfaces/IGame.h>

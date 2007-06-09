@@ -1,7 +1,7 @@
 #ifndef TARGETINFO_H
 #define TARGETINFO_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <object.h>
 #include <TypedObject.h>
 #include <string>

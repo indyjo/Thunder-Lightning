@@ -1,7 +1,7 @@
 #ifndef SIMPLE_VIEW_H
 #define SIMPLE_VIEW_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IView.h>
 
 class FlexibleGunsight;

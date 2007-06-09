@@ -1,7 +1,7 @@
 #ifndef MISSILEENGINE_H
 #define MISSILEENGINE_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include "engine.h"
 #include "rigidengine.h"
 #include <interfaces/IGame.h>

@@ -1,7 +1,7 @@
 #ifndef RELATIVE_VIEW_H
 #define RELATIVE_VIEW_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IView.h>
 
 class FlexibleGunsight;

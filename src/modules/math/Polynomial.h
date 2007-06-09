@@ -1,7 +1,7 @@
 #ifndef POLYNOMIAL_H
 #define POLYNOMIAL_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <valarray>
 #include <vector>
 

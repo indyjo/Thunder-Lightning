@@ -1,7 +1,7 @@
 #ifndef LOADINGSCREEN_H
 #define LOADINGSCREEN_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include "status.h"
 #include <interfaces/IGame.h>
 #include <modules/texman/TextureManager.h>

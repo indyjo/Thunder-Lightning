@@ -1,7 +1,7 @@
 #ifndef COROUTINE_H
 #define COROUTINE_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <mtasker.h>
 #include <object.h>
 

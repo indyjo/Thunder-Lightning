@@ -1,5 +1,5 @@
 // for ls_message
-#include "landscape.h"
+#include "tnl.h"
 
 #include "DataNode.h"
 

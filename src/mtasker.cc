@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 
-#include <landscape.h>
+#include <tnl.h>
 
 #if defined(__MINGW32__) || defined(_MSC_VER)
 

@@ -1,7 +1,7 @@
 #ifndef CLOCK_H
 #define CLOCK_H
 
-#include <landscape.h>
+#include <tnl.h>
 
 class Clock : public Object {
     int ticks;

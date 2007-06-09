@@ -1,6 +1,6 @@
 #include <fstream>
 
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/texman/TextureManager.h>
 
 using namespace std;

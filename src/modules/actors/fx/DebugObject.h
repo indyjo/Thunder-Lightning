@@ -1,7 +1,7 @@
 #ifndef DEBUGOBJECT_H
 #define DEBUGOBJECT_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/actors/simpleactor.h>
 
 class DebugActor : public SimpleActor {

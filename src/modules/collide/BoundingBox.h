@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <landscape.h>
+#include <tnl.h>
 
 
 namespace Collide {

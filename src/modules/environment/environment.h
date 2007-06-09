@@ -1,7 +1,7 @@
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IPositionProvider.h>
 
 class Environment : public Object {

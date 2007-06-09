@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IWeapon.h>
 #include <modules/model/Skeleton.h>
 

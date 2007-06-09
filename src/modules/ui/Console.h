@@ -3,7 +3,7 @@
 
 #include <deque>
 #include <string>
-#include <landscape.h>
+#include <tnl.h>
 #include <remap.h>
 #include <interfaces/IGame.h>
 #include <modules/scripting/IoScriptingManager.h>

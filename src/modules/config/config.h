@@ -1,7 +1,7 @@
 #include <map>
 #include <string>
 #include <cstdio>
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IConfig.h>
 
 class Config: public IConfig

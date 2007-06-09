@@ -1,7 +1,7 @@
 #ifndef CARRIER_H
 #define CARRIER_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/actors/simpleactor.h>
 #include <modules/collide/Collidable.h>
 #include <modules/engines/rigidengine.h>

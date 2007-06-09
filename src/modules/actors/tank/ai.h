@@ -2,7 +2,7 @@
 #define TANK_AI_H
 
 #include <string>
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/ai/Idea.h>
 #include <modules/engines/controls.h>
 #include <modules/clock/clock.h>

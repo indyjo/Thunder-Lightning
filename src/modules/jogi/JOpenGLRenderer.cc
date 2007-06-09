@@ -13,7 +13,7 @@
 #define CLIP_NEAR 1.0
 #define CLIP_FAR 5000.0
 
-#include <landscape.h>
+#include <tnl.h>
 JOpenGLRenderer::JOpenGLRenderer(int init_width, int init_height, float aspect)
 : clip_planes(0)
 {

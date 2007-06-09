@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 
-#include <landscape.h>
+#include <tnl.h>
 #include <DataNode.h>
 #include <modules/scripting/IoIncludes.h>
 

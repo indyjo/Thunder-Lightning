@@ -1,4 +1,4 @@
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IProjectile.h>
 #include <modules/math/Vector.h>
 #include <modules/actors/fx/spark.h>

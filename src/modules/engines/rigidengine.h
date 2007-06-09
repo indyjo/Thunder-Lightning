@@ -2,7 +2,7 @@
 #define RIGIDENGINE_H
 
 #include <vector>
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/math/Transform.h>
 #include <modules/physics/RigidBody.h>
 #include <interfaces/IGame.h>

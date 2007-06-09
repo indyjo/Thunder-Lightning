@@ -1,7 +1,7 @@
 #include <map>
 #include <string>
 #include <modules/math/Vector.h>
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IFontMan.h>
 #include <interfaces/IFont.h>
 #include <modules/texman/TextureManager.h>

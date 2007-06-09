@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <ostream>
 
-#include <landscape.h>
+#include <tnl.h>
 
 template<class T> struct IntervalBase;
 

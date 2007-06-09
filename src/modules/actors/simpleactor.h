@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include <landscape.h>
+#include <tnl.h>
 #include <Weak.h>
 #include <TargetInfo.h>
 #include <Faction.h>

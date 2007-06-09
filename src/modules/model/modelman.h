@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IModelMan.h>
 #include "model.h"
 

@@ -2,7 +2,7 @@
 #define AI_H
 
 #include <deque>
-#include <landscape.h>
+#include <tnl.h>
 #include <coroutine.h>
 #include <modules/engines/controls.h>
 #include <modules/flight/flightinfo.h>

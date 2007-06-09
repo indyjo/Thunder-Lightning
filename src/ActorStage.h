@@ -3,7 +3,7 @@
 
 
 #include <list>
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IActorStage.h>
 
 class ActorStage : virtual public IActorStage

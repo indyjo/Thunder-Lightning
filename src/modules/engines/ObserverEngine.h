@@ -1,7 +1,7 @@
 #ifndef OBSERVERENGINE_H
 #define OBSERVERENGINE_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IGame.h>
 #include <modules/clock/clock.h>
 #include <modules/math/Transform.h>

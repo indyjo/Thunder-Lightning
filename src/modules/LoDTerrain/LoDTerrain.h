@@ -8,7 +8,7 @@
 #include <cmath>
 //#include <unistd.h>
 
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/ILoDQuadManager.h>
 #include <interfaces/IGame.h>
 

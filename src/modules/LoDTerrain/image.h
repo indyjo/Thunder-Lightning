@@ -1,7 +1,7 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include <landscape.h>
+#include <tnl.h>
 
 #define MAX_COLORS 256
 

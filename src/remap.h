@@ -2,7 +2,7 @@
 #ifndef REMAP_H
 #define REMAP_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <DataNode.h>
 
 #include <SDL_events.h>

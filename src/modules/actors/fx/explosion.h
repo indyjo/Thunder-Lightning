@@ -1,7 +1,7 @@
 #ifndef EXPLOSION_H
 #define EXPLOSION_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/actors/simpleactor.h>
 #include <modules/texman/TextureManager.h>
 

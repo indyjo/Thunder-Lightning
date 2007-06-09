@@ -1,7 +1,7 @@
 #ifndef SMARTMISSILE2_H
 #define SMARTMISSILE2_H
 
-#include <landscape.h>
+#include <tnl.h>
 
 #include "Missile.h"
 

@@ -1,7 +1,7 @@
 #ifndef TANK_H
 #define TANK_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/math/Vector.h>
 #include <modules/math/Matrix.h>
 #include <modules/model/Skeleton.h>

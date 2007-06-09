@@ -4,7 +4,7 @@
 #include <interfaces/IProjectile.h>
 #include <modules/actors/simpleactor.h>
 #include <modules/collide/CollisionManager.h>
-#include <landscape.h>
+#include <tnl.h>
 
 
 class RigidEngine;

@@ -1,7 +1,7 @@
 #ifndef CARENGINE_H
 #define CARENGINE_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include "engine.h"
 #include "controls.h"
 #include <interfaces/IGame.h>

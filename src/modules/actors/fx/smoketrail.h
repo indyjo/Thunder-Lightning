@@ -2,7 +2,7 @@
 #define SMOKETRAIL_H
 
 #include <deque>
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/actors/simpleactor.h>
 #include <modules/texman/TextureManager.h>
 #include <interfaces/IFollower.h>

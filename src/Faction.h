@@ -3,7 +3,7 @@
 
 #include <map>
 #include <string>
-#include <landscape.h>
+#include <tnl.h>
 #include "Weak.h"
 
 class Faction : public Object, public Weak {

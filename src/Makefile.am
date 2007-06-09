@@ -2,7 +2,7 @@ SUBDIRS = modules boost interfaces
 
 bin_PROGRAMS = tnl-bin
 
-tnl_bin_SOURCES = game.cc game.h landscape.h \
+tnl_bin_SOURCES = game.cc game.h tnl.h \
                         Factory.h \
                         initControls.cc \
                         object.cc object.h \

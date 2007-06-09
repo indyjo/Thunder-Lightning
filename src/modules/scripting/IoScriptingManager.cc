@@ -2,7 +2,7 @@
 #include <cstring>
 #include <cassert>
 #include <vector>
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IConfig.h>
 #include <interfaces/IGame.h>
 

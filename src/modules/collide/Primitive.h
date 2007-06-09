@@ -1,7 +1,7 @@
 #ifndef PRIMITIVE_H
 #define PRIMITIVE_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/collide/BoundingBox.h>
 #include <modules/math/Interval.h>
 #include <modules/math/Transform.h>

@@ -5,7 +5,7 @@
 
 #include <string>
 #include <vector>
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IActor.h>
 
 #include "mappings.h"

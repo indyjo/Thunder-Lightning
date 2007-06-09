@@ -1,4 +1,4 @@
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IGame.h>
 #include <SDL.h>
 #include <modules/jogi/JOpenGLRenderer.h>

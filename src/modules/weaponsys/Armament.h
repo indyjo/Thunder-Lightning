@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <interfaces/IDrawable.h>
-#include <landscape.h>
+#include <tnl.h>
 #include "Weapon.h"
 
 struct IActor;

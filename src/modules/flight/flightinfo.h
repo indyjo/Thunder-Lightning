@@ -1,7 +1,7 @@
 #ifndef FLIGHTINFO_H
 #define FLIGHTINFO_H
 
-#include <landscape.h>
+#include <tnl.h>
 
 struct ITerrain;
 struct IMovementProvider;

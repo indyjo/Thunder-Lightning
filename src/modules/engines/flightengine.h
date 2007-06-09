@@ -1,7 +1,7 @@
 #ifndef FLIGHTENGINE_H
 #define FLIGHTENGINE_H
 
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/engines/controls.h>
 #include <interfaces/IGame.h>
 

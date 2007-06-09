@@ -1,4 +1,4 @@
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IGame.h>
 #include <modules/engines/rigidengine.h>
 #include <modules/model/model.h>

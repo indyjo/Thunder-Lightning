@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/texman/TextureManager.h>
 #include <modules/math/Transform.h>
 

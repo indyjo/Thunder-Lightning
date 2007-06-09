@@ -3,7 +3,7 @@
 #include <cstring>
 #include <png.h>
 #include "jogi.h"
-#include <landscape.h>
+#include <tnl.h>
 
 using namespace std;
 

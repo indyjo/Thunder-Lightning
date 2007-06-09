@@ -3,7 +3,7 @@
 #include <string>
 #include <algorithm>
 
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IConfig.h>
 #include "sound.h"
 

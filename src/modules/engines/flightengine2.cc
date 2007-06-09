@@ -1,6 +1,6 @@
 #include "flightengine2.h"
 
-#include <landscape.h>
+#include <tnl.h>
 #include <modules/clock/clock.h>
 
 namespace {

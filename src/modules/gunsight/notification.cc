@@ -1,7 +1,7 @@
 #include <vector>
 #include <limits>
 
-#include <landscape.h>
+#include <tnl.h>
 #include <interfaces/IFontMan.h>
 #include <interfaces/IFont.h>
 #include <modules/actors/simpleactor.h>
