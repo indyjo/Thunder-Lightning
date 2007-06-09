@@ -93,7 +93,8 @@ void setup_paths(Ptr<IConfig> config, const char **argv) {
     
     config->set("base_dir",prefix.c_str());
     config->set("bin_dir",bin_dir.c_str());
-    config->set("Io_init_script",(prefix + "/share/landscape/scripts/init.io").c_str());
+    config->set("data_dir",(prefix + "/share/tnl").c_str());
+    config->set("Io_init_script",(config->query("data_dir") + "/scripts/init.io").c_str());
 }
 
 
