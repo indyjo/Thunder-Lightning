@@ -22,8 +22,6 @@ Config do(
   // ------- After this point, all assignments are configuration data! -------
   // -------------------------------------------------------------------------
   
-  bin_dir     := base_dir .. "/bin"
-  data_dir    := base_dir .. "/share/landscape"
   terrain_dir := data_dir .. "/lod-terrains/compare"
   texture_dir := data_dir .. "/textures"
   model_dir   := data_dir .. "/models"
