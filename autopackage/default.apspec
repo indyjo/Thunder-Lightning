@@ -1,0 +1,100 @@
+# -*-shell-script-*-
+
+[Meta]
+RootName: @tnlgame.net/tnl:$SOFTWAREVERSION
+DisplayName: Thunder And Lightning
+#PackageDesktop: share/applications/tnlgame.desktop
+ShortName: tnl
+Maintainer: Jonas Eschenburg <indyjo@gmx.de>
+Packager: Jonas Eschenburg <indyjo@gmx.de>
+Summary: An Open Source Futuristic Action Flight Simulator
+URL: http://tnlgame.net/
+License: GNU General Public License, Version 2
+SoftwareVersion: 070609
+AutopackageTarget: 1.2
+#Repository: http://tnlgame.net/autopackage/repository.xml
+
+[BuildPrepare]
+# Check for Io directory
+if [[ -z "$io_dir" ]]; then
+  io_dir=/home/jonas/src/git/Io-work
+  green; echo "You fidn't specify an Io directory. Defaulting to $io_dir."; normal
+fi
+if [[ ! -d "$io_dir" ]]; then
+  red; echo "Can't find Io directory. Please pass with environment variable io_dir!"; normal
+  exit 1
+fi
+
+# Check for TnL data directory
+if [[ -z "$data_dir" ]]; then
+  data_dir=/home/jonas/src/TnL-data
+  green; echo "You fidn't specify a TnL data directory. Defaulting to $data_dir."; normal
+fi
+if [[ ! -d "$data_dir" ]]; then
+  red; echo "Can't find TnL data directory. Please pass with environment variable data_dir!"; normal
+  exit 1
+fi
+
+# Set compiler flags
+if [[ -z "$CXXFLAGS" ]]; then
+  CXXFLAGS="-O3 -march=i686"
+  green; echo "You fidn't specify any C++ compiler flags. Defaulting to CXXFLAGS=$CXXFLAGS."; normal
+fi
+
+# Check whether darcs reports any untracked or modified files in the data repository
+if which darcs >/dev/null; then
+  untracked=`cd "$data_dir";darcs whatsnew -ls`
+  if [[ $untracked != 'No changes!' ]]; then
+    red; echo "There are unrecorded changes in the data repository:"
+    echo $untracked;
+    echo "--> Aborting."; normal
+    exit 1
+  fi
+else
+  yellow; echo "Darcs not found. Unable to check whether the data repository is clean."
+  normal; echo "Continuing..."
+fi
+
+green; echo "Installing Io into $build_root/usr/local."; normal
+(cd $io_dir && make clean && INSTALL_PREFIX="$PREFIX" CC=apgcc make && INSTALL_PREFIX="$build_root/usr/local" make install) || exit 1
+green; echo "Installing TnL data into $build_root/usr/local."; normal
+(cd $data_dir && cp -r share/ "$build_root/usr/local") || exit 1
+
+prepareBuild \
+  CXXFLAGS="$CXXFLAGS" \
+  '--enable-release' \
+  '--with-io-dir=/home/jonas/src/git/Io-work/' \
+  '--with-libpng-libs=/usr/lib/libpng.a /usr/lib/libz.a' \
+  '--with-sigc-libs=/usr/lib/libsigc-1.2.a'
+
+[BuildUnprepare]
+unprepareBuild
+
+[Imports]
+echo "going to: $build_root"; cd $build_root; echo "Imports: " `pwd`
+ls -l
+echo '*' | import
+
+[Prepare]
+# Dependency checking
+require @libsdl.org/sdl 1.2
+require @opengl.org/opengl 1.1
+require @openal.org/openal 0.0
+
+removeOwningPackage $PREFIX/bin/tnl
+removeOwningPackage $PREFIX/share/tnl/scripts/init.io
+
+[Install]
+# Put your installation script here
+installExe bin/tnl*
+installIcon share/icons/hicolor
+installMenuItem Game share/applications/tnlgame.desktop
+(cd share; installData tnl)
+installLib lib/libiovmall.so
+mkdirs lib/io
+copyFiles lib/io/* "$PREFIX/lib/io"
+
+[Uninstall]
+# Usually just the following line is enough to uninstall everything
+uninstallFromLog
+
