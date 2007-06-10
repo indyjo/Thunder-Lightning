@@ -1,7 +1,11 @@
 # Boring file regexps:
 \.hi$
 \.o$
+\.Po$
+\.a$
+\.so$
 \.o\.cmd$
+\.deps$
 # *.ko files aren't boring by default because they might
 # be Korean translations rather than kernel modules.
 # \.ko$
@@ -42,3 +46,4 @@
 (^|/)autom4te.cache($|/)
 (^|/)configure$
 (^|/)Makefile.in$
+(^|/)Makefile
