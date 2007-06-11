@@ -1,6 +1,8 @@
 #include <string>
 #include <interfaces/IConfig.h>
+#include <interfaces/IModelMan.h>
 #include <modules/collide/CollisionManager.h>
+#include <modules/engines/effectors.h>
 #include "Carrier.h"
 
 
@@ -24,10 +26,18 @@ Carrier::Carrier(Ptr<IGame> thegame, IoObject * io_peer_init)
     float f = m / 12;
     // construct intertia like cuboid with these dimensions
     engine->construct(m, f*(h*h+d*d), f*(w*w+d*d), f*(w*w+h*h));
+    engine->addEffector(Effectors::Gravity::getInstance());
     setEngine(engine);
     
     std::string skeletonfile = thegame->getConfig()->query("Carrier_skeleton");
     setSkeleton(new Skeleton(thegame, skeletonfile));
+
+    Ptr<Model> hull_model = thegame->getModelMan()->query(thegame->getConfig()->query("Carrier_model_hull"));
+    Effectors::Buoyancy::addBuoyancyFromMesh(
+        engine,
+        hull_model->getDefaultObject(),
+        Vector(0,0,0));
+        
     
     // Prepare collidable
     setBoundingGeometry(
