@@ -46,6 +46,7 @@ public:
     
     virtual bool hasControlMode(ControlMode)=0;
     virtual void setControlMode(ControlMode)=0;
+    virtual ControlMode getControlMode()=0;
 
     /// Generic interface for sending specific messages to actors which can be handled from Io
     virtual IoObject* message(std::string name, IoObject* args)=0;

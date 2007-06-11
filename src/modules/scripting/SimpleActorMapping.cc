@@ -46,7 +46,6 @@ namespace {
                 {"controls", controls},
                 {"armament", armament},
                 {"targeter", getTargeter},
-                {"controlMode", getControlMode},
 				//{"setTargetInfo", setTargetInfo},
 				{NULL, NULL}
 			};
@@ -120,12 +119,6 @@ namespace {
         }
         
         GETTER(Ptr<Targeter>, getTargeter)
-
-        static IoObject * getControlMode
-        (IoObject *self, IoObject *locals, IoMessage *m) {
-            BEGIN_FUNC("SimpleActor.controlMode")
-            return wrapObject<int >((int)getObject(self)->getControlMode(), IOSTATE);
-        }
 
 	};
 } // namespace

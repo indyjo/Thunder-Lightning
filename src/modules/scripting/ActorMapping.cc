@@ -37,6 +37,8 @@ namespace {
 				{"applyDamage", applyDamage},
 				{"isAlive", isAlive},
 				{"setControlMode", setControlMode},
+				{"hasControlMode", hasControlMode},
+                {"controlMode", getControlMode},
 				{"getFaction", getFaction},
 				{"setFaction", setFaction},
                 {"passMessage", passMessage},
@@ -66,6 +68,17 @@ namespace {
 		CREATE_FUNC(IActor)
 		
 		SET_ENUM(setControlMode, IActor::ControlMode)
+		GET_NUMBER(getControlMode)
+
+        static IoObject * hasControlMode
+        (IoObject *self, IoObject *locals, IoMessage *m) {
+            BEGIN_FUNC("SimpleActor.hasControlMode")
+            IOASSERT(IoMessage_argCount(m) == 1, "Expected one argument")
+            IActor::ControlMode arg =
+                (IActor::ControlMode) IoMessage_locals_intArgAt_(m, locals, 0);
+            return wrapObject(getObject(self)->hasControlMode(arg), IOSTATE);
+        }
+		
 		GET_NUMBER(getNumViews)
 		GET_NUMBER(getRelativeDamage)
 		SET_FLOAT(applyDamage)
