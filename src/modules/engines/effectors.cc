@@ -1,4 +1,6 @@
 #include <modules/collide/CollisionManager.h>
+#include <modules/engines/rigidengine.h>
+#include <modules/model/model.h>
 #include "effectors.h"
 
 namespace {
@@ -279,6 +281,88 @@ void MissileControl::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
         a *= 10/length;
     }
     rigid.applyAngularAcceleration(a);
+}
+
+void Buoyancy::addBuoyancyFromMesh(
+    Ptr<RigidEngine> engine,
+    Ptr<Model::Group> group,
+    Ptr<Model::MeshData> mesh_data,
+    Vector offset)
+{
+    typedef Model::Group::Faces::iterator Iter;
+    for(Iter face = group->faces.begin(); face != group->faces.end(); ++face) {
+        Vector a = mesh_data->vertices[ (*face)[0].v ];
+        Vector b = mesh_data->vertices[ (*face)[1].v ];
+        Vector c = mesh_data->vertices[ (*face)[2].v ];
+        
+        Vector n = (b-a)%(c-a);
+        n.normalize();
+        
+        ls_message("a: "); a.dump();
+        ls_message("b: "); b.dump();
+        ls_message("c: "); c.dump();
+        ls_message(" ->n: "); n.dump();
+        
+        Vector n2 = (b-a)%n;
+        n2.normalize();
+        
+        // area is 0.5*base*height
+        float area = std::abs(0.5f*(b-a).length() * (n2*(c-a)));
+        
+        engine->addEffector(new Buoyancy((a+b+c)/3 + offset, n, area));
+    }
+}
+
+void Buoyancy::addBuoyancyFromMesh(
+    Ptr<RigidEngine> engine,
+    Ptr<Model::Object> obj,
+    Vector offset)
+{
+    Ptr<Model::MeshData> mesh_data = obj->getMeshData();
+
+    typedef std::vector<Ptr<Model::Group> > Groups;
+    const Groups & groups = obj->getGroups();
+    
+    for(Groups::const_iterator i = groups.begin(); i != groups.end(); ++i) {
+        addBuoyancyFromMesh(engine, *i, mesh_data, offset);
+    }
+}
+
+
+void Buoyancy::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
+    const float rho = 1000.0f; // mass of water per cubic meter in kg
+    const float g = 9.81f; // gravitation
+    const float waterlevel = 0.0f;
+
+    const RigidBodyState & state =rigid.getState();
+    
+    Vector p_wcs = state.x + state.q.rot(p);
+    Vector n_wcs = state.q.rot(n);
+    
+    float depth = waterlevel - p_wcs[1];
+    
+    if (depth > 0) {
+        float pressure = rho * g * depth; // in Pascal
+        Vector buoyancy = - area * pressure * n_wcs;
+        buoyancy[0] = buoyancy[2] = 0;
+        rigid.applyForceAt(buoyancy, p_wcs);
+        
+        // drag
+        const float C_d_normal = 1.2f;
+        const float C_d_tangential = 0.02f;
+        Vector v = rigid.getVelocityAt(p_wcs);
+        Vector v_normal = n_wcs * (v * n_wcs);
+        Vector v_tangential = v - v_normal;
+        Vector drag_normal = -0.5f*rho*C_d_normal * area * v_normal.length() * v_normal;
+        Vector drag_tangential = -0.5f*rho*C_d_tangential * area * v_tangential.length() * v_tangential;
+        
+        //ls_message("Applying normal drag: "); drag_normal.dump();
+        //ls_message("     tangential drag: "); drag_tangential.dump();
+        //ls_message("           against v: "); v.dump();
+        
+        rigid.applyForceAt(drag_normal, p_wcs);
+        rigid.applyForceAt(drag_tangential, p_wcs);
+    }
 }
 
 } // namespace Effectors

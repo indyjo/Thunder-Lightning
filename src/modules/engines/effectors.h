@@ -4,6 +4,7 @@
 #include <interfaces/IEffector.h>
 #include <interfaces/ITerrain.h>
 #include <modules/math/Vector.h>
+#include <modules/model/model.h>
 #include <Weak.h>
 #include "controls.h"
 
@@ -11,6 +12,11 @@ namespace Collide {
     class CollisionManager;
     class Collidable;
 }
+
+
+class RigidEngine;
+
+
 
 namespace Effectors {
 
@@ -98,6 +104,20 @@ public:
 };
 
 
+class Buoyancy : public IEffector {
+    Vector p, n;
+    float area;
+public:
+    inline Buoyancy(Vector p, Vector n, float area)
+    : p(p), n(n), area(area)
+    { }
+    
+    static void addBuoyancyFromMesh(Ptr<RigidEngine>, Ptr<Model::Group>, Ptr<Model::MeshData>, Vector offset=Vector(0,0,0));
+    static void addBuoyancyFromMesh(Ptr<RigidEngine>, Ptr<Model::Object>, Vector offset=Vector(0,0,0));
+    
+    virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls);
+};
+    
 } // namespace Effectors
 
 #endif
