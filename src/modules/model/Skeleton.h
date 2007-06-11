@@ -116,6 +116,8 @@ public:
     /// If the name cannot be resolved, returns 0
     Ptr<Bone> getBone(const std::string &);
     
+    inline Ptr<Bone> getRootBone() { return root_bone; }
+    
     /// Returns the point with the given name after bone transformations
     Vector getPoint(const std::string &);
     

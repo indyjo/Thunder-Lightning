@@ -10,15 +10,15 @@
 #include <modules/math/Transform.h>
 
 class Model : virtual public ::Object {
+    Model();
+    Model(const Model &);
+public:
     struct Corner {
         int v, n, t;
     };
     
     typedef std::vector<Corner> Face;
 
-    Model();
-    Model(const Model &);
-public:
     struct Material;
     struct Group;
     struct MeshData;
@@ -29,6 +29,7 @@ public:
 
     void draw(JRenderer &, const Matrix & Mmodel, const Matrix & Mnormal);
     Ptr<Object> getObject(const std::string & name);
+    inline Ptr<Object> getDefaultObject() { return objects.front(); }
     
     /// Sets the cull mode for all contained objects
     void setCullmode(jrcullmode_t);
@@ -53,9 +54,11 @@ struct Model::Material {
 };
 
 struct Model::Group : public ::Object {
+    typedef std::vector<Face> Faces;
+
     std::string name;
     Material mtl;
-    std::vector<Face> faces;
+    Faces faces;
     jrcullmode_t cullmode;
 
     inline Group(const std::string & name = "" )
@@ -63,7 +66,8 @@ struct Model::Group : public ::Object {
 };
 
 struct Model::MeshData : public ::Object {
-    std::vector<Vector> vertices, normals, texcoords;
+    typedef std::vector<Vector> Vectors;
+    Vectors vertices, normals, texcoords;
 };
 
 class Model::Object : public ::Object {
@@ -84,6 +88,10 @@ public:
     
     /// Sets the cull mode for all contained groups
     void setCullmode(jrcullmode_t);
+    
+    inline Ptr<MeshData> getMeshData() const { return meshdata; }
+    
+    const std::vector<Ptr<Group> > & getGroups() const { return groups; }
 };
 
 #endif
