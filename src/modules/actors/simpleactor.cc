@@ -221,6 +221,9 @@ void SimpleActor::setControlMode(ControlMode m) {
         thegame->getEventRemapper()->addEventSheet(getEventSheet());
     }
 }
+IActor::ControlMode SimpleActor::getControlMode() {
+    return control_mode;
+}
 
 IoObject* SimpleActor::message(std::string name, IoObject *args) {
     IoObject * result = ((IoState*)IoObject_tag(args)->state)->ioNil;

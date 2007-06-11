@@ -287,6 +287,24 @@ void MObject::draw(JRenderer & r)
             }
             r.end();
         }
+        /*
+        r.setAlpha(1.0);
+        r.disableLighting();
+        for (int i=0; i<grp->faces.size(); i++) {
+            r.begin(JR_DRAWMODE_LINES);
+            for (int j=0; j<grp->faces[i].size(); j++) {
+                const Corner & corner = grp->faces[i][j];
+                Vector vtx = meshdata->vertices[corner.v];
+                Vector vtx2 = vtx + 0.5*meshdata->normals[corner.n];
+                r.setColor(Vector(1,0,1));
+                r.vertex(vtx);
+                r.setColor(Vector(1,1,1));
+                r.vertex(vtx2);
+            }
+            r.end();
+        }
+        r.enableLighting();
+        */
     }
 }
 

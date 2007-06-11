@@ -106,6 +106,7 @@ public:
     virtual Ptr<IView> getView(int n);
     virtual bool hasControlMode(ControlMode);
     virtual void setControlMode(ControlMode);
+    virtual ControlMode getControlMode();
     virtual IoObject* message(std::string name, IoObject* args);
     virtual IoObject* getIoObject();
 
