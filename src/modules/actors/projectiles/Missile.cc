@@ -55,6 +55,8 @@ Missile::~Missile()
 { }
 
 void Missile::onLinked() {
+    SimpleActor::onLinked();
+    
     thegame->getCollisionMan()->add(this);
     
     engine_sound_src->setPosition(getLocation());
@@ -69,6 +71,8 @@ void Missile::onLinked() {
 }
 
 void Missile::onUnlinked() {
+    SimpleActor::onUnlinked();
+    
     thegame->getCollisionMan()->remove(this);
     
     engine_sound_src->stop();

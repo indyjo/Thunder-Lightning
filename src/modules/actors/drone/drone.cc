@@ -202,6 +202,7 @@ Drone::~Drone() {
 }
 
 void Drone::onLinked() {
+    SimpleActor::onLinked();
     thegame->getCollisionMan()->add(this);
     
     engine_sound_src = thegame->getSoundMan()->requestSource();
@@ -215,6 +216,7 @@ void Drone::onLinked() {
 }
 
 void Drone::onUnlinked() {
+    SimpleActor::onUnlinked();
     thegame->getCollisionMan()->remove(this);
     
     engine_sound_src->stop();

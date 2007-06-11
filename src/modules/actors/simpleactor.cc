@@ -13,7 +13,7 @@
 #include "RelativeView.h"
 
 SimpleActor::SimpleActor( Ptr<IGame> game)
-:   thegame(game), self(0), state(ALIVE), control_mode(UNCONTROLLED)
+:   thegame(game), self(0), state(ALIVE), control_mode(UNCONTROLLED), is_linked(false)
 {
     engine = new NewtonianEngine(thegame);
     faction = Faction::basic_factions.none;
@@ -39,8 +39,23 @@ void SimpleActor::setIoObject(IoObject *newself) {
     }
 }
 
-void SimpleActor::onLinked() { }
-void SimpleActor::onUnlinked() { }
+void SimpleActor::onLinked() {
+    if (!is_linked) {
+        if (self && AUTOMATIC == getControlMode()) {
+            message("start_ai", IONIL(self));
+        }
+        is_linked = true;
+    }
+}
+void SimpleActor::onUnlinked()
+{
+    if (is_linked) {
+        if (self && AUTOMATIC == getControlMode()) {
+            message("stop_ai", IONIL(self));
+        }
+        is_linked = false;
+    }
+}
 
 void SimpleActor::setArmament(Ptr<Armament> armament) {
     this->armament = armament;
@@ -213,6 +228,16 @@ bool SimpleActor::hasControlMode(ControlMode m) {
   return m==UNCONTROLLED;
 }
 void SimpleActor::setControlMode(ControlMode m) {
+    if (self && isLinked()) {
+        // send notification messages to script peer
+        if (AUTOMATIC!=getControlMode() && AUTOMATIC == m) {
+            message("start_ai", IONIL(self));
+        }
+        if (AUTOMATIC==getControlMode() && AUTOMATIC != m) {
+            message("stop_ai", IONIL(self));
+        }
+    }
+    
     if (control_mode==MANUAL && m!=control_mode)  {
         thegame->getEventRemapper()->removeEventSheet(getEventSheet());
     }

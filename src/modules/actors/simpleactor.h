@@ -33,6 +33,7 @@ protected:
     Ptr<Armament> armament;
     Ptr<Targeter> targeter;
     ControlMode control_mode;
+    bool is_linked;
 private:
     Ptr<EventSheet> event_sheet;
 public:
@@ -46,6 +47,7 @@ public:
     
     void onLinked();
     void onUnlinked();
+    inline bool isLinked() { return is_linked; }
 
     inline Ptr<DataNode> getControls() { return controls; }
     

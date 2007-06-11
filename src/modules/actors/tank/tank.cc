@@ -169,6 +169,8 @@ Tank::~Tank() {
 }
 
 void Tank::onLinked() {
+    SimpleActor::onLinked();
+
     thegame->getCollisionMan()->add(this);
     
     sound_low->play(thegame->getSoundMan()->querySound(
@@ -179,6 +181,8 @@ void Tank::onLinked() {
 }
 
 void Tank::onUnlinked() {
+    SimpleActor::onUnlinked();
+
     thegame->getCollisionMan()->remove(this);
 
     sound_low->stop();

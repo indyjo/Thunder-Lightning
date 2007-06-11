@@ -53,10 +53,12 @@ Carrier::Carrier(Ptr<IGame> thegame, IoObject * io_peer_init)
 }
 
 void Carrier::onLinked() {
+    SimpleActor::onLinked();
     thegame->getCollisionMan()->add(this);
 }
 
 void Carrier::onUnlinked() {
+    SimpleActor::onUnlinked();
     thegame->getCollisionMan()->remove(this);
 }
 
