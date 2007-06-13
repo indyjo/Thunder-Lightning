@@ -2,7 +2,7 @@ Coro := Object clone do(
     InterruptedException := Exception clone
     
     init := method(
-        self interruptReq := nil
+        self interruptReq := false
         self managed := list
         self running := nil
     )
@@ -15,7 +15,7 @@ Coro := Object clone do(
     
     // Request that the coroutine be interrupted after its next call to pass()
     interrupt := method(
-        interruptReq = self
+        interruptReq = true
     )
     
     // Demand that the coroutine interrupt another coroutine after it has finished.
@@ -28,7 +28,7 @@ Coro := Object clone do(
 
     // Pass control to the next Io actor
     pass := method(
-        sleep( 0.1 + 0.05 * Random value )
+        sleep( 0.15 + 0.05 * Random value )
     )
     
     sleep := method(timetowait,
@@ -36,6 +36,7 @@ Coro := Object clone do(
         while(dt <= timetowait,
             yield
             if(interruptReq,
+                interruptReq = false
                 InterruptedException raise(
                     "interrupted",
                     "The coroutine was interrupted")
@@ -47,8 +48,8 @@ Coro := Object clone do(
     
     wrapRun := method(arglist,
         ex := try(
-            writeln("run argumentNames: ",self getSlot("run") argumentNames)
-            performWithArgList("run", arglist)
+            #writeln("run argumentNames: ",self getSlot("run") argumentNames)
+            if (interruptReq not, performWithArgList("run", arglist))
         )
         ex catch (InterruptedException,
             nil
@@ -57,6 +58,7 @@ Coro := Object clone do(
         )
         running = nil
         managed foreach(i,coro, coro interrupt)
+        managed empty
     )
     
 )
@@ -75,6 +77,5 @@ Object coro := method(
     //writeln("coro argumentNames: ",c getSlot("run") argumentNames)
     //("msg: " .. msg) println
     c getSlot("run") setMessage(msg)
-    
     c
 )
