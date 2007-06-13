@@ -1,5 +1,5 @@
 Tank do (
-  on("kill", ai interrupt; writeln("AI of Tank ", self identify, " interrupted"))
+  //on("kill", ai interrupt; writeln("AI of Tank ", self identify, " interrupted"))
   //on("missileShot", self armament weapon("Cannon") trigger)
 
   location2 := method( vector(getLocation at(0,0), getLocation at(2,0)) )
@@ -389,16 +389,17 @@ Tank do (
   
   
   ai := coro(me,
-    #self aaf := Tank aimAtAndFire clone start(me)
-    #manage(aaf)
+    self aaf := Tank aimAtAndFire clone start(me)
+    manage(aaf)
     
     loop(
       pass
     )
   )
-  init := method(
-    self ai := ai clone start(self)
-  )
+  
+  on("start_ai", ai start(self); writeln("AI of Tank ", self identify, " started"))
+  on("stop_ai", ai interrupt; writeln("AI of Tank ", self identify, " interrupted"))
+
 )
 
 Game postFrame := method(yield)
