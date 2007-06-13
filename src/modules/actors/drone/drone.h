@@ -69,7 +69,7 @@ public:
     
     void setLandingGear(bool lowered);
     inline bool isLandingGearLowered() { return gear_lowered; }
-    inline void toggleLandingGear() { setLandingGear(! isLandingGearLowered() ); }
+    inline void toggleLandingGear() { flight_controls->setGearLowered(!flight_controls->isGearLowered()); }
     
 private:
     void drawWheels();

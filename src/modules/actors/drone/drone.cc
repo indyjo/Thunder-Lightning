@@ -289,6 +289,8 @@ void Drone::action() {
         }
         */
     }
+    
+    setLandingGear(flight_controls->isGearLowered());
 
     // set brake factors on main landing gear
     wheels[0]->getParams().drag_long = 50 + 600*controls->getFloat("brake", 0);
@@ -301,7 +303,7 @@ void Drone::action() {
         cos(max_wheel_turn * controls->getFloat("rudder")),
         sin(max_wheel_turn * controls->getFloat("rudder")),
         0);
-
+        
     // cheap-ass crash detection
     Vector p = getLocation();
     if (p[1] < terrain->getHeightAt(p[0],p[2])) {
@@ -564,6 +566,10 @@ void Drone::setControlMode(ControlMode m) {
 }
 
 void Drone::setLandingGear(bool lowered) {
+    if (lowered == gear_lowered) {
+        return;
+    }
+    
     gear_lowered=lowered;
     if (lowered) {
         for(int i=0; i<3; ++i) {
