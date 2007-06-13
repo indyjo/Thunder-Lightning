@@ -19,7 +19,7 @@ Carrier::Carrier(Ptr<IGame> thegame, IoObject * io_peer_init)
         "Carrier", 78, TargetInfo::CARRIER));
         
     this->engine = new RigidEngine(thegame);
-    float m = 20000000.0f; // 20kT mass
+    float m = thegame->getConfig()->queryFloat("Carrier_mass", 50000000.0f); // mass
     float w = 2*30.96f;    // width, height and depth taken from the model
     float h = 2*14.833f;
     float d = 2*76.524f;
