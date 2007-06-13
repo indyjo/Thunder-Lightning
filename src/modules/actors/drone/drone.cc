@@ -161,6 +161,15 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
             cfg->query("Drone_model_bounds")));
     setRigidBody(&*engine);
     setActor(this);
+    
+    // Tail hook
+    engine->addEffector(new Effectors::TailHook(
+        thegame->getCollisionMan(),
+        this,
+        skeleton->getUntransformedPoint("TailHook_p0"),
+        skeleton->getUntransformedPoint("TailHook_p1"),
+        thegame->getConfig()->queryFloat("Drone_max_tailhook_force", 80000)
+    ));
 
     personality.randomize();
     context = new Context(
