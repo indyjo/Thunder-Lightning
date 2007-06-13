@@ -113,17 +113,12 @@ Config do(
   Explosion_size                   := "20.0"
   Explosion_sound                  := "explosion-01.wav"
 
-  // Player configuration
-  Player_model_path                := model_dir .. "/thunder"
-  Player_model_file                := Player_model_path .. "/thunder.obj"
-  Player_model_bounds              := Player_model_path .. "/thunder.bounds"
-
+  // Drone configuration
   Drone_model_path                 := model_dir .. "/lightning"
   Drone_skeleton                   := Drone_model_path .. "/lightning.spec"
   Drone_inside_model_file          := Drone_model_path .. "/lightning-with-interior.obj"
   Drone_outside_model_file         := Drone_model_path .. "/lightning.obj"
   Drone_model_bounds               := Drone_model_path .. "/lightning.bounds"
-  
   Drone_target_radius              := "3.5"
   Drone_pilot_pos                  := "Vector3( 0 0.8 1.9)"
   Drone_cannon_sound               := "cannon-shoot-1.wav"
