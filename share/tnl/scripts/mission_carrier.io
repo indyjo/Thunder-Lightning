@@ -55,12 +55,23 @@ startup := method(
     Game setControlledActor(me)
     Game setView(me, 0)
     
-    Game on("+tertiary",
-        Game controlledActor controls setFloat("brake", 5)
-    )
+    me carrier := carrier
+    
+    me ai := coro(me,
+        self land := Drone performLanding clone start(me, me carrier)
+        manage(land)
 
-    Game on("-tertiary",
-        Game controlledActor controls setFloat("brake", 0)
+        loop(
+            pass
+        )
+    )
+    
+    3 repeat(
+        drone := me clone
+        drone setLocation(mypos + vector(3000*rand2, 800, 3000*rand2))
+        drone ai := me ai
+        drone setControlMode(Actor AUTOMATIC)
+        Game addActor(drone)
     )
 )
 
