@@ -125,6 +125,7 @@ Config do(
   Drone_engine_sound               := "aircraft-engine-1.wav"
   Drone_engine_gain                := "0.1"
   Drone_wheel_model_file           := model_dir .. "/misc/tire.obj"
+  Drone_max_tailhook_force         := "40000"
 
   // Tank configuration
   Tank_model_path                  := model_dir .. "/newtank"

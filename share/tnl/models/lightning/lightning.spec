@@ -21,3 +21,7 @@ pointof Lightning origin      0      0     0
 pointof Lightning x           1      0     0
 pointof Lightning y           0      1     0
 pointof Lightning z           0      0     1
+
+pointof Lightning TailHook_p0 0   -0.723  -2.481
+pointof Lightning TailHook_p1 0   -1.716  -5.209
+
