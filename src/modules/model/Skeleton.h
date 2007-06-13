@@ -121,6 +121,9 @@ public:
     /// Returns the point with the given name after bone transformations
     Vector getPoint(const std::string &);
     
+    /// Returns the point with the given name without applying bone transformations
+    Vector getUntransformedPoint(const std::string &);
+    
     void draw(JRenderer & r);
     
 private:

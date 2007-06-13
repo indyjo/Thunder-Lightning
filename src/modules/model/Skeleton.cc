@@ -194,6 +194,14 @@ Vector Skeleton::getPoint(const string & name) {
     return i->second.second->transformPoint(i->second.first);
 }
 
+Vector Skeleton::getUntransformedPoint(const string & name) {
+    PointsByName::iterator i = points_by_name.find(name);
+    if (i == points_by_name.end()) {
+        return Vector(0,0,0);
+    }
+    return i->second.first;
+}
+
 
 
 void Skeleton::draw(JRenderer & r) {
