@@ -18,21 +18,16 @@ Matrix := Object clone do(
     self entries := entries clone
   )
 
-  at := method(r,c, entries at(c*rows+r))
-  atSet := method(r,c,v, entries atPut(c*rows+r, v))
-
-  print := method(
-    write(rows,"x",columns,":\n");
-    for(i,0,rows-1,
-      write("|")
-      for(j,0,columns-1,
-        write(at(i,j))
-        if (j!=columns-1, write(",\t"))
-      )
-      write("|\n")
-    )
+  at := method(r,c,
+    c = c ifNilEval(0)
+    entries at(c*rows+r)
   )
-  
+  atSet := method(r,c,v,
+    if (v isNil, v=c; c=0);
+    entries atPut(c*rows+r, v)
+    self
+  )
+
   dim := method(r,c,
     rows = r
     columns = c
@@ -109,7 +104,7 @@ Matrix := Object clone do(
         self entries foreach(i,v, M entries atPut(i, v*other))
         M
       ,
-        Exception raise("Type error","Invalid type for Matrix multiplication")
+        Exception raise("Type error","Invalid type " .. (other type) .. " for Matrix multiplication")
       )
     )
   ))
@@ -162,6 +157,22 @@ Matrix := Object clone do(
     I := identity(3)
     return P + angle cos * (I-P) + angle sin * S
   )
+  
+  asString := method(
+    if (columns == 1,
+      res := "vector( "
+      entries foreach(i,v,
+        if (i != 0, res = res .. ", ")
+        res = res .. ((v * 16) round / 16)
+      )
+      res
+    ,
+      "matrix(...)"
+    )
+  )
+  
+  asSimpleString := method( asString )
+      
 )
 
 vector := block(
