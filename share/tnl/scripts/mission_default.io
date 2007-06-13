@@ -58,17 +58,23 @@ startup := method(
     tank setFaction(them)
     tank setControlMode(Actor AUTOMATIC)
     
-    tank ai interrupt
-    x := vector(6543,1416)
-    tank ai := Tank followPath clone start(tank, list(
-        x+vector(0,0),
-        x+vector(0,-200),
-        x+vector(200,400),
-        x+vector(400,400),
-        x+vector(400,000),
-        x+vector(600,-100),
-        x+vector(600,-200),
-        x+vector(400,-400)))
+    tank ai := coro(me,
+        x := me getLocation
+        x := vector(x at(0), x at(2))
+        waypoints := list(  x+vector(0,0),
+                            x+vector(0,-200),
+                            x+vector(200,400),
+                            x+vector(400,400),
+                            x+vector(400,000),
+                            x+vector(600,-100),
+                            x+vector(600,-200),
+                            x+vector(400,-400))
+        self fp := Tank followPath clone start(me, waypoints)
+        manage(fp)
+        loop(
+            pass
+        )
+    )
     Game addActor(tank)
     addKillObjective(tank)
 
@@ -76,8 +82,14 @@ startup := method(
     tank2 setLocation(vector(6573,0,1386))
     tank2 setFaction(them)
     tank2 setControlMode(Actor AUTOMATIC)
-    tank2 ai interrupt
-    tank2 ai := Tank followTank clone start(tank2, tank, 20, -35)
+    tank2 tank_to_follow := tank
+    tank2 ai := coro(me,
+        self ft := Tank followTank clone start(me, me tank_to_follow, 20, -35)
+        manage(ft)
+        loop(
+            pass
+        )
+    )
     Game addActor(tank2)
     addKillObjective(tank2)
 
@@ -85,8 +97,14 @@ startup := method(
     tank3 setLocation(vector(6523,0,1386))
     tank3 setFaction(them)
     tank3 setControlMode(Actor AUTOMATIC)
-    tank3 ai interrupt
-    tank3 ai := Tank followTank clone start(tank3, tank, -20, -35)
+    tank3 tank_to_follow := tank
+    tank3 ai := coro(me,
+        self ft := Tank followTank clone start(me, me tank_to_follow, -20, -35)
+        manage(ft)
+        loop(
+            pass
+        )
+    )
     Game addActor(tank3)
     addKillObjective(tank3)
     
@@ -97,18 +115,7 @@ startup := method(
       tank4 setLocation(vector(6543,0,1386) + 100*randvec)
       tank4 setFaction(them)
       tank4 setControlMode(Actor AUTOMATIC)
-      tank4 ai interrupt
-      tank4 ai := coro(me, tanks,
-        #self fl := Tank flock clone start(me, tanks, 80)
-        #manage(fl)
-        
-        self aaf := Tank aimAtAndFire clone start(me)
-        manage(aaf)
-        
-        loop(pass)
-      ) start(tank4, tanks)
       Game addActor(tank4)
-      //addKillObjective(tank4)
     )
 
     ndrones := 3

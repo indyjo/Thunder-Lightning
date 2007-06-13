@@ -45,10 +45,10 @@ startup := method(
         me setFaction(us)
         Game addActor(me)
     )
-
-    corient := matrix( 0, -1, 0
-                       -1,  0, 0
-                        0,  0, 1)
+    
+    corient := matrix( 1, 0, 0
+                       0,  1, 0
+                       0,  0, 1)
     mypos atSet(1,0,0)
     self carrier := addCarrier(mypos + myvelocity*25, corient)
 
