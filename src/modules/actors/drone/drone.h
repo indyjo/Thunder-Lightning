@@ -98,6 +98,7 @@ private:
     AutoPilot auto_pilot;
     bool gear_lowered;
     Ptr<Effectors::Wheel> wheels[3];
+    float engine_power;
 
     float damage;
     MTasker<> mtasker;
