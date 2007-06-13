@@ -117,7 +117,23 @@ public:
     
     virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls);
 };
+
+
+class TailHook : public IEffector {
+    Vector p0, p1;
+    float max_force;
+    Ptr<RigidBody> partner;
+    WeakPtr<Collide::Collidable> nocollide;
+    Ptr<Collide::CollisionManager> collision_manager;
+
+public:
+    inline TailHook(Ptr<Collide::CollisionManager> cm, WeakPtr<Collide::Collidable> nocollide, Vector p0, Vector p1, float max_force)
+    : nocollide(nocollide), p0(p0), p1(p1), max_force(max_force), collision_manager(cm)
+    { }
     
+    virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls);
+};
+
 } // namespace Effectors
 
 #endif

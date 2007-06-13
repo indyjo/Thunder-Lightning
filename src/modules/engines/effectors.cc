@@ -1,6 +1,7 @@
 #include <modules/collide/CollisionManager.h>
 #include <modules/engines/rigidengine.h>
 #include <modules/model/model.h>
+#include <TargetInfo.h>
 #include "effectors.h"
 
 namespace {
@@ -362,6 +363,34 @@ void Buoyancy::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
         
         rigid.applyForceAt(drag_normal, p_wcs);
         rigid.applyForceAt(drag_tangential, p_wcs);
+    }
+}
+
+
+void TailHook::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
+    static const float F_x[] = {-1, 0, 36, 37};
+    static const float F_y[] = { 0, 0,  1,  1};
+    static const int   nF = sizeof(F_x) / sizeof(float);
+    
+    if (!partner) {
+        Vector p0_wcs = rigid.getState().x + rigid.getState().q.rot(p0);
+        Vector p1_wcs = rigid.getState().x + rigid.getState().q.rot(p1);
+        Ptr<Collide::Collidable> collidable =
+            collision_manager->lineQuery(p0_wcs, p1_wcs, 0, 0, nocollide.lock());
+        if (collidable && collidable->getActor()->getTargetInfo()
+            && collidable->getActor()->getTargetInfo()->isA(TargetInfo::CARRIER))
+        {
+            partner = collidable->getRigid();
+        }
+    }
+    if (partner) { // already arrested
+        Vector p1_wcs = rigid.getState().x + rigid.getState().q.rot(p1);
+        Vector v_rel = rigid.getVelocityAt(p1_wcs) - partner->getVelocityAt(p1_wcs);
+        Vector front = rigid.getState().q.rot(Vector(0,0,1));
+        float  v_front = v_rel * front;
+        
+        float force_magnitude = interp(nF, v_front, F_x, F_y);
+        rigid.applyForceAt(-max_force * force_magnitude * front, p1_wcs);
     }
 }
 
