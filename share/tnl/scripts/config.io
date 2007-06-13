@@ -164,6 +164,7 @@ Config do(
   Carrier_model_path               := model_dir .. "/carrier"
   Carrier_skeleton                 := Carrier_model_path .. "/Carrier.spec"
   Carrier_model_bounds             := Carrier_model_path .. "/carrier.bounds"
+  Carrier_model_hull               := Carrier_model_path .. "/carrier-hull-reduced.obj"
   
 ) // Config do
 
