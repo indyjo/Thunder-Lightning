@@ -243,6 +243,7 @@ void Drone::action() {
     flight_info.update(delta_t, *this, *terrain);
 
     if (control_mode == AUTOMATIC) {
+        /*
         float best_value=-1, current_value=0;
         Ptr<Idea> best_idea;
         for(std::list<Ptr<Idea> >::iterator i=ideas.begin(); i!=ideas.end(); i++) {
@@ -279,6 +280,7 @@ void Drone::action() {
     
         //flight_info.dump();
         auto_pilot.fly(delta_t, flight_info, *flight_controls);
+        */
     } else if (control_mode == MANUAL) {
         flight_controls->setRudder(    thegame->getEventRemapper()->getAxis("rudder") );
         flight_controls->setAileron(   thegame->getEventRemapper()->getAxis("aileron") );
