@@ -125,6 +125,28 @@ Config do(
   Drone_engine_sound               := "aircraft-engine-1.wav"
   Drone_engine_gain                := "0.1"
   Drone_wheel_model_file           := model_dir .. "/misc/tire.obj"
+  
+  Drone_NoseWheel_range            := "1"
+  Drone_NoseWheel_force            := "50000"
+  Drone_NoseWheel_damping          := "15000"
+  Drone_NoseWheel_C_tan_min        := "50"
+  Drone_NoseWheel_C_tan_max        := "650"
+  Drone_NoseWheel_C_norm           := "10000"
+
+  Drone_LeftWheel_range            := "1"
+  Drone_LeftWheel_force            := "50000"
+  Drone_LeftWheel_damping          := "15000"
+  Drone_LeftWheel_C_tan_min        := "50"
+  Drone_LeftWheel_C_tan_max        := "650"
+  Drone_LeftWheel_C_norm           := "1000"
+
+  Drone_RightWheel_range           := Drone_LeftWheel_range
+  Drone_RightWheel_force           := Drone_LeftWheel_force
+  Drone_RightWheel_damping         := Drone_LeftWheel_damping
+  Drone_RightWheel_C_tan_min       := Drone_LeftWheel_C_tan_min
+  Drone_RightWheel_C_tan_max       := Drone_LeftWheel_C_tan_max
+  Drone_RightWheel_C_norm          := Drone_LeftWheel_C_norm
+
   Drone_max_tailhook_force         := "40000"
 
   // Tank configuration
