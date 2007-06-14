@@ -111,15 +111,6 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
     engine->addEffector( new Effectors::Flight(flight_controls) );
     engine->addEffector( Effectors::Gravity::getInstance() );
     
-	static const Effectors::Wheel::Params wheel_params[3] = {
-	    {Vector(    0, -1.7,  2.92), Vector(1,0,0), 1, 500000, 15000, 50, 10000},
-	    {Vector(-2, -1.4, -2.63), Vector(1,0,0), 1, 500000, 15000, 50, 1000},
-	    {Vector( 2, -1.4, -2.63), Vector(1,0,0), 1, 500000, 15000, 50, 1000}
-	};
-	for (int i=0; i<3; ++i) {
-	    wheels[i] = new Effectors::Wheel(terrain, thegame->getCollisionMan(), this, wheel_params[i]);
-	}
-	
     setEngine(engine);
     
     flight_controls->setThrottle(1.0f);
@@ -170,6 +161,50 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
         skeleton->getUntransformedPoint("TailHook_p1"),
         thegame->getConfig()->queryFloat("Drone_max_tailhook_force", 80000)
     ));
+
+	// Wheels
+	Effectors::Wheel::Params nose_wheel = {
+	    skeleton->getUntransformedPoint("NoseWheel"),               // position
+	    Vector(1,0,0),                                              // axis
+	    thegame->getConfig()->queryFloat("Drone_NoseWheel_range", 1), // range
+	    thegame->getConfig()->
+	        queryFloat("Drone_NoseWheel_force", 50000),               // force
+	    thegame->getConfig()->
+	        queryFloat("Drone_NoseWheel_damping", 15000),             // damping
+	    thegame->getConfig()->
+	        queryFloat("Drone_NoseWheel_C_tan_min", 50),              // tangential resistance
+	    thegame->getConfig()->
+	        queryFloat("Drone_NoseWheel_C_norm", 10000)};             // normal resistance
+
+	Effectors::Wheel::Params left_wheel = {
+	    skeleton->getUntransformedPoint("LeftWheel"),               // position
+	    Vector(1,0,0),                                              // axis
+	    thegame->getConfig()->queryFloat("Drone_LeftWheel_range", 1), // range
+	    thegame->getConfig()->
+	        queryFloat("Drone_LeftWheel_force", 50000),               // force
+	    thegame->getConfig()->
+	        queryFloat("Drone_LeftWheel_damping", 15000),             // damping
+	    thegame->getConfig()->
+	        queryFloat("Drone_LeftWheel_C_tan_min", 50),              // tangential resistance
+	    thegame->getConfig()->
+	        queryFloat("Drone_LeftWheel_C_norm", 1000)};             // normal resistance
+	        
+	Effectors::Wheel::Params right_wheel = {
+	    skeleton->getUntransformedPoint("RightWheel"),               // position
+	    Vector(1,0,0),                                              // axis
+	    thegame->getConfig()->queryFloat("Drone_RightWheel_range", 1), // range
+	    thegame->getConfig()->
+	        queryFloat("Drone_RightWheel_force", 50000),               // force
+	    thegame->getConfig()->
+	        queryFloat("Drone_RightWheel_damping", 15000),             // damping
+	    thegame->getConfig()->
+	        queryFloat("Drone_RightWheel_C_tan_min", 50),              // tangential resistance
+	    thegame->getConfig()->
+	        queryFloat("Drone_RightWheel_C_norm", 1000)};             // normal resistance
+	
+    wheels[0] = new Effectors::Wheel(terrain, thegame->getCollisionMan(), this, nose_wheel);
+    wheels[1] = new Effectors::Wheel(terrain, thegame->getCollisionMan(), this, left_wheel);
+    wheels[2] = new Effectors::Wheel(terrain, thegame->getCollisionMan(), this, right_wheel);
 
     personality.randomize();
     context = new Context(
@@ -238,7 +273,6 @@ void Drone::action() {
     float delta_t = thegame->getClock()->getStepDelta();
     std::string info;
     char buf[1024];
-    
 
     flight_info.update(delta_t, *this, *terrain);
 
@@ -304,10 +338,17 @@ void Drone::action() {
     
     setLandingGear(flight_controls->isGearLowered());
 
-    // set brake factors on main landing gear
-    wheels[0]->getParams().drag_long = 50 + 600*controls->getFloat("brake", 0);
-    wheels[1]->getParams().drag_long = 50 + 950*controls->getFloat("brake", 0);
-    wheels[2]->getParams().drag_long = 50 + 950*controls->getFloat("brake", 0);
+    // set brake factors on main landing gear, 0 <= u <= 1
+    float u = controls->getFloat("brake",0);
+    wheels[0]->getParams().drag_long =
+        (1-u) * thegame->getConfig()->queryFloat("Drone_NoseWheel_C_tan_min", 50)
+          + u * thegame->getConfig()->queryFloat("Drone_NoseWheel_C_tan_max", 650);
+    wheels[1]->getParams().drag_long =
+        (1-u) * thegame->getConfig()->queryFloat("Drone_LeftWheel_C_tan_min", 50)
+          + u * thegame->getConfig()->queryFloat("Drone_LeftWheel_C_tan_max", 1000);
+    wheels[2]->getParams().drag_long =
+        (1-u) * thegame->getConfig()->queryFloat("Drone_RightWheel_C_tan_min", 50)
+          + u * thegame->getConfig()->queryFloat("Drone_RightWheel_C_tan_max", 1000);
     
     // rotate the front wheel according to rudder
     static const float max_wheel_turn = 60*3.141593f/180; // 60 degrees max
