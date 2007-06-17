@@ -95,7 +95,7 @@ void LoDQuad::init (IGame * the_game, std::istream & in, LoDQuad ** neighbor,
     
     for (i=0; i<vertices; i++) {
         vz[i]=-vz[i];
-        //vy[i]/=3.0;
+        vy[i]-=40.0;
         //vy[i]*=3.0;
         //vy[i] *= 2;
     }
