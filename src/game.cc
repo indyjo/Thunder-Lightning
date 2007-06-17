@@ -395,9 +395,9 @@ Ptr<ICamera> Game::getCamera()
 }
 
 UI::Surface Game::getScreenSurface() {
-    float xres = config->queryFloat("Game_xres",1024.0f);
-    float yres = config->queryFloat("Game_yres",768.0f);
-    float aspect = camera->getAspect();
+    int xres = renderer->getWidth();
+    int yres = renderer->getHeight();
+    float aspect = renderer->getAspect();
     float focus = camera->getFocus();
     return UI::Surface::FromCamera(aspect, focus, xres, yres);
 }
@@ -737,7 +737,7 @@ void Game::drawDebugTriangleAt(const Vector & p)
 
 void Game::clearScreen() {
     SDL_GL_SwapBuffers();
-    renderer->clear();
+    renderer->clear(true, true);
 }
 
 void Game::togglePauseMode() {
