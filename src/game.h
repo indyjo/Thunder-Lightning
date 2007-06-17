@@ -13,6 +13,7 @@ class IoScriptingManager;
 namespace UI {
 	class Console;
 }
+class Water;
 
 class Game: public IGame, public ActorStage, public SigObject
 {
@@ -62,11 +63,15 @@ private:
 
     void doEvents();
 
-    void preFrame();
-    void doFrame();
-    void postFrame();
-
     void setupRenderer();
+    void updateSimulation();
+    void updateView();
+    void updateSound();
+    void setupMainRender();
+    void setupMirroredRender();
+    void updateIoScripting();
+    
+    void doFrame();
 
     void drawDebugTriangle();
 
@@ -128,6 +133,7 @@ private:
     Ptr<IDrawable> gunsight;
 #endif
     Ptr<Environment> environment;
+    Ptr<Water> water;
 	Ptr<IoScriptingManager> io_scripting_manager;
     Ptr<UI::Console> console;
 };

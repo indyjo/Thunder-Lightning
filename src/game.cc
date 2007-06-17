@@ -19,6 +19,7 @@
 #include <modules/actors/projectiles/smartmissile.h>
 #include <modules/actors/tank/tank.h>
 #include <modules/environment/environment.h>
+#include <modules/environment/Water.h>
 #include <modules/model/model.h>
 #include <modules/model/modelman.h>
 #include <modules/fontman/fontman.h>
@@ -299,25 +300,11 @@ void Game::run()
 	Ptr<IGame> guard = this;
     game_done=false;
 
-    Ptr<JDirectionalLight> sun = renderer->createDirectionalLight();
-    sun->setColor(Vector(1,1,1) - 0.25*Vector(.97,.83,.74));
-    sun->setEnabled(true);
-    
     doEvents();
     while (!game_done) {
-        //int t0 = SDL_GetTicks();
         IoState_pushRetainPool(io_scripting_manager->getMainState());
-        //int t1 = SDL_GetTicks();
-        preFrame();
-        //int t2 = SDL_GetTicks();
-    	sun->setDirection(Vector(-0.9, 0.4, 0).normalize());
         doFrame();
-        //int t3 = SDL_GetTicks();
-        postFrame();
-        //int t4 = SDL_GetTicks();
         IoState_popRetainPool(io_scripting_manager->getMainState());
-        //int t5 = SDL_GetTicks();
-        //ls_message("Ticks: %d %d %d %d %d\n", t1-t0, t2-t1, t3-t2, t4-t3, t5-t4);
     }
     
     //Object::debug();
@@ -351,6 +338,8 @@ void Game::run()
 #if ENABLE_GUNSIGHT
     gunsight = 0;
 #endif
+    environment = 0;
+    water = 0;
     io_scripting_manager = 0;
     ls_message("exiting with %d references left.\n", getRefs());
     SDL_WM_GrabInput(SDL_GRAB_OFF);
@@ -518,7 +507,9 @@ void Game::initModules(Status & stat)
 
     stat.beginJob("Initialize modules", steps);
 
-    environment = new Environment();
+    environment = new Environment(this);
+    water = new Water(this);
+    
     stat.stepFinished();
 #if ENABLE_LOD_TERRAIN
     stat.beginJob("Initialize LOD terrain",1);
@@ -554,116 +545,12 @@ void Game::doEvents()
     event_remapper->endEvents();
 }
 
-#define MAX_STEP_SECONDS (1.0 / 15.0)
-#define MAX_CATCHUP_STEPS 1
 
-void Game::preFrame()
+void Game::setupRenderer()
 {
-    JCamera jcamera;
-
-    doEvents();
-    clock->update();
-
-    soundman->update(clock->getFrameDelta());
-
-    // this will return false if pause is activated
-    for(int step_counter = 0;
-        step_counter < MAX_CATCHUP_STEPS && clock->catchup(MAX_STEP_SECONDS);
-        step_counter++)
-    {
-        collisionman->run(this, clock->getStepDelta());
-        cleanupActors();
-        setupActors();
-    }
-    clock->skip();
-
-    // Upon death of current view subject, switch to external perspective
-    if (current_view && !current_view->getViewSubject()->isAlive()) {
-        externalView();
-        event_remapper->triggerAction("current_view_subject_killed");
-    }
-    
-    if (current_view) {
-        camera->alignWith(&*current_view);
-        camera->getCamera(&jcamera);
-        renderer->setCamera(&jcamera.cam);
-        Vector pos, up, right, front;
-        pos = current_view->getLocation();
-        current_view->getOrientation(&up, &right, &front);
-        soundman->setListenerPosition(pos);
-        soundman->setListenerOrientation(up, front);
-        soundman->setListenerVelocity(current_view->getMovementVector());
-    }
-
-    environment->update(camera);
-    setupRenderer();
-
-    //SDL_Delay(5); // For audio processing;
-}
-
-#include <modules/actors/fx/explosion.h>
-
-void Game::doFrame()
-{
-    setupRenderer();
-
-
-#if ENABLE_HORIZON
-    horizon->draw();
-#endif
-
-#if ENABLE_SKYBOX
-    skybox->draw();
-#endif
-
-#if ENABLE_TERRAIN
-    //ls_message("Drawing terrain\n");
-    terrain->draw();
-    //ls_message("/Drawing terrain\n");
-#endif
-
-#if ENABLE_LOD_TERRAIN
-    quadman->draw();
-#endif
-
-#if ENABLE_DEBUG_TRIANGLE
-    //drawDebugTriangle();
-#endif
-
-    drawActors();
-}
-
-void Game::postFrame()
-{
-#if ENABLE_GUNSIGHT
-    if (gunsight) gunsight->draw();
-#endif
-
-#if ENABLE_MAP
-    map->draw();
-#endif
-
-    console->draw(renderer);
-    
-    if (!clock->isPaused()) {
-        IoObject* self = getProtoObject<Ptr<IGame> >(
-            io_scripting_manager->getMainState());
-
-        IoState_pushRetainPool(IOSTATE);
-        if (IoObject_rawGetSlot_(self, IOSYMBOL("postFrame"))) {
-            IoMessage *msg =
-                IoMessage_newWithName_label_(IOSTATE, IOSYMBOL("postFrame"),IOSYMBOL("Game::postFrame"));
-            IoState_tryToPerform(IOSTATE, self, IOSTATE->lobby, msg);
-        }
-        IoState_popRetainPool(IOSTATE);
-    }
-    
-    clearScreen();
-}
-
-void Game::setupRenderer() {
     renderer->setClipRange(environment->getClipMin(),
                            environment->getClipMax());
+	
     Vector col = environment->getFogColor();
     col *= 256.0;
     jcolor3_t fog_col;
@@ -680,6 +567,161 @@ void Game::setupRenderer() {
 
     //clearScreen();
 }
+
+
+#define MAX_STEP_SECONDS (1.0 / 15.0)
+#define MAX_CATCHUP_STEPS 1
+
+void Game::updateSimulation()
+{
+    // this will return false if pause is activated
+    clock->update();
+    for(int step_counter = 0;
+        clock->catchup(MAX_STEP_SECONDS) && step_counter < MAX_CATCHUP_STEPS;
+        step_counter++)
+    {
+        collisionman->run(this, clock->getStepDelta());
+        cleanupActors();
+        setupActors();
+    }
+    clock->skip();
+}
+
+void Game::updateView()
+{
+    // Upon death of current view subject, switch to external perspective
+    if (current_view && !current_view->getViewSubject()->isAlive()) {
+        externalView();
+        event_remapper->triggerAction("current_view_subject_killed");
+    }
+}
+
+void Game::updateSound() {
+    soundman->update(clock->getFrameDelta());
+
+    if (current_view) {
+        Vector pos = current_view->getLocation();
+        soundman->setListenerPosition(pos);
+
+        Vector up, right, front;
+        current_view->getOrientation(&up, &right, &front);
+        soundman->setListenerOrientation(up, front);
+
+        soundman->setListenerVelocity(current_view->getMovementVector());
+        soundman->setListenerVelocity(Vector(0,0,0));
+    }
+}
+
+void Game::setupMainRender() {
+    renderer->resize(config->queryInt("Game_xres"),
+                     config->queryInt("Game_yres"),
+                     config->queryFloat("Camera_aspect"));
+                     
+    if (current_view) {
+        camera->alignWith(&*current_view);
+    }
+        
+    JCamera jcamera;
+    camera->getCamera(&jcamera);
+    renderer->setCamera(&jcamera.cam);
+    environment->update(camera);
+}
+
+void Game::setupMirroredRender() {
+    renderer->resize(
+        config->queryInt("Game_mirror_texture_size", 512),
+        config->queryInt("Game_mirror_texture_size", 512),
+        config->queryFloat("Camera_aspect"));
+
+    if (current_view) {
+        camera->alignWith(&*current_view);
+    }
+    Vector pos = camera->getLocation();
+    pos[1] = -pos[1];
+    
+    Vector right, up, front;
+    camera->getOrientation(&up,&right,&front);
+    
+    right[1] = -right[1];
+    front[1] = -front[1];
+    up = front%right;
+    
+    camera->setLocation(pos);
+    camera->setOrientation(up, right, front);
+    JCamera jcamera;
+    camera->getCamera(&jcamera);
+    renderer->setCamera(&jcamera.cam);
+    environment->update(camera);
+    
+    Matrix3 M_inv = camera->getOrientInv();
+    Vector n = M_inv * Vector(0,-1,0);
+    float c = -n * camera->getLocation();
+}
+
+void Game::updateIoScripting() {
+   // notifiy Io scripting that another frame has passed by sending a
+    // "postFrame" message to Game
+    if (!clock->isPaused()) {
+        IoObject* self = getProtoObject<Ptr<IGame> >(
+            io_scripting_manager->getMainState());
+
+        if (IoObject_rawGetSlot_(self, IOSYMBOL("postFrame"))) {
+            IoMessage *msg =
+                IoMessage_newWithName_label_(IOSTATE, IOSYMBOL("postFrame"),IOSYMBOL("Game::postFrame"));
+            IoState_tryToPerform(IOSTATE, self, IOSTATE->lobby, msg);
+        }
+    }
+}
+
+void Game::doFrame()
+{
+    doEvents();
+    updateSimulation();
+    updateView();
+    updateSound();
+
+    setupRenderer();
+    Ptr<JDirectionalLight> sun = renderer->createDirectionalLight();
+    sun->setColor(Vector(1,1,1) - 0.25*Vector(.97,.83,.74));
+    sun->setEnabled(true);
+    
+    // perform mirrored render pass
+    if (water->supportsMirrorTex()) {
+        setupMirroredRender();
+        renderer->pushClipPlane(Vector(0,1,0), 0);
+        
+        sun->setDirection(Vector(-0.9, 0.4, 0).normalize());
+        skybox->draw();
+        quadman->draw();
+        drawActors();
+        
+        // copy the color buffer into a texture for later usage in water render
+        water->copyTex();
+        
+        // clear the depth buffer, but not the color buffer
+        renderer->clear(false, true);
+        
+        renderer->popClipPlanes(1);
+    }
+    // perform main render pass
+    setupMainRender();
+    
+    sun->setDirection(Vector(-0.9, 0.4, 0).normalize());
+    skybox->draw();
+    renderer->pushClipPlane(Vector(0,1,0), 0);
+    quadman->draw();
+    renderer->popClipPlanes(1);
+    renderer->setZBufferFunc(JR_ZBFUNC_LESS);
+    water->draw();
+    renderer->setZBufferFunc(JR_ZBFUNC_LEQUAL);
+    drawActors();
+    if (gunsight) gunsight->draw();
+    map->draw();
+    console->draw(renderer);
+    clearScreen();
+
+    updateIoScripting();
+ }
 
 void Game::drawDebugTriangle()
 {
