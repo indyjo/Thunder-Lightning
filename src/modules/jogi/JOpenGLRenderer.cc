@@ -4,6 +4,7 @@
 #if defined(__MINGW32__) || defined(_MSC_VER)
 #include <windows.h>
 #endif
+#include <GL/glew.h>
 #include <GL/gl.h>
 #include "jogi.h"
 #include "JOpenGLRenderer.h"
@@ -359,13 +360,6 @@ jError JOpenGLRenderer::setTexture(jrtxtid_t txtid)
     current_tex=txtid;
     return JERR_OK;
 }
-
-// Hack to make OpenGL 1.2 header files unnecessary
-// because the OpenGL headers of mingw32 and probably win32 are
-// not up to date
-#ifndef GL_CLAMP_TO_EDGE
-	#define GL_CLAMP_TO_EDGE 0x812F
-#endif
 
 void JOpenGLRenderer::setWrapMode( jrtexdim_t dim, jrwrapmode_t mode)
 {
