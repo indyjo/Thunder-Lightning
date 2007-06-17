@@ -3,6 +3,10 @@
 #include <list>
 #include <algorithm>
 #include <sigc++/bind.h>
+#include <GL/glew.h>
+#include <IL/il.h>
+#include <IL/ilu.h>
+#include <IL/ilut.h>
 #include <modules/math/Vector.h>
 #include <modules/camera/camera.h>
 #include <modules/clock/clock.h>
@@ -214,6 +218,24 @@ Game::Game(int argc, const char **argv)
     }
     ls_message("Done initializing video.\n");
 
+    ls_message("Initializing GLEW:\n");
+    GLenum err = glewInit();
+    if (GLEW_OK != err) {
+        ls_error("Error: %s\n", glewGetErrorString(err));
+        throw runtime_error("Could not initialize GLEW library.");
+    }
+    if (GLEW_VERSION_1_3) ls_message("  - detected OpenGL 1.3 support\n");
+    if (GLEW_VERSION_1_4) ls_message("  - detected OpenGL 1.4 support\n");
+    if (GLEW_VERSION_1_5) ls_message("  - detected OpenGL 1.5 support\n");
+    if (GLEW_VERSION_2_0) ls_message("  - detected OpenGL 2.0 support. Nice!\n");
+    ls_message("Done.\n");
+    
+    ls_message("Initializing DevIL:\n");
+    ilInit();
+    iluInit();
+    ilutRenderer(ILUT_OPENGL);
+    ls_message("Done.\n");
+    
     if (config->queryBool("Game_grab_mouse",false)) {
 	    SDL_WM_GrabInput(SDL_GRAB_ON);
 	    SDL_ShowCursor(SDL_DISABLE);
