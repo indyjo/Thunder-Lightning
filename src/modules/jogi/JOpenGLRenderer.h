@@ -6,19 +6,10 @@
 
 #define JGL_MAX_TEXTURES 256
 
-typedef enum {
-    JGL_FRUSTUM_LEFT=0,
-    JGL_FRUSTUM_RIGHT,
-    JGL_FRUSTUM_BOTTOM,
-    JGL_FRUSTUM_TOP,
-    JGL_FRUSTUM_NEAR,
-    JGL_FRUSTUM_FAR
-} jgl_frustum_t;
-
 typedef struct {
-    int used;
-    unsigned int gl_tex_name;
     float size_w, size_h;
+    unsigned int gl_tex_name;
+    bool used;
 } jgl_texture_t;
 
 class JOpenGLRenderer : public JRenderer
@@ -38,6 +29,13 @@ public:
 
     virtual void setBackgroundColor(const jcolor3_t *col);
 
+    /* Status querying methods --------------------------------------*/
+    virtual int getWidth();
+    virtual int getHeight();
+    virtual float getAspect();
+    virtual float getClipNear();
+    virtual float getClipFar();
+    
     /* Shading methods ----------------------------------------------*/
     virtual void enableSmoothShading();
     virtual void disableSmoothShading();
@@ -82,7 +80,7 @@ public:
 
     virtual void flush();
 
-    virtual void clear();
+    virtual void clear(bool color, bool depth);
 
     /* Texturing methods --------------------------------------------*/
 
@@ -125,7 +123,7 @@ public:
     virtual void popClipPlanes(int n);
     
     /* Status requesting methods ------------------------------------*/
-    virtual void resize(int new_width, int new_height);
+    virtual void resize(int new_width, int new_height, float new_aspect);
 
     /* Lighting -----------------------------------------------------*/
     virtual void enableLighting();
@@ -151,7 +149,8 @@ private:
     void releaseLight(unsigned int);
 
 private:
-    float view_frustum[6];
+    float frustum_aspect;
+    float clip_near, clip_far;
     float fog_color[4];
     jrfogtype_t fog_type;
     float fog_density;

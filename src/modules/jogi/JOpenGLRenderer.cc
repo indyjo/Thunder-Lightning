@@ -19,19 +19,14 @@ JOpenGLRenderer::JOpenGLRenderer(int init_width, int init_height, float aspect)
 {
     ls_message("<JOpenGLRenderer::JOpenGLRenderer(%d, %d, %f)>\n",
     	init_width, init_height, aspect);
-    resize(init_width, init_height);
-
     coord_sys=JR_CS_WORLD;
 
     camera.init();
-    view_frustum[JGL_FRUSTUM_LEFT] =   -aspect;
-    view_frustum[JGL_FRUSTUM_RIGHT] =   aspect;
-    view_frustum[JGL_FRUSTUM_TOP] =     1.0;
-    view_frustum[JGL_FRUSTUM_BOTTOM] = -1.0;
-    view_frustum[JGL_FRUSTUM_NEAR] =    CLIP_NEAR;
-    view_frustum[JGL_FRUSTUM_FAR] =     CLIP_FAR;
+    clip_near = CLIP_NEAR;
+    clip_far = CLIP_FAR;
 
-    initProjectionMatrix();
+    resize(init_width, init_height, aspect); // calls initProjectionMatrix()
+    
     initModelViewMatrix();
 
     setCullMode(JR_CULLMODE_NO_CULLING);
@@ -111,21 +106,9 @@ void JOpenGLRenderer::setCullMode(jrcullmode_t mode)
 
 void JOpenGLRenderer::setClipRange(float cnear, float cfar)
 {
-    view_frustum[JGL_FRUSTUM_NEAR] = cnear;
-    view_frustum[JGL_FRUSTUM_FAR] = cfar;
+    clip_near = cnear;
+    clip_far = cfar;
     initProjectionMatrix();
-    /*
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glFrustum(
-        (view_frustum[JGL_FRUSTUM_LEFT]/camera.focus)*near,
-        (view_frustum[JGL_FRUSTUM_RIGHT]/camera.focus)*near,
-        (view_frustum[JGL_FRUSTUM_BOTTOM]/camera.focus)*near,
-        (view_frustum[JGL_FRUSTUM_TOP]/camera.focus)*near,
-        view_frustum[JGL_FRUSTUM_NEAR],
-        view_frustum[JGL_FRUSTUM_FAR]);
-    */
-    //initModelViewMatrix();
     setupFog();
 }
 
@@ -138,6 +121,30 @@ void JOpenGLRenderer::setCamera(jcamera_t *cam)
 void JOpenGLRenderer::setBackgroundColor(const jcolor3_t *col)
 {
     glClearColor(col->r / 256.0, col->g / 256.0, col->b / 256.0, 0.0);
+}
+
+// --------------------------------------------------------------------------
+// Status querying methods
+// --------------------------------------------------------------------------
+
+int JOpenGLRenderer::getWidth() {
+    int vp[4];
+    glGetIntegerv(GL_VIEWPORT, vp);
+    return vp[2];
+}
+int JOpenGLRenderer::getHeight() {
+    int vp[4];
+    glGetIntegerv(GL_VIEWPORT, vp);
+    return vp[3];
+}
+float JOpenGLRenderer::getAspect() {
+    return frustum_aspect;
+}
+float JOpenGLRenderer::getClipNear() {
+    return clip_near;
+}
+float JOpenGLRenderer::getClipFar() {
+    return clip_far;
 }
 
 // --------------------------------------------------------------------------
@@ -577,13 +584,15 @@ void JOpenGLRenderer::setBlendMode(jrblendmode_t mode) {
     glBlendFunc(sfactor, dfactor);
 }
 
-void JOpenGLRenderer::clear() {
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+void JOpenGLRenderer::clear(bool color, bool depth) {
+    glClear( (color?GL_COLOR_BUFFER_BIT:0) | (depth?GL_DEPTH_BUFFER_BIT:0) );
 }
 
-void JOpenGLRenderer::resize(int new_width, int new_height)
+void JOpenGLRenderer::resize(int new_width, int new_height, float new_aspect)
 {
     glViewport(0,0, new_width, new_height);
+    frustum_aspect = new_aspect;
+    initProjectionMatrix();
 }
 
 void JOpenGLRenderer::enableLighting() {
@@ -617,16 +626,14 @@ Ptr<JDirectionalLight> JOpenGLRenderer::createDirectionalLight() {
 /* --------------------- Private Functions -------------------------------- */
 
 void JOpenGLRenderer::initProjectionMatrix() {
-    float dnear = view_frustum[JGL_FRUSTUM_NEAR];
-    float dfar = view_frustum[JGL_FRUSTUM_FAR];
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glFrustum(
-        (view_frustum[JGL_FRUSTUM_LEFT]/camera.cam.focus)*dnear,
-        (view_frustum[JGL_FRUSTUM_RIGHT]/camera.cam.focus)*dnear,
-        (view_frustum[JGL_FRUSTUM_BOTTOM]/camera.cam.focus)*dnear,
-        (view_frustum[JGL_FRUSTUM_TOP]/camera.cam.focus)*dnear,
-        dnear, dfar);
+        (-frustum_aspect/camera.cam.focus)*clip_near,
+        ( frustum_aspect/camera.cam.focus)*clip_near,
+        (             -1/camera.cam.focus)*clip_near,
+        (              1/camera.cam.focus)*clip_near,
+        clip_near, clip_far);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -707,29 +714,25 @@ void JOpenGLRenderer::setupFog()
     switch(fog_type) {
     case JR_FOGTYPE_LINEAR:
         glFogi(GL_FOG_MODE, GL_LINEAR);
-        glFogf(GL_FOG_START, view_frustum[JGL_FRUSTUM_NEAR]);
-        glFogf(GL_FOG_END, view_frustum[JGL_FRUSTUM_FAR]);
+        glFogf(GL_FOG_START, clip_near);
+        glFogf(GL_FOG_END, clip_far);
         break;
     case JR_FOGTYPE_EXP:
         glFogi(GL_FOG_MODE, GL_EXP);
         glFogf(GL_FOG_DENSITY, fog_density);
-        glFogf(GL_FOG_START, view_frustum[JGL_FRUSTUM_NEAR]);
-        glFogf(GL_FOG_END, view_frustum[JGL_FRUSTUM_FAR]);
+        glFogf(GL_FOG_START, clip_near);
+        glFogf(GL_FOG_END, clip_far);
         break;
     case JR_FOGTYPE_EXP_SQUARE:
         glFogi(GL_FOG_MODE, GL_EXP2);
         glFogf(GL_FOG_DENSITY, fog_density);
-        glFogf(GL_FOG_START, view_frustum[JGL_FRUSTUM_NEAR]);
-        glFogf(GL_FOG_END, view_frustum[JGL_FRUSTUM_FAR]);
+        glFogf(GL_FOG_START, clip_near);
+        glFogf(GL_FOG_END, clip_far);
         break;
     case JR_FOGTYPE_FARAWAY:
         glFogi(GL_FOG_MODE, GL_LINEAR);
-        glFogf(
-            GL_FOG_START,
-            view_frustum[JGL_FRUSTUM_NEAR] +
-            0.75 * (view_frustum[JGL_FRUSTUM_FAR] -
-                view_frustum[JGL_FRUSTUM_NEAR]));
-        glFogf(GL_FOG_END, view_frustum[JGL_FRUSTUM_FAR]);
+        glFogf(GL_FOG_START, 0.25f*clip_near + 0.75f*clip_far);
+        glFogf(GL_FOG_END, clip_far);
     }
 }
 

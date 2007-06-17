@@ -114,6 +114,13 @@ public:
 
     virtual void setBackgroundColor(const jcolor3_t *col) = 0;
     
+    /* Status querying methods --------------------------------------*/
+    virtual int getWidth()=0;
+    virtual int getHeight()=0;
+    virtual float getAspect()=0;
+    virtual float getClipNear()=0;
+    virtual float getClipFar()=0;
+    
     /* Shading methods ----------------------------------------------*/
     virtual void enableSmoothShading() = 0;
     virtual void disableSmoothShading() = 0;
@@ -160,7 +167,7 @@ public:
     
     virtual void flush() = 0;
 
-    virtual void clear() = 0;
+    virtual void clear(bool color=true, bool depth=true) = 0;
 
     /* Texturing methods --------------------------------------------*/
 
