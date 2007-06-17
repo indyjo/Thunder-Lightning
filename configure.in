@@ -128,6 +128,29 @@ AC_ARG_WITH(
     SIGC_LIBS="$withval")
 CXXFLAGS="$CXXFLAGS $SIGC_CFLAGS"
 
+AC_ARG_WITH(
+    glew-cflags,
+    [  --with-glew-cflags=PATH      Specify GLEW cflags],
+    GLEW_CFLAGS="$withval", GLEW_CFLAGS="")
+AC_ARG_WITH(
+    glew-libs,
+    [  --with-glew-libs=PATH        Specify GLEW libs],
+    GLEW_LIBS="$withval", GLEW_LIBS="-lGLEW")
+CXXFLAGS="$CXXFLAGS $GLEW_CFLAGS"
+AC_SUBST(GLEW_LIBS)
+
+AC_ARG_WITH(
+    devil-cflags,
+    [  --with-devil-cflags=PATH     Specify DevIL cflags],
+    DEVIL_CFLAGS="$withval", DEVIL_CFLAGS="")
+AC_ARG_WITH(
+    devil-libs,
+    [  --with-devil-libs=PATH       Specify DevIl libs],
+    DEVIL_LIBS="$withval", DEVIL_LIBS="-lIL -lILU -lILUT")
+CXXFLAGS="$CXXFLAGS $DEVIL_CFLAGS"
+AC_SUBST(DEVIL_LIBS)
+
+
 AM_PATH_SDL(1.2.10, , AC_MSG_ERROR([SDL verion 1.2.10+ needed]))
 CXXFLAGS="$CXXFLAGS $SDL_CFLAGS"
 LDFLAGS="$LDFLAGS $SDL_LDFLAGS"

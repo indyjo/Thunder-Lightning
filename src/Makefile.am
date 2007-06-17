@@ -48,6 +48,6 @@ tnl_libs = \
     modules/weaponsys/libweaponsys.a
 
 tnl_bin_LDADD = $(tnl_libs) @SDL_LIBS@ @SIGC_LIBS@ @OPENGL_LIBS@  \
-    @OPENAL_LIBS@ @LIBPNG_LIBS@ @IO_LIBS@
+    @OPENAL_LIBS@ @LIBPNG_LIBS@ @IO_LIBS@ @GLEW_LIBS@ @DEVIL_LIBS@
 
 INCLUDES = @SDL_CFLAGS@ @SIGC_CFLAGS@ @OPENGL_CFLAGS@ @OPENAL_CFLAGS@
