@@ -4,14 +4,18 @@
 #include <tnl.h>
 #include <interfaces/IPositionProvider.h>
 
+struct IGame;
+struct IConfig;
+
 class Environment : public Object {
     Vector fog_color;
     float clip_min, clip_max;
     float ground_fog_min, ground_fog_max, ground_fog_range;
     Vector p;
+    Ptr<IConfig> cfg;
     
 public:
-    Environment();
+    Environment(Ptr<IGame> game);
     
     void update(Ptr<IPositionProvider>);
 

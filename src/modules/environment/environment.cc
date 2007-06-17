@@ -1,3 +1,5 @@
+#include <interfaces/IConfig.h>
+#include <interfaces/IGame.h>
 #include "environment.h"
 
 // #define FOG_COLOR_RED   240.0f
@@ -30,23 +32,26 @@
 #define GROUND_FOG_MAX    400.0f
 #define GROUND_FOG_RANGE 3500.0f
 
-Environment::Environment() :
-    fog_color(
-        Vector(FOG_COLOR_RED, FOG_COLOR_GREEN, FOG_COLOR_BLUE) / 256),
-    clip_min(CLIP_MIN_RANGE),
-    clip_max(CLIP_MAX_RANGE),
-    ground_fog_min(GROUND_FOG_MIN),
-    ground_fog_max(GROUND_FOG_MAX),
-    ground_fog_range(GROUND_FOG_RANGE)
+Environment::Environment(Ptr<IGame> game)
 {
-    ls_message("Fog color: %f %f %f\n",
-            FOG_COLOR_RED,
-            FOG_COLOR_GREEN,
-            FOG_COLOR_BLUE);
+    cfg = game->getConfig();
+    update(0);
 }
 
 void Environment::update(Ptr<IPositionProvider> pp) {
-    p = pp->getLocation();
+    clip_min = cfg->queryFloat("Environment_clip_min", CLIP_MIN_RANGE);
+    clip_max = cfg->queryFloat("Environment_clip_max", CLIP_MAX_RANGE);
+
+    fog_color = Vector(
+        cfg->queryFloat("Environment_fog_r", FOG_COLOR_RED/256),
+        cfg->queryFloat("Environment_fog_g", FOG_COLOR_GREEN/256),
+        cfg->queryFloat("Environment_fog_b", FOG_COLOR_BLUE/256));
+        
+    ground_fog_min = cfg->queryFloat("Environment_ground_fog_min", GROUND_FOG_MIN);
+    ground_fog_max = cfg->queryFloat("Environment_ground_fog_max", GROUND_FOG_MIN);
+    ground_fog_range = cfg->queryFloat("Environment_ground_fog_range", GROUND_FOG_RANGE);
+
+    if (pp) p = pp->getLocation();
 }
 
 float Environment::getGroundFogStrengthAt(const Vector & v) {
