@@ -23,6 +23,7 @@ DumbMissile::DumbMissile(Ptr<IGame> thegame, Ptr<IActor>, Ptr<IActor> source)
     
     blast_begin = BLAST_BEGIN;
     blast_end = BLAST_END;
+    min_explosion_age = 0.0f;
     
     setModel(thegame->getModelMan()->query(
     	thegame->getConfig()->query("DumbMissile_model")));
