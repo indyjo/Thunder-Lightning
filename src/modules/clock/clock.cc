@@ -27,7 +27,10 @@ void Clock::update() {
         initialized = true;
     }
     real_frame_delta = (double)(new_ticks - ticks) * TICK_SECS;
-    if (!pause_mode) {
+    if (pause_mode) {
+        frame_delta = 0;
+        step_delta = real_step_delta = 0;
+    } else {
         frame_delta = time_factor * real_frame_delta;
         time_left += frame_delta;
     }
