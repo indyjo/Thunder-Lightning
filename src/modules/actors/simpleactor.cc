@@ -82,16 +82,11 @@ void SimpleActor::mapArmamentEvents() {
     Ptr<EventSheet> sheet = getEventSheet();
     sheet->map("+primary", SigC::bind(SigC::slot(*armament, &Armament::trigger), 0));
     sheet->map("-primary", SigC::bind(SigC::slot(*armament, &Armament::release), 0));
-    sheet->map("+secondary", SigC::bind(SigC::slot(*armament, &Armament::trigger), 1));
-    sheet->map("-secondary", SigC::bind(SigC::slot(*armament, &Armament::release), 1));
-    sheet->map("+tertiary", SigC::bind(SigC::slot(*armament, &Armament::trigger), 2));
-    sheet->map("-tertiary", SigC::bind(SigC::slot(*armament, &Armament::release), 2));
 }
 
 void SimpleActor::mapTargeterEvents() {
     Ptr<EventSheet> sheet = getEventSheet();
     sheet->map("cycle-primary", SigC::bind(SigC::slot(*armament, &Armament::nextWeapon), 0));
-    sheet->map("cycle-secondary", SigC::bind(SigC::slot(*armament, &Armament::nextWeapon), 1));
     sheet->map("next-target", SigC::slot(*targeter, &Targeter::selectNextTarget));
     sheet->map("previous-target", SigC::slot(*targeter, &Targeter::selectPreviousTarget));
     sheet->map("next-hostile-target", SigC::slot(*targeter, &Targeter::selectNextHostileTarget));

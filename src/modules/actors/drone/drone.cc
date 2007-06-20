@@ -135,7 +135,7 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
         new SkeletonProvider(skeleton, "Launcher_0", "origin", "z"));
     smart_missile_launcher->addBarrel(
         new SkeletonProvider(skeleton, "Launcher_1", "origin", "z"));
-    armament->addWeapon(1,smart_missile_launcher);
+    armament->addWeapon(0,smart_missile_launcher);
 
     Ptr<ProjectileLauncher> dumb_missile_launcher = new ProjectileLauncher(
         thegame, targeter, ProjectileFactories::factories.dumb_missile_factory,
@@ -144,7 +144,7 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
         new SkeletonProvider(skeleton, "Launcher_0", "origin", "z"));
     dumb_missile_launcher->addBarrel(
         new SkeletonProvider(skeleton, "Launcher_1", "origin", "z"));
-    armament->addWeapon(1,dumb_missile_launcher);
+    armament->addWeapon(0,dumb_missile_launcher);
 
     // Prepare collidable
     setBoundingGeometry(
@@ -521,7 +521,6 @@ Ptr<IView> Drone::getView(int n) {
 	gunsight1->addTargeting(this, targeter);
 	gunsight1->addDirectionOfFlight(this);
     gunsight1->addArmamentToScreen(thegame, armament, 0);
-    gunsight1->addArmamentToScreenRight(thegame, armament, 1);
     gunsight1->addMissileWarning(thegame, this);
     gunsight1->addInfoMessage(thegame);
 
@@ -530,7 +529,6 @@ Ptr<IView> Drone::getView(int n) {
 	gunsight2->addTargeting(this, targeter);
 	gunsight2->addDirectionOfFlight(this);
     gunsight2->addArmamentToScreen(thegame, armament, 0);
-    gunsight2->addArmamentToScreenRight(thegame, armament, 1);
     gunsight2->addMissileWarning(thegame, this);
     gunsight2->addInfoMessage(thegame);
 
