@@ -79,11 +79,11 @@ Ptr<IView> Observer::getView(int n) {
 
 void Observer::mapEvents() {
     Ptr<EventSheet> sheet = getEventSheet();
-    sheet->map("+primary", SigC::bind(SigC::slot(*this, &Observer::setDollying), true));
-    sheet->map("-primary", SigC::bind(SigC::slot(*this, &Observer::setDollying), false));
-    sheet->map("+secondary", SigC::bind(SigC::slot(*this, &Observer::setPanning), true));
-    sheet->map("-secondary", SigC::bind(SigC::slot(*this, &Observer::setPanning), false));
-    sheet->map("+tertiary", SigC::slot(*this, &Observer::stop));
+    sheet->map("+observer-dolly", SigC::bind(SigC::slot(*this, &Observer::setDollying), true));
+    sheet->map("-observer-dolly", SigC::bind(SigC::slot(*this, &Observer::setDollying), false));
+    sheet->map("+observer-pan", SigC::bind(SigC::slot(*this, &Observer::setPanning), true));
+    sheet->map("-observer-pan", SigC::bind(SigC::slot(*this, &Observer::setPanning), false));
+    sheet->map("observer-stop", SigC::slot(*this, &Observer::stop));
 }
 
 void Observer::setDollying(bool b) {
