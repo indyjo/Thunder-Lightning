@@ -127,6 +127,18 @@ public:
         glUniform1fARB(glGetUniformLocationARB(program, "Time"), age);
         
         glUniform3fARB(glGetUniformLocationARB(program, "CamPos"), campos[0], campos[1], campos[2]);
+        
+        Matrix3 cam_orient = thegame->getCamera()->getOrient();
+        Vector up,right,front;
+        
+        thegame->getCamera()->getOrientation(&up,&right,&front);
+        right[1] = -right[1];
+        front[1] = -front[1];
+        up = front%right;
+        
+        Matrix3 mir_orient = MatrixFromColumns(right, up, front);
+        Matrix3 cam2mir = mir_orient.transpose() * cam_orient;
+        glUniformMatrix3fvARB(glGetUniformLocationARB(program, "CamToMir"), 1, GL_FALSE, cam2mir.glMatrix());
 
         glBegin(GL_QUADS);
         glNormal3f(0,1.0f,0);
