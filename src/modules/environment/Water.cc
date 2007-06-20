@@ -8,6 +8,7 @@
 
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
+#include <modules/clock/clock.h>
 #include <modules/jogi/JRenderer.h>
 
 #include <tnl.h>
@@ -25,9 +26,11 @@ class WaterImpl : public Object
     GLhandleARB vertex_shader, fragment_shader, program;
     // number of tiles to draw in each dimension
     int tiles_num;
+    double age;
 
 public:
     WaterImpl(Ptr<IGame> game) {
+        age = 0;
         thegame = game;
         r = game->getRenderer();
         cfg = game->getConfig();
@@ -94,6 +97,8 @@ public:
     void draw() {
         float clip_far = r->getClipFar();
         
+        age += thegame->getClock()->getFrameDelta();
+        
         Vector campos = thegame->getCamera()->getLocation();
         
 
@@ -119,6 +124,7 @@ public:
         glUniform1fARB(glGetUniformLocationARB(program, "Reflectivity"), 0.943f);
         glUniform1iARB(glGetUniformLocationARB(program, "MirrorMap"), 0);
         glUniform1iARB(glGetUniformLocationARB(program, "BumpMap"), 1);
+        glUniform1fARB(glGetUniformLocationARB(program, "Time"), age);
         
         glUniform3fARB(glGetUniformLocationARB(program, "CamPos"), campos[0], campos[1], campos[2]);
 
