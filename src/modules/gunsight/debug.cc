@@ -18,12 +18,12 @@ void FlexibleGunsight::addDebugInfo(
 }
 
 FPSModule::FPSModule(Ptr<IGame> game)
-:	GunsightModule("fps",50,12),game(game), fps(15)
+:	GunsightModule("fps",100,20),game(game), fps(15)
 {
 }
 
 void FPSModule::draw(FlexibleGunsight & gunsight) {
-    if (!game->debugMode()) return;
+    //if (!game->debugMode()) return;
 	UI::Surface surface = gunsight.getSurface();
 	Ptr<IFontMan> fontman = game->getFontMan();
 	Ptr<Clock> clock = game->getClock();
@@ -41,7 +41,10 @@ void FPSModule::draw(FlexibleGunsight & gunsight) {
 	fontman->setColor(Vector(0,1,0));
 	
 	char buf[16];
-	fps = 0.9 * fps + 0.1 / clock->getRealFrameDelta();
+	float delta_t = clock->getRealFrameDelta();
+	if (delta_t > 0) {
+	    fps = 0.9 * fps + 0.1 / delta_t;
+	}
 	snprintf(buf,16,"%3.1f fps", fps);
 	fontman->print(buf);
 }
