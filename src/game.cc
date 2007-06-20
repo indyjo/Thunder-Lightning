@@ -721,60 +721,6 @@ void Game::doFrame()
     FINISH_PROFILE_STEP("updateIoScripting()")
  }
 
-void Game::drawDebugTriangle()
-{
-    jvertex_col v1={{ 0.0f,INITIAL_ALTITUDE+0.4,15.0f},{255.0f,255.0f,255.0f}};
-    jvertex_col v2={{ 0.4f,INITIAL_ALTITUDE-0.3,15.0f},{128.0f,128.0f,128.0f}};
-    jvertex_col v3={{-0.4f,INITIAL_ALTITUDE-0.3,15.0f},{0.0f,0.0f,0.0f}};
-
-    renderer->flush();
-
-    renderer->setCullMode(JR_CULLMODE_CULL_NEGATIVE);
-    renderer->enableAlphaBlending();
-    renderer->setVertexMode(JR_VERTEXMODE_GOURAUD);
-    renderer->begin(JR_DRAWMODE_TRIANGLES);
-    renderer->setAlpha(255.0);
-    renderer->addVertex(&v1);
-    renderer->setAlpha(0.0);
-    renderer->addVertex(&v2);
-    renderer->setAlpha(128.0);
-    renderer->addVertex(&v3);
-    renderer->end();
-    renderer->flush();
-    renderer->disableAlphaBlending();
-}
-
-#define PI 3.14159265358979323846
-#define REL_SIZE 100.0
-void Game::drawDebugTriangleAt(const Vector & p)
-{
-    //ls_message("Drawing debug triangle at ");
-    //Vector(p).dump();
-
-    jvertex_col v1={{ 0.0f * REL_SIZE,0.4f * REL_SIZE,0.0f},{255.0f,255.0f,255.0f}};
-    jvertex_col v2={{ 0.4f * REL_SIZE,-0.3f * REL_SIZE,0.0f},{128.0f,128.0f,128.0f}};
-    jvertex_col v3={{-0.4f * REL_SIZE,-0.3f * REL_SIZE,0.0f},{0.0f,0.0f,0.0f}};
-
-    renderer->flush();
-    v1.p.x += p[0]; v1.p.y += p[1]; v1.p.z += p[2];
-    v2.p.x += p[0]; v2.p.y += p[1]; v2.p.z += p[2];
-    v3.p.x += p[0]; v3.p.y += p[1]; v3.p.z += p[2];
-
-    renderer->setCullMode(JR_CULLMODE_CULL_NEGATIVE);
-    renderer->enableAlphaBlending();
-    renderer->setVertexMode(JR_VERTEXMODE_GOURAUD);
-    renderer->begin(JR_DRAWMODE_TRIANGLES);
-    renderer->setAlpha(255.0);
-    renderer->addVertex(&v1);
-    renderer->setAlpha(0.0);
-    renderer->addVertex(&v2);
-    renderer->setAlpha(128.0);
-    renderer->addVertex(&v3);
-    renderer->end();
-    renderer->flush();
-    renderer->disableAlphaBlending();
-}
-
 void Game::clearScreen() {
     SDL_GL_SwapBuffers();
     renderer->clear(true, true);

@@ -58,9 +58,6 @@ struct IGame : virtual public Object, virtual public IActorStage
     /// Obsolete time delta function. Replaced by Clock.
     virtual double  getTimeDelta()=0;
     
-    /// More or less obsolete debugging function
-    virtual void drawDebugTriangleAt(const Vector & p) = 0;
-    
     /// true if program-wide debug mode is enabled
     virtual bool debugMode()=0;
     

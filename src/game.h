@@ -43,7 +43,6 @@ public:
     virtual void infoMessage(const char * msg, const Vector color);
     
     virtual double  getTimeDelta();
-    virtual void drawDebugTriangleAt(const Vector & p);
     virtual bool debugMode();
 
     
@@ -71,8 +70,6 @@ private:
     void updateIoScripting();
     
     void doFrame();
-
-    void drawDebugTriangle();
 
     void endGame();
 
