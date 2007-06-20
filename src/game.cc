@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <cstdio>
 #include <cstdlib>
 #include <list>
@@ -32,7 +33,10 @@
 #include <modules/actors/RigidActor.h>
 #include <modules/actors/Observer.h>
 #include <modules/config/config.h>
+#include <sound.h>
+#include <Faction.h>
 
+#include "game.h"
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
     #define READ_PATH_FROM_ARGV0
@@ -49,11 +53,6 @@
 #endif
 
 
-#include <sound.h>
-#include <Faction.h>
-#include "game.h"
-
-#include <stdexcept>
 
 #define RAND ((float) rand() / (float) RAND_MAX * 2.0 - 1.0)
 
@@ -210,7 +209,7 @@ Game::Game(int argc, const char **argv)
         SDL_GL_GetAttribute( SDL_GL_DEPTH_SIZE, &d );
         SDL_GL_GetAttribute( SDL_GL_DOUBLEBUFFER, &db );
         ls_message(" got r/g/b/d %d/%d/%d/%d %s double buffering. ",
-                r,g,b,d,db?"width":"without");
+                r,g,b,d,db?"with":"without");
         ls_message("Initializing OpenGL renderer.\n");
         renderer = new JOpenGLRenderer(xres, yres, config->queryFloat("Camera_aspect",1.33333));
         ls_message("Done initializing OpenGL renderer.\n");
@@ -655,10 +654,6 @@ void Game::setupMirroredRender() {
     camera->getCamera(&jcamera);
     renderer->setCamera(&jcamera.cam);
     environment->update(camera);
-    
-    Matrix3 M_inv = camera->getOrientInv();
-    Vector n = M_inv * Vector(0,-1,0);
-    float c = -n * camera->getLocation();
 }
 
 void Game::updateIoScripting() {
