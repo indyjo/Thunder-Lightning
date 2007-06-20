@@ -116,13 +116,9 @@ private:
     Ptr<SoundMan> soundman;
     Ptr<IModelMan> modelman;
     Ptr<Collide::CollisionManager> collisionman;
-#if ENABLE_LOD_TERRAIN
     Ptr<ILoDQuadManager> quadman;
-#endif
-#if ENABLE_SKYBOX
     Ptr<ISkyBox> skybox;
     Ptr<IDrawable> gunsight;
-#endif
     Ptr<Environment> environment;
     Ptr<Water> water;
 	Ptr<IoScriptingManager> io_scripting_manager;

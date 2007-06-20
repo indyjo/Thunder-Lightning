@@ -272,7 +272,7 @@ Game::Game(int argc, const char **argv)
         ls_message("done\n");
         stat.endJob();
     }
-    
+
     console = new UI::Console(this, getScreenSurface());
     addMappings(this, io_scripting_manager->getMainState());
     {
@@ -330,15 +330,9 @@ void Game::run()
     soundman = 0;
     modelman = 0;
     collisionman = 0;
-#if ENABLE_LOD_TERRAIN
     quadman = 0;
-#endif
-#if ENABLE_SKYBOX
     skybox = 0;
-#endif
-#if ENABLE_GUNSIGHT
     gunsight = 0;
-#endif
     environment = 0;
     water = 0;
     io_scripting_manager = 0;
@@ -399,9 +393,7 @@ Ptr<Clock> Game::getClock()
 
 Ptr<ITerrain> Game::getTerrain()
 {
-#if ENABLE_LOD_TERRAIN
     return quadman;
-#endif
 }
 
 Ptr<IDrawable> Game::getGunsight()
@@ -412,12 +404,6 @@ Ptr<IDrawable> Game::getGunsight()
 void Game::setGunsight(Ptr<IDrawable> gunsight) {
     this->gunsight=gunsight;
 }
-
-#if ENABLE_SKY
-Ptr<ISky> Game::getSky() {
-    return sky;
-}
-#endif
 
 Ptr<IFontMan> Game::getFontMan() {
     return fontman;
@@ -494,30 +480,16 @@ bool Game::debugMode() {
 void Game::initModules(Status & stat)
 {
     ls_message("initModules\n");
-    int steps = 1;
-#define STEPS 2
-#if ENABLE_LOD_TERRAIN
-    steps++;
-#endif
-#if ENABLE_SKYBOX
-    steps++;
-#endif
-#if ENABLE_MAP
-    steps++;
-#endif
+    stat.beginJob("Initialize modules", 3);
 
-    stat.beginJob("Initialize modules", steps);
-
-    environment = new Environment(this);
+    stat.beginJob("Initialize Water.\n", 1);
     water = new Water(this);
+    stat.endJob();
     
-    stat.stepFinished();
-#if ENABLE_LOD_TERRAIN
     stat.beginJob("Initialize LOD terrain",1);
     quadman = new LoDQuadManager(this, stat);
     stat.endJob();
-#endif
-#if ENABLE_SKYBOX
+
     ls_message("SkyBox init\n");
     skybox = new SkyBox(this);
     ls_message("end SkyBox init\n");
