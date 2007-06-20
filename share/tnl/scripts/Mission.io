@@ -103,7 +103,7 @@ MissionManager := Object clone do(
   
   missionEnded := method(mission, status,
     ("Mission ended: " .. status) say
-    if (introMission == mission,
+    if (introMission == mission and status==Mission SUCCESS,
       defaultMission me := introMission me
       defaultMission start
     )

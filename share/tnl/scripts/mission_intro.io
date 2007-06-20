@@ -191,7 +191,7 @@ addEnemy := method(
 startup := method(
     Game on("toggle-introduction",
         MissionManager introMission intro interrupt    
-        MissionManager introMission abort
+        MissionManager introMission succeed
         thisHandler remove
     )
 
