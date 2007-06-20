@@ -195,7 +195,7 @@ Drone do(
             #"accel: #{me state accel at(2)} error: #{error} int: #{integral}" interpolate say
             
             me controls setFloat("throttle",
-                (0.15*error + 0.1*integral) clip(0,1))
+                (0.05*error + 0.05*integral) clip(0,1))
         )
     )
     
@@ -349,10 +349,15 @@ Drone do(
         )
     )
     
+    safety_height := vector(0,5,0)
+    descent_angle := 10*Number constants pi / 180
+    descent_speed := 150 / 3.6
+    final_length := 1000
+    
     returnToFinal := coro(me, rwy, dangle, final,
         height := final * dangle sin
-        a := rwy runwayBegin + vector(0,10,0)
-        b := rwy runwayEnd + vector(0,10,0)
+        a := rwy runwayBegin + Drone safety_height
+        b := rwy runwayEnd + Drone safety_height
         d := (b-a) atSet(1,0) norm
         up := vector(0,1,0)
         right := up % d
@@ -372,12 +377,14 @@ Drone do(
     
     finalApproach := coro(me, rwy, dangle,
         "Beginning final approach" say
-        a := rwy runwayBegin + vector(0,2,0)
-        b := rwy runwayEnd + vector(0,2,0)
+        a := rwy runwayBegin + Drone safety_height
+        b := rwy runwayEnd + Drone safety_height
         p0 := a + (a-b) atSet(1,0) norm * dangle cos + vector(0,dangle sin, 0)
         #"p0: #{p0} a:#{a}" interpolate println
         
-        fs :=  Drone followSegment clone start(me, p0,a, 130/3.6)
+        dspeed := Drone descent_speed
+        
+        fs :=  Drone followSegment clone start(me, p0,a, dspeed)
         manage(fs)
         #fs debug:= true
         
@@ -386,14 +393,14 @@ Drone do(
         )
         
         # safety checks
-        if (me state v len between(123/3.6,133/3.6) not,
+        if (me state v len between(dspeed - 8/3.6,dspeed + 4/3.6) not,
             "Your speed doesn't look good" say
             return
         )
         d := p0 - a
         p_proj := a + d*(d dot(me state p - a) )
         if ((p_proj - me state p) len > 2.5,
-            "You are to far away from you glide slope (#{(p_proj - me state p) len}m)" interpolate say
+            "You are to far away from glide slope" say
             return
         )
         
@@ -424,8 +431,8 @@ Drone do(
         height := rwy requestHoldingLevel(me)
         "Holding at level #{height}" interpolate println
         
-        a := rwy runwayBegin + vector(0,10,0)
-        b := rwy runwayEnd + vector(0,10,0)
+        a := rwy runwayBegin + Drone safety_height
+        b := rwy runwayEnd + Drone safety_height
         d := (b-a) atSet(1,0) norm
         up := vector(0,1,0)
         left := (up % d) * -1
@@ -456,11 +463,11 @@ Drone do(
     
     performLanding := coro(me, rwy,
         # descent angle used to calculate begin of final
-        dangle := 15*Number constants pi / 180
-        final := 1600
+        dangle := Drone descent_angle
+        final := Drone final_length
         height := final * dangle sin
-        a := rwy runwayBegin + vector(0,10,0)
-        b := rwy runwayEnd + vector(0,10,0)
+        a := rwy runwayBegin + Drone safety_height
+        b := rwy runwayEnd + Drone safety_height
         d := (b-a) atSet(1,0) norm
         up := vector(0,1,0)
         right := up % d
@@ -524,17 +531,18 @@ Drone do(
 
   
     on("start_ai",
-        self state := flightState clone start(self)
-        yield
+        # ai depends on flightState. Io will run coros in LIFO order, so it seems
+        # to be ok this way.
         self _ai := ai clone start(self)
+        self state := flightState clone start(self)
         
-        ("AI of Drone ".. self uniqueHexId .. " started") say
+        ("AI of Drone ".. self uniqueHexId .. " started") println
     )
     on("stop_ai",
         _ai interrupt
         state interrupt
         
-        ("AI of Drone ".. self uniqueHexId .. " interrupted") say
+        ("AI of Drone ".. self uniqueHexId .. " interrupted") println
     )
 )
 
