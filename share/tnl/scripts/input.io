@@ -50,14 +50,9 @@ EventRemapper do(
 
   mapKey(SDLK_n, press, "next-view-subject")
   mapKey(SDLK_v, press, "external-view")
-  mapKey(SDLK_BACKSPACE, press, "cycle-primary")
-  mapKey(SDLK_RETURN,  press, "cycle-secondary")
+  mapKey(SDLK_RETURN,  press, "cycle-primary")
   mapKey(SDLK_LCTRL, press,  "+primary")
   mapKey(SDLK_LCTRL, release, "-primary")
-  mapKey(SDLK_SPACE, press,  "+secondary")
-  mapKey(SDLK_SPACE, release, "-secondary")
-  mapKey(SDLK_RCTRL, press,  "+tertiary")
-  mapKey(SDLK_RCTRL, release, "-tertiary")
   
   mapKey(SDLK_F12, press, "debug")
 
@@ -81,11 +76,14 @@ EventRemapper do(
   if (Config Controls_enable_mouse != "false",
     mapMouseButton(1, press,  "+primary")
     mapMouseButton(1, release, "-primary")
-    mapMouseButton(3, press,  "gunsight-target")
-    mapMouseButton(2, press,  "+brake")
-    mapMouseButton(2, release, "-brake")
-    mapMouseButton(4, press,  "cycle-secondary")
-    mapMouseButton(5, press,  "cycle-secondary")
+    mapMouseButton(2, press,  "gunsight-target")
+    mapMouseButton(3, press,  "cycle-primary")
+    
+    mapMouseButton(1, press,   "+observer-dolly")
+    mapMouseButton(1, release, "-observer-dolly")
+    mapMouseButton(3, press,   "+observer-pan")
+    mapMouseButton(3, release, "-observer-pan")
+    mapMouseButton(2, press,   "observer-stop")
     
     mapRelativeMouseAxes("mouse_rel_x", "mouse_rel_y")
     mapAbsoluteMouseAxes("mouse_abs_x", "mouse_abs_y")
