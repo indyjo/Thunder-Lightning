@@ -81,10 +81,9 @@ EventRemapper do(
   if (Config Controls_enable_mouse != "false",
     mapMouseButton(1, press,  "+primary")
     mapMouseButton(1, release, "-primary")
-    mapMouseButton(3, press,  "+secondary")
-    mapMouseButton(3, release, "-secondary")
-    mapMouseButton(2, press,  "+tertiary")
-    mapMouseButton(2, release, "-tertiary")
+    mapMouseButton(3, press,  "gunsight-target")
+    mapMouseButton(2, press,  "+brake")
+    mapMouseButton(2, release, "-brake")
     mapMouseButton(4, press,  "cycle-secondary")
     mapMouseButton(5, press,  "cycle-secondary")
     
