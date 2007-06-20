@@ -13,7 +13,6 @@
 #include <modules/clock/clock.h>
 #include <modules/LoDTerrain/LoDTerrain.h>
 #include <modules/skybox/skybox.h>
-#include <modules/map/map.h>
 #include <modules/actors/drone/drone.h>
 #include <modules/actors/projectiles/bullet.h>
 #include <modules/actors/projectiles/dumbmissile.h>
@@ -334,9 +333,6 @@ void Game::run()
 #if ENABLE_SKYBOX
     skybox = 0;
 #endif
-#if ENABLE_MAP
-    map = 0;
-#endif
 #if ENABLE_GUNSIGHT
     gunsight = 0;
 #endif
@@ -523,13 +519,6 @@ void Game::initModules(Status & stat)
     skybox = new SkyBox(this);
     ls_message("end SkyBox init\n");
     stat.stepFinished();
-#endif
-#if ENABLE_MAP
-    ls_message("map init\n");
-    map = new Map(this);
-    ls_message("end map init\n");
-    stat.stepFinished();
-#endif
 
     stat.endJob();
     ls_message("end LoDQuad::init\n");
@@ -721,7 +710,6 @@ void Game::doFrame()
     renderer->setZBufferFunc(JR_ZBFUNC_LEQUAL);
     drawActors();
     if (gunsight) gunsight->draw();
-    map->draw();
     console->draw(renderer);
     clearScreen();
     FINISH_PROFILE_STEP("main render")

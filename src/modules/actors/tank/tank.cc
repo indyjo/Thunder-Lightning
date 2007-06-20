@@ -9,7 +9,6 @@
 //#include "ai.h"
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
-#include <interfaces/IMap.h>
 #include <interfaces/IModelMan.h>
 #include <interfaces/ITerrain.h>
 #include <sound.h>

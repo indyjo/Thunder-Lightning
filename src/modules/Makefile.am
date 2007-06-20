@@ -12,7 +12,6 @@ SUBDIRS = \
 	fontman         \
 	gunsight	\
 	jogi            \
-	map		\
 	math            \
 	model           \
 	physics         \

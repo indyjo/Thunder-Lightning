@@ -8,7 +8,6 @@
 class Status;
 struct ILoDQuadManager;
 struct ISkyBox;
-struct IMap;
 class IoScriptingManager;
 namespace UI {
 	class Console;
@@ -125,11 +124,6 @@ private:
 #endif
 #if ENABLE_SKYBOX
     Ptr<ISkyBox> skybox;
-#endif
-#if ENABLE_MAP
-    Ptr<IMap> map;
-#endif
-#if ENABLE_GUNSIGHT
     Ptr<IDrawable> gunsight;
 #endif
     Ptr<Environment> environment;

@@ -190,7 +190,6 @@ src/modules/flight/Makefile
 src/modules/fontman/Makefile
 src/modules/gunsight/Makefile
 src/modules/jogi/Makefile
-src/modules/map/Makefile
 src/modules/math/Makefile
 src/modules/model/Makefile
 src/modules/physics/Makefile

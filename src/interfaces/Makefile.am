@@ -11,7 +11,6 @@ noinst_HEADERS=\
 	IFontMetrics.h			\
 	IGame.h				\
 	ILoDQuadManager.h	\
-	IMap.h				\
 	IModelMan.h			\
 	IMovementProvider.h	\
 	IMovementReceiver.h	\
