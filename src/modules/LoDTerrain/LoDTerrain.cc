@@ -415,8 +415,19 @@ void LoDQuad::setupRecursive (LoDTriangle *tri, bool partially_obscured)
             // Test wether the triangle's front side is visible
             //if (!evaluator.onFrontSide(tri))
             //    tri->flags |= TFLAG_DONT_DRAW;
-            tri->flags |= TFLAG_ENABLED;
+            
+            // Test whether at least one corner is visible above the ocean.
+            // If yes, enable. Else, don't draw.
+            if (vy[tri->vertex[0]] >= 0 ||
+                vy[tri->vertex[1]] >= 0 ||
+                vy[tri->vertex[2]] >= 0)
+            {
+                tri->flags |= TFLAG_ENABLED;
+            } else {
+                tri->flags |= TFLAG_DONT_DRAW;
+            }
         }
+        
     }
 }
 
