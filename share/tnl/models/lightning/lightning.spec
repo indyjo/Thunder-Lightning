@@ -25,7 +25,7 @@ pointof Lightning z           0      0     1
 pointof Lightning TailHook_p0 0   -0.723  -2.481
 pointof Lightning TailHook_p1 0   -1.716  -5.209
 
-pointof Lightning NoseWheel     0 -1.7  4.32
-pointof Lightning LeftWheel    -2 -1.4 -2.63
-pointof Lightning RightWheel    2 -1.4 -2.63
+pointof Lightning NoseWheel     0 -1.9  4.32
+pointof Lightning LeftWheel    -2 -1.8 -2.63
+pointof Lightning RightWheel    2 -1.8 -2.63
 
