@@ -82,6 +82,11 @@ void CarEngine::update() {
             x[0],
             terrain->getHeightAt(x[0], x[1]),
             x[1]);
+        // Cheap-ass buoyancy simulation, i.e. a tank/car/whatever will stay
+        // over water with 1m penetration
+        if (rotated_tripod[i][1] < -1) {
+            rotated_tripod[i][1] = -1;
+        }
     }
     up = (rotated_tripod[1] - rotated_tripod[0]) % (rotated_tripod[2] - rotated_tripod[0]);
     up.normalize();
@@ -90,5 +95,5 @@ void CarEngine::update() {
     front = right % up;
     front.normalize();
 
-    p[1] = terrain->getHeightAt(p[0], p[2]);
+    p[1] = std::max(-1.0f, terrain->getHeightAt(p[0], p[2]));
 }
