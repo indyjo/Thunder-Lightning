@@ -28,6 +28,7 @@ Config do(
   fonts_dir   := data_dir .. "/fonts"
   sounds_dir  := data_dir .. "/sounds"
   scripts_dir := data_dir .. "/scripts"
+  shaders_dir := data_dir .. "/shaders"
   
   
   // Try to restore graphics and keyboard after a program crash
@@ -58,9 +59,22 @@ Config do(
   
   Game_loading_screen := texture_dir .. "/loading-screen.spr"
   
+  // Mirror created by ocean surface
+  Game_mirror_texture_size := "512"
+  
   // Controls config
   Controls_enable_joystick := "true"
   Controls_enable_mouse    := "true"
+
+  // Environment config
+  Environment_clip_min      := "0.2"
+  Environment_clip_max      := "20000"
+  Environment_fog_r         := (202/255) asString
+  Environment_fog_g         := (164/255) asString
+  Environment_fog_b         := (145/255) asString
+  Environment_ground_fog_min    := "0.0"
+  Environment_ground_fog_max    := "400.0"
+  Environment_ground_fog_range    := "3500.0"
 
   // Sound config
   SoundMan_sound_dir        := sounds_dir
@@ -124,20 +138,24 @@ Config do(
   Drone_cannon_sound               := "cannon-shoot-1.wav"
   Drone_engine_sound               := "aircraft-engine-1.wav"
   Drone_engine_gain                := "0.1"
+  Drone_engine_gain_lowest         := "0.02"
+  Drone_engine_gain_highest        := "0.1"
+  Drone_engine_pitch_lowest        := "0.5"
+  Drone_engine_pitch_highest       := "2.0"
   Drone_wheel_model_file           := model_dir .. "/misc/tire.obj"
   
-  Drone_NoseWheel_range            := "1"
-  Drone_NoseWheel_force            := "50000"
+  Drone_NoseWheel_range            := "1.2"
+  Drone_NoseWheel_force            := "100000"
   Drone_NoseWheel_damping          := "15000"
   Drone_NoseWheel_C_tan_min        := "50"
-  Drone_NoseWheel_C_tan_max        := "650"
+  Drone_NoseWheel_C_tan_max        := "50"
   Drone_NoseWheel_C_norm           := "10000"
 
-  Drone_LeftWheel_range            := "1"
+  Drone_LeftWheel_range            := "0.8"
   Drone_LeftWheel_force            := "50000"
   Drone_LeftWheel_damping          := "15000"
   Drone_LeftWheel_C_tan_min        := "50"
-  Drone_LeftWheel_C_tan_max        := "650"
+  Drone_LeftWheel_C_tan_max        := "1000"
   Drone_LeftWheel_C_norm           := "1000"
 
   Drone_RightWheel_range           := Drone_LeftWheel_range
@@ -184,5 +202,12 @@ Config do(
   Carrier_model_bounds             := Carrier_model_path .. "/carrier.bounds"
   Carrier_model_hull               := Carrier_model_path .. "/carrier-hull-reduced.obj"
   
+  // Water rendering configuration
+  Water_vertex_shader              := shaders_dir .. "/ocean.vert"
+  Water_fragment_shader            := shaders_dir .. "/ocean.frag"
+  Water_tile_size                  := "500.0"
+  Water_bumpmap                    := texture_dir .. "/water-dudvbump.png"
+  Water_tile_uvspan                := "1.0"
+  Water_tile_num                   := "51"
 ) // Config do
 
