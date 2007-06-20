@@ -57,6 +57,9 @@
 
 #define RAND ((float) rand() / (float) RAND_MAX * 2.0 - 1.0)
 
+#define ENABLE_PROFILE
+#include <profile.h>
+
 using namespace std;
 
 Game * Game::the_game = 0;
@@ -675,10 +678,14 @@ void Game::updateIoScripting() {
 
 void Game::doFrame()
 {
+    BEGIN_PROFILE("mainloop.txt")
     doEvents();
+    FINISH_PROFILE_STEP("doEvents()")
     updateSimulation();
+    FINISH_PROFILE_STEP("updateSimulation()")
     updateView();
     updateSound();
+    FINISH_PROFILE_STEP("updateView() and updateSound()")
 
     setupRenderer();
     Ptr<JDirectionalLight> sun = renderer->createDirectionalLight();
@@ -703,6 +710,9 @@ void Game::doFrame()
         
         renderer->popClipPlanes(1);
     }
+    
+    FINISH_PROFILE_STEP("mirror render-to-texture")
+    
     // perform main render pass
     setupMainRender();
     
@@ -719,8 +729,10 @@ void Game::doFrame()
     map->draw();
     console->draw(renderer);
     clearScreen();
+    FINISH_PROFILE_STEP("main render")
 
     updateIoScripting();
+    FINISH_PROFILE_STEP("updateIoScripting()")
  }
 
 void Game::drawDebugTriangle()
