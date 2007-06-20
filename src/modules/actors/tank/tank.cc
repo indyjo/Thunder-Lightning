@@ -122,11 +122,6 @@ Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
     setArmament(new Armament(this, this));
     
     
-    Ptr<Cannon> cannon=new Cannon(thegame);
-    cannon->addBarrel(new SkeletonProvider(skeleton, "CannonTip", "CannonTip", "CannonTipFront"));
-    cannon->factor = thegame->getConfig()->queryFloat("Tank_cannon_factor", 10);
-    armament->addWeapon(0,cannon);
-    
     Ptr<Cannon> machinegun = new Cannon(thegame, "Vulcan", 1500, 4.0/60, false);
     machinegun->factor = thegame->getConfig()->queryFloat("Tank_vulcan_factor", 1);
     machinegun->addBarrel(new SkeletonProvider(skeleton, "MGTopRight", "CannonTip", "CannonTipFront"));
@@ -135,20 +130,11 @@ Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
     machinegun->addBarrel(new SkeletonProvider(skeleton, "MGBottomRight", "CannonTip", "CannonTipFront"));
     armament->addWeapon(0, machinegun);
 
-    Ptr<ProjectileLauncher> smart_missile_launcher = new ProjectileLauncher(
-        thegame, targeter, ProjectileFactories::factories.smart_missile_2_factory,
-        "Sidewinder", 8, 5, true, true);
-    smart_missile_launcher->launch_speed = 80;
-    smart_missile_launcher->addBarrel(
-        new SkeletonProvider(skeleton, "Launcher_0", "Launcher_0", "Launcher_0_front"));
-    smart_missile_launcher->addBarrel(
-        new SkeletonProvider(skeleton, "Launcher_1", "Launcher_0", "Launcher_0_front"));
-    smart_missile_launcher->addBarrel(
-        new SkeletonProvider(skeleton, "Launcher_2", "Launcher_0", "Launcher_0_front"));
-    smart_missile_launcher->addBarrel(
-        new SkeletonProvider(skeleton, "Launcher_3", "Launcher_0", "Launcher_0_front"));
-    armament->addWeapon(1, smart_missile_launcher);
-
+    Ptr<Cannon> cannon=new Cannon(thegame);
+    cannon->addBarrel(new SkeletonProvider(skeleton, "CannonTip", "CannonTip", "CannonTipFront"));
+    cannon->factor = thegame->getConfig()->queryFloat("Tank_cannon_factor", 10);
+    armament->addWeapon(0,cannon);
+    
     sound_low = thegame->getSoundMan()->requestSource();
     sound_low->setPosition(p);
     sound_low->setLooping(true);
