@@ -74,18 +74,22 @@ EventRemapper::~EventRemapper()
 
 void EventRemapper::mapKey(int key, bool pressed, const char *action)
 {
-    keymap[KeyState(key, pressed)] = action;
+    //keymap[KeyState(key, pressed)] = action;
+    keymap.insert(std::make_pair(KeyState(key, pressed), action));
 }
 
 void EventRemapper::mapMouseButton(int button, bool pressed, const char *action)
 {
-    mouse_button_map[MouseButtonState(button, pressed)] = action;
+    //mouse_button_map[MouseButtonState(button, pressed)] = action;
+    mouse_button_map.insert(std::make_pair(MouseButtonState(button, pressed), action));
 }
 
 void EventRemapper::mapJoystickButton(int js, int button, bool pressed, const char *action)
 {
-    joystick_button_map[JoystickButtonState(std::make_pair(js,button), pressed)]
-        = action;
+    //joystick_button_map[JoystickButtonState(std::make_pair(js,button), pressed)]
+    //    = action;
+    joystick_button_map.insert(std::make_pair(
+        JoystickButtonState(std::make_pair(js, button), pressed), action));
 }
 
 void EventRemapper::pushEventFilter(Ptr<IEventFilter> filter) {

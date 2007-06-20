@@ -155,9 +155,9 @@ private:
     typedef std::pair<std::pair<JoystickIndex, ButtonNumber>, bool> 
         JoystickButtonState;
 
-    typedef std::map<KeyState,              std::string> KeyMap;
-    typedef std::map<MouseButtonState,      std::string> MouseButtonMap;
-    typedef std::map<JoystickButtonState,   std::string> JoystickButtonMap;
+    typedef std::multimap<KeyState,              std::string> KeyMap;
+    typedef std::multimap<MouseButtonState,      std::string> MouseButtonMap;
+    typedef std::multimap<JoystickButtonState,   std::string> JoystickButtonMap;
  
     typedef std::pair<JoystickIndex, AxisIndex>          JoystickAxis;
     typedef std::map<JoystickAxis, std::string>          JoystickAxisMap;
