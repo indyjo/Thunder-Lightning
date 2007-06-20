@@ -1,3 +1,4 @@
+#include <interfaces/ICamera.h>
 #include "LoDTerrain.h"
 #include "Config.h"
 

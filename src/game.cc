@@ -212,11 +212,6 @@ Game::Game(int argc, const char **argv)
         ls_message("Initializing OpenGL renderer.\n");
         renderer = new JOpenGLRenderer(xres, yres, config->queryFloat("Camera_aspect",1.33333));
         ls_message("Done initializing OpenGL renderer.\n");
-    	camera = new Camera(this);
-    	JCamera jcam;
-    	camera->getCamera(&jcam);
-    	renderer->setCamera(&jcam.cam);
-    	renderer->setClipRange(0.1, 10);
     }
     ls_message("Done initializing video.\n");
 
@@ -251,6 +246,14 @@ Game::Game(int argc, const char **argv)
     collisionman = new Collide::CollisionManager();
     clock = new Clock;
     ls_message("Done initializing managers\n");
+
+   	ls_message("Initializing Environment...");
+    environment = new Environment(this);
+   	ls_message(" done.\n");
+   	ls_message("Initializing Camera...");
+   	camera = new Camera(this);
+   	ls_message(" done.\n");
+
 
     {
     	ls_message("Querying from config %p:\n", ptr(config));
