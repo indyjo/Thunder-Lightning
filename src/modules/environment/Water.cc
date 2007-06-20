@@ -109,11 +109,12 @@ public:
         
         glActiveTexture(GL_TEXTURE0_ARB);
         glBindTexture(GL_TEXTURE_2D, tex);
+        glEnable(GL_TEXTURE_2D);
 
         glActiveTexture(GL_TEXTURE1_ARB);
         glBindTexture(GL_TEXTURE_2D, bump_tex);
         glEnable(GL_TEXTURE_2D);
-        
+
         glUseProgramObjectARB(program);
 
         glUniform1fARB(glGetUniformLocationARB(program, "waves"), 0.778f);
@@ -209,10 +210,10 @@ public:
         GLcharARB buf[1024];
         glGetInfoLogARB(shader, 1024, NULL, buf);
         if (GL_TRUE == status) {
-            ls_message("Compiling successful: %s\n", buf);
+            ls_message("Compiling successful: [%s]\n", buf);
             return true;
         } else {
-            ls_error("Error compiling shader: %s\n", buf);
+            ls_error("Error compiling shader: [%s]\n", buf);
             return false;
         }
     }
@@ -227,10 +228,10 @@ public:
         GLcharARB buf[1024];
         glGetInfoLogARB(prg, 1024, NULL, buf);
         if (GL_TRUE == status) {
-            ls_message("Linking successful: %s\n", buf);
+            ls_message("Linking successful: [%s]\n", buf);
             return true;
         } else {
-            ls_error("Error linking program: %s\n", buf);
+            ls_error("Error linking program: [%s]\n", buf);
             return false;
         }
     }
