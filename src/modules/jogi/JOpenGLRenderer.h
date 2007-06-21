@@ -28,11 +28,13 @@ public:
     virtual void setCamera(jcamera_t *cam);
 
     virtual void setBackgroundColor(const jcolor3_t *col);
+    virtual void setClearDepth(float);
 
     /* Status querying methods --------------------------------------*/
     virtual int getWidth();
     virtual int getHeight();
     virtual float getAspect();
+    virtual float getFocus();
     virtual float getClipNear();
     virtual float getClipFar();
     

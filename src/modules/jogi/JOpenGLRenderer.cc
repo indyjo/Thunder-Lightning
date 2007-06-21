@@ -124,6 +124,10 @@ void JOpenGLRenderer::setBackgroundColor(const jcolor3_t *col)
     glClearColor(col->r / 256.0, col->g / 256.0, col->b / 256.0, 0.0);
 }
 
+void JOpenGLRenderer::setClearDepth(float val) {
+    glClearDepth(val);
+}
+
 // --------------------------------------------------------------------------
 // Status querying methods
 // --------------------------------------------------------------------------
@@ -140,6 +144,9 @@ int JOpenGLRenderer::getHeight() {
 }
 float JOpenGLRenderer::getAspect() {
     return frustum_aspect;
+}
+float JOpenGLRenderer::getFocus() {
+    return camera.cam.focus;
 }
 float JOpenGLRenderer::getClipNear() {
     return clip_near;
