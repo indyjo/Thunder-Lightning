@@ -18,7 +18,8 @@ tnl_bin_SOURCES = game.cc game.h tnl.h \
                         debug.h debug.cc \
                         Weak.h \
                         DataNode.h DataNode.cc \
-                        profile.h
+                        profile.h \
+                        RenderContext.cc RenderContext.h
 tnl_libs = \
     modules/scripting/libscripting.a \
     modules/LoDTerrain/libLoDTerrain.a \
