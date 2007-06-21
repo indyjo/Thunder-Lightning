@@ -13,6 +13,8 @@ namespace UI {
 	class Console;
 }
 class Water;
+struct RenderContext;
+class Camera;
 
 class Game: public IGame, public ActorStage, public SigObject
 {
@@ -23,6 +25,9 @@ public:
     ~Game();
 
     void run();
+    
+    virtual void renderWithContext(const RenderContext *);
+    virtual const RenderContext *getCurrentContext();
 
     virtual Ptr<TextureManager> getTexMan();
     virtual JRenderer *getRenderer();
@@ -99,6 +104,7 @@ private:
 
     SDL_Surface *surface;
     JOpenGLRenderer *renderer;
+    const RenderContext *render_context;
 
     Ptr<TextureManager> texman;
 
@@ -109,7 +115,7 @@ private:
     bool view_is_external;
     Ptr<IActor> current_actor;
     
-    Ptr<ICamera> camera;
+    Ptr<Camera> camera;
     Ptr<Clock> clock;
     Ptr<IConfig> config;
     Ptr<IFontMan> fontman;

@@ -32,6 +32,7 @@
 #include <modules/actors/RigidActor.h>
 #include <modules/actors/Observer.h>
 #include <modules/config/config.h>
+#include <RenderContext.h>
 #include <sound.h>
 #include <Faction.h>
 
@@ -110,6 +111,7 @@ Game::Game(int argc, const char **argv)
 : argc(argc), argv(argv)
 , debug_mode(false)
 , view_is_external(false)
+, render_context(0)
 {
     the_game = this;
 
@@ -514,8 +516,16 @@ void Game::doEvents()
 
 void Game::setupRenderer()
 {
+    if (current_view) {
+        camera->alignWith(&*current_view);
+    }
+
     renderer->setClipRange(environment->getClipMin(),
                            environment->getClipMax());
+
+    camera->setNearDistance(renderer->getClipNear());
+    camera->setFarDistance(renderer->getClipFar());
+    camera->setAspect(renderer->getAspect());
 	
     Vector col = environment->getFogColor();
     col *= 256.0;
@@ -582,15 +592,6 @@ void Game::setupMainRender() {
     renderer->resize(config->queryInt("Game_xres"),
                      config->queryInt("Game_yres"),
                      config->queryFloat("Camera_aspect"));
-                     
-    if (current_view) {
-        camera->alignWith(&*current_view);
-    }
-        
-    JCamera jcamera;
-    camera->getCamera(&jcamera);
-    renderer->setCamera(&jcamera.cam);
-    environment->update(camera);
 }
 
 void Game::setupMirroredRender() {
@@ -598,26 +599,6 @@ void Game::setupMirroredRender() {
         config->queryInt("Game_mirror_texture_size", 512),
         config->queryInt("Game_mirror_texture_size", 512),
         config->queryFloat("Camera_aspect"));
-
-    if (current_view) {
-        camera->alignWith(&*current_view);
-    }
-    Vector pos = camera->getLocation();
-    pos[1] = -pos[1];
-    
-    Vector right, up, front;
-    camera->getOrientation(&up,&right,&front);
-    
-    right[1] = -right[1];
-    front[1] = -front[1];
-    up = front%right;
-    
-    camera->setLocation(pos);
-    camera->setOrientation(up, right, front);
-    JCamera jcamera;
-    camera->getCamera(&jcamera);
-    renderer->setCamera(&jcamera.cam);
-    environment->update(camera);
 }
 
 void Game::updateIoScripting() {
@@ -635,6 +616,47 @@ void Game::updateIoScripting() {
     }
 }
 
+void Game::renderWithContext(const RenderContext *ctx)
+{
+    this->render_context = ctx;
+    
+    Ptr<ICamera> old_camera = getCamera();
+    this->camera = ctx->camera;
+    
+    JCamera jcamera;
+    this->camera->getCamera(&jcamera);
+    renderer->setCamera(&jcamera.cam);
+    
+    environment->update(this->camera);
+    
+    Ptr<JDirectionalLight> sun = renderer->createDirectionalLight();
+    sun->setColor(Vector(1,1,1) - 0.25*Vector(.97,.83,.74));
+    sun->setEnabled(true);
+    sun->setDirection(Vector(-0.9, 0.4, 0).normalize());
+    
+    if (ctx->draw_skybox) skybox->draw();
+
+    if (ctx->clip_above_water) renderer->pushClipPlane(Vector(0,-1,0), 0);
+    if (ctx->clip_below_water) renderer->pushClipPlane(Vector(0,1,0), 0);
+    if (ctx->draw_terrain) quadman->draw();
+    if (ctx->clip_above_water) renderer->popClipPlanes(1);
+    if (ctx->clip_below_water) renderer->popClipPlanes(1);
+
+    if (ctx->draw_water) {
+        renderer->setZBufferFunc(JR_ZBFUNC_LESS);
+        water->draw();
+        renderer->setZBufferFunc(JR_ZBFUNC_LEQUAL);
+    }
+    if (ctx->draw_actors) drawActors();
+    
+    if (ctx->draw_gunsight && gunsight) gunsight->draw();
+    if (ctx->draw_console) console->draw(renderer);
+
+    this->camera = old_camera;
+    
+    this->render_context = 0;
+}
+
 void Game::doFrame()
 {
     BEGIN_PROFILE("mainloop.txt")
@@ -647,51 +669,39 @@ void Game::doFrame()
     FINISH_PROFILE_STEP("updateView() and updateSound()")
 
     setupRenderer();
-    Ptr<JDirectionalLight> sun = renderer->createDirectionalLight();
-    sun->setColor(Vector(1,1,1) - 0.25*Vector(.97,.83,.74));
-    sun->setEnabled(true);
     
     // perform mirrored render pass
     if (water->supportsMirrorTex()) {
         setupMirroredRender();
-        renderer->pushClipPlane(Vector(0,1,0), 0);
         
-        sun->setDirection(Vector(-0.9, 0.4, 0).normalize());
-        skybox->draw();
-        quadman->draw();
-        drawActors();
+        RenderContext ctx_mirror = RenderContext::MirroredRenderContext(getCamera());
+        renderWithContext(&ctx_mirror);
         
         // copy the color buffer into a texture for later usage in water render
         water->copyTex();
         
         // clear the depth buffer, but not the color buffer
         renderer->clear(false, true);
-        
-        renderer->popClipPlanes(1);
     }
     
     FINISH_PROFILE_STEP("mirror render-to-texture")
     
     // perform main render pass
     setupMainRender();
+    RenderContext ctx_main = RenderContext::MainRenderContext(getCamera());
+    renderWithContext(&ctx_main);
     
-    sun->setDirection(Vector(-0.9, 0.4, 0).normalize());
-    skybox->draw();
-    renderer->pushClipPlane(Vector(0,1,0), 0);
-    quadman->draw();
-    renderer->popClipPlanes(1);
-    renderer->setZBufferFunc(JR_ZBFUNC_LESS);
-    water->draw();
-    renderer->setZBufferFunc(JR_ZBFUNC_LEQUAL);
-    drawActors();
-    if (gunsight) gunsight->draw();
-    console->draw(renderer);
     clearScreen();
     FINISH_PROFILE_STEP("main render")
 
     updateIoScripting();
     FINISH_PROFILE_STEP("updateIoScripting()")
- }
+}
+
+const RenderContext *Game::getCurrentContext()
+{
+    return render_context;
+}
 
 void Game::clearScreen() {
     SDL_GL_SwapBuffers();
