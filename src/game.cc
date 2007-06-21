@@ -384,7 +384,7 @@ UI::Surface Game::getScreenSurface() {
     int xres = renderer->getWidth();
     int yres = renderer->getHeight();
     float aspect = renderer->getAspect();
-    float focus = camera->getFocus();
+    float focus = renderer->getFocus();
     return UI::Surface::FromCamera(aspect, focus, xres, yres);
 }
 
