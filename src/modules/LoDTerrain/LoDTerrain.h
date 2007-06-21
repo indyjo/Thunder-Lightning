@@ -200,7 +200,6 @@ private:
     IGame *game;
     JRenderer *renderer;
     Ptr<IConfig> cfg;
-    Ptr<ICamera> camera;
     LoDQuad *quad;
     int width, height;
     int counter;

@@ -91,6 +91,7 @@ void Console::putChar(char c) {
 
 void Console::draw(JRenderer *renderer) {
     if (!enabled) return;
+    surface= game->getScreenSurface();
     Ptr<IFontMan> fontman = game->getFontMan();
 
     renderer->setCoordSystem(JR_CS_EYE);

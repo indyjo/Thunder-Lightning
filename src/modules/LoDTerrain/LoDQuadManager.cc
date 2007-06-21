@@ -28,7 +28,6 @@ LoDQuadManager::LoDQuadManager(IGame *the_game, Status & stat)
     game=the_game;
     cfg = Ptr<IConfig>();
     cfg    = game->getConfig();
-    camera = game->getCamera();
     renderer = game->getRenderer();
 
     // Get the terrain and texture paths from the config
@@ -133,8 +132,8 @@ void LoDQuadManager::draw()
     int i;
     float planes[6][4];
 
-    camera->getFrustumPlanes(planes);
-    Vector pos = camera->getLocation();
+    game->getCamera()->getFrustumPlanes(planes);
+    Vector pos = game->getCamera()->getLocation();
 
     for (i=0; i<(width*height); i++) {
         quad[i].presetup();
