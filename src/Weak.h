@@ -51,8 +51,8 @@ public:
         if(p) peer=obj->getPeer();
         return *this;
     }
-    inline WeakPtr<T> & operator= (const Ptr<T> & ptr) {
-        p=ptr.getPtr();
+    inline WeakPtr<T> & operator= (const Ptr<T> & pstrong) {
+        p=ptr(pstrong);
         if(p) peer=p->getPeer();
         return *this;
     };
