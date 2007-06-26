@@ -254,7 +254,7 @@ Game::Game(int argc, const char **argv)
     }
 
     ls_message("Initializing managers... ");
-    texman = new TextureManager(*renderer);
+    texman = new TextureManager(*config, *renderer);
     modelman = new ModelMan(texman);
     fontman = new FontMan(this);
     soundman = new SoundMan(config);

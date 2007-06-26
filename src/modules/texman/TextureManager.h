@@ -1,102 +1,63 @@
-#ifndef RESMAN_H
-#define RESMAN_H
+#ifndef TNL_TEXTUREMANAGER_H
+#define TNL_TEXTUREMANAGER_H
 
 #include <string>
 #include <map>
-#include <set>
 #include <queue>
 #include <modules/jogi/jogi.h>
+#include <Weak.h>
 
+struct IConfig;
 class TextureManager;
-class Texture;
 
-
-class Texture
+class Texture : public Object, public Weak
 {
-    int refs;
     jrtxtid_t tex;
-    Ptr<TextureManager> texman;
     JRenderer &renderer;
-    int w,h;
     
 protected:
     ~Texture();
     
 public:
-    Texture(Ptr<TextureManager>, JRenderer &,
-        const char *, unsigned int, unsigned int, bool);
+    Texture(jrtxtid_t t, JRenderer &r);
 
-    jrtxtid_t ref();
-    void unref();
-    inline int getWidth() { return w; }
-    inline int getHeight() { return h; }
+    inline int getWidth() { return renderer.getTextureWidth(tex); }
+    inline int getHeight() { return renderer.getTextureHeight(tex); }
+    
+    inline jrtxtid_t getTxtid() { return tex; }
 };
 
-class TexPtr
-{
-    jrtxtid_t txtid;
-    Texture *tex;
-    bool valid;
-    
-public:
-    inline TexPtr() : valid(false) { };
-
-    inline TexPtr(const TexPtr &other) : valid(other.valid), tex(other.tex)
-    { if (valid) txtid=tex->ref(); };
-    
-    inline TexPtr(Texture * tex) : valid(true), tex(tex)
-    { txtid = tex->ref(); };
-        
-    inline ~TexPtr() { if (valid) tex->unref(); };
-    
-    inline int getWidth() { return tex->getWidth(); }
-    inline int getHeight() { return tex->getHeight(); }
-    
-    inline TexPtr & operator= (const TexPtr & other)
-    {
-        if (other.valid) txtid = other.tex->ref();
-        if (valid) tex->unref();
-        valid = other.valid;
-        tex = other.tex;
-        
-        return *this;
-    }
-    
-    inline operator bool() { return valid; }
-    
-    inline bool operator< (const TexPtr & other) const
-    { return tex < other.tex; }
-    
-    inline operator jrtxtid_t() { return txtid; };
-};
+typedef Ptr<Texture> TexPtr;
 
 class TextureManager : virtual public Object
 {
-    friend class Texture;
-    typedef std::map<std::string, Texture *> NameToTexMap;
-    typedef NameToTexMap::iterator TexIterator;
-    typedef std::map<Texture *, std::string> TexToNameMap;
-    typedef TexToNameMap::iterator NameIterator;
-    
+    typedef std::map<std::string, WeakPtr<Texture> > NameToTexMap;
 
     int max_cache_size;
-    std::set<TexPtr> cache;
-    std::queue<TexPtr> cache_queue;
+    std::queue<Ptr<Texture> > cache_queue;
     NameToTexMap textures_by_name;
-    TexToNameMap names_by_texture;
+    
     JRenderer & renderer;
     
+    Ptr<Texture> missing_texture;
+    
 public:
-    TextureManager(JRenderer & renderer);
+    TextureManager(IConfig & cfg, JRenderer & renderer);
     ~TextureManager();
-    TexPtr query(const char *,
-            unsigned int hint=0,
-            unsigned int compression=0,
-            bool mipmap=false);
+    
+    /// Requests a texture with the given file name. Additionally a JRenderer
+    /// hint and (derecated) compression number can be passed. It is also possible
+    /// to request that mipmap layers be generated.
+    Ptr<Texture> query( const char *,
+                        unsigned int hint=0,
+                        unsigned int compression=0,
+                        bool mipmap=false);
+    /// Tells the TextureManager to insert a texture into its cache, keeping it
+    /// alive until
+    ///  - it is kicked out of the cache by other textures
+    ///  - shutdown() is called
+    void cache( Ptr<Texture> tex );
     void shutdown();
-private:
-    void registerTexture(const char *, Texture *);
-    bool unregisterTexture(Texture *);
 };
 
 #endif

@@ -121,7 +121,7 @@ void SmokeTrail::draw()
     renderer->enableSmoothShading();
     renderer->enableTexturing();
     renderer->setCullMode(JR_CULLMODE_NO_CULLING);
-    renderer->setTexture(smoke);
+    renderer->setTexture(smoke->getTxtid());
     renderer->disableZBufferWriting();
     renderer->begin(JR_DRAWMODE_TRIANGLE_STRIP);
     renderer->setColor(Vector(1,1,1));

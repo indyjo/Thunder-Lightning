@@ -116,7 +116,7 @@ void SmokeColumn::draw()
     renderer->enableAlphaBlending();
     renderer->setVertexMode(JR_VERTEXMODE_GOURAUD_TEXTURE);
     renderer->setCullMode(JR_CULLMODE_NO_CULLING);
-    renderer->setTexture(smoke_tex);
+    renderer->setTexture(smoke_tex->getTxtid());
     renderer->disableZBufferWriting();
 
     renderer->begin(JR_DRAWMODE_TRIANGLES);

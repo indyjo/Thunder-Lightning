@@ -74,8 +74,8 @@ void FontMan::selectFont(const FontSpec & fs) {
         
         c.enabled = true;
         in >> c.dx >> c.dy >> c.tx1 >> c.ty1 >> c.tx2 >> c.ty2;
-        c.dx = (c.tx2-c.tx1) * current_font->tex.getWidth();
-        c.dy = (c.ty2-c.ty1) * current_font->tex.getHeight();
+        c.dx = (c.tx2-c.tx1) * current_font->tex->getWidth();
+        c.dy = (c.ty2-c.ty1) * current_font->tex->getHeight();
     }
 }
     
@@ -97,7 +97,7 @@ void FontMan::print(const char *text) {
     renderer->disableSmoothShading();
     renderer->enableAlphaBlending();
     renderer->enableTexturing();
-    renderer->setTexture(current_font->tex);
+    renderer->setTexture(current_font->tex->getTxtid());
     
     while(*text) {
         unsigned char c = (unsigned char) *text;
@@ -220,7 +220,7 @@ void FontMan::Font::drawStringSimple(const char *str, const Vector2 &pos, const 
     renderer->disableSmoothShading();
     renderer->enableAlphaBlending();
     renderer->enableTexturing();
-    renderer->setTexture(tex);
+    renderer->setTexture(tex->getTxtid());
 
     Vector2 start_of_line = pos;
     Vector2 cursor_pos = start_of_line;

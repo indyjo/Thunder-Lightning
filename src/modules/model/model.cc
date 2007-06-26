@@ -178,8 +178,8 @@ void Model::parseMtlFile(TextureManager & texman, const string & filename, map<s
             }
             mtls[mtlname].tex = texman.query(filename.c_str());
             mtls[mtlname].use_tex = true;
-            mtls[mtlname].w = mtls[mtlname].tex.getWidth();
-            mtls[mtlname].h = mtls[mtlname].tex.getHeight();
+            mtls[mtlname].w = mtls[mtlname].tex->getWidth();
+            mtls[mtlname].h = mtls[mtlname].tex->getHeight();
         } else if ( op == "Kd" ) {
         	Vector v;
         	in >> v[0] >> v[1] >> v[2];
@@ -263,7 +263,7 @@ void MObject::draw(JRenderer & r)
 
         if (grp->mtl.use_tex) {
     		r.enableTexturing();
-            r.setTexture(grp->mtl.tex);
+            r.setTexture(grp->mtl.tex->getTxtid());
             r.setVertexMode(JR_VERTEXMODE_GOURAUD_TEXTURE);
         } else {
     		r.disableTexturing();

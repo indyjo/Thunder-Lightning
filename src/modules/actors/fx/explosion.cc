@@ -105,7 +105,7 @@ void Explosion::draw() {
     renderer->setBlendMode(JR_BLENDMODE_ADDITIVE);
     renderer->setVertexMode(JR_VERTEXMODE_GOURAUD_TEXTURE);
     renderer->setCullMode(JR_CULLMODE_NO_CULLING);
-    renderer->setTexture(tex);
+    renderer->setTexture(tex->getTxtid());
     renderer->disableZBufferWriting();
     renderer->disableFog();
     renderer->begin(JR_DRAWMODE_TRIANGLE_FAN);
@@ -118,8 +118,8 @@ void Explosion::draw() {
         vtx.p.y=v[1];
         vtx.p.z=v[2];
 
-        vtx.txt.x = (float) (tex.getWidth()-1)  * u_coord[i];
-        vtx.txt.y = (float) (tex.getHeight()-1) * v_coord[i];
+        vtx.txt.x = (float) (tex->getWidth()-1)  * u_coord[i];
+        vtx.txt.y = (float) (tex->getHeight()-1) * v_coord[i];
 
         renderer->addVertex(&vtx);
     }

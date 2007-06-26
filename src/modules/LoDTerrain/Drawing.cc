@@ -91,7 +91,7 @@ void LoDQuad::drawRecursive(JRenderer *r, LoDTriangle *tri,
         r->setZBufferFunc(JR_ZBFUNC_LEQUAL);
         r->enableSmoothShading();
         r->enableTexturing();
-        r->setTexture(main_tex);
+        r->setTexture(main_tex->getTxtid());
         
         r->begin(JR_DRAWMODE_TRIANGLES);
         for (i=0; i<3; i++) {
@@ -247,7 +247,7 @@ void LoDQuad::drawRecursive(JRenderer *r, LoDTriangle *tri,
         }
 #endif // ENABLE_SPHERE_DEBUGGING
 #if ENABLE_DETAIL_TEX
-        r->setTexture(detail_tex);
+        r->setTexture(detail_tex->getTxtid());
         r->setZBufferFunc(JR_ZBFUNC_EQUAL);
         r->enableAlphaBlending();
         r->begin(JR_DRAWMODE_TRIANGLES);
@@ -275,7 +275,7 @@ void LoDQuad::drawRecursive(JRenderer *r, LoDTriangle *tri,
 #endif
 #if ENABLE_LIGHTMAP
         r->enableTexturing();
-        r->setTexture(lightmap);
+        r->setTexture(lightmap->getTxtid());
         r->setZBufferFunc(JR_ZBFUNC_LEQUAL);
         r->enableAlphaBlending();
         r->setBlendMode(JR_BLENDMODE_MULTIPLICATIVE);
@@ -434,11 +434,11 @@ void LoDQuad::drawTexturedTriangle(JRenderer * r, LoDTriangle * tri, float * y)
             }
             if (textures[max_index][tile_index]) {
                 alpha[0]=alpha[1]=alpha[2]=tri->morph;
-                r->setTexture( textures[max_index][tile_index] );
+                r->setTexture( textures[max_index][tile_index]->getTxtid() );
                 r->setWrapMode( JR_TEXDIM_U, JR_WRAPMODE_CLAMP );
                 r->setWrapMode( JR_TEXDIM_V, JR_WRAPMODE_CLAMP );
             } else {
-                r->setTexture( textures[max_index][15] );
+                r->setTexture( textures[max_index][15]->getTxtid() );
                 r->setWrapMode( JR_TEXDIM_U, JR_WRAPMODE_REPEAT );
                 r->setWrapMode( JR_TEXDIM_V, JR_WRAPMODE_REPEAT );
                 for(int i=0; i<3; i++) {
@@ -561,7 +561,7 @@ void LoDQuad::drawTexturedTriangle(JRenderer * r, LoDTriangle * tri, float * y)
     // First paint the base texture
     r->disableAlphaBlending();
 
-    r->setTexture( textures[texidx][0x0f] );
+    r->setTexture( textures[texidx][0x0f]->getTxtid() );
     r->setWrapMode( JR_TEXDIM_U, JR_WRAPMODE_REPEAT );
     r->setWrapMode( JR_TEXDIM_V, JR_WRAPMODE_REPEAT );
 
@@ -584,7 +584,7 @@ void LoDQuad::drawTexturedTriangle(JRenderer * r, LoDTriangle * tri, float * y)
         unsigned char idx = neighbor_textures[i];
         int patch = patches[i];
         if (textures[idx][patch]) {
-            r->setTexture(textures[idx][patch]);
+            r->setTexture(textures[idx][patch]->getTxtid());
             r->setWrapMode( JR_TEXDIM_U, JR_WRAPMODE_CLAMP );
             r->setWrapMode( JR_TEXDIM_V, JR_WRAPMODE_CLAMP );
             r->begin(JR_DRAWMODE_TRIANGLES);
@@ -595,7 +595,7 @@ void LoDQuad::drawTexturedTriangle(JRenderer * r, LoDTriangle * tri, float * y)
             }
             r->end();
         } else {
-            r->setTexture(textures[idx][15]);
+            r->setTexture(textures[idx][15]->getTxtid());
             r->setWrapMode( JR_TEXDIM_U, JR_WRAPMODE_REPEAT );
             r->setWrapMode( JR_TEXDIM_V, JR_WRAPMODE_REPEAT );
             r->begin(JR_DRAWMODE_TRIANGLES);

@@ -80,7 +80,7 @@ void SkyBox::draw()
     uvw[3] = Vector(0,1,0);
     
     for(int i=0; i<6; i++) {
-        renderer->setTexture(textures[i]);
+        renderer->setTexture(textures[i]->getTxtid());
         renderer->setWrapMode(JR_TEXDIM_U, JR_WRAPMODE_CLAMP);
         renderer->setWrapMode(JR_TEXDIM_V, JR_WRAPMODE_CLAMP);
         renderer->setWrapMode(JR_TEXDIM_W, JR_WRAPMODE_CLAMP);
