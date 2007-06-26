@@ -90,6 +90,18 @@ public:
     inline bool operator<=(const Ptr<T> & ptr) const { return p <= ptr.p; }
     inline bool operator>(const Ptr<T> & ptr) const { return p > ptr.p; }
     inline bool operator>=(const Ptr<T> & ptr) const { return p >= ptr.p; }
+private:
+    // Disallow conversions to number types
+    inline operator int() const { return 0; }
+    inline operator unsigned int() const { return 0; }
+    inline operator long() const { return 0; }
+    inline operator unsigned long() const { return 0; }
+    inline operator short() const { return 0; }
+    inline operator unsigned short() const { return 0; }
+    inline operator char() const { return 0; }
+    inline operator unsigned char() const { return 0; }
+    inline operator double() const { return 0; }
+    inline operator float() const { return 0; }
 };
 
 
