@@ -17,7 +17,9 @@ class JOpenGLRenderer : public JRenderer
 public:
 
     /* Initialisation methods ---------------------------------------*/
-    JOpenGLRenderer(int init_width, int init_height, float aspect);
+    JOpenGLRenderer();
+
+    virtual void resize(int new_width, int new_height);
 
     virtual void setVertexMode(jrvertexmode_t mode);
     virtual void setCoordSystem(jrcoordsystem_t cs);
@@ -124,9 +126,6 @@ public:
     virtual jError pushClipPlane(const Vector & n, float c) ;
     virtual void popClipPlanes(int n);
     
-    /* Status requesting methods ------------------------------------*/
-    virtual void resize(int new_width, int new_height, float new_aspect);
-
     /* Lighting -----------------------------------------------------*/
     virtual void enableLighting();
     virtual void disableLighting();
@@ -151,7 +150,6 @@ private:
     void releaseLight(unsigned int);
 
 private:
-    float frustum_aspect;
     float clip_near, clip_far;
     float fog_color[4];
     jrfogtype_t fog_type;

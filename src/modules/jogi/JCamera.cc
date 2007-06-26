@@ -25,6 +25,7 @@ void JCamera::init()
     m.init();
     cam.matrix=m.matrix;
     cam.focus=1;
+    cam.aspect=1;
 }
 
 

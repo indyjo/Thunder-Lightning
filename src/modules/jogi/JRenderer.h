@@ -104,6 +104,8 @@ public:
 
     /* Initialisation methods ---------------------------------------*/
 
+    virtual void resize(int new_width, int new_height) = 0;
+
     virtual void setVertexMode(jrvertexmode_t mode) = 0;
     virtual void setCoordSystem(jrcoordsystem_t cs) = 0;
     

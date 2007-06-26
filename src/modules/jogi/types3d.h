@@ -35,7 +35,7 @@ struct jvertex_coltxt {
 
 struct jcamera_t {
     jmatrix_t matrix;
-    float focus;
+    float focus, aspect;
 };
 
 #endif

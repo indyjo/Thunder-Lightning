@@ -15,18 +15,17 @@
 #define CLIP_FAR 5000.0
 
 #include <tnl.h>
-JOpenGLRenderer::JOpenGLRenderer(int init_width, int init_height, float aspect)
+JOpenGLRenderer::JOpenGLRenderer()
 : clip_planes(0)
 {
-    ls_message("<JOpenGLRenderer::JOpenGLRenderer(%d, %d, %f)>\n",
-    	init_width, init_height, aspect);
+    ls_message("<JOpenGLRenderer::JOpenGLRenderer)>\n");
     coord_sys=JR_CS_WORLD;
 
     camera.init();
     clip_near = CLIP_NEAR;
     clip_far = CLIP_FAR;
 
-    resize(init_width, init_height, aspect); // calls initProjectionMatrix()
+    resize(256, 256);
     
     initModelViewMatrix();
 
@@ -66,6 +65,11 @@ JOpenGLRenderer::JOpenGLRenderer(int init_width, int init_height, float aspect)
     	free_lights.push(GL_LIGHT0 + max_lights);
     }
     ls_message("</JOpenGLRenderer::JOpenGLRenderer>\n");
+}
+
+void JOpenGLRenderer::resize(int new_width, int new_height)
+{
+    glViewport(0,0, new_width, new_height);
 }
 
 void JOpenGLRenderer::setVertexMode(jrvertexmode_t mode)
@@ -117,6 +121,7 @@ void JOpenGLRenderer::setCamera(jcamera_t *cam)
 {
     camera.init(cam);
     initModelViewMatrix();
+    initProjectionMatrix();
 }
 
 void JOpenGLRenderer::setBackgroundColor(const jcolor3_t *col)
@@ -143,7 +148,7 @@ int JOpenGLRenderer::getHeight() {
     return vp[3];
 }
 float JOpenGLRenderer::getAspect() {
-    return frustum_aspect;
+    return camera.cam.aspect;
 }
 float JOpenGLRenderer::getFocus() {
     return camera.cam.focus;
@@ -589,13 +594,6 @@ void JOpenGLRenderer::clear(bool color, bool depth) {
     glClear( (color?GL_COLOR_BUFFER_BIT:0) | (depth?GL_DEPTH_BUFFER_BIT:0) );
 }
 
-void JOpenGLRenderer::resize(int new_width, int new_height, float new_aspect)
-{
-    glViewport(0,0, new_width, new_height);
-    frustum_aspect = new_aspect;
-    initProjectionMatrix();
-}
-
 void JOpenGLRenderer::enableLighting() {
 	glEnable(GL_LIGHTING);
 }
@@ -630,10 +628,10 @@ void JOpenGLRenderer::initProjectionMatrix() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glFrustum(
-        (-frustum_aspect/camera.cam.focus)*clip_near,
-        ( frustum_aspect/camera.cam.focus)*clip_near,
-        (             -1/camera.cam.focus)*clip_near,
-        (              1/camera.cam.focus)*clip_near,
+        (-camera.cam.aspect/camera.cam.focus)*clip_near,
+        ( camera.cam.aspect/camera.cam.focus)*clip_near,
+        (                -1/camera.cam.focus)*clip_near,
+        (                 1/camera.cam.focus)*clip_near,
         clip_near, clip_far);
     glMatrixMode(GL_MODELVIEW);
 }
