@@ -44,7 +44,6 @@ SkyBox::SkyBox(IGame *thegame)
     this->thegame=thegame;
     renderer=thegame->getRenderer();
     config=thegame->getConfig();
-    cam=thegame->getCamera();
     Ptr<TextureManager> texman = thegame->getTexMan();
     
     texpath=config->query("SkyBox_texture_path");
@@ -60,7 +59,7 @@ void SkyBox::draw()
 {
     jBool restore_fog;
 
-    Vector p = cam->getLocation();
+    Vector p = thegame->getCamera()->getLocation();
 
     restore_fog=renderer->fogEnabled();
     renderer->disableFog();

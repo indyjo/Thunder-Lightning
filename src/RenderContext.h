@@ -1,6 +1,8 @@
 #ifndef TNL_RENDERCONTEXT_H
 #define TNL_RENDERCONTEXT_H
 
+#include <object.h>
+
 struct ICamera;
 
 

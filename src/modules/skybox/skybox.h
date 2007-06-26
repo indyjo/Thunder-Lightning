@@ -14,7 +14,6 @@ public:
 private:
     IGame *thegame;
     Ptr<IConfig> config;
-    Ptr<ICamera> cam;
     JRenderer *renderer;
     TexPtr textures[6];
 };

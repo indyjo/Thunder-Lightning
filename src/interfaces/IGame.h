@@ -23,12 +23,21 @@ struct IPlayer;
 struct ITerrain;
 struct IView;
 
+struct RenderContext;
+class RenderPass;
+class RenderPassList;
+
 namespace Collide {
 	class CollisionManager;
 }
 
 struct IGame : virtual public Object, virtual public IActorStage
 {
+    virtual void renderWithContext(const RenderContext *) = 0;
+    virtual const RenderContext *getCurrentContext() = 0;
+    virtual Ptr<RenderPass> getMainRenderPass()=0;
+    virtual Ptr<RenderPassList> getRenderPassList()=0;
+
     virtual Ptr<TextureManager> getTexMan()=0;
     virtual JRenderer *getRenderer()=0;
     virtual Ptr<EventRemapper> getEventRemapper()=0;

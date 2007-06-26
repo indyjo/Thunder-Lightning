@@ -212,7 +212,8 @@ Game::Game(int argc, const char **argv)
         ls_message(" got r/g/b/d %d/%d/%d/%d %s double buffering. ",
                 r,g,b,d,db?"with":"without");
         ls_message("Initializing OpenGL renderer.\n");
-        renderer = new JOpenGLRenderer(xres, yres, config->queryFloat("Camera_aspect",1.33333));
+        renderer = new JOpenGLRenderer();
+        renderer->resize(xres, yres);
         ls_message("Done initializing OpenGL renderer.\n");
     }
     ls_message("Done initializing video.\n");
@@ -234,6 +235,18 @@ Game::Game(int argc, const char **argv)
     iluInit();
     ilutRenderer(ILUT_OPENGL);
     ls_message("Done.\n");
+
+    ls_message("Creating render pass list... ");
+    renderpasslist = new RenderPassList(this);
+    ls_message("done.\n");
+    ls_message("Preparing Main render pass...");
+    renderpass_main = renderpasslist->createRenderPass();
+    renderpass_main->setEnabled(true);
+    renderpass_main->setResolution(
+        config->queryInt("Game_xres", 1024),
+        config->queryInt("Game_yres", 768));
+    ls_message("done.\n");
+
     
     if (config->queryBool("Game_grab_mouse",false)) {
 	    SDL_WM_GrabInput(SDL_GRAB_ON);
@@ -254,6 +267,11 @@ Game::Game(int argc, const char **argv)
    	ls_message(" done.\n");
    	ls_message("Initializing Camera...");
    	camera = new Camera(this);
+   	{
+        JCamera jcamera;
+        camera->getCamera(&jcamera);
+        renderer->setCamera(&jcamera.cam);
+    }
    	ls_message(" done.\n");
 
 
@@ -287,7 +305,7 @@ Game::Game(int argc, const char **argv)
 		IoState_doFile_(io_scripting_manager->getMainState(), buf);
 		ls_message("Done excuting initial setup script: %s\n", buf);
     }
-
+    
     clock->skip() ;
 }
 
@@ -516,32 +534,18 @@ void Game::doEvents()
 
 void Game::setupRenderer()
 {
-    if (current_view) {
-        camera->alignWith(&*current_view);
-    }
-
     renderer->setClipRange(environment->getClipMin(),
                            environment->getClipMax());
 
-    camera->setNearDistance(renderer->getClipNear());
-    camera->setFarDistance(renderer->getClipFar());
-    camera->setAspect(renderer->getAspect());
-	
     Vector col = environment->getFogColor();
     col *= 256.0;
     jcolor3_t fog_col;
     fog_col.r = col[0];
     fog_col.g = col[1];
     fog_col.b = col[2];
-    //ls_message("setting fog color:\n"); col.dump();
     renderer->setFogColor(&fog_col);
-    //renderer->setFogType(JR_FOGTYPE_FARAWAY,0.0f);
     renderer->setFogType(JR_FOGTYPE_LINEAR,0.0f);
-    //renderer->setFogType(JR_FOGTYPE_EXP_SQUARE, 0.25);
     renderer->enableFog();
-    renderer->setBackgroundColor(&fog_col);
-
-    //clearScreen();
 }
 
 
@@ -570,6 +574,12 @@ void Game::updateView()
         externalView();
         event_remapper->triggerAction("current_view_subject_killed");
     }
+    if (current_view) {
+        camera->alignWith(&*current_view);
+    }
+
+    camera->setNearDistance(renderer->getClipNear());
+    camera->setFarDistance(renderer->getClipFar());
 }
 
 void Game::updateSound() {
@@ -589,16 +599,9 @@ void Game::updateSound() {
 }
 
 void Game::setupMainRender() {
-    renderer->resize(config->queryInt("Game_xres"),
-                     config->queryInt("Game_yres"),
-                     config->queryFloat("Camera_aspect"));
-}
-
-void Game::setupMirroredRender() {
-    renderer->resize(
-        config->queryInt("Game_mirror_texture_size", 512),
-        config->queryInt("Game_mirror_texture_size", 512),
-        config->queryFloat("Camera_aspect"));
+    RenderContext ctx = RenderContext::MainRenderContext(getCamera());
+    getMainRenderPass()->setRenderContext(ctx);
+    getMainRenderPass()->setRenderContextEnabled(true);
 }
 
 void Game::updateIoScripting() {
@@ -647,8 +650,13 @@ void Game::renderWithContext(const RenderContext *ctx)
         water->draw();
         renderer->setZBufferFunc(JR_ZBFUNC_LEQUAL);
     }
+
+    if (ctx->clip_above_water) renderer->pushClipPlane(Vector(0,-1,0), 0);
+    if (ctx->clip_below_water) renderer->pushClipPlane(Vector(0,1,0), 0);
     if (ctx->draw_actors) drawActors();
-    
+    if (ctx->clip_above_water) renderer->popClipPlanes(1);
+    if (ctx->clip_below_water) renderer->popClipPlanes(1);
+
     if (ctx->draw_gunsight && gunsight) gunsight->draw();
     if (ctx->draw_console) console->draw(renderer);
 
@@ -669,30 +677,13 @@ void Game::doFrame()
     FINISH_PROFILE_STEP("updateView() and updateSound()")
 
     setupRenderer();
-    
-    // perform mirrored render pass
-    if (water->supportsMirrorTex()) {
-        setupMirroredRender();
-        
-        RenderContext ctx_mirror = RenderContext::MirroredRenderContext(getCamera());
-        renderWithContext(&ctx_mirror);
-        
-        // copy the color buffer into a texture for later usage in water render
-        water->copyTex();
-        
-        // clear the depth buffer, but not the color buffer
-        renderer->clear(false, true);
-    }
-    
-    FINISH_PROFILE_STEP("mirror render-to-texture")
-    
-    // perform main render pass
     setupMainRender();
-    RenderContext ctx_main = RenderContext::MainRenderContext(getCamera());
-    renderWithContext(&ctx_main);
+
+    getRenderPassList()->renderPasses();
+    if (debug_mode) getRenderPassList()->drawMosaic();
     
-    clearScreen();
-    FINISH_PROFILE_STEP("main render")
+    SDL_GL_SwapBuffers();
+    FINISH_PROFILE_STEP("render passes")
 
     updateIoScripting();
     FINISH_PROFILE_STEP("updateIoScripting()")
@@ -702,6 +693,16 @@ const RenderContext *Game::getCurrentContext()
 {
     return render_context;
 }
+
+Ptr<RenderPass> Game::getMainRenderPass()
+{
+    return renderpass_main;
+}
+Ptr<RenderPassList> Game::getRenderPassList()
+{
+    return renderpasslist;
+}
+
 
 void Game::clearScreen() {
     SDL_GL_SwapBuffers();

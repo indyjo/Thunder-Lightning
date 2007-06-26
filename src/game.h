@@ -4,6 +4,8 @@
 #include <modules/jogi/JOpenGLRenderer.h>
 #include <remap.h>
 #include <ActorStage.h>
+#include <RenderPass.h>
+#include <Weak.h>
 
 class Status;
 struct ILoDQuadManager;
@@ -16,7 +18,7 @@ class Water;
 struct RenderContext;
 class Camera;
 
-class Game: public IGame, public ActorStage, public SigObject
+class Game: public IGame, public ActorStage, public SigObject, public Weak
 {
 public:
     static Game * the_game;
@@ -28,6 +30,8 @@ public:
     
     virtual void renderWithContext(const RenderContext *);
     virtual const RenderContext *getCurrentContext();
+    virtual Ptr<RenderPass> getMainRenderPass();
+    virtual Ptr<RenderPassList> getRenderPassList();
 
     virtual Ptr<TextureManager> getTexMan();
     virtual JRenderer *getRenderer();
@@ -71,7 +75,6 @@ private:
     void updateView();
     void updateSound();
     void setupMainRender();
-    void setupMirroredRender();
     void updateIoScripting();
     
     void doFrame();
@@ -129,5 +132,7 @@ private:
     Ptr<Water> water;
 	Ptr<IoScriptingManager> io_scripting_manager;
     Ptr<UI::Console> console;
+    Ptr<RenderPassList> renderpasslist;
+    Ptr<RenderPass> renderpass_main;
 };
 
