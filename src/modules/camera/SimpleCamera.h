@@ -21,6 +21,8 @@ public:
     /// Creates a new camera with values copied from other.
     SimpleCamera(Ptr<ICamera> other);
     
+    SimpleCamera & operator= (ICamera & other);
+    
     // SimpleCamera methods
     void setFocus(float val);
     void setAspect(float val);

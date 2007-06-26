@@ -14,12 +14,16 @@ SimpleCamera::SimpleCamera()
 
 SimpleCamera::SimpleCamera(Ptr<ICamera> other)
 {
-    this->focus=other->getFocus();
-    this->aspect=other->getAspect();
-    orient = other->getOrient();
-    location = other->getLocation();
-    near_dist = other->getNearDistance();
-    far_dist = other->getFarDistance();
+    *this = *other;
+}
+
+SimpleCamera & SimpleCamera::operator= (ICamera & other) {
+    focus=other.getFocus();
+    aspect=other.getAspect();
+    orient = other.getOrient();
+    location = other.getLocation();
+    near_dist = other.getNearDistance();
+    far_dist = other.getFarDistance();
     dirty = true;
 }
 
@@ -176,6 +180,7 @@ void SimpleCamera::update() {
     for(int i=0;i<4;++i) for(int j=0;j<4;++j)
     	jcam.cam.matrix.m[i][j] = M(i,j);
     jcam.cam.focus = focus;
+    jcam.cam.aspect = aspect;
     
     // That's it!
 }
