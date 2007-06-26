@@ -7,7 +7,7 @@
 #define JGL_MAX_TEXTURES 256
 
 typedef struct {
-    float size_w, size_h;
+    int size_w, size_h;
     unsigned int gl_tex_name;
     bool used;
 } jgl_texture_t;
@@ -99,12 +99,21 @@ public:
                                  unsigned int compression,
                                  jBool mipmap,
                                  jrtxtid_t *dst);
+    virtual jError createEmptyTexture(  jrtxtformat_t fmt,
+                                        int width, int height,
+                                        jrtxtid_t *dst);
 
     virtual jError destroyTexture(jrtxtid_t txtid);
 
     virtual jError setTexture(jrtxtid_t txtid);
     
     virtual void setWrapMode(jrtexdim_t dim, jrwrapmode_t mode);
+    
+    virtual unsigned int getGLTexFromTxtid(jrtxtid_t txtid);
+    virtual jError createTxtidFromGLTex(unsigned int tex, jrtxtid_t *txtid);
+    
+    virtual int getTextureWidth(jrtxtid_t tex);
+    virtual int getTextureHeight(jrtxtid_t tex);
     
     /* Fogging methods ----------------------------------------------*/
 

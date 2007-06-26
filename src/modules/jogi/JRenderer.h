@@ -37,6 +37,12 @@ typedef enum {
 } jroutcode_t;
 
 typedef enum {
+    JR_FORMAT_RGB,
+    JR_FORMAT_RGBA,
+    JR_FORMAT_GREYSCALE
+} jrtxtformat_t;
+
+typedef enum {
     JR_HINT_FULLOPACITY   = 1,
     JR_HINT_ONE_BIT_ALPHA = 2,
     JR_HINT_GREYSCALE     = 4
@@ -186,12 +192,21 @@ public:
                                  unsigned int compression,
                                  jBool mipmap,
                                  jrtxtid_t *dst) = 0;
+    virtual jError createEmptyTexture(  jrtxtformat_t fmt,
+                                        int width, int height,
+                                        jrtxtid_t *dst) = 0;
 
     virtual jError destroyTexture(jrtxtid_t txtid) = 0;
 
     virtual jError setTexture(jrtxtid_t txtid) = 0;
     
     virtual void setWrapMode(jrtexdim_t dim, jrwrapmode_t mode) = 0;
+    
+    virtual unsigned int getGLTexFromTxtid(jrtxtid_t txtid) = 0;
+    virtual jError createTxtidFromGLTex(unsigned int tex, jrtxtid_t *txtid) = 0;
+    
+    virtual int getTextureWidth(jrtxtid_t tex) = 0;
+    virtual int getTextureHeight(jrtxtid_t tex) = 0;
     
     /* Fogging methods ----------------------------------------------*/
 

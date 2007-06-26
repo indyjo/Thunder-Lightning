@@ -358,6 +358,49 @@ jError JOpenGLRenderer::createTexture(const jsprite_t *sprite,
     return JERR_OK;
 }
 
+jError JOpenGLRenderer::createEmptyTexture(jrtxtformat_t format, int width, int height, jrtxtid_t *dst)
+{
+    int tex;
+    GLuint tex_name;
+
+    glGenTextures(1, &tex_name);
+    glBindTexture(GL_TEXTURE_2D, tex_name);
+
+    tex=findFreeTexture();
+    if (tex==-1) {
+        return JERR_NOT_ENOUGH_MEMORY;
+    }
+    *dst=tex;
+    texture[tex].used=true;
+    texture[tex].gl_tex_name=tex_name;
+    texture[tex].size_w=width;
+    texture[tex].size_h=height;
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    GLenum gl_format;
+    switch( format ) {
+    case JR_FORMAT_RGB:
+        gl_format = GL_RGB;
+        break;
+    case JR_FORMAT_RGBA:
+        gl_format = GL_RGBA;
+        break;
+    case JR_FORMAT_GREYSCALE:
+        gl_format = GL_LUMINANCE;
+        break;
+    }
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, gl_format,
+        width, height, 0,
+        GL_RGB, GL_UNSIGNED_BYTE,
+        NULL);
+
+    return JERR_OK;
+}
 
 jError JOpenGLRenderer::destroyTexture(jrtxtid_t txtid)
 {
@@ -385,6 +428,38 @@ void JOpenGLRenderer::setWrapMode( jrtexdim_t dim, jrwrapmode_t mode)
     else param = GL_CLAMP_TO_EDGE;
 
     glTexParameteri(GL_TEXTURE_2D, pname, param);
+}
+
+unsigned int JOpenGLRenderer::getGLTexFromTxtid(jrtxtid_t txtid)
+{
+    return (unsigned int) texture[txtid].gl_tex_name;
+}
+
+jError JOpenGLRenderer::createTxtidFromGLTex(unsigned int gltex, jrtxtid_t *txtid)
+{
+    int tex=findFreeTexture();
+    if (tex==-1) {
+        return JERR_NOT_ENOUGH_MEMORY;
+    }
+
+    *txtid=(jrtxtid_t) tex;
+    texture[tex].used=true;
+    texture[tex].gl_tex_name=gltex;
+    
+    glPushAttrib(GL_TEXTURE_BIT);
+    glBindTexture(GL_TEXTURE_2D, gltex);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &texture[tex].size_w);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &texture[tex].size_h);
+    glPopAttrib();
+}
+
+int JOpenGLRenderer::getTextureWidth(jrtxtid_t tex)
+{
+    return texture[tex].size_w;
+}
+int JOpenGLRenderer::getTextureHeight(jrtxtid_t tex)
+{
+    return texture[tex].size_h;
 }
 
 void JOpenGLRenderer::setFogColor(const jcolor3_t *col)
