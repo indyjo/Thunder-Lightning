@@ -4,6 +4,7 @@
 
 #include <interfaces/ICamera.h>
 #include <interfaces/IGame.h>
+#include <modules/camera/SimpleCamera.h>
 #include <modules/jogi/JRenderer.h>
 #include <debug.h>
 #include "RenderPass.h"

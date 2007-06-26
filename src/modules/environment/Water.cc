@@ -8,10 +8,10 @@
 
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
+#include <modules/camera/SimpleCamera.h>
 #include <modules/clock/clock.h>
 #include <modules/jogi/JRenderer.h>
 
-#include <RenderContext.h>
 #include <RenderPass.h>
 #include <tnl.h>
 
@@ -29,7 +29,6 @@ class WaterImpl : public SigObject
     // number of tiles to draw in each dimension
     int tiles_num;
     double age;
-    Ptr<RenderPass> render_pass;
 
 public:
     WaterImpl(Ptr<IGame> game) {
@@ -45,15 +44,6 @@ public:
         
         const char *extensions = "GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader";
         if (glewIsSupported(extensions)) {
-            render_pass = thegame->getRenderPassList()->createRenderPass();
-            render_pass->setEnabled(true);
-            render_pass->setResolution(
-                cfg->queryInt("Game_mirror_texture_size", 512),
-                cfg->queryInt("Game_mirror_texture_size", 512));
-            render_pass->setRenderToTexture(true);
-            render_pass->preScene().connect(
-                SigC::slot(*this, &WaterImpl::updateContext));
-            
             ls_message("Compiling vertex shader.\n");
             vertex_shader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
             readShader(vertex_shader, cfg->query("Water_vertex_shader"));
@@ -92,8 +82,8 @@ public:
         }
     }
     
-    void updateContext(Ptr<RenderPass>) {
-        RenderContext ctx = RenderContext::MirroredRenderContext(thegame->getCamera());
+    void updateContext(Ptr<RenderPass> render_pass, Ptr<ICamera> cam) {
+        RenderContext ctx = RenderContext::MirroredRenderContext(cam);
         render_pass->setRenderContext(ctx);
         render_pass->setRenderContextEnabled(true);
     }
@@ -101,9 +91,7 @@ public:
     void draw() {
         age += thegame->getClock()->getFrameDelta();
         
-        if (!render_pass) {
-            return;
-        }
+        Ptr<RenderPass> render_pass = thegame->getCurrentContext()->mirror_pass;
         
         Vector campos = thegame->getCamera()->getLocation();
         
@@ -113,7 +101,8 @@ public:
         int tile_z_end = tile_z_begin + tiles_num;
         
         glActiveTexture(GL_TEXTURE0_ARB);
-        glBindTexture(GL_TEXTURE_2D, render_pass->getTexture());
+        glBindTexture(GL_TEXTURE_2D,
+            thegame->getRenderer()->getGLTexFromTxtid(render_pass->getTexture()->getTxtid()));
         glEnable(GL_TEXTURE_2D);
 
         glActiveTexture(GL_TEXTURE1_ARB);
@@ -225,6 +214,26 @@ public:
             return false;
         }
     }
+    
+    Ptr<RenderPass> createRenderPass() {
+        Ptr<RenderPass> render_pass = thegame->getRenderPassList()->createRenderPass();
+        render_pass->setEnabled(true);
+        render_pass->setResolution(
+            cfg->queryInt("Game_mirror_texture_size", 512),
+            cfg->queryInt("Game_mirror_texture_size", 512));
+        render_pass->setRenderToTexture(true);
+        
+        // only enable the render pass if shader extensions are supported
+        const char *extensions = "GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader";
+        render_pass->setEnabled(glewIsSupported(extensions));
+        
+        return render_pass;
+    }
+    
+    void linkRenderPassToCamera(Ptr<RenderPass> render_pass, Ptr<ICamera> cam) {
+        render_pass->preScene().connect(
+            SigC::bind(SigC::slot(*this, &WaterImpl::updateContext), cam));
+    }
 
 }; // class WaterImpl
 
@@ -236,5 +245,13 @@ Water::~Water() { }
 
 void Water::draw() {
     pImpl->draw();
+}
+
+Ptr<RenderPass> Water::createRenderPass() {
+    return pImpl->createRenderPass();
+}
+
+void Water::linkRenderPassToCamera(Ptr<RenderPass> render_pass, Ptr<ICamera> cam) {
+    pImpl->linkRenderPassToCamera(render_pass, cam);
 }
 

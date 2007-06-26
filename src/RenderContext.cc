@@ -1,12 +1,12 @@
-#include <interfaces/ICamera.h>
 #include <modules/math/MatrixVector.h>
 #include <modules/camera/SimpleCamera.h>
+#include <RenderPass.h>
 #include "RenderContext.h"
 
-RenderContext RenderContext::MainRenderContext(Ptr<ICamera> cam) {
+RenderContext RenderContext::MainRenderContext(Ptr<ICamera> cam, Ptr<RenderPass> mirror_pass) {
     RenderContext c;
     c.type = MAIN;
-    c.camera = cam;
+    c.camera = new SimpleCamera(cam);
     c.clip_above_water = false;
     c.clip_below_water = false;
     c.draw_skybox = true;
@@ -15,6 +15,7 @@ RenderContext RenderContext::MainRenderContext(Ptr<ICamera> cam) {
     c.draw_water = true;
     c.draw_gunsight = true;
     c.draw_console = true;
+    c.mirror_pass = mirror_pass;
     
     return c;
 }

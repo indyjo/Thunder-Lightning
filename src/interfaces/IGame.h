@@ -12,6 +12,7 @@ class Clock;
 class Environment;
 class SoundMan;
 class IoScriptingManager;
+class Water;
 
 struct IActor;
 struct IConfig;
@@ -50,6 +51,7 @@ struct IGame : virtual public Object, virtual public IActorStage
     virtual Ptr<IDrawable> getGunsight()=0;
     virtual void setGunsight(Ptr<IDrawable>)=0;
     virtual Ptr<Environment> getEnvironment()=0;
+    virtual Ptr<Water> getWater()=0;
     virtual Ptr<IFontMan> getFontMan()=0;
     virtual Ptr<SoundMan> getSoundMan()=0;
     virtual Ptr<Collide::CollisionManager> getCollisionMan()=0;

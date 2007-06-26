@@ -437,6 +437,10 @@ Ptr<Environment> Game::getEnvironment() {
     return environment;
 }
 
+Ptr<Water> Game::getWater() {
+    return water;
+}
+
 Ptr<IoScriptingManager> Game::getIoScriptingManager() {
 	return io_scripting_manager;
 }
@@ -599,7 +603,8 @@ void Game::updateSound() {
 }
 
 void Game::setupMainRender() {
-    RenderContext ctx = RenderContext::MainRenderContext(getCamera());
+    RenderContext ctx = RenderContext::MainRenderContext(getCamera(), water->createRenderPass());
+    water->linkRenderPassToCamera(ctx.mirror_pass, getCamera());
     getMainRenderPass()->setRenderContext(ctx);
     getMainRenderPass()->setRenderContextEnabled(true);
 }

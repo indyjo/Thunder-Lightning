@@ -3,8 +3,8 @@
 
 #include <object.h>
 
-struct ICamera;
-
+struct SimpleCamera;
+class RenderPass;
 
 /// A RenderContext if a description of how and what to draw in the scene.
 /// IDrawable implementors can query the game's current RenderContext by calling
@@ -16,7 +16,7 @@ struct RenderContext {
     /// night vision) should add an own type name.
     enum {MAIN, MIRROR} type;
     
-    Ptr<ICamera> camera;
+    Ptr<SimpleCamera> camera;
     bool clip_above_water, clip_below_water;
     bool    draw_skybox,
             draw_terrain,
@@ -25,8 +25,12 @@ struct RenderContext {
             draw_gunsight,
             draw_console;
     
-    /// Sets up a main render with the given camera
-    static RenderContext MainRenderContext(Ptr<ICamera>);
+    /// The render pass which provides the water's reflection texture
+    Ptr<RenderPass> mirror_pass;
+    
+    /// Sets up a main render with the given camera using the texture of 
+    /// mirror_pass to draw the water surface
+    static RenderContext MainRenderContext(Ptr<ICamera>, Ptr<RenderPass> mirror_pass);
     /// Mirrors the given camera and sets up a mirror render with it.
     static RenderContext MirroredRenderContext(Ptr<ICamera>);
 };

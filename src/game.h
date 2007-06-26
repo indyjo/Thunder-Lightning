@@ -45,6 +45,7 @@ public:
     virtual Ptr<IDrawable> getGunsight();
     virtual void setGunsight(Ptr<IDrawable>);
     virtual Ptr<Environment> getEnvironment();
+    virtual Ptr<Water> getWater();
     virtual Ptr<IFontMan> getFontMan();
     virtual Ptr<SoundMan> getSoundMan();
     virtual Ptr<Collide::CollisionManager> getCollisionMan();
