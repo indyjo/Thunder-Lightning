@@ -25,6 +25,7 @@ public:
     inline int getHeight() { return renderer.getTextureHeight(tex); }
     
     inline jrtxtid_t getTxtid() { return tex; }
+    inline unsigned int getGLTex() { return renderer.getGLTexFromTxtid(tex); }
 };
 
 typedef Ptr<Texture> TexPtr;
