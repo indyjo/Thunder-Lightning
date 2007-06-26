@@ -11,15 +11,17 @@
 #include <modules/clock/clock.h>
 #include <modules/jogi/JRenderer.h>
 
+#include <RenderContext.h>
+#include <RenderPass.h>
 #include <tnl.h>
 
 #include "Water.h"
 
-class WaterImpl : public Object
+class WaterImpl : public SigObject
 {
     JRenderer *r;
     float tile_size, tile_uvspan;
-    GLuint tex, bump_tex;
+    GLuint bump_tex;
     Ptr<IConfig> cfg;
     Ptr<IGame> thegame;
     bool all_ok;
@@ -27,6 +29,7 @@ class WaterImpl : public Object
     // number of tiles to draw in each dimension
     int tiles_num;
     double age;
+    Ptr<RenderPass> render_pass;
 
 public:
     WaterImpl(Ptr<IGame> game) {
@@ -42,19 +45,15 @@ public:
         
         const char *extensions = "GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader";
         if (glewIsSupported(extensions)) {
-            glGenTextures(1, &tex);
-            glBindTexture(GL_TEXTURE_2D, tex);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            render_pass = thegame->getRenderPassList()->createRenderPass();
+            render_pass->setEnabled(true);
+            render_pass->setResolution(
+                cfg->queryInt("Game_mirror_texture_size", 512),
+                cfg->queryInt("Game_mirror_texture_size", 512));
+            render_pass->setRenderToTexture(true);
+            render_pass->preScene().connect(
+                SigC::slot(*this, &WaterImpl::updateContext));
             
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
-                cfg->queryInt("Game_mirror_texture_size", 512),
-                cfg->queryInt("Game_mirror_texture_size", 512),
-                0,
-                GL_RGB, GL_BYTE, NULL);
-                
             ls_message("Compiling vertex shader.\n");
             vertex_shader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
             readShader(vertex_shader, cfg->query("Water_vertex_shader"));
@@ -88,27 +87,33 @@ public:
     
     ~WaterImpl() {
         if (all_ok) {
-            glDeleteTextures(1, &tex);
             glDeleteTextures(1, &bump_tex);
             glDeleteObjectARB(program);
         }
     }
     
+    void updateContext(Ptr<RenderPass>) {
+        RenderContext ctx = RenderContext::MirroredRenderContext(thegame->getCamera());
+        render_pass->setRenderContext(ctx);
+        render_pass->setRenderContextEnabled(true);
+    }
+    
     void draw() {
-        float clip_far = r->getClipFar();
-        
         age += thegame->getClock()->getFrameDelta();
+        
+        if (!render_pass) {
+            return;
+        }
         
         Vector campos = thegame->getCamera()->getLocation();
         
-
         int tile_x_begin = int(std::floor(campos[0] / tile_size) - tiles_num/2);
         int tile_z_begin = int(std::floor(campos[2] / tile_size) - tiles_num/2);
         int tile_x_end = tile_x_begin + tiles_num;
         int tile_z_end = tile_z_begin + tiles_num;
         
         glActiveTexture(GL_TEXTURE0_ARB);
-        glBindTexture(GL_TEXTURE_2D, tex);
+        glBindTexture(GL_TEXTURE_2D, render_pass->getTexture());
         glEnable(GL_TEXTURE_2D);
 
         glActiveTexture(GL_TEXTURE1_ARB);
@@ -166,21 +171,6 @@ public:
 
         glUseProgramObjectARB(0);
         glActiveTexture(GL_TEXTURE0_ARB);
-    }
-    
-    void copyTex() {
-        int sz = cfg->queryInt("Game_mirror_texture_size", 512);
-
-        glReadBuffer(GL_BACK);
-        glBindTexture(GL_TEXTURE_2D, tex);
-        glCopyTexImage2D(GL_TEXTURE_2D, 0,
-            GL_RGB,
-            0,0,sz,sz,
-            0);
-    }
-    
-    bool supportsMirrorTex() {
-        return all_ok;
     }
     
     void readShader(GLhandleARB shader, const char *filename) {
@@ -246,13 +236,5 @@ Water::~Water() { }
 
 void Water::draw() {
     pImpl->draw();
-}
-
-void Water::copyTex() {
-    pImpl->copyTex();
-}
-
-bool Water::supportsMirrorTex() {
-    return pImpl->supportsMirrorTex();
 }
 

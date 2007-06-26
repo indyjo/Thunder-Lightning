@@ -12,8 +12,6 @@ public:
     ~Water();
     
     void draw();
-    void copyTex();
-    bool supportsMirrorTex();
 };
 
 
