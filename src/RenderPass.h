@@ -2,7 +2,7 @@
 #define TNL_RENDERPASS_H
 
 #include <list>
-#include <GL/gl.h>
+#include <modules/texman/TextureManager.h>
 #include <modules/math/Vector.h>
 #include <RenderContext.h>
 #include <Weak.h>
@@ -63,7 +63,7 @@ public:
     /// Rendering can target a texture
     void setRenderToTexture(bool);
     bool isRenderToTexture();
-    GLuint getTexture();
+    Ptr<Texture> getTexture();
     
     /// The render context determines how the main scene gets drawn.
     void setRenderContext(const RenderContext &ctx);
@@ -84,14 +84,13 @@ private:
     void endRender(JRenderer *);
     
     void createTex();
-    void destroyTex();
 
     WeakPtr<RenderPassList> renderpasslist;
     bool enabled, context_enabled, rendertotex_enabled,
         clear_depth_enabled, clear_color_enabled;
     int width, height;
-    bool tex_created, tex_needs_update;
-    GLuint tex;
+    bool tex_needs_update;
+    Ptr<Texture> tex;
     RenderContext context;
     Vector background_color;
     RenderSignal pre_scene, post_scene;

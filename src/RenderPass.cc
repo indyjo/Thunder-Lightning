@@ -1,4 +1,7 @@
 #include <algorithm>
+
+#include <GL/gl.h>
+
 #include <interfaces/ICamera.h>
 #include <interfaces/IGame.h>
 #include <modules/jogi/JRenderer.h>
@@ -14,17 +17,13 @@ RenderPass::RenderPass(WeakPtr<RenderPassList> rpl)
     , clear_color_enabled(false)
     , width(256)
     , height(256)
-    , tex_created(false)
     , tex_needs_update(false)
-    , tex(0)
     , background_color(Vector(0,0,0))
 {
 }
 
 RenderPass::~RenderPass()
-{
-    destroyTex();
-}
+{ }
 
 void RenderPass::setEnabled(bool b) { enabled = b; }
 bool RenderPass::isEnabled() { return enabled; }
@@ -57,17 +56,16 @@ bool RenderPass::isClearColorEnabled() { return clear_color_enabled; }
 void RenderPass::setRenderToTexture(bool b) {
     rendertotex_enabled = b;
     if (b) {
-        if (!tex_created) tex_needs_update = true;
+        if (!tex) tex_needs_update = true;
     } else {
-        destroyTex();
+        tex = 0;
         tex_needs_update = false;
     }
 }
 bool RenderPass::isRenderToTexture() { return rendertotex_enabled; }
 
-GLuint RenderPass::getTexture() {
+Ptr<Texture> RenderPass::getTexture() {
     if (tex_needs_update) {
-        destroyTex();
         createTex();
     }
     return tex;
@@ -101,13 +99,12 @@ void RenderPass::endRender(JRenderer* r) {
     postScene().emit(this);
     
     if (tex_needs_update) {
-        destroyTex();
         createTex();
     }
     
     if (rendertotex_enabled) {
         glReadBuffer(GL_BACK);
-        glBindTexture(GL_TEXTURE_2D, tex);
+        r->setTexture(tex->getTxtid());
         glCopyTexImage2D(GL_TEXTURE_2D, 0,
             GL_RGB,
             0,0,width,height,
@@ -116,29 +113,20 @@ void RenderPass::endRender(JRenderer* r) {
 }
 
 void RenderPass::createTex() {
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    Ptr<RenderPassList> rpl = renderpasslist.lock();
+    if (!rpl) return;
+    Ptr<IGame> game = rpl->thegame.lock();
+    if (!game) return;
+    JRenderer *renderer = game->getRenderer();
     
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
-        width,
-        height,
-        0,
-        GL_RGB, GL_BYTE, NULL);
+    jrtxtid_t txtid;
+    renderer->createEmptyTexture(JR_FORMAT_RGB, width, height, &txtid);
+    tex = new Texture(txtid, *renderer);
+    renderer->setTexture(tex->getTxtid());
+    renderer->setWrapMode(JR_TEXDIM_U, JR_WRAPMODE_CLAMP);
+    renderer->setWrapMode(JR_TEXDIM_V, JR_WRAPMODE_CLAMP);
         
     tex_needs_update = false;
-    tex_created = true;
-}
-
-void RenderPass::destroyTex() {
-    if (tex_created) {
-        glDeleteTextures(1, &tex);
-        tex = 0;
-        tex_created = false;
-    }
 }
 
 RenderPassList::RenderPassList(WeakPtr<IGame> game)
@@ -234,16 +222,9 @@ void RenderPassList::drawMosaic() {
         ls_message("Mosaic tile. r=%d c=%d center_x=%d center_y=%d sz=%d\n",
             r,c,center_x,center_y,sz);
         
-        GLuint tex = pass->getTexture();
+        GLuint tex = pass->getTexture()->getGLTex();
         
         glColor3f(1,1,1);
-
-        glBegin(GL_LINE_LOOP);
-        glVertex2i( center_x - sz, center_y - sz);
-        glVertex2i( center_x - sz, center_y + sz);
-        glVertex2i( center_x + sz, center_y + sz);
-        glVertex2i( center_x + sz, center_y - sz);
-        glEnd();
 
         glBindTexture(GL_TEXTURE_2D, tex);
         glEnable(GL_TEXTURE_2D);
@@ -264,7 +245,7 @@ void RenderPassList::drawMosaic() {
         
         glDisable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
-        
+
         ++idx;
     }
     
