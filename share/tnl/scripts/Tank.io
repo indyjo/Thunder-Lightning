@@ -397,8 +397,14 @@ Tank do (
     )
   )
   
-  on("start_ai", ai start(self); writeln("AI of Tank ", self identify, " started"))
-  on("stop_ai", ai interrupt; writeln("AI of Tank ", self identify, " interrupted"))
+    on("start_ai",
+        self _ai := ai clone start(self)
+        ("AI of Tank ".. self uniqueHexId .. " started") println
+    )
+    on("stop_ai",
+        _ai interrupt
+        ("AI of Tank ".. self uniqueHexId .. " interrupted") println
+    )
 
 )
 
