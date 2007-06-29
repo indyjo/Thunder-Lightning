@@ -14,7 +14,11 @@ public:
     static int no_collide_tag;
 
     Bullet(IGame *thegame, Ptr<IActor> source=0, float factor=1);
+    ~Bullet();
 
+    virtual void onLinked();
+    virtual void onUnlinked();
+    
     virtual void action();
 
     virtual void draw();

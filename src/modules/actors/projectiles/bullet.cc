@@ -39,8 +39,19 @@ Bullet::Bullet(IGame *thegame, Ptr<IActor> source, float factor)
     setActor(this);
     
     setNoCollideTag(&no_collide_tag);
+}
 
+Bullet::~Bullet() {
+};
+
+void Bullet::onLinked() {
+    SimpleActor::onLinked();
     thegame->getCollisionMan()->add(this);
+}
+
+void Bullet::onUnlinked() {
+    SimpleActor::onUnlinked();
+    thegame->getCollisionMan()->remove(this);
 }
 
 void Bullet::action()
@@ -125,7 +136,6 @@ void Bullet::collide(const Collide::Contact & c) {
 
 void Bullet::die() {
     state = DEAD;
-    thegame->getCollisionMan()->remove(this);
 }
 
 void Bullet::explode(bool direct_hit) {
