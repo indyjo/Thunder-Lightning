@@ -9,7 +9,10 @@ Collector setAllocatedStep(1.1)
 
 #Collector collect
 
+doFile(Config query("data_dir") .. "/scripts/defaults1.io")
 doFile(Config query("data_dir") .. "/scripts/config.io")
+doFile(Config query("data_dir") .. "/scripts/defaults2.io")
+
 AddonLoader appendSearchPath( (Config base_dir) .. "/lib/io/addons")
 
 "Io: Exiting init.io\n" print
