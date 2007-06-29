@@ -10,11 +10,6 @@
 #include <modules/clock/clock.h>
 #include <modules/LoDTerrain/LoDTerrain.h>
 #include <modules/skybox/skybox.h>
-#include <modules/actors/drone/drone.h>
-#include <modules/actors/projectiles/bullet.h>
-#include <modules/actors/projectiles/dumbmissile.h>
-#include <modules/actors/projectiles/smartmissile.h>
-#include <modules/actors/tank/tank.h>
 #include <modules/environment/environment.h>
 #include <modules/environment/Water.h>
 #include <modules/model/model.h>
@@ -26,7 +21,6 @@
 #include <modules/ui/Surface.h>
 #include <modules/scripting/IoScriptingManager.h>
 #include <modules/scripting/mappings.h>
-#include <modules/actors/RigidActor.h>
 #include <modules/actors/Observer.h>
 #include <modules/config/config.h>
 #include <RenderContext.h>
@@ -342,8 +336,6 @@ void Game::run()
         IoState_popRetainPool(io_scripting_manager->getMainState());
     }
     
-    //Object::debug();
-    
     removeAllActors();
     current_view = 0;
     previous_view = 0;
@@ -355,7 +347,6 @@ void Game::run()
 
     camera = 0;
     clock = 0;
-    config = 0;
     fontman = 0;
 	soundman->shutdown();
     soundman = 0;
@@ -367,7 +358,7 @@ void Game::run()
     environment = 0;
     water = 0;
     io_scripting_manager = 0;
-    ls_message("exiting with %d references left.\n", getRefs());
+    console = 0;
     SDL_WM_GrabInput(SDL_GRAB_OFF);
     SDL_ShowCursor(SDL_ENABLE);
 }
@@ -549,9 +540,6 @@ void Game::doEvents()
 
 void Game::setupRenderer()
 {
-    renderer->setClipRange(environment->getClipMin(),
-                           environment->getClipMax());
-
     Vector col = environment->getFogColor();
     col *= 256.0;
     jcolor3_t fog_col;
@@ -645,6 +633,8 @@ void Game::renderWithContext(const RenderContext *ctx)
     JCamera jcamera;
     this->camera->getCamera(&jcamera);
     renderer->setCamera(&jcamera.cam);
+    renderer->setClipRange(camera->getNearDistance(),
+                           camera->getFarDistance());
     
     environment->update(this->camera);
     
@@ -865,8 +855,15 @@ void Game::actionTriggered(const char *action) {
 int main(int argc, char *argv[])
 {
     try {
-        Game *game = new Game(argc, (const char**)argv);
+        Ptr<Game> game = new Game(argc, (const char**)argv);
         game->run();
+        if (game->getRefs() > 1) {
+            ls_warning("Game still has %d references. Killing Game.\n", game->getRefs());
+            Object::debug();
+            Game * g = ptr(game);
+            game = 0;
+            delete g;
+        }
     } catch (std::exception & e) {
         ls_error("Caught exception: %s\n", e.what());
 #ifndef NDEBUG

@@ -3,8 +3,6 @@
 #include <cstring>
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <IL/il.h>
-#include <IL/ilut.h>
 
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
