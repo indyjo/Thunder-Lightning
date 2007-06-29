@@ -37,8 +37,6 @@ public:
 
     void explode();
 
-    void shoot();
-
     virtual bool hasControlMode(ControlMode);
     virtual void setControlMode(ControlMode);
 

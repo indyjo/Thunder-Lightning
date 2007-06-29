@@ -1,12 +1,9 @@
 #include <string>
 #include <modules/clock/clock.h>
 #include <modules/actors/fx/SpecialEffects.h>
-#include <modules/actors/projectiles/bullet.h>
-#include <modules/actors/fx/smoketrail.h>
 #include <modules/gunsight/gunsight.h>
 #include <sigc++/bind.h>
 #include "tank.h"
-//#include "ai.h"
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
 #include <interfaces/IModelMan.h>
@@ -26,13 +23,6 @@
 #define PI 3.14159265358979323846
 
 #define RADIUS 6.0f
-
-#define RAND ((float) rand() / (float) RAND_MAX)
-#define RAND2 ((float) rand() / (float) RAND_MAX * 2.0 - 1.0)
-
-#define MUZZLE_VELOCITY 1700.0f
-#define BULLET_RANGE 10000.0f
-#define BULLET_TTL (BULLET_RANGE / MUZZLE_VELOCITY)
 
 
 struct TurretView: public SimpleView {
@@ -346,32 +336,6 @@ void Tank::explode() {
     tankFinalExplosion(thegame, this);
     sound_high->stop();
     sound_low->stop();
-}
-
-
-void Tank::shoot() {
-    Vector p_bullet = skeleton->getPoint("CannonTip");
-    Vector d_bullet = skeleton->getPoint("CannonTip2") - p_bullet;
-    Vector v_bullet = MUZZLE_VELOCITY * d_bullet;
-
-    Ptr<Bullet> bullet = new Bullet(ptr(thegame), this, 2.5f);
-    bullet->setTTL(BULLET_TTL);
-    bullet->shoot(p_bullet, v_bullet, d_bullet);
-    //bullet->setNoCollideParent(this);
-    thegame->addActor(bullet);
-
-    Ptr<SoundSource> snd_src = thegame->getSoundMan()->requestSource();
-    snd_src->setPosition(p_bullet);
-    snd_src->play(thegame->getSoundMan()->querySound(
-            thegame->getConfig()->query("Tank_cannon_sound")));
-    thegame->getSoundMan()->manage(snd_src);
-
-    /*
-    Ptr<SmokeTrail> trail = new SmokeTrail(thegame);
-    trail->follow(bullet);
-    thegame->addActor(trail);
-    thegame->addActor(new Explosion(thegame, p_bullet, 0.5f, 0.0f));
-    */
 }
 
 void Tank::integrate(float delta_t, Transform * transforms) {
