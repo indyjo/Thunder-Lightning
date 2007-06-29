@@ -47,6 +47,8 @@ public:
     void setPitch(float);
     void setGain(float);
     void setReferenceDistance(float);
+    void setMinGain(float);
+    void setMaxGain(float);
 
     void play(Ptr<Sound> snd);
     void pause();
@@ -59,6 +61,8 @@ public:
     bool   isLooping();
     float  getGain();
     float  getReferenceDistance();
+    float  getMinGain();
+    float  getMaxGain();
     
     inline const Ptr<Sound> & getSound() {return sound; }
     

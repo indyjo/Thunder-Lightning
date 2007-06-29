@@ -46,28 +46,9 @@ static void alCheck() {
 Sound::Sound( const string & filename ) {
     ls_message("Sound::Sound('%s')\n", filename.c_str());
     alGetError(); // reset error state
-    alGenBuffers( 1, & buffer );
-    
-    ALsizei size, freq, bits;
-    ALenum format;
-    ALvoid *data;
-    ALboolean loop, err;
-
-    //err = alutLoadWAV(filename.c_str(), &data, &format, &size, &bits, &freq);
-    /*
-    if(err == AL_FALSE) {
-        ls_error("Sound: Could not load %s\n", filename.c_str());
-    }
-    */
-    #ifdef MACINTOSH_AL
-    alutLoadWAVFile((ALbyte*)filename.c_str(), &format, &data, &size, &freq);
-    #else
-    alutLoadWAVFile((ALbyte*)filename.c_str(), &format, &data, &size, &freq, &loop);
-    #endif
-
-    alBufferData(buffer, format, data, size, freq);
-    ALenum e;
-    if ((e=alGetError())!=AL_NO_ERROR) {
+    buffer = alutCreateBufferFromFile(filename.c_str());
+    ALenum e = alGetError();
+    if (e != AL_NO_ERROR) {
         ls_error("Sound error: \n");
         switch(e) {
         //case AL_INVALID_OPERATION: ls_error("INVALID_OPERATION\n"); break;
@@ -142,6 +123,14 @@ void SoundSource::setReferenceDistance(float dist) {
     alSourcef(source, AL_REFERENCE_DISTANCE, dist);
 }
 
+void SoundSource::setMinGain(float gain) {
+    alSourcef(source, AL_MIN_GAIN, gain );
+}
+
+void SoundSource::setMaxGain(float gain) {
+    alSourcef(source, AL_MAX_GAIN, gain );
+}
+
 void SoundSource::play(Ptr<Sound> sound) {
     this->sound = sound;
     ALuint buffer = sound->getResource();
@@ -213,6 +202,18 @@ float  SoundSource::getReferenceDistance() {
     float d;
     alGetSourcef(source, AL_REFERENCE_DISTANCE, &d);
     return d;
+}
+
+float  SoundSource::getMinGain() {
+    float g;
+    alGetSourcef(source, AL_MIN_GAIN, &g);
+    return g;
+}
+
+float  SoundSource::getMaxGain() {
+    float g;
+    alGetSourcef(source, AL_MAX_GAIN, &g);
+    return g;
 }
 
 bool SoundSource::isPlaying() {
@@ -380,10 +381,13 @@ SoundMan::SoundMan(Ptr<IConfig> config)
     play_channels = config->queryInt("SoundMan_channels", 32);
     minimum_gain = config->queryFloat("SoundMan_minimum_gain", 0.001f);
     hysteresis = config->queryFloat("SoundMan_hysteresis", 0.0001f);
+    
+    alutInitWithoutContext(NULL, NULL);
     ls_message("done.\n");
 }
 
 SoundMan::~SoundMan() {
+    alutExit();
     alcDestroyContext( (ALCcontext*) context );
     alcCloseDevice( device );
     ls_message("SoundMan shutdown complete.\n");
