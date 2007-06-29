@@ -12,5 +12,7 @@ childof Hull DeckTower 0 0 0
 childof Hull Radom 0 0 0
 childof Hull DockingBay 0 0 0
 childof Hull BayDoor 0 5.105 -49.987
+childof Hull Turret 22.908 28.064 -18.621
+childof Turret Cannon 22.908 29.255 -18.621
 
 
