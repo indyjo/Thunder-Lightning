@@ -44,19 +44,19 @@ void LoadingScreen::update(Status * stat) {
         
     r->begin(JR_DRAWMODE_TRIANGLE_FAN);
     {
-        r->setUVW(Vector(0,0,0));
+        r->setUVW(Vector(0,1,0));
         r->vertex(Vector(0,0,0));
         
-        r->setUVW(Vector(1,0,0));
+        r->setUVW(Vector(1,1,0));
         r->vertex(Vector(surf.getWidth(),0,0));
         
-        r->setUVW(Vector(1,1,0));
+        r->setUVW(Vector(1,0,0));
         r->vertex(Vector(surf.getWidth(), surf.getHeight(), 0));
         
-        r->setUVW(Vector(0,1,0));
+        r->setUVW(Vector(0,0,0));
         r->vertex(Vector(0, surf.getHeight(), 0));
         
-        r->setUVW(Vector(0,0,0));
+        r->setUVW(Vector(0,1,0));
         r->vertex(Vector(0,0,0));
     }
     r->end();

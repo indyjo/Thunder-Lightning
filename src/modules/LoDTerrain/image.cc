@@ -199,14 +199,14 @@ Image::Image(const char *filename)
         }
     }
 
-    /* Finally read the pixel data, flip if necessary */
+    /* Finally read the pixel data, flip if necessary ( we want the origin
+       to be in the bottom-left corner) */
     if( (header.descriptor & ORIGIN_MASK) == UPPER_LEFT ) {
-        fread(pixels, 1, w * h, in);
-    } else {
-        //printf("BOTTOM-UP\n");
         for(i=0; i<h; i++) {
             fread(&pixels[(h-i-1)*w], 1, w, in);
         }
+    } else {
+        fread(pixels, 1, w * h, in);
     }
 
     /* Close file */

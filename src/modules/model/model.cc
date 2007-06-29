@@ -279,7 +279,7 @@ void MObject::draw(JRenderer & r)
 
                 if (corner.t>=0) {
                     r.setUVW(Vector(meshdata->texcoords[corner.t][0],
-                             1-meshdata->texcoords[corner.t][1],
+                             meshdata->texcoords[corner.t][1],
                              0));
                 }
                 r.setNormal(meshdata->normals[corner.n]);

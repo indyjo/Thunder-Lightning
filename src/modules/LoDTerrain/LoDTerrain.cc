@@ -103,9 +103,9 @@ void LoDQuad::init (IGame * the_game, std::istream & in, LoDQuad ** neighbor,
     
     // Measure dimensions and calc texture coords
     float x0 = vx[triangle[0].vertex[2]];
-    float z0 = vz[triangle[0].vertex[2]];
+    float z0 = vz[triangle[0].vertex[0]];
     float dx = vx[triangle[0].vertex[1]] - x0;
-    float dz = vz[triangle[0].vertex[0]] - z0;
+    float dz = vz[triangle[0].vertex[2]] - z0;
     stat.beginJob("Calculating texture coordinates", vertices);
     for (i=0; i<vertices; i++) {
         tex_u[i] = (vx[i] - x0) / dx;

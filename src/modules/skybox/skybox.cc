@@ -74,10 +74,10 @@ void SkyBox::draw()
     float D = thegame->getEnvironment()->getClipMax() / 1.75;
     
     Vector uvw[4];
-    uvw[0] = Vector(0,0,0);
-    uvw[1] = Vector(1,0,0);
-    uvw[2] = Vector(1,1,0);
-    uvw[3] = Vector(0,1,0);
+    uvw[0] = Vector(0,1,0);
+    uvw[1] = Vector(1,1,0);
+    uvw[2] = Vector(1,0,0);
+    uvw[3] = Vector(0,0,0);
     
     for(int i=0; i<6; i++) {
         renderer->setTexture(textures[i]->getTxtid());

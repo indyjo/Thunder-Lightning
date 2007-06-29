@@ -166,7 +166,7 @@ jError JSprite::loadPNG(istream & in)
     
     png_bytep* row_pointers = new png_bytep[height];
     for(int i=0; i<height; i++)
-        row_pointers[i] = (png_bytep) &sprite.buf[i*width];
+        row_pointers[height-i-1] = (png_bytep) &sprite.buf[i*width];
     png_read_image(png_ptr, row_pointers);
     delete [] row_pointers;
     
