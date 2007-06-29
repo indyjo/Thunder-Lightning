@@ -59,6 +59,13 @@ jError JSprite::load(istream &in)
     } else return JERR_FILEFORMAT;
 }
 
+jError JSprite::load(const char *filename) {
+    ifstream in(filename);
+    if (!in) return JERR_FILE_NOT_FOUND;
+    
+    return load(in);
+}
+
 jError JSprite::loadSPR(istream & in)
 {
     jspriteheader_t header;

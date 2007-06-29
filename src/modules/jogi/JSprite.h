@@ -12,6 +12,8 @@ public:
     
     jError load(std::istream &in);
     jError save(std::ostream &out);
+    jError load(const char *filename);
+    jError save(const char *filename);
     
 protected:
     jError loadSPR(std::istream &in);
