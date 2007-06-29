@@ -162,7 +162,7 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
             sweep_n_prune.set(i->first, min_x - r, max_x + r);
         }
 
-        possible_contacts.clear();
+        ContactList possible_contacts;
         sweep_n_prune.findContacts(possible_contacts);
 
         // Now that we have our test candidates we feed them into the collision

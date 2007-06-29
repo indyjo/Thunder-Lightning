@@ -36,7 +36,6 @@ class CollisionManager : virtual public Object {
     GeomInstances geom_instances;
     std::priority_queue<PossibleContact> queue;
     SweepNPrune<Ptr<Collidable>, float> sweep_n_prune;
-    ContactList possible_contacts;
     std::map<std::string, Ptr<BoundingGeometry> > bounding_geometries;
 
 public:
