@@ -254,7 +254,8 @@ void Drone::onLinked() {
     engine_sound_src->setPosition(getLocation());
     engine_sound_src->setVelocity(getMovementVector());
     engine_sound_src->setLooping(true);
-    engine_sound_src->setGain(thegame->getConfig()->queryFloat("Drone_engine_gain"));
+    engine_sound_src->setMaxGain(thegame->getConfig()->queryFloat("Drone_engine_max_gain", 1.0f));
+    engine_sound_src->setReferenceDistance(thegame->getConfig()->queryFloat("Drone_engine_reference_distance", 1.0f));
     engine_sound_src->play(thegame->getSoundMan()->querySound(
             thegame->getConfig()->query("Drone_engine_sound")));
             
@@ -386,6 +387,7 @@ void Drone::action() {
 
     engine_sound_src->setPosition(getLocation());
     engine_sound_src->setVelocity(getMovementVector());
+    engine_sound_src->setMaxGain(thegame->getConfig()->queryFloat("Drone_engine_max_gain", 1.0f));
 }
 
 void Drone::kill() {
