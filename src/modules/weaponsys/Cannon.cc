@@ -23,11 +23,14 @@ void Cannon::onFire() {
     Vector right = position->getRightVector();
     Vector up = position->getUpVector();
 
+    Ptr<IConfig> cfg = game->getConfig();
+    
     Ptr<SoundSource> snd_src = game->getSoundMan()->requestSource();
     snd_src->setPosition(start);
     snd_src->setVelocity(move);
-    snd_src->play(game->getSoundMan()->querySound(
-            game->getConfig()->query("Cannon_sound")));
+    snd_src->setGain(cfg->queryFloat(name+"_gain", 1.0f));
+    snd_src->setReferenceDistance(cfg->queryFloat(name+"_reference_distance", 1.0f));
+    snd_src->play(game->getSoundMan()->querySound( cfg->query(name+"_sound")));
     game->getSoundMan()->manage(snd_src);
 
     Vector deviation(0,0,0);
@@ -35,7 +38,7 @@ void Cannon::onFire() {
     	deviation += Vector(RAND2,RAND2,0);
     deviation *= 0.001/5;
     
-    float muzzle_velocity = game->getConfig()->queryFloat("Cannon_muzzle_velocity", 1200);
+    float muzzle_velocity = cfg->queryFloat(name+"_muzzle_velocity", 1200);
     move += muzzle_velocity * (front + right*deviation[0] + up*deviation[1]);
 
     game->addActor(projectile);
