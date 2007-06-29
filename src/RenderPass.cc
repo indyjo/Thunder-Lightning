@@ -266,7 +266,7 @@ void RenderPassList::move(WeakPtr<RenderPass> pass, WeakPtr<RenderPass> behind_p
     if (i1 == render_passes.end()) {
         return;
     }
-    Iter i2 = std::find(i1, render_passes.end(), pass);
+    Iter i2 = std::find(i1, render_passes.end(), behind_pass);
     if (i2 != render_passes.end()) {
         // we have to move pass ( at i1) behind behind_pass ( at i2)
         render_passes.erase(i1);
