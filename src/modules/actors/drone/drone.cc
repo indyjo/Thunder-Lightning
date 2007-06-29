@@ -3,10 +3,7 @@
 #include <string>
 #include <sigc++/bind.h>
 #include <modules/actors/fx/SpecialEffects.h>
-#include <modules/actors/projectiles/bullet.h>
-#include <modules/actors/projectiles/dumbmissile.h>
-#include <modules/actors/projectiles/smartmissile.h>
-#include <modules/actors/projectiles/smartmissile2.h>
+#include <modules/camera/SimpleCamera.h>
 #include <modules/clock/clock.h>
 #include <modules/engines/effectors.h>
 #include <modules/engines/rigidengine.h>
@@ -38,20 +35,6 @@
 #define RADIUS 10.0f
 
 #define CURRENT_IDEA_BONUS 0.05f
-
-#define BULLET_SPEED 900.0f
-#define DUMBMISSILE_SPEED 200.0f
-#define SMARTMISSILE_SPEED 80.0f
-
-#define BULLET_RANGE 1000.0f
-#define BULLET_TTL (BULLET_RANGE / BULLET_SPEED)
-
-#define PRIMARY_RELOAD_TIME 0.03f
-#define SECONDARY_RELOAD_TIME 0.3f;
-
-#define RAND ((float) rand() / (float) RAND_MAX)
-#define RAND2 ((float) rand() / (float) RAND_MAX * 2.0 - 1.0)
-
 
 struct TargetView: public SimpleView {
 	Ptr<Targeter> targeter;
