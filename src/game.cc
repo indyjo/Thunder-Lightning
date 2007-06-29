@@ -5,9 +5,6 @@
 #include <algorithm>
 #include <sigc++/bind.h>
 #include <GL/glew.h>
-#include <IL/il.h>
-#include <IL/ilu.h>
-#include <IL/ilut.h>
 #include <modules/math/Vector.h>
 #include <modules/camera/camera.h>
 #include <modules/clock/clock.h>
@@ -240,12 +237,6 @@ Game::Game(int argc, const char **argv)
     if (GLEW_VERSION_2_0) ls_message("  - detected OpenGL 2.0 support. Nice!\n");
     ls_message("Done.\n");
     
-    ls_message("Initializing DevIL:\n");
-    ilInit();
-    iluInit();
-    ilutRenderer(ILUT_OPENGL);
-    ls_message("Done.\n");
-
     ls_message("Creating render pass list... ");
     renderpasslist = new RenderPassList(this);
     ls_message("done.\n");
