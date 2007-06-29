@@ -204,9 +204,9 @@ void LoDQuad::presetup() {
     connect();
 }
 
-void LoDQuad::setup(Vector &pos, const float planes[6][4])
+void LoDQuad::setup(Vector &pos, const float planes[6][4], float focus)
 {
-    evaluator = Evaluator(pos, planes, vx, vy, vz);
+    evaluator = Evaluator(pos, planes, vx, vy, vz, focus);
 
     triangle[0].dyn_error = evaluator.evaluate(&triangle[0]);
     triangle[1].dyn_error = evaluator.evaluate(&triangle[1]);

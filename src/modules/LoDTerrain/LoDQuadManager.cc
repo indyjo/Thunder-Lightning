@@ -133,13 +133,14 @@ void LoDQuadManager::draw()
     float planes[6][4];
 
     game->getCamera()->getFrustumPlanes(planes);
+    float focus = game->getCamera()->getFocus();
     Vector pos = game->getCamera()->getLocation();
 
     for (i=0; i<(width*height); i++) {
         quad[i].presetup();
     }
     for (i=0; i<(width*height); i++) {
-        quad[i].setup(pos, planes);
+        quad[i].setup(pos, planes, focus);
     }
     for (i=0; i<(width*height); i++) {
         quad[i].draw(renderer);

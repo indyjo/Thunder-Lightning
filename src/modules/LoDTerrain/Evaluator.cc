@@ -3,8 +3,8 @@
 #include "Config.h"
 
 LoDQuad::Evaluator::Evaluator(const Vector & p, const float plane[6][4],
-        const float * vx, const float * vy, const float * vz)
-: pos(p), vx(vx), vy(vy), vz(vz)
+        const float * vx, const float * vy, const float * vz, float focus)
+: pos(p), vx(vx), vy(vy), vz(vz), focus(focus)
 {
     for(int i=0; i<6; i++) for (int j=0; j<4; j++)
         this->plane[i][j] = plane[i][j];
@@ -34,7 +34,7 @@ float LoDQuad::Evaluator::evaluate(LoDTriangle * tri)
         float dist2 = (tri->bs_center-pos).length() - tri->radius;
         dist2 = std::max(0.0001f, dist2);
         //error *= (ERROR_FACTOR*ERROR_FACTOR*ERROR_FACTOR) / (dist2*dist2*dist2);
-        error *= (ERROR_FACTOR*ERROR_FACTOR) / (dist2*dist2);
+        error *= focus * (ERROR_FACTOR*ERROR_FACTOR) / (dist2*dist2);
         //error *= (ERROR_FACTOR) / (dist2);
     }
 #endif

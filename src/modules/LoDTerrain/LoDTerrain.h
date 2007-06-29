@@ -103,12 +103,14 @@ class LoDQuad
         Vector pos;
         float plane[6][4];
         const float *vx, *vy, *vz;
+        float focus;
     public:
         enum FrustumView {INSIDE, OUTSIDE, PARTIAL};
     
         inline Evaluator() { }
         Evaluator(const Vector & p, const float plane[6][4],
-            const float * vx, const float * vy, const float * vz);
+            const float * vx, const float * vy, const float * vz,
+            float focus);
         float evaluate(LoDTriangle * tri);
         FrustumView checkAgainstFrustum(const LoDTriangle * tri);
         bool onFrontSide(const LoDTriangle * tri);
@@ -137,7 +139,7 @@ public:
     void connect();
     
     void presetup();
-    void setup(Vector &pos, const float planes[6][4]);
+    void setup(Vector &pos, const float planes[6][4], float focus);
     void draw(JRenderer *renderer);
     void drawWire(JRenderer *renderer);
     CoordRel getCoordRelX(float x);
