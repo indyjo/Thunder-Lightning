@@ -27,9 +27,7 @@ tnl_libs = \
     modules/actors/carrier/libcarrier.a \
     modules/actors/drone/libdrone.a \
     modules/actors/tank/libtank.a \
-    modules/actors/projectiles/libprojectiles.a \
     modules/collide/libcollide.a \
-    modules/actors/fx/libfx.a \
     modules/actors/libactors.a \
     modules/camera/libcamera.a \
     modules/clock/libclock.a \
@@ -48,7 +46,9 @@ tnl_libs = \
     modules/ui/libui.a \
     modules/ai/libai.a \
     modules/texman/libtexman.a \
-    modules/weaponsys/libweaponsys.a
+    modules/weaponsys/libweaponsys.a \
+    modules/actors/projectiles/libprojectiles.a \
+    modules/actors/fx/libfx.a
 
 tnl_bin_LDADD = $(tnl_libs) @SDL_LIBS@ @SIGC_LIBS@ @OPENGL_LIBS@  \
     @OPENAL_LIBS@ @ALUT_LIBS@ @LIBPNG_LIBS@ @IO_LIBS@ @GLEW_LIBS@
