@@ -167,17 +167,27 @@ Game::Game(int argc, const char **argv)
         bool fullscreen = config->queryBool("Game_fullscreen", false);
         bool autores = config->queryBool("Game_auto_resolution", false);
         
-        if (autores) {
+        if (fullscreen) {
             const SDL_VideoInfo * info = SDL_GetVideoInfo();
-            xres = info->current_w;
-            yres = info->current_h;
+            
             char buf[16];
-            sprintf(buf, "%d", xres);
-            config->set("Game_xres", buf);
-            sprintf(buf, "%d", yres);
-            config->set("Game_yres", buf);
+            
+            if (autores) {
+                xres = info->current_w;
+                yres = info->current_h;
+                sprintf(buf, "%d", xres);
+                config->set("Game_xres", buf);
+                sprintf(buf, "%d", yres);
+                config->set("Game_yres", buf);
+            } else {
+                config->set("Game_restore_resolution", "true");
+                sprintf(buf, "%d", xres);
+                config->set("Game_restore_resx", buf);
+                sprintf(buf, "%d", yres);
+                config->set("Game_restore_resy", buf);
+            }
         }
-
+        
         ls_message("Requested mode: %dx%d (%s, %s)\n",
                 xres, yres,
                 fullscreen?"fullscreen":"in a window",
@@ -314,6 +324,16 @@ Game::~Game()
     the_game = 0;
 
     event_remapper = 0;
+    
+    
+    if (config->queryBool("Game_restore_resolution", false)) {
+        ls_message("Restoring screen resolution.\n");
+        SDL_SetVideoMode(
+            config->queryInt("Game_restore_resx"),
+            config->queryInt("Game_restore_resy"),
+            32, SDL_FULLSCREEN);
+    }
+    
     ls_message("Exiting SDL.\n");
     SDL_Quit();
     ls_message("Exiting game.\n");
