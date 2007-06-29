@@ -11,6 +11,8 @@
 #include <modules/camera/SimpleCamera.h>
 #include <modules/clock/clock.h>
 #include <modules/jogi/JRenderer.h>
+#include <modules/jogi/JSprite.h>
+#include <modules/texman/TextureManager.h>
 
 #include <RenderPass.h>
 #include <tnl.h>
@@ -21,7 +23,7 @@ class WaterImpl : public SigObject
 {
     JRenderer *r;
     float tile_size, tile_uvspan;
-    GLuint bump_tex;
+    Ptr<Texture> bump_tex;
     Ptr<IConfig> cfg;
     Ptr<IGame> thegame;
     bool all_ok;
@@ -66,9 +68,7 @@ public:
                 ls_message("Validation result: %s\n", buf);
             }
             
-            char buf[256];
-            strcpy(buf, cfg->query("Water_bumpmap"));
-            bump_tex = ilutGLLoadImage(buf);
+            bump_tex = game->getTexMan()->query(cfg->query("Water_bumpmap"), JR_HINT_FULLOPACITY);
         } else {
             ls_warning("OpenGL Shading Language extensions not supported. Water will be ugly.\n");
             all_ok = false;
@@ -77,7 +77,6 @@ public:
     
     ~WaterImpl() {
         if (all_ok) {
-            glDeleteTextures(1, &bump_tex);
             glDeleteObjectARB(program);
         }
     }
@@ -104,9 +103,10 @@ public:
         glBindTexture(GL_TEXTURE_2D,
             thegame->getRenderer()->getGLTexFromTxtid(render_pass->getTexture()->getTxtid()));
         glEnable(GL_TEXTURE_2D);
+#include <modules/jogi/JRenderer.h>
 
         glActiveTexture(GL_TEXTURE1_ARB);
-        glBindTexture(GL_TEXTURE_2D, bump_tex);
+        glBindTexture(GL_TEXTURE_2D, r->getGLTexFromTxtid(bump_tex->getTxtid()));
         glEnable(GL_TEXTURE_2D);
 
         glUseProgramObjectARB(program);
