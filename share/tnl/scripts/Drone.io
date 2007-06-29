@@ -290,11 +290,11 @@ Drone do(
         )
     )
     
-    maintainPosition := coro(me, arg_target_position, arg_target_vector,
+    maintainPosition := coro(me, arg_mps_per_m, arg_target_position, arg_target_vector,
+        if((self ?mps_per_m) isNil, self mps_per_m := arg_mps_per_m ifNilEval(0.2))
         if((self ?target_position) isNil, self target_position := arg_target_position)
         if((self ?target_vector) isNil, self target_vector := arg_target_vector)
         
-        mps_per_m := 0.2
         max_dv := 300 / 3.6
         
         fly := Drone flyVector clone start(me, target_vector)
@@ -517,7 +517,21 @@ Drone do(
         )
     )
                 
-    
+    flyInFormation := coro(me, arg_partner, arg_pos,
+        if((self ?partner) isNil, self partner := arg_partner)
+        if((self ?pos) isNil, self pos := arg_pos)
+        
+        self mp := Drone maintainPosition clone start(me, 0.5)
+        manage(mp)
+        
+        while(partner isAlive,
+            mp target_vector := partner getMovementVector
+            mp target_position := partner getLocation + partner getOrientation * pos
+            pass
+        )
+        
+        partner = nil
+    )
         
         
     ai := coro(me,
