@@ -16,27 +16,25 @@ void Config::feedArguments(int argc, const char **const argv)
     }
 }
 
-void Config::set(const char *key, const char *value)
+void Config::set(const std::string& key, const std::string& value)
 {
 	data[key] = value;
     //ls_message("  Config[%p]: %s = %s\n", this, key, value);
 }
 
-const char *Config::query(const char *key, const char *def)
+const char *Config::query(const std::string& key, const char* def)
 {
     std::map<std::string,std::string>::const_iterator I;
-    
     I=data.find(key);
     if (I!=data.end()) {
-    	//ls_message("Found key %s: \"%s\"\n", key, I->second.c_str());
         return I->second.c_str();
     } else {
-    	ls_warning("Not found: key %s. Fallback to \"%s\"\n", key, def);
+    	ls_warning("Not found: key %s. Fallback to \"%s\"\n", key.c_str(), def);
         return def;
     }
 }
 
-float Config::queryFloat(const char *key, float def)
+float Config::queryFloat(const std::string& key, float def)
 {
 	const char *str = query(key);
 	if (!str) return def;
@@ -46,7 +44,7 @@ float Config::queryFloat(const char *key, float def)
 	else return res;
 }
 
-int Config::queryInt(const char *key, int def)
+int Config::queryInt(const std::string& key, int def)
 {
 	const char *str = query(key);
 	if (!str) return def;
@@ -56,7 +54,7 @@ int Config::queryInt(const char *key, int def)
 	else return res;
 }
 
-bool Config::queryBool(const char *key, bool def)
+bool Config::queryBool(const std::string& key, bool def)
 {
 	const char *str = query(key);
 	if (!str) return def;
@@ -71,7 +69,7 @@ bool Config::queryBool(const char *key, bool def)
 	else return def;
 }
 
-Vector Config::queryVector(const char *key, Vector def) {
+Vector Config::queryVector(const std::string& key, Vector def) {
 	const char *str = query(key);
 	if (!str) return def;
 	std::istringstream is(str);
