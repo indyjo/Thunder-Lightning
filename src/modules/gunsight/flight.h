@@ -63,4 +63,13 @@ public:
 	void drawIndicator(JRenderer *, int degrees, Vector center, Vector right);
 };
 
+class GearHookIndicator : public GunsightModule {
+	Ptr<DataNode> controls;
+	Ptr<IFontMan> fontman;
+public:
+	GearHookIndicator(Ptr<IGame>, Ptr<DataNode> controls);
+	void draw(FlexibleGunsight &);
+};
+
+
 #endif

@@ -4,16 +4,16 @@
 #include <modules/flight/flightinfo.h>
 #include <modules/jogi/JRenderer.h>
 #include <modules/environment/environment.h>
-
+#include <DataNode.h>
 
 #include "flight.h"
 
-void FlexibleGunsight::addBasicCrosshairs() {
+void FlexibleGunsight::addBasicCrosshairs(const char *parent) {
     addModule(new CrosshairModule(),
-        "screen", HCENTER | VCENTER, HCENTER | VCENTER);
+        parent, HCENTER | VCENTER, HCENTER | VCENTER);
 }
 
-void FlexibleGunsight::addFlightModules(Ptr<IGame> game, FlightInfo &fi)
+void FlexibleGunsight::addFlightModules(Ptr<IGame> game, FlightInfo &fi, Ptr<DataNode> controls)
 {
     Ptr<GunsightModule> hud_frame = new HUDFrameModule(surface.getWidth(), surface.getHeight());
     addModule(hud_frame, "screen", HCENTER | VCENTER, HCENTER | VCENTER);
@@ -37,6 +37,9 @@ void FlexibleGunsight::addFlightModules(Ptr<IGame> game, FlightInfo &fi)
     	new HorizonIndicator(
     		game,fi, hud_frame->getWidth(), hud_frame->getHeight()),
     	"hud-frame", HCENTER | VCENTER, HCENTER | VCENTER);
+    addModule(
+        new GearHookIndicator( game, controls),
+        "screen", RIGHT | BOTTOM, RIGHT | BOTTOM);
 }
 
 
@@ -366,3 +369,43 @@ void HorizonIndicator::drawIndicator(
 	*r << center+100*right << center+100*right-5*up;
 	r->end();
 }
+
+GearHookIndicator::GearHookIndicator(
+	Ptr<IGame> game,
+	Ptr<DataNode> controls)
+:	GunsightModule("horizon-indicator",150,40),
+    controls(controls),
+	fontman(game->getFontMan())
+{
+}
+
+void GearHookIndicator::draw(FlexibleGunsight & gunsight) {
+    UI::Surface surf = gunsight.getSurface();
+    surf.translateOrigin(offset[0],offset[1]);
+    	
+    fontman->selectFont(IFontMan::FontSpec(
+        "dungeon", 12, IFontMan::FontSpec::BOLD));
+
+    fontman->setCursor(
+        surf.getOrigin(),
+        surf.getDX(),
+        surf.getDY());
+    fontman->setAlpha(1);
+
+    if(controls->getBool("landing_gear")) {
+        fontman->setColor(Vector(1,1,0));
+        fontman->print("Gear is DOWN\n");
+    } else {
+        fontman->setColor(Vector(0,0,1));
+        fontman->print("Gear is UP\n");
+    }
+
+    if(controls->getBool("landing_hook")) {
+        fontman->setColor(Vector(1,1,0));
+        fontman->print("Hook is DOWN");
+    } else {
+        fontman->setColor(Vector(0,0,1));
+        fontman->print("Hook is UP");
+    }
+}
+

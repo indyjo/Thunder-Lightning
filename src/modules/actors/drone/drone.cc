@@ -415,7 +415,7 @@ Ptr<IView> Drone::getView(int n) {
 
     Ptr<FlexibleGunsight> gunsight1 = new FlexibleGunsight(thegame);
 	gunsight1->addDebugInfo(thegame, this);
-	gunsight1->addFlightModules(thegame, flight_info);
+	gunsight1->addFlightModules(thegame, flight_info, controls);
 	gunsight1->addBasicCrosshairs();
 	gunsight1->addTargeting(this, targeter);
 	gunsight1->addDirectionOfFlight(this);
