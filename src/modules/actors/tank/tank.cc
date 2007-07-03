@@ -156,27 +156,7 @@ void Tank::action() {
     Ptr<IActor> target = targeter->getCurrentTarget();
 
     if (control_mode == AUTOMATIC) {
-    //	brain->info = "";
-	/*if (target) {
-	    brain->advanced_cannon_control.setMuzzleVelocity(MUZZLE_VELOCITY);
-	    brain->advanced_cannon_control.setTarget(target->getLocation());
-	    brain->maintain_position.setTarget(target->getLocation(),
-	                                        target->getMovementVector());
-	}
-    
-	brain->advanced_cannon_control.run(*brain);
-	//brain->maintain_position.run(*brain);
-	brain->move_to_exposed_point.run(*brain);
-	
-	getTargetInfo()->setTargetInfo(brain->info);
-	
-	    /*
-        tank_controls->setFire(
-	        target
-	        && brain->cannon_control.inAimingCone()
-	        && (target->getLocation()-getLocation()).lengthSquare()
-	            < BULLET_RANGE*BULLET_RANGE);
-        */
+        // script controlled, nothing to do here
     } else if (control_mode == MANUAL) {
     	Ptr<EventRemapper> remap = thegame->getEventRemapper();
     	tank_controls->setSteer(remap->getAxis("car_steer"));
@@ -185,11 +165,6 @@ void Tank::action() {
     	tank_controls->setTurretSteer(remap->getAxis("tank_turret_steer"));
     	tank_controls->setCannonSteer(remap->getAxis("tank_cannon_steer"));
     }
-
-    //setTargetInfo(main_idea->getInfo());
-    Vector cannon_dir = skeleton->getPoint("CannonTipFront") - skeleton->getPoint("CannonTip");
-    cannon_dir.normalize();
-    getControls()->setVector("cannon_dir", cannon_dir);
 
     SimpleActor::action();
     
