@@ -300,8 +300,6 @@ Game::Game(int argc, const char **argv)
 		IoState_doFile_(io_scripting_manager->getMainState(), buf);
 		ls_message("Done excuting initial setup script: %s\n", buf);
     }
-    
-    clock->skip() ;
 }
 
 Game::~Game()
@@ -557,8 +555,8 @@ void Game::setupRenderer()
 
 void Game::updateSimulation()
 {
-    // this will return false if pause is activated
     clock->update();
+    // this will return false if pause is activated
     for(int step_counter = 0;
         clock->catchup(MAX_STEP_SECONDS) && step_counter < MAX_CATCHUP_STEPS;
         step_counter++)
