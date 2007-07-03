@@ -59,6 +59,30 @@ void ActorStage::queryActorsInBox(ActorVector & out,
     }
 }
 
+void ActorStage::queryActorsInCapsule(  ActorVector & out,
+                                        const Vector& a,
+                                        const Vector& b,
+                                        float radius)
+{
+    float l = (b-a).length();
+    Vector d = (b-a)/l;
+    typedef ActorVector::iterator Iter;
+    for(Iter i=actors.begin(); i!=actors.end(); ++i) {
+        Vector x = (*i)->getLocation();
+        float t = (x-a)*d;
+        if (t < -radius || t > l+radius) {
+            continue;
+        }
+        Vector x_proj = a + t*d;
+        if ((x_proj - x).length() > radius) {
+            continue;
+        }
+        
+        out.push_back(*i);
+    }
+}
+
+
 void ActorStage::cleanupActors() {
 	int removed=0;
 	for(int i=0; i<actors.size(); ++i) {

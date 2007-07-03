@@ -25,5 +25,6 @@ struct IActorStage : virtual public Object
     virtual void queryActorsInSphere(ActorVector &, const Vector &, float)=0;
     virtual void queryActorsInCylinder(ActorVector &, const Vector &, float)=0;
     virtual void queryActorsInBox(ActorVector &, const Vector &, const Vector &)=0;
+    virtual void queryActorsInCapsule(ActorVector &, const Vector&, const Vector&, float radius)=0;
 };
 #endif

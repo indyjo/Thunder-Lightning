@@ -21,6 +21,7 @@ public:
     virtual void queryActorsInSphere(ActorVector &, const Vector &, float);
     virtual void queryActorsInCylinder(ActorVector &, const Vector &, float);
     virtual void queryActorsInBox(ActorVector &, const Vector &, const Vector &);
+    virtual void queryActorsInCapsule(ActorVector &, const Vector&, const Vector&, float radius);
     
     void cleanupActors();
     void setupActors();

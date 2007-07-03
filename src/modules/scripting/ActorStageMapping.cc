@@ -24,6 +24,7 @@ namespace {
 				{"queryActorsInSphere", queryActorsInSphere},
 				{"queryActorsInCylinder", queryActorsInCylinder},
 				{"queryActorsInBox", queryActorsInBox},
+				{"queryActorsInCapsule", queryActorsInCapsule},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
@@ -77,6 +78,23 @@ namespace {
 			return wrapObject<Actors>(actors, IOSTATE);
 		}
 		
+        static IoObject * queryActorsInCapsule
+        (IoObject *self, IoObject *locals, IoMessage *m) {
+            typedef IActorStage::ActorVector Actors;
+
+            BEGIN_FUNC("ActorStage.queryActorsInCapsule")
+            IOASSERT(IoMessage_argCount(m) == 3, "Expected three arguments")
+            Vector a = unwrapObject<Vector>(
+            	IoMessage_locals_valueArgAt_(m, locals, 0));
+            Vector b = unwrapObject<Vector>(
+            	IoMessage_locals_valueArgAt_(m, locals, 1));
+            float radius = IoMessage_locals_doubleArgAt_(m, locals, 2);
+
+            Actors actors;
+            getObject(self)->queryActorsInCapsule(actors,a,b,radius);
+            return wrapObject<Actors>(actors, IOSTATE);
+        }
+
 		SETTER(Ptr<IActor>, addActor)
 		SETTER(Ptr<IActor>, removeActor)
 	};
