@@ -46,6 +46,9 @@ void SimpleActor::onLinked() {
             message("start_ai", IONIL(self));
         }
         is_linked = true;
+        if (skeleton) {
+            skeleton->setRootBoneTransform(getTransform());
+        }
     }
 }
 void SimpleActor::onUnlinked()
@@ -106,27 +109,6 @@ Ptr<Faction> SimpleActor::getFaction() { return faction; }
 void SimpleActor::setFaction(Ptr<Faction> fac) { faction = fac; }
 
 void SimpleActor::action() {
-    /*if (self) {
-        IoState_pushRetainPool(IOSTATE);
-        IoObject *slot = IOSYMBOL("action");
-        if (IoObject_rawGetSlot_(self, slot)) {
-            IoObject *message = IoMessage_newWithName_label_(IOSTATE, slot, IOSYMBOL("SimpleActor::action"));
-            
-            IoMessage_addCachedArg_(message, IONUMBER(thegame->getClock()->getFrameDelta()));
-
-            IoException *ex=0;
-            IoObject *result = IoState_tryFunc_(IOSTATE,
-                (IoCatchCallback*) IoMessage_locals_performOn_,
-                message, IOSTATE->lobby, self,
-                &ex);
-            IoState_stackRetain_(IOSTATE, result);
-            if (ex) {
-                IoState_exception_(IOSTATE, ex);
-            }
-        }
-        IoState_popRetainPool(IOSTATE);
-    }*/
-    
     engine->run();
     if (skeleton) {
         skeleton->setRootBoneTransform(getTransform());
