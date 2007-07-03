@@ -13,8 +13,6 @@ Matrix := Object clone do(
   entries := list(0)
   
   init := method(
-    self rows := rows
-    self columns := columns
     self entries := entries clone
   )
 
