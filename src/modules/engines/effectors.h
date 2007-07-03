@@ -132,6 +132,7 @@ public:
     { }
     
     virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls);
+    inline void clear() { partner = 0; }
 };
 
 } // namespace Effectors

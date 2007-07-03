@@ -75,6 +75,7 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
   terrain(thegame->getTerrain()), damage(0),
   mtasker(64*1024),
   gear_lowered(false),
+  hook_lowered(false),
   engine_power(1.0)
 {
 	ls_message("<Drone::Drone>\n");
@@ -137,13 +138,13 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
     setActor(this);
     
     // Tail hook
-    engine->addEffector(new Effectors::TailHook(
+    hook = new Effectors::TailHook(
         thegame->getCollisionMan(),
         this,
         skeleton->getUntransformedPoint("TailHook_p0"),
         skeleton->getUntransformedPoint("TailHook_p1"),
         thegame->getConfig()->queryFloat("Drone_max_tailhook_force", 80000)
-    ));
+    );
 
 	// Wheels
 	Effectors::Wheel::Params nose_wheel = {
@@ -220,6 +221,7 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
     
     Ptr<EventSheet> sheet = getEventSheet();
     sheet->map("landing-gear", SigC::slot(*this, &Drone::toggleLandingGear));
+    sheet->map("landing-hook", SigC::slot(*this, &Drone::toggleLandingHook));
     		
 	ls_message("</Drone::Drone>\n");
 }
@@ -323,6 +325,7 @@ void Drone::action() {
     }
     
     setLandingGear(flight_controls->isGearLowered());
+    setLandingHook(flight_controls->isHookLowered());
 
     // set brake factors on main landing gear, 0 <= u <= 1
     float u = controls->getFloat("brake",0);

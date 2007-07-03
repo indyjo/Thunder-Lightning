@@ -21,6 +21,7 @@ public:
         setThrottle(0);
         setBrake(0);
         setGearLowered(false);
+        setHookLowered(false);
     }
 
     FlightControls(Ptr<DataNode> c) : c(c)
@@ -30,6 +31,7 @@ public:
         setThrottle(0);
         setBrake(0);
         setGearLowered(false);
+        setHookLowered(false);
     }
 
     void setElevator(float val) { c->setFloat("elevator", val); }
@@ -52,6 +54,9 @@ public:
     
     void setGearLowered(bool lowered) { c->setBool("landing_gear", lowered); }
     bool isGearLowered() { return c->getBool("landing_gear", false); }
+
+    void setHookLowered(bool lowered) { c->setBool("landing_hook", lowered); }
+    bool isHookLowered() { return c->getBool("landing_hook", false); }
 
     Ptr<DataNode> getDataNode() { return c; }
 };

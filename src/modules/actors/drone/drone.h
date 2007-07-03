@@ -24,7 +24,7 @@ class Targeter;
 class SoundSource;
 struct Context;
 
-namespace Effectors { class Wheel; }
+namespace Effectors { class Wheel; class TailHook; }
 
 class EventSheet;
 
@@ -71,6 +71,10 @@ public:
     inline bool isLandingGearLowered() { return gear_lowered; }
     inline void toggleLandingGear() { flight_controls->setGearLowered(!flight_controls->isGearLowered()); }
     
+    void setLandingHook(bool lowered);
+    inline bool isHookGearLowered() { return hook_lowered; }
+    inline void toggleLandingHook() { flight_controls->setHookLowered(!flight_controls->isHookLowered()); }
+    
 private:
     void updateDerivedObjects();
     void drawWheels();
@@ -97,8 +101,9 @@ private:
     FlightInfo flight_info;
     Ptr<FlightControls> flight_controls;
     AutoPilot auto_pilot;
-    bool gear_lowered;
+    bool gear_lowered, hook_lowered;
     Ptr<Effectors::Wheel> wheels[3];
+    Ptr<Effectors::TailHook> hook;
     float engine_power;
 
     float damage;
