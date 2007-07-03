@@ -88,6 +88,7 @@ public:
     void draw() {
         age += thegame->getClock()->getFrameDelta();
         
+        if (!all_ok) return;
         Ptr<RenderPass> render_pass = thegame->getCurrentContext()->mirror_pass;
         
         Vector campos = thegame->getCamera()->getLocation();
