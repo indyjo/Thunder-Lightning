@@ -1,49 +1,103 @@
 Carrier do(
+    appendProto(Runway)
+    
     init := method(
+        
+        self turret := TurretAI clone do(
+            pivot := vector(22.908, 29.255, -18.621)
+            turret_control_name := "main_turret_steer_x"
+            turret_state_name := "main_turret_angle_x"
+            cannon_control_name := "main_turret_steer_y"
+            cannon_state_name := "main_turret_angle_y"
+        )
+        turret weapon := armament weapon("Vulcan")
+        turret weapon setMaxRounds(10000)
+        turret weapon setRoundsLeft(10000)
+        
         self reservedHoldingLevels := list
+        self runwayLocked := nil
+    )
+    
+    droneSpawnPos := method(n,
+        self location + self getUpVector * 15.5 - self getFrontVector * 20 * n
+    )
+    spawnDrone := method(
+        n := 0
+        loop(
+            x := droneSpawnPos(n)
+            if (Game queryActorsInSphere(x, 5) isEmpty,
+                break
+            )
+            n = n+1
+        )
+        
+        drone := Drone clone
+        
+        drone setLocation( x )
+        drone setOrientation( self orientation )
+        drone controls setBool("landing_gear", true)
+        drone setControlMode(Actor UNCONTROLLED)
+        drone setFaction( self getFaction )
+        
+        Game addActor(drone)
+        drone
+    )
+    eatDrone := method(drone,
+        if (droneEatable(drone),
+            Game setView(self, 0)
+            Game setControlledActor(self)
+            
+            coro(drone,
+                sleep(2)
+                Game removeActor(drone)
+                "Drone eaten" say
+            ) start(drone)
+        )
+    )
+    droneEatable := method(drone,
+        l := (runwayEnd - runwayBegin) len
+        d := (runwayEnd - runwayBegin) norm
+        t := (drone location - runwayBegin) dot(d)
+        
+        if (t < 0 or t > l,
+            return false
+        )
+        x := runwayBegin + d*t
+        if ((x - drone location) len > 7,
+            return false
+        )
+        true
     )
 
+    spawnTank := method(
+        tank := Tank clone
+        
+        tank setLocation( self location - 52* self getFrontVector )
+        tank setOrientation( self orientation * Matrix rotation3(vector(0,1,0), Number constants pi))
+        tank setControlMode(Actor UNCONTROLLED)
+        tank setFaction( self getFaction )
+        
+        Game addActor(tank)
+        tank
+    )
+    
     runwayBegin := method( getOrientation * vector(-0.081, 13.243, -65.837) + getLocation)
     runwayEnd := method( getOrientation * vector(-19.456, 13.243, 28.497) + getLocation)
     
-    runwayLocked := nil
-    
-    isRunwayFree := method(
-        if(runwayLocked isNil not and runwayLocked isAlive not,
-            runwayLocked = nil
-        )
-        runwayLocked isNil
+    ai := coro(me,
+        self turret_ai := me turret attackCloseTargets clone start(me, me turret)
+        manage(turret_ai)
+        loop(pass)
     )
-    lockRunway := method(aircraft, runwayLocked = aircraft )
-    runwayFreed := method( runwayLocked = nil )
-    
-    requestHoldingLevel := method(aircraft,
-        level := 0
-        loop(
-            if (isHoldingLevelFree(level),
-                reservedHoldingLevels append( list(aircraft, level) )
-                return 500 + 100*level
-            )
-            level = level +1
-        )
+
+    on("start_ai",
+        self _ai := ai clone start(self)
+        ("AI of Carrier ".. self uniqueHexId .. " started") println
     )
-    releaseHoldingLevel := method(aircraft,
-        reservedHoldingLevels foreach(i,v,
-            if (v at(0) == aircraft,
-                reservedHoldingLevels removeAt(i)
-                break
-            )
-        )
-        nil
+    on("stop_ai",
+        _ai interrupt
+        ("AI of Carrier ".. self uniqueHexId .. " interrupted") println
     )
-    isHoldingLevelFree := method(n,
-        reservedHoldingLevels foreach(i,v,
-            if (v at(1) == n,
-                return false
-            )
-        )
-        return true
-    )
-        
+
 )
 
