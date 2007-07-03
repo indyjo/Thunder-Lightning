@@ -10,7 +10,6 @@
 #include <interfaces/ITerrain.h>
 #include <sound.h>
 #include <remap.h>
-#include <modules/actors/SimpleView.h>
 #include <modules/actors/RelativeView.h>
 #include <modules/model/SkeletonProvider.h>
 #include <modules/weaponsys/Armament.h>
@@ -47,23 +46,6 @@ struct TurretView: public SimpleView {
 	}
 };
 
-
-
-struct FollowingView : public SimpleView {
-    Ptr<IPositionProvider> pp;
-    
-    inline FollowingView(Ptr<IPositionProvider> pp, Ptr<IActor> subject=0, Ptr<IDrawable> gunsight=0)
-    : SimpleView(subject, gunsight), pp(pp)
-    { }
-    
-	virtual void getPositionAndOrientation(Vector*pos, Matrix3 *orient)
-	{
-	    Vector right,up,front;
-	    *pos = pp->getLocation();
-	    pp->getOrientation(&up,&right,&front);
-	    *orient = MatrixFromColumns(right,up,front);
-	}
-};
 
 Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
 : SimpleActor(thegame),
@@ -284,24 +266,24 @@ Ptr<IView> Tank::getView(int n) {
         chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.1f,
             Transform::identity(),
             Transform(Quaternion(1,0,0,0), Vector(0,4,-8))));
-        view = new FollowingView(chaser, this, gunsight2);
+        view = new RelativeView(chaser, chaser, this, gunsight2);
         break;
     case 1:
         chaser->setEngine(new ChasingEngine(thegame,new SkeletonProvider(skeleton, "MGCamera",
                 "MG", "MGFront",
                 "MG", "MGUp"), 0.0f, 0.1f));
-        view = new FollowingView(chaser, this, gunsight1);
+        view = new RelativeView(chaser, chaser, this, gunsight1);
         break;
     case 2:
     	view = new TurretView(this, tank_engine, gunsight1);
         chaser->setEngine(new ChasingEngine(thegame,view, 0.1f, 0.1f));
-        view = new FollowingView(chaser, this, gunsight1);
+        view = new RelativeView(chaser, chaser, this, gunsight1);
         break;
     case 3:
         chaser->setEngine(new ChasingEngine(thegame, this, 0.1f, 0.5f,
             Transform::identity(),
             Transform(Quaternion::Rotation(Vector(0,1,0), PI), Vector(0,6,18))));
-        view = new FollowingView(chaser, this, gunsight2);
+        view = new RelativeView(chaser, chaser, this, gunsight2);
         break;
     default:
     	return 0;
