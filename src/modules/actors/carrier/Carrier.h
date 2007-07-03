@@ -6,6 +6,9 @@
 #include <modules/collide/Collidable.h>
 #include <modules/engines/rigidengine.h>
 
+class Turret;
+class Armament;
+
 class Carrier : public SimpleActor, virtual public Collide::Collidable, virtual public SigObject {
 public:
     Carrier(Ptr<IGame> thegame, IoObject * io_peer=0);
@@ -14,11 +17,13 @@ public:
     virtual void onLinked();
     virtual void onUnlinked();
     
-    /*
     virtual void action();
 
-    virtual void draw();
-    */
+    virtual bool hasControlMode(ControlMode);
+    virtual void setControlMode(ControlMode);
+    
+    virtual int getNumViews();
+    virtual Ptr<IView> getView(int n);
 
     // Collidable implementation
     virtual void integrate(float delta_t, Transform * transforms);
@@ -27,6 +32,14 @@ private:
     void updateDerivedObjects();
 
     Ptr<RigidEngine> engine;
+    Ptr<Turret> main_turret;
+    enum ControlTarget {
+        CARRIER,
+        MAIN_TURRET
+    } control_target;
+    void setControlTarget(ControlTarget c);
+    
+    Ptr<Armament> main_turret_armament;
 };
 
 
