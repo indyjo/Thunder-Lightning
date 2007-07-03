@@ -247,7 +247,7 @@ void Missile::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
     const static float cw_s = 1.2;              // side drag coefficient
     const static float torque_factor_z = 300;
     const static float torque_factor_xy = 300;
-    const static float front_area = 3.141593f * 0.13f*0.13f;
+    const static float front_area = 3.141593f * 0.063f*0.063f;
     const static float side_area = 3.0f * 0.63f*0.63f;
     const static float rho= 1.293;            // air density
 
