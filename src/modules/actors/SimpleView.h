@@ -26,7 +26,10 @@ public:
     virtual Ptr<IDrawable> getGunsight();
     
     virtual void enable();
-    virtual void disable();    
+    virtual void disable();
+    
+    SigC::Signal0<void> & onEnable();
+    SigC::Signal0<void> & onDisable();
     
 protected:
 	// To be overwritten by subclasses
@@ -35,6 +38,8 @@ protected:
 		
     Ptr<IActor> subject;
     Ptr<FlexibleGunsight> gunsight;
+private:
+    SigC::Signal0<void> on_enable, on_disable;
 };
 
 #endif

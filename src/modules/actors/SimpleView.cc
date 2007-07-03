@@ -59,11 +59,20 @@ Ptr<IDrawable> SimpleView::getGunsight() {
 }
 
 void SimpleView::enable() {
+    on_enable.emit();
     if(gunsight) gunsight->enable();
 }
 
 void SimpleView::disable() {
+    on_disable.emit();
     if(gunsight) gunsight->disable();
 }
 
+SigC::Signal0<void> & SimpleView::onEnable() {
+    return on_enable;
+}
+
+SigC::Signal0<void> & SimpleView::onDisable() {
+    return on_disable;
+}
 
