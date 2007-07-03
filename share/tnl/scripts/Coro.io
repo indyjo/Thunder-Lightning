@@ -61,6 +61,15 @@ Coro := Object clone do(
         managed empty
     )
     
+    argDefaults := method(
+        argName := call argAt(0) name
+        defaultArgName := call argAt(1) name
+        defaultValue := call evalArgAt(2)
+      
+        if (call sender getSlot(argName) isNil,
+            call sender self setSlot(argName, call sender getSlot(defaultArgName) ifNilEval(defaultValue))
+        )
+    )
 )
 
 Object coro := method(
