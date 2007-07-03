@@ -1,11 +1,11 @@
 Tank do (
-  //on("kill", ai interrupt; writeln("AI of Tank ", self identify, " interrupted"))
-  //on("missileShot", self armament weapon("Cannon") trigger)
-
-  location2 := method( vector(getLocation at(0,0), getLocation at(2,0)) )
-  velocity2 := method( vector(getMovementVector at(0,0), getMovementVector at(2,0)) )
-  front2 := method( f := getFrontVector; vector(f at(0,0), f at(2,0)) norm )
-  right2 := method( f := front2; vector(f at(1,0), -f at(0,0)) )
+  init := method(
+    self turret := TurretAI clone do(
+      pivot := vector(0, 2.336049, -1.867034)
+    )
+    turret weapon := armament weapon("Vulcan")
+  )
+  
 
   maintainSpeed := coro(me, arg_target_speed,
     self target_speed := arg_target_speed
@@ -259,152 +259,23 @@ Tank do (
     )
   )
   
-  ctlTurret := coro(me, arg_target_angle,
-    if((self ?target_angle) isNil, self target_angle := arg_target_angle)
-    
-    self error := nil
-    integral := 0
-    dt := nil
-    
-    loop(
-      dt := pass
-      
-      error = target_angle - (me controls float("turret_angle"))
-      while(error >  (Number pi), error = error - (Number pi * 2))
-      while(error < (-Number pi), error = error + (Number pi * 2))
-      
-      integral = integral + dt*error
-      
-      me controls setFloat("turret_steer", (1.5 * error + 1*integral) clip(-1,1))
-    )
-  )
-
-  ctlCannon := coro(me, arg_target_angle,
-    if((self ?target_angle) isNil, self target_angle := arg_target_angle)
-    
-    self error := nil
-    dt := nil
-    
-    integral := 0
-    
-    loop(
-      dt = pass
-      
-      error = target_angle - (me controls float("cannon_angle"))
-      while(error > (Number pi), error = error - (Number pi * 2))
-      
-      integral = integral + dt*error
-
-      me controls setFloat("cannon_steer", (1.5 * error + 1*integral) clip(-1,1))
-    )
-  )
-
-  aimRelative := coro(me, arg_target_dir,
-    if((self ?target_dir) isNil, self target_dir := arg_target_dir)
-    
-    self error := nil
-    
-    self cc := Tank ctlCannon clone start(me)
-    self ct := Tank ctlTurret clone start(me)
-    
-    manage(cc)
-    manage(ct)
-    
-    loop(
-      pass
-      error = (cc error ifNilEval(0) squared + ct error ifNilEval(0) squared) sqrt
-      target_dir = target_dir norm
-      cc target_angle := target_dir at(1,0) atan
-      ct target_angle := target_dir at(0,0) atan2(target_dir at(2,0))
-    )
-  )
-  
-  aimAbsolute := coro(me, arg_target_dir,
-    if((self ?target_dir) isNil, self target_dir := arg_target_dir)
-    
-    self error := nil
-    
-    self ar := Tank aimRelative clone start(me)
-    manage(ar)
-    
-    loop(
-      error = (ar ?error) ifNilEval(Number constants inf)
-      orient := me getOrientation transpose
-      ar target_dir := orient * self target_dir
-      pass
-    )
-  )
-  
-  aimAtAndFire := coro(me,
-    
-    self aa := Tank aimAbsolute clone start(me, vector(1,0,0))
-    manage(aa)
-    
-    weapon := me armament weapon("Vulcan")
-    #weapon setRoundsLeft(10000000)
-    
-    self target := nil
-    delta_p := delta_p_norm := nil
-    delta_v := delta_v_xy := delta_v_z := nil
-    muzzle_speed_squared := Config Cannon_muzzle_velocity asNumber squared
-    loop(
-      if (target isNil not,
-        dist := ((target getLocation) - (me getLocation)) len
-        if(target isAlive and dist <= 2000,
-          // still wrong: doesn't take into account the current turret/cannon state
-          delta_p = ((target getLocation) - (me getLocation + 2.473674*(me getUpVector)))
-          delta_p_norm = delta_p norm
-          delta_v = target getMovementVector - me getMovementVector
-          delta_v_z = delta_p_norm *(1 - (delta_v dot(delta_p_norm)))
-          delta_v_xy = delta_v - delta_v_z
-          bullet_speed := (muzzle_speed_squared - (delta_v_xy lenSquare)) sqrt
-          self eta := delta_p len / (bullet_speed - delta_v dot(delta_p_norm))
-          aa target_dir := delta_v_xy + delta_p_norm*bullet_speed + vector(0,0.5*9.81*eta*eta,0)
-
-          if(aa error isNil not and aa error * delta_p len < 8 and delta_p len <= 1500,
-            weapon trigger
-          ,
-            weapon release
-          )
-        ,
-          target = nil
-        )
-      )
-      if (target isNil,
-        weapon release
-
-        candidates := Game queryActorsInSphere(me getLocation, 2000)
-        candidates selectInPlace(him, me dislikes(him))
-        #"Candidates are #{candidates map(type)}" interpolate println
-        candidates foreach(c,
-          if (c type == "Drone",
-            target = c
-            break
-          )
-        )
-      )
-      pass
-    )
-  )
-  
-  
   ai := coro(me,
-    self aaf := Tank aimAtAndFire clone start(me)
-    manage(aaf)
+    self act := me turret attackCloseTargets clone start(me, me turret)
+    manage(act)
     
     loop(
       pass
     )
   )
   
-    on("start_ai",
-        self _ai := ai clone start(self)
-        ("AI of Tank ".. self uniqueHexId .. " started") println
-    )
-    on("stop_ai",
-        _ai interrupt
-        ("AI of Tank ".. self uniqueHexId .. " interrupted") println
-    )
+  on("start_ai",
+    self _ai := ai clone start(self)
+    ("AI of Tank ".. self uniqueHexId .. " started") println
+  )
+  on("stop_ai",
+    _ai interrupt
+    ("AI of Tank ".. self uniqueHexId .. " interrupted") println
+  )
 
 )
 
