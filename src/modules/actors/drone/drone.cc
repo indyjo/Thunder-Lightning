@@ -254,19 +254,6 @@ void Drone::action() {
         flight_controls->setElevator( -thegame->getEventRemapper()->getAxis("elevator") );
         flight_controls->setThrottle(  thegame->getEventRemapper()->getAxis("throttle") );
         flight_controls->setBrake( thegame->getEventRemapper()->getAxis("brake") );
-        /*
-        char *axes[] = 
-        	{"kbd_throttle",
-        		"js_throttle",
-        		"js_throttle2",
-        		"throttle",
-        		0};
-        char **axis = axes;
-        while (*axis) {
-        	ls_message("%s: %f\n", *axis, thegame->getEventRemapper()->getAxis(*axis));
-        	axis++;
-        }
-        */
     }
     
     setLandingGear(flight_controls->isGearLowered());
