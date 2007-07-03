@@ -9,24 +9,22 @@ RelativeView::RelativeView(
     const Vector & up,
     const Vector & front,
     Ptr<IDrawable> gunsight)
-:   subject(subject),
+:   SimpleView(subject, gunsight),
     position(subject),
     movement(subject),
     p(p),
-    up(up), right(right), front(front),
-    gunsight(gunsight)
+    up(up), right(right), front(front)
 { }
 
 RelativeView::RelativeView(Ptr<IPositionProvider> position,
                            Ptr<IMovementProvider> movement,
                            Ptr<IActor> subject,
                            Ptr<IDrawable> gunsight)
-:   subject(subject),
+:   SimpleView(subject, gunsight),
     position(position),
     movement(movement),
     p(0,0,0),
-    up(0,1,0),right(1,0,0),front(0,0,1),
-    gunsight(gunsight)
+    up(0,1,0),right(1,0,0),front(0,0,1)
 { }
 
 void RelativeView::setViewOffset(Vector p, Vector right, Vector up, Vector front) {
@@ -36,60 +34,15 @@ void RelativeView::setViewOffset(Vector p, Vector right, Vector up, Vector front
     this->front = front;
 }
 
-Vector RelativeView::getLocation() {
-    Vector r, u, f;
-    position->getOrientation(&u, &r, &f);
-    Matrix3 M = MatrixFromColumns<float>(r,u,f);
-    return position->getLocation() + M*p;
-}
-
-Vector RelativeView::getFrontVector() {
-    Vector r, u, f;
-    position->getOrientation(&u, &r, &f);
-    Matrix3 M = MatrixFromColumns<float>(r,u,f);
-    return M*front;
-}
-
-Vector RelativeView::getRightVector() {
-    Vector r, u, f;
-    position->getOrientation(&u, &r, &f);
-    Matrix3 M = MatrixFromColumns<float>(r,u,f);
-    return M*right;
-}
-Vector RelativeView::getUpVector() {
-    Vector r, u, f;
-    position->getOrientation(&u, &r, &f);
-    Matrix3 M = MatrixFromColumns<float>(r,u,f);
-    return M*up;
-}
-void RelativeView::getOrientation
-        (Vector *up, Vector *right, Vector *front) {
-    Vector r, u, f;
-    position->getOrientation(&u, &r, &f);
-    Matrix3 M = MatrixFromColumns<float>(r,u,f);
-    *up = M*this->up;
-    *right = M*this->right;
-    *front = M*this->front;
-}
-
 Vector RelativeView::getMovementVector() {
-	return movement->getMovementVector();
+    return movement->getMovementVector();
 }
 
-Ptr<IActor> RelativeView::getViewSubject() {
-    return subject;
+void RelativeView::getPositionAndOrientation(Vector *pos, Matrix3 *orient) {
+    Vector up, right, front;
+    position->getOrientation(&up, &right, &front);
+    Matrix3 M = MatrixFromColumns(right, up, front);
+    *pos = position->getLocation() + M*p;
+    *orient = M;
 }
-
-Ptr<IDrawable> RelativeView::getGunsight() {
-    return gunsight;
-}
-
-void RelativeView::enable() {
-    if(gunsight) gunsight->enable();
-}
-
-void RelativeView::disable() {
-    if(gunsight) gunsight->disable();
-}
-
 

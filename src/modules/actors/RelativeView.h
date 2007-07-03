@@ -2,16 +2,14 @@
 #define RELATIVE_VIEW_H
 
 #include <tnl.h>
-#include <interfaces/IView.h>
+#include <modules/actors/SimpleView.h>
 
 class FlexibleGunsight;
 
-class RelativeView : virtual public IView {
-    Ptr<IActor> subject;
+class RelativeView : public SimpleView {
     Ptr<IPositionProvider> position;
     Ptr<IMovementProvider> movement;
     Vector p,up,right,front;
-    Ptr<FlexibleGunsight> gunsight;
 public:
     RelativeView(Ptr<IActor> subject,
         const Vector & p,
@@ -23,22 +21,14 @@ public:
         Ptr<IActor> subject, Ptr<IDrawable> gunsight=0);
 
     void setViewOffset(Vector p, Vector right, Vector up, Vector front);
-    
-    // IPositionProvider
-    virtual Vector getLocation();
-    virtual Vector getFrontVector();
-    virtual Vector getRightVector();
-    virtual Vector getUpVector();
-    virtual void getOrientation(Vector * up, Vector * right, Vector * front);
-    
-    // IMovementProvider
+
     virtual Vector getMovementVector();
     
-    // IView
-    virtual Ptr<IActor> getViewSubject();
-    virtual Ptr<IDrawable> getGunsight();
-    virtual void enable();
-    virtual void disable();    
+protected:
+	// Implements SimpleView
+	virtual void getPositionAndOrientation(
+		Vector *pos, Matrix3 *orient);
+
 };
 
 
