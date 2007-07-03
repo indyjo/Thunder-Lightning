@@ -8,6 +8,7 @@
 #include <interfaces/IDrawable.h>
 #include <modules/ui/Surface.h>
 #include <modules/math/Vector.h>
+#include <RenderPass.h>
 
 struct IGame;
 struct ICamera;
@@ -18,12 +19,15 @@ class FlightInfo;
 class Targeter;
 class Armament;
 class SimpleActor;
+class RenderPass;
+class DataNode;
 
 class GunsightModule : virtual public Object {
 protected:
     float width, height;
     Vector offset;
     std::string name;
+    Ptr<RenderPass> render_pass;
 public:
     GunsightModule(const char *name, float w, float h);
     
@@ -39,10 +43,13 @@ public:
     // default to doing nothing
     virtual void enable();
     virtual void disable();
+    
+    inline void setRenderPass(Ptr<RenderPass> pass) { render_pass = pass; }
+    inline Ptr<RenderPass> getRenderPass() { return render_pass; }
 };
 
 
-class FlexibleGunsight : public IDrawable {
+class FlexibleGunsight : public IDrawable, public SigObject {
 protected:
     UI::Surface surface;
     Ptr<IGame> game;
@@ -83,8 +90,12 @@ public:
     void addMissileWarning(Ptr<IGame> game, Ptr<SimpleActor> actor);
     void addInfoMessage(Ptr<IGame> game);
     
+    // To draw modules belonging to another render pass (for rendertotexture)
+    void addRenderPassRoot(Ptr<RenderPass> render_pass, const char *name);
+    
     // IDrawable implementation
     virtual void draw();
+    void drawRenderPass(Ptr<RenderPass> render_pass);
     
     // Module enabling/disabling
     void enable();

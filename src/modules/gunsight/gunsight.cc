@@ -45,6 +45,9 @@ void FlexibleGunsight::addModule(
     typedef Modules::reverse_iterator Iter;
     for(Iter i=modules.rbegin(); i!=modules.rend(); ++i) {
         if ((*i)->getName() == relative_to) {
+            // copy the renderpass from the parent
+            module->setRenderPass((*i)->getRenderPass());
+            
             Vector parent_ofs = (*i)->getOffset();
             if (parent_corner & LEFT) {
                 ofs[0] += parent_ofs[0];
@@ -81,7 +84,22 @@ void FlexibleGunsight::addModule(
     modules.push_back(module);
 }
 
+void FlexibleGunsight::addRenderPassRoot(Ptr<RenderPass> render_pass, const char *name)
+{
+    render_pass->postScene().connect(
+        SigC::slot(*this, &FlexibleGunsight::drawRenderPass));
+    modules.push_back(new PlaceholderModule(
+        name,
+        render_pass->getWidth(),
+        render_pass->getHeight()));
+    modules.back()->setRenderPass(render_pass);
+}
+
 void FlexibleGunsight::draw() {
+    drawRenderPass(0);
+}
+
+void FlexibleGunsight::drawRenderPass(Ptr<RenderPass> render_pass) {
     surface = game->getScreenSurface();
 	typedef Modules::iterator Iter;
 	renderer->disableAlphaBlending();
@@ -94,6 +112,10 @@ void FlexibleGunsight::draw() {
     
 	for(Iter i=modules.begin(); i!=modules.end(); ++i) {
 	    Ptr<GunsightModule> & module = *i;
+	    if (module->getRenderPass() != render_pass) {
+	        // only draw modules for render_pass 
+	        continue;
+	    }
 	    Vector topleft = surface.getOrigin() + surface.getDX()*module->getOffset()[0]
 	        + surface.getDY()*module->getOffset()[1];
 	    Vector bottomright = topleft + surface.getDX()*module->getWidth() +
