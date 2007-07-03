@@ -43,6 +43,9 @@ public:
     // Collidable implementation
     virtual void integrate(float delta_t, Transform * transforms);
     virtual void update(float delta_t, const Transform * new_transforms);
+    
+    /// Updates skeleton and sound objects to current position
+    void updateDerivedObjects();
 
 private:
     JRenderer * renderer;

@@ -55,6 +55,7 @@ Carrier::Carrier(Ptr<IGame> thegame, IoObject * io_peer_init)
 void Carrier::onLinked() {
     SimpleActor::onLinked();
     thegame->getCollisionMan()->add(this);
+    updateDerivedObjects();
 }
 
 void Carrier::onUnlinked() {

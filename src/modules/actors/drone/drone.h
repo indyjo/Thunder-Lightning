@@ -72,6 +72,7 @@ public:
     inline void toggleLandingGear() { flight_controls->setGearLowered(!flight_controls->isGearLowered()); }
     
 private:
+    void updateDerivedObjects();
     void drawWheels();
     
 private:

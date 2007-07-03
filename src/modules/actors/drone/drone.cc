@@ -241,7 +241,9 @@ void Drone::onLinked() {
     engine_sound_src->setReferenceDistance(thegame->getConfig()->queryFloat("Drone_engine_reference_distance", 1.0f));
     engine_sound_src->play(thegame->getSoundMan()->querySound(
             thegame->getConfig()->query("Drone_engine_sound")));
-            
+
+    skeleton->setBoneTransform("Body",getTransform());
+    updateDerivedObjects();
 }
 
 void Drone::onUnlinked() {
@@ -358,19 +360,7 @@ void Drone::action() {
     
     SimpleActor::action();
     
-    // sound
-    float r = pow(2.0f, -delta_t/1.0f);
-    engine_power = r*engine_power + (1-r)*flight_controls->getThrottle();
-    float pitch_lowest = thegame->getConfig()->queryFloat("Drone_engine_pitch_lowest", 0.5);
-    float pitch_highest = thegame->getConfig()->queryFloat("Drone_engine_pitch_highest", 2.0);
-    float gain_lowest = thegame->getConfig()->queryFloat("Drone_engine_gain_lowest", 0.2);
-    float gain_highest = thegame->getConfig()->queryFloat("Drone_engine_gain_highest", 1.0);
-    engine_sound_src->setPitch(pitch_lowest + engine_power*(pitch_highest-pitch_lowest));
-    engine_sound_src->setGain(gain_lowest + engine_power*(gain_highest-gain_lowest));
-
-    engine_sound_src->setPosition(getLocation());
-    engine_sound_src->setVelocity(getMovementVector());
-    engine_sound_src->setMaxGain(thegame->getConfig()->queryFloat("Drone_engine_max_gain", 1.0f));
+    updateDerivedObjects();
 }
 
 void Drone::kill() {
@@ -628,6 +618,36 @@ void Drone::setLandingGear(bool lowered) {
     }
 }
 
+void Drone::setLandingHook(bool lowered) {
+    if (lowered == hook_lowered) {
+        return;
+    }
+    
+    hook_lowered=lowered;
+    if (lowered) {
+        hook->clear();
+        engine->addEffector( hook );
+    } else {
+        engine->removeEffector( hook );
+    }
+}
+
+void Drone::updateDerivedObjects() {
+    float delta_t = thegame->getClock()->getFrameDelta();
+    // sound
+    float r = pow(2.0f, -delta_t/1.0f);
+    engine_power = r*engine_power + (1-r)*flight_controls->getThrottle();
+    float pitch_lowest = thegame->getConfig()->queryFloat("Drone_engine_pitch_lowest", 0.5);
+    float pitch_highest = thegame->getConfig()->queryFloat("Drone_engine_pitch_highest", 2.0);
+    float gain_lowest = thegame->getConfig()->queryFloat("Drone_engine_gain_lowest", 0.2);
+    float gain_highest = thegame->getConfig()->queryFloat("Drone_engine_gain_highest", 1.0);
+    engine_sound_src->setPitch(pitch_lowest + engine_power*(pitch_highest-pitch_lowest));
+    engine_sound_src->setGain(gain_lowest + engine_power*(gain_highest-gain_lowest));
+
+    engine_sound_src->setPosition(getLocation());
+    engine_sound_src->setVelocity(getMovementVector());
+    engine_sound_src->setMaxGain(thegame->getConfig()->queryFloat("Drone_engine_max_gain", 1.0f));
+}
 
 void Drone::drawWheels() {
 	if (!wheel_model) {

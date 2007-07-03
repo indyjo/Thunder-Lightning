@@ -152,7 +152,8 @@ void Tank::onLinked() {
             thegame->getConfig()->query("Tank_engine_sound_low")));
     sound_high->play(thegame->getSoundMan()->querySound(
             thegame->getConfig()->query("Tank_engine_sound_high")));
-            
+    
+    updateDerivedObjects();
 }
 
 void Tank::onUnlinked() {
@@ -210,28 +211,7 @@ void Tank::action() {
 
     SimpleActor::action();
     
-    skeleton->setBoneTransform("Turret", Transform(
-        Quaternion::Rotation(Vector(0,1,0), tank_engine->getTurretAngle()), Vector(0,0,0)));
-    skeleton->setBoneTransform("Cannon", Transform(
-        Quaternion::Rotation(Vector(-1,0,0), tank_engine->getCannonAngle()), Vector(0,0,0)));
-    skeleton->setBoneTransform("MachineGun", Transform(
-        Quaternion::Rotation(Vector(-1,0,0), tank_engine->getCannonAngle()), Vector(0,0,0)));
-    
-    sound_high->setPosition(getLocation());
-    sound_high->setVelocity(getMovementVector());
-    sound_low->setPosition(getLocation());
-    sound_low->setVelocity(getMovementVector());
-
-    float v = getMovementVector().length();
-    //float gain = 1.0f - std::min(1.0f, v/20.0f);
-    //float gain = 1.0f;
-    //gain *= gain;
-    //gain *= gain;
-    sound_high->setPitch(0.5f + 1.5*std::min(1.0f,v/30));
-    
-    float gain = std::min(v, 2.0f)/2.0f;
-    sound_high->setGain(gain);
-    sound_low->setGain(1-gain);
+    updateDerivedObjects();
 }
 
 
@@ -348,5 +328,30 @@ void Tank::integrate(float delta_t, Transform * transforms) {
 
 void Tank::update(float delta_t, const Transform * new_transforms) {
     // as this is a "static" actor, we can ignore this
+}
+
+void Tank::updateDerivedObjects() {
+    skeleton->setBoneTransform("Turret", Transform(
+        Quaternion::Rotation(Vector(0,1,0), tank_engine->getTurretAngle()), Vector(0,0,0)));
+    skeleton->setBoneTransform("Cannon", Transform(
+        Quaternion::Rotation(Vector(-1,0,0), tank_engine->getCannonAngle()), Vector(0,0,0)));
+    skeleton->setBoneTransform("MachineGun", Transform(
+        Quaternion::Rotation(Vector(-1,0,0), tank_engine->getCannonAngle()), Vector(0,0,0)));
+    
+    sound_high->setPosition(getLocation());
+    sound_high->setVelocity(getMovementVector());
+    sound_low->setPosition(getLocation());
+    sound_low->setVelocity(getMovementVector());
+
+    float v = getMovementVector().length();
+    //float gain = 1.0f - std::min(1.0f, v/20.0f);
+    //float gain = 1.0f;
+    //gain *= gain;
+    //gain *= gain;
+    sound_high->setPitch(0.5f + 1.5*std::min(1.0f,v/30));
+    
+    float gain = std::min(v, 2.0f)/2.0f;
+    sound_high->setGain(gain);
+    sound_low->setGain(1-gain);
 }
 

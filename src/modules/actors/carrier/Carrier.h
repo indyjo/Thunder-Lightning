@@ -24,6 +24,8 @@ public:
     virtual void integrate(float delta_t, Transform * transforms);
     virtual void update(float delta_t, const Transform * new_transforms);
 private:
+    void updateDerivedObjects();
+
     Ptr<RigidEngine> engine;
 };
 
