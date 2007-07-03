@@ -280,6 +280,11 @@ void Drone::action() {
         
     // cheap-ass crash detection
     Vector p = getLocation();
+    if (p[1] < 0) {
+        p[1] = 0;
+        setLocation(p);
+        explode();
+    }
     if (p[1] < terrain->getHeightAt(p[0],p[2])) {
         p[1] = terrain->getHeightAt(p[0],p[2]);
         setLocation(p);
@@ -505,6 +510,22 @@ void Drone::update(float delta_t, const Transform * new_transforms) {
     skeleton->setBoneTransform("Body",new_transforms[0]);
 }
 
+void Drone::collide(const Collide::Contact & c) {
+    Ptr<Collidable> partner = c.collidables[1];
+    
+    float impulse = 0;
+    Ptr<RigidBody> rigid = partner->getRigid();
+    if (rigid) {
+        impulse = RigidBody::collisionImpulseMagnitude(1.0, *engine, *rigid, c.p, c.n);
+    } else {
+        impulse = RigidBody::collisionImpulseMagnitude(1.0, *engine, c.p, c.n);
+    }
+    
+    float drone_mass = engine->getBase().M;
+    if (std::abs(impulse) > 8*drone_mass) {
+        explode(true);
+    }
+}
 
 bool Drone::hasControlMode(ControlMode) {
   return true;

@@ -41,6 +41,7 @@ public:
 
     virtual void integrate(float delta_t, Transform * transforms);
     virtual void update(float delta_t, const Transform * new_transforms);
+    virtual void collide(const Collide::Contact & c);
     
     virtual int getNumViews();
     virtual Ptr<IView> getView(int n);
