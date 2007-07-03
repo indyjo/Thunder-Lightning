@@ -3,7 +3,7 @@ Config do(
   Game_fullscreen := "true"
   
   // Use automatically detected resolution (only if Game_fullscreen is "true")
-  Game_auto_resolution := Game_fullscreen
+  Game_auto_resolution := "true"
   
   // Screen resolution (if Game_autodetect_resolution is "false")
   Game_xres       := "800"
