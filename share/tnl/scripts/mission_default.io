@@ -46,6 +46,24 @@ Briefing := coro(dummy,
 
 briefing := nil
 
+addCarrier := method(
+    alpha := 270 * Number constants pi / 180
+    corient := matrix( alpha cos,  0, -alpha sin
+                               0,  1,          0
+                       alpha sin,  0,  alpha cos)
+    cpos := 1.4*vector(6543,0,1416)
+    
+    carrier := Carrier clone
+    
+    carrier setLocation(cpos)
+    carrier setOrientation(corient)
+    carrier setFaction(them)
+    carrier setControlMode(Actor AUTOMATIC)
+
+    Game addActor(carrier)
+    carrier
+)
+
 startup := method(
     "DefaultMission startup begin" println
     
@@ -112,7 +130,7 @@ startup := method(
     2 repeat(
       tank4 := Tank clone
       tanks append(tank4)
-      tank4 setLocation(vector(6543,0,1386) + 100*randvec)
+      tank4 setLocation(vector(6543,0,1386) + 400*randvec)
       tank4 setFaction(them)
       tank4 setControlMode(Actor AUTOMATIC)
       Game addActor(tank4)
@@ -147,16 +165,30 @@ startup := method(
     addSurviveObjective(me)
 
     self wingman_1 := me clone
-    wingman_1 setLocation( me getLocation + 30*me getRightVector + 400*me getFrontVector + 60*me getUpVector)
+    wingman_1 setLocation( me getLocation + 30*me getRightVector + 40*me getFrontVector + 5*me getUpVector)
     wingman_1 setControlMode(Actor AUTOMATIC)
+    wingman_1 partner := me
+    wingman_1 ai := coro(me,
+        fly := Drone flyInFormation clone start(me, me partner, vector(20, 5, -40))
+        manage(fly)
+        loop(pass)
+    )
     Game addActor(wingman_1)
     addSurviveObjective(wingman_1)
     
     self wingman_2 := me clone
-    wingman_2 setLocation( me getLocation - 30*me getRightVector + 480*me getFrontVector + 80*me getUpVector)
+    wingman_2 setLocation( me getLocation + 60*me getRightVector + 80*me getFrontVector + 10*me getUpVector)
     wingman_2 setControlMode(Actor AUTOMATIC)
+    wingman_2 partner := me
+    wingman_2 ai := coro(me,
+        fly := Drone flyInFormation clone start(me, me partner, vector(40, 10, -80))
+        manage(fly)
+        loop(pass)
+    )
     Game addActor(wingman_2)
     addSurviveObjective(wingman_2)
+    
+    self carrier := addCarrier
 
     "DefaultMission startup end" println
 )

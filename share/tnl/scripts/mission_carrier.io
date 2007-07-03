@@ -18,6 +18,7 @@ addCarrier := method(pos, orient,
     
     carrier setLocation(pos)
     carrier setOrientation(orient)
+    carrier setFaction(us)
 
     Game addActor(carrier)
     carrier
@@ -46,9 +47,10 @@ startup := method(
         Game addActor(me)
     )
     
-    corient := matrix( 1, 0, 0
-                       0,  1, 0
-                       0,  0, 1)
+    alpha := -15 * Number constants pi / 180
+    corient := matrix( alpha cos,  0, -alpha sin
+                               0,  1,          0
+                       alpha sin,  0,  alpha cos)
     mypos atSet(1,0,0)
     self carrier := addCarrier(mypos + myvelocity*25, corient)
 
