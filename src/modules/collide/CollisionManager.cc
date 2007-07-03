@@ -314,8 +314,10 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
             for(int i=0; i<2; i++)
                 contact[c].collidables[i]->integrate(stop_time,
                     geom_instances[contact[c].collidables[i]]->transforms_1);
-            for(int i=0; i<2; i++)
-                contact[c].collidables[i]->collide(contact[c]);
+            Contact c_reverse = contact[c];
+            c_reverse.swap();
+            contact[c].collidables[0]->collide(contact[c]);
+            contact[c].collidables[1]->collide(c_reverse);
         }
 
         delta_t -= stop_time;

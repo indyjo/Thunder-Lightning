@@ -19,6 +19,7 @@ struct Contact {
     float v[2];
 
     void applyCollisionImpulse();
+    void swap();
 };
 
 } //namespace Collide

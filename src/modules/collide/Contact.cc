@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <tnl.h>
 #include <modules/physics/RigidBody.h>
 
@@ -29,5 +30,12 @@ void Collide::Contact::applyCollisionImpulse() {
         rigid_a->applyImpulseAt( j * n, p);
         rigid_b->applyImpulseAt(-j * n, p);
     }
+}
+
+void Collide::Contact::swap() {
+    std::swap(collidables[0], collidables[1]);
+    std::swap(domains[0], domains[1]);
+    n = -n;
+    std::swap(v[0], v[1]);
 }
 
