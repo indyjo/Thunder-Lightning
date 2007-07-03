@@ -8,8 +8,6 @@ tnl_bin_SOURCES = game.cc game.h tnl.h \
                         object.cc object.h \
                         util.h signals.h remap.h remap.cc \
                         sound.cc sound.h \
-                        mtasker.cc mtasker.h \
-                        coroutine.cc coroutine.h \
                         TargetInfo.h TargetInfo.cc \
                         voidptr.h \
                         TypedObject.h TypedObject.cc \
