@@ -68,6 +68,7 @@ EventRemapper do(
   mapKey(SDLK_F10, press, "faster")
   
   mapKey(SDLK_l, press, "landing-gear")
+  mapKey(SDLK_k, press, "landing-hook")
   mapKey(SDLK_b, press, "+brake")
   mapKey(SDLK_b, release, "-brake")
   
