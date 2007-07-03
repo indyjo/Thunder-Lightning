@@ -7,6 +7,7 @@
 #include <modules/clock/clock.h>
 #include <modules/engines/effectors.h>
 #include <modules/engines/rigidengine.h>
+#include <modules/environment/Water.h>
 #include <modules/gunsight/gunsight.h>
 #include <modules/math/SpecialMatrices.h>
 #include <modules/model/Skeleton.h>
@@ -20,6 +21,7 @@
 
 #include <remap.h>
 #include <sound.h>
+#include <RenderPass.h>
 #include <interfaces/IConfig.h>
 #include <interfaces/ICamera.h>
 #include <interfaces/IModelMan.h>
@@ -363,8 +365,9 @@ void Drone::draw() {
     Vector pilot_pos = skeleton->getPoint("PilotSeat");
 	Vector cam_pos = thegame->getCamera()->getLocation();
     if ((pilot_pos-cam_pos).lengthSquare()<1) {
-        //TODO: Add cockpit interior drawing
         inside_model->draw(*renderer, Mmodel, Rotation);
+        renderer->disableLighting();
+        mfd_model->draw(*renderer, Mmodel, Rotation);
     } else {
         skeleton->draw(*renderer);
     }
@@ -430,6 +433,36 @@ Ptr<IView> Drone::getView(int n) {
     gunsight2->addArmamentToScreen(thegame, armament, 0);
     gunsight2->addMissileWarning(thegame, this);
     gunsight2->addInfoMessage(thegame);
+    
+    if (n==0 || n==5) {
+        Ptr<FlexibleGunsight> gunsight = (n==0)?gunsight1:gunsight2;
+    
+        Ptr<RenderPass> pass = thegame->getRenderPassList()->createRenderPass();
+        pass->setEnabled(true);
+        pass->setResolution(256,256);
+        pass->enableClearColor(true);
+        pass->setRenderToTexture(true);
+        Ptr<SimpleCamera> cam = new SimpleCamera(thegame->getCamera());
+        
+        RenderContext ctx = RenderContext::MainRenderContext(
+            cam,
+            thegame->getWater()->createRenderPass());
+        ctx.camera = cam;
+        ctx.draw_gunsight = false;
+        ctx.draw_console = false;
+        pass->setRenderContext(ctx);
+        pass->setRenderContextEnabled(true);
+        pass->dependsOn(ctx.mirror_pass);
+        
+        ctx.mirror_pass->preScene().connect(
+            SigC::bind(SigC::slot(*this, &Drone::updateZoomCamera), cam));
+        thegame->getWater()->linkRenderPassToCamera(ctx.mirror_pass, cam);
+        
+        gunsight->addRenderPassRoot(pass, "mfd");
+        gunsight->addBasicCrosshairs("mfd");
+        
+        mfd_model->getDefaultObject()->getGroups().back()->mtl.tex = pass->getTexture();
+    }
 
 	switch(n) {
     case 0:
@@ -612,5 +645,14 @@ void Drone::drawWheels() {
     	Matrix Mmodel  = Translation * Rotation;
     	wheel_model->draw(*renderer, Mmodel, Rotation);
 	}
+}
+
+
+void Drone::updateZoomCamera(Ptr<RenderPass> pass, Ptr<SimpleCamera> cam) {
+    cam->setFocus(16*thegame->getCamera()->getFocus());
+    cam->setAspect(1.0);
+    cam->alignWith(this);
+    cam->setNearDistance(5.0f);
+    cam->setFarDistance(thegame->getCamera()->getFarDistance());
 }
 
