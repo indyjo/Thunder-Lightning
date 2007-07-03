@@ -39,10 +39,14 @@ void aircraftFirstExplosion(Ptr<IGame> game, Ptr<IActor> aircraft) {
                     Vector(RAND2, RAND2, RAND2).normalize();
             float size = 1 + RAND * 2;
             double time = RAND * MAX_EXPLOSION_AGE;
-            Ptr<Explosion> explosion = new Explosion(game, v, size, time);
+            Ptr<Explosion> explosion = new Explosion(game, v, size, time, false);
             explosion->setMovementVector((0.1 + 0.9*RAND)*aircraft->getMovementVector());
             game->addActor(explosion);
         }
+        // one big main explosion
+        Ptr<Explosion> explosion = new Explosion(game, p, 3.0, 0.0, true);
+        explosion->setMovementVector(aircraft->getMovementVector());
+        game->addActor(explosion);
     }
 }
 
@@ -56,10 +60,14 @@ void aircraftFinalExplosion(Ptr<IGame> game, Ptr<IActor> aircraft) {
             float size = MIN_EXPLOSION_SIZE +
                     RAND * (MAX_EXPLOSION_SIZE - MIN_EXPLOSION_SIZE);
             double time = RAND * MAX_EXPLOSION_AGE;
-            Ptr<Explosion> explosion = new Explosion(game, v, size, time);
+            Ptr<Explosion> explosion = new Explosion(game, v, size, time, false);
             explosion->setMovementVector((0.1 + 0.9*RAND)*aircraft->getMovementVector());
             game->addActor(explosion);
         }
+        // one big main explosion
+        Ptr<Explosion> explosion = new Explosion(game, p, 4.0, 0.0, true);
+        explosion->setMovementVector(aircraft->getMovementVector());
+        game->addActor(explosion);
     }
     
     {

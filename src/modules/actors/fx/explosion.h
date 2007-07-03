@@ -10,7 +10,8 @@ class Explosion: public SimpleActor
 public:
     Explosion(Ptr<IGame> thegame, const Vector & pos,
         float size_factor=1.0,
-        double init_age=0.0);
+        double init_age=0.0,
+        bool with_sound=true);
     virtual ~Explosion();
 
     virtual void action();

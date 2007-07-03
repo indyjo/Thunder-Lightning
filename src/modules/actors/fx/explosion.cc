@@ -2,6 +2,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
+#include <sstream>
 #include "explosion.h"
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
@@ -19,7 +20,8 @@ namespace {
 
 Explosion::Explosion(Ptr<IGame> thegame, const Vector & pos,
         float size_factor,
-        double init_age)
+        double init_age,
+        bool with_sound)
 : SimpleActor(thegame), age(init_age),
   renderer(thegame->getRenderer()), size_factor(size_factor)
 {
@@ -34,8 +36,8 @@ Explosion::Explosion(Ptr<IGame> thegame, const Vector & pos,
 
     secs_per_frame=atof( cfg->query("Explosion_seconds_per_frame","0.041") );
     size=0.5 * atof( cfg->query("Explosion_size","20.0") );
-    const char * prefix=cfg->query("Explosion_filename_prefix");
-    const char * postfix=cfg->query("Explosion_filename_postfix",".spr");
+    const char * prefix=cfg->query("Explosion_tex_prefix");
+    const char * postfix=cfg->query("Explosion_tex_postfix",".spr");
     for(int i=0; i<frames; i++) {
         char buffer[256];
         snprintf(buffer, 256, "%s%04d%s", prefix, i, postfix);
@@ -48,16 +50,26 @@ Explosion::Explosion(Ptr<IGame> thegame, const Vector & pos,
     rot_speed = (RAND2 * PI) / size_factor;
 
     
-    Ptr<SoundMan> soundman = thegame->getSoundMan();
-    Ptr<SoundSource> soundsource = soundman->requestSource();
-    if (soundsource) {
-        soundsource->play( soundman->querySound("explosion-01.wav") );
-        //soundsource->play( new Sound("/home/jonas/devel/gcc/landscape-SDL/install/share/"
-        //        "landscape/sounds/explosion-01.wav"));
-        soundsource->setGain(1);
-        soundsource->setReferenceDistance(15*size_factor);
-        soundsource->setPosition(getLocation());
-        soundman->manage(soundsource);
+    if (with_sound) {
+        Ptr<SoundMan> soundman = thegame->getSoundMan();
+        Ptr<SoundSource> soundsource = soundman->requestSource();
+        if (soundsource) {
+            int sndidx = int(RAND*cfg->queryInt("Explosion_num_sounds", 1));
+            std::ostringstream sndname;
+            sndname << cfg->query("Explosion_sound_prefix");
+            sndname << (sndidx+1);
+            sndname << cfg->query("Explosion_sound_postfix");
+            
+            Ptr<Sound> snd = soundman->querySound(sndname.str());
+            
+            soundsource->play( snd );
+            //soundsource->play( new Sound("/home/jonas/devel/gcc/landscape-SDL/install/share/"
+            //        "landscape/sounds/explosion-01.wav"));
+            soundsource->setGain(1);
+            soundsource->setReferenceDistance(15*size_factor);
+            soundsource->setPosition(getLocation());
+            soundman->manage(soundsource);
+        }
     }
 }
 
