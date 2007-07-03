@@ -5,7 +5,6 @@
 #include <string>
 #include <stdexcept>
 #include <vector>
-#include <interfaces/ICamera.h>
 #include <interfaces/IGame.h>
 #include <modules/math/Transform.h>
 #include "model.h"
@@ -76,14 +75,14 @@ class Skeleton : public Object {
     BonesByName  bones_by_name;
     PointsByName points_by_name;
     Ptr<Bone>    root_bone;
-    Ptr<ICamera> camera;
+    IGame*       thegame;
 
     float bounding_radius;
     
 public:
     /// Constructs a skeleton given the name of a skeleton specfile
     inline Skeleton(Ptr<IGame> game, const std::string & filename) throw(std::invalid_argument)
-        : camera(game->getCamera()), bounding_radius(0)
+        : bounding_radius(0)
     { load(game, filename); }
     ~Skeleton();
 
@@ -124,6 +123,8 @@ public:
     /// Returns the point with the given name without applying bone transformations
     Vector getUntransformedPoint(const std::string &);
     
+    /// Draws the skeleton's object with the renderer given. A frustum test is
+    /// _not_ performed.
     void draw(JRenderer & r);
     
 private:

@@ -1,5 +1,6 @@
 #include <IoState.h>
 #include "simpleactor.h"
+#include <interfaces/ICamera.h>
 #include <interfaces/IProjectile.h>
 #include <modules/clock/clock.h>
 #include <modules/engines/newtonianengine.h>
@@ -299,6 +300,47 @@ void SimpleActor::setMovementVector(const Vector & v) {
 // IDrawable
 void SimpleActor::draw() {
     JRenderer *renderer = thegame->getRenderer();
+    
+    float bounding_radius = 1.0;
+    if (skeleton) {
+        bounding_radius = skeleton->getBoundingRadius();
+    } else if (getTargetInfo()) {
+        bounding_radius = getTargetInfo()->getTargetSize();
+    }
+    
+    float frustum[6][4];
+    float dist = 0.0;
+    Vector p = getLocation();
+
+    thegame->getCamera()->getFrustumPlanes(frustum);
+    for(int plane=0; plane<6; plane++) {
+        float d = 0;
+        for(int i=0; i<3; i++) d += frustum[plane][i]*p[i];
+        d += frustum[plane][3];
+        if (d < -bounding_radius) return; // Out of frustum -> cull!
+        if (plane == PLANE_MINUS_Z) dist = d;
+    }
+    
+    float max_model_distance = bounding_radius*renderer->getFocus() * renderer->getHeight() / 4;
+    float max_point_distance = 2*max_model_distance;
+    
+    if (dist > max_point_distance) {
+        return; // too far away -> cull
+    } else if ( dist > max_model_distance) {
+        // draw as point
+        renderer->disableTexturing();
+        renderer->enableAlphaBlending();
+        renderer->setColor(Vector(0,0,0));
+        renderer->setAlpha(1.0 - (dist-max_model_distance) /
+                (max_point_distance - max_model_distance));
+        renderer->begin(JR_DRAWMODE_POINTS);
+        renderer->vertex(p);
+        renderer->end();
+        renderer->disableAlphaBlending();
+        return;
+    }
+
+    
     renderer->enableLighting();
     if (model) {
         Vector right, up, front;

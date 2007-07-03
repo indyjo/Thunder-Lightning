@@ -205,23 +205,8 @@ Vector Skeleton::getUntransformedPoint(const string & name) {
 
 
 void Skeleton::draw(JRenderer & r) {
-    float frustum[6][4];
-    float dist = 0.0;
-    Vector p = root_bone->getTransform().vec();
-
-    // FIXME: It should really _not_ be necessary to get the frustum from the game's camera.
-    //        It _should_ be possible to query it directly from the renderer.
-    //        Then, we could drop the pointer to the camera!
-    camera->getFrustumPlanes(frustum);
-    for(int plane=0; plane<6; plane++) {
-        float d = 0;
-        for(int i=0; i<3; i++) d += frustum[plane][i]*p[i];
-        d += frustum[plane][3];
-        if (d < -bounding_radius) return; // Out of frustum -> cull!
-        if (plane == PLANE_MINUS_Z) dist = d;
-    }
-
     r.setCullMode(JR_CULLMODE_CULL_NEGATIVE);
     root_bone->draw(r);
     r.setCullMode(JR_CULLMODE_NO_CULLING);
 }
+
