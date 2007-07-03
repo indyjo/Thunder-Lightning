@@ -101,6 +101,9 @@ MissionManager := Object clone do(
   carrierMission := Mission clone
   carrierMission doFile(path .. "/mission_carrier.io")
   
+  aitestMission := Mission clone
+  aitestMission doFile(path .. "/mission_aitest.io")
+  
   missionEnded := method(mission, status,
     ("Mission ended: " .. status) say
     if (introMission == mission and status==Mission SUCCESS,
