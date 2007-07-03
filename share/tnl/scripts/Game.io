@@ -6,6 +6,7 @@ Game do (
     removeActor,
     queryActorsInSphere,
     queryActorsInCylinder,
-    queryActorsInBox
+    queryActorsInBox,
+    queryActorsInCapsule
     ) to (asActorStage)
 )
