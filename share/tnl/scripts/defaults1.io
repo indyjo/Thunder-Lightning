@@ -96,10 +96,12 @@ Config do(
   // Explosion configuration
   Explosion_frames                 := "16"
   Explosion_seconds_per_frame      := "0.08"
-  Explosion_filename_prefix        := texture_dir .. "/explosion/explosion"
-  Explosion_filename_postfix       := ".png"
+  Explosion_tex_prefix             := texture_dir .. "/explosion/explosion"
+  Explosion_tex_postfix            := ".png"
   Explosion_size                   := "20.0"
-  Explosion_sound                  := "explosion-01.wav"
+  Explosion_num_sounds             := "1"
+  Explosion_sound_prefix           := "explosion-0"
+  Explosion_sound_postfix          := ".wav"
 
   // Drone configuration
   Drone_model_path                 := model_dir .. "/lightning"
