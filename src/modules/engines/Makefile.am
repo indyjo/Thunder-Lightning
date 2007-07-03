@@ -15,7 +15,8 @@ libengines_a_SOURCES = \
     flightengine2.h flightengine2.cc            \
     flightengine3.h flightengine3.cc            \
     rigidengine.h rigidengine.cc                \
-    tankengine.h tankengine.cc
+    tankengine.h tankengine.cc                  \
+    Turret.h Turret.cc
 
 
 
