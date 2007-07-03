@@ -9,10 +9,13 @@ Vector SkeletonProvider::getLocation() { return skeleton->getPoint(pos); }
     
 Matrix3 SkeletonProvider::orient() {
     Vector front = skeleton->getPoint(front2)-skeleton->getPoint(front1);
+    front.normalize();
     Vector right, up;
     if (up1) {
         up = skeleton->getPoint(up2)-skeleton->getPoint(up1);
         right = up % front;
+        right.normalize();
+        up = front % right;
     } else {
         right = Vector(0,1,0) % front;
         right.normalize();
