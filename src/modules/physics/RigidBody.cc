@@ -62,8 +62,10 @@ float RigidBody::collisionImpulseMagnitude(
     const Vector & B_x = B.getState().x;
     Vector A_r = p - A_x;
     Vector B_r = p - B_x;
+    Vector A_v = A.getVelocityAt(p);
+    Vector B_v = B.getVelocityAt(p);
 
-    float x1 = -(1+e)*((A.v-B.v)*n);
+    float x1 = -(1+e)*((A_v-B_v)*n);
     float x2 = A.getBase().M_inv+B.getBase().M_inv;
     Vector x3 = (A_I_inv * (A_r % n)) % A_r;
     Vector x4 = (B_I_inv * (B_r % n)) % B_r;
@@ -80,8 +82,9 @@ float RigidBody::collisionImpulseMagnitude(
     const Matrix3 & A_I_inv = A.I_inv_wcs;
     const Vector & A_x = A.getState().x;
     Vector A_r = p - A_x;
+    Vector A_v = A.getVelocityAt(p);
 
-    float x1 = -(1+e)*(A.v*n);
+    float x1 = -(1+e)*(A_v*n);
     float x2 = A.getBase().M_inv;
     Vector x3 = (A_I_inv * (A_r % n)) % A_r;
     float x5 = n * x3;
