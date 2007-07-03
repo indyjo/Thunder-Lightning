@@ -108,7 +108,6 @@ void FlexibleGunsight::drawRenderPass(Ptr<RenderPass> render_pass) {
 	renderer->setCullMode(JR_CULLMODE_NO_CULLING);
 	renderer->setCoordSystem(JR_CS_EYE);
 	renderer->disableZBuffer();
-    renderer->setClipRange(0.1, 10.0);
     
 	for(Iter i=modules.begin(); i!=modules.end(); ++i) {
 	    Ptr<GunsightModule> & module = *i;
