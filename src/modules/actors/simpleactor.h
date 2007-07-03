@@ -11,6 +11,7 @@
 #include <interfaces/IActor.h>
 #include <interfaces/IGame.h>
 #include <interfaces/IView.h>
+#include <modules/math/Transform.h>
 #include <modules/model/model.h>
 #include <modules/model/Skeleton.h>
 
@@ -82,6 +83,10 @@ public:
     virtual Vector getRightVector();
     virtual Vector getUpVector();
     virtual void getOrientation(Vector * up, Vector * right, Vector * front);
+    // utility functions
+    Matrix3 getOrientationAsMatrix();
+    Quaternion getOrientationAsQuaternion();
+    Transform getTransform();
 
     // IMovementProvider
     virtual Vector getMovementVector();
@@ -91,6 +96,10 @@ public:
     virtual void setOrientation(const Vector & up,
                                 const Vector & right,
                                 const Vector & front);
+    // utility functions
+    void setOrientation(const Matrix3 &);
+    void setOrientation(const Quaternion &);
+    void setTransform(const Transform &);
 
     // IMovementReceiver
     virtual void setMovementVector(const Vector &);

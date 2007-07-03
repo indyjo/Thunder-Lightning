@@ -129,12 +129,7 @@ void SimpleActor::action() {
     
     engine->run();
     if (skeleton) {
-        Vector up,right,front;
-        getOrientation(&up, &right, &front);
-        Matrix3 M = MatrixFromColumns(right, up, front);
-        Quaternion q;
-        q.fromMatrix(M);
-        skeleton->setRootBoneTransform(Transform(q, getLocation()));
+        skeleton->setRootBoneTransform(getTransform());
     }
     
     if (armament) {
@@ -280,6 +275,19 @@ Vector SimpleActor::getUpVector() { return engine->getUpVector(); }
 void SimpleActor::getOrientation(Vector *up, Vector *right, Vector *front) {
     engine->getOrientation(up, right, front);
 }
+Matrix3 SimpleActor::getOrientationAsMatrix() {
+    Vector up, right, front;
+    engine->getOrientation(&up, &right, &front);
+    return MatrixFromColumns(right, up, front);
+}
+Quaternion SimpleActor::getOrientationAsQuaternion() {
+    Quaternion q;
+    q.fromMatrix(getOrientationAsMatrix());
+    return q;
+}
+Transform SimpleActor::getTransform() {
+    return Transform(getOrientationAsQuaternion(), getLocation());
+}
 
 // IMovementProvider
 Vector SimpleActor::getMovementVector() { return engine->getMovementVector(); }
@@ -290,6 +298,16 @@ void SimpleActor::setOrientation(   const Vector & up,
                                     const Vector & right,
                                     const Vector & front) {
     engine->setOrientation(up, right, front);
+}
+void SimpleActor::setOrientation(   const Matrix3& m) {
+    engine->setOrientation(m*Vector(0,1,0), m*Vector(1,0,0), m*Vector(0,0,1));
+}
+void SimpleActor::setOrientation(   const Quaternion& q) {
+    engine->setOrientation(q.rot(Vector(0,1,0)), q.rot(Vector(1,0,0)), q.rot(Vector(0,0,1)));
+}
+void SimpleActor::setTransform( const Transform & xform) {
+    setOrientation(xform.quat());
+    setLocation(xform.vec());
 }
 
 // IMovementReceiver
