@@ -2,12 +2,10 @@
 #define DRONE_H
 
 #include <tnl.h>
-#include <mtasker.h>
 #include <modules/math/Vector.h>
 #include <modules/math/Matrix.h>
 #include <modules/model/model.h>
 #include <modules/model/Skeleton.h>
-#include <modules/flight/autopilot.h>
 #include <modules/flight/flightinfo.h>
 #include <modules/engines/controls.h>
 #include <modules/actors/simpleactor.h>
@@ -17,9 +15,6 @@
 
 
 class RigidEngine;
-struct Idea;
-class PatrolIdea;
-struct Rating;
 class Targeter;
 class SoundSource;
 struct Context;
@@ -27,18 +22,6 @@ struct Context;
 namespace Effectors { class Wheel; class TailHook; }
 
 class EventSheet;
-
-struct Personality {
-    Personality() : confidence(.25), obedience(.25),
-            experience(.25), cautiousness(.25) { }
-    float confidence;
-    float obedience;
-    float experience;
-    float cautiousness;
-    
-    float evaluate(const Rating & r);
-    void randomize();
-};
 
 class Drone : public SimpleActor, public Collide::Collidable, virtual public SigObject {
 public:
@@ -84,13 +67,6 @@ private:
     Ptr<ITerrain> terrain;
     Ptr<SoundSource> engine_sound_src;
 
-    // ai stuff
-    Ptr<Context> context;
-    Personality personality;
-    std::list<Ptr<Idea> > ideas;
-    Ptr<Idea> current_idea;
-    Ptr<PatrolIdea> patrol_idea;
-
     // 3d model
     Ptr<Skeleton> skeleton;
     Ptr<Model> inside_model;
@@ -100,14 +76,12 @@ private:
     Ptr<RigidEngine> engine;
     FlightInfo flight_info;
     Ptr<FlightControls> flight_controls;
-    AutoPilot auto_pilot;
     bool gear_lowered, hook_lowered;
     Ptr<Effectors::Wheel> wheels[3];
     Ptr<Effectors::TailHook> hook;
     float engine_power;
 
     float damage;
-    MTasker<> mtasker;
 };
 
 

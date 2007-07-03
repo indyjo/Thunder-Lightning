@@ -26,7 +26,6 @@
 #include <interfaces/ITerrain.h>
 
 #include "drone.h"
-#include "ai.h"
 #include <modules/actors/SimpleView.h>
 #include <modules/actors/RelativeView.h>
 
@@ -73,7 +72,6 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
 : SimpleActor(thegame),
   renderer(thegame->getRenderer()),
   terrain(thegame->getTerrain()), damage(0),
-  mtasker(64*1024),
   gear_lowered(false),
   hook_lowered(false),
   engine_power(1.0)
@@ -190,27 +188,11 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
     wheels[1] = new Effectors::Wheel(terrain, thegame->getCollisionMan(), this, left_wheel);
     wheels[2] = new Effectors::Wheel(terrain, thegame->getCollisionMan(), this, right_wheel);
 
-    personality.randomize();
-    context = new Context(
-    	this,
-    	&flight_info,
-    	&auto_pilot,
-    	flight_controls,
-    	thegame,
-    	terrain,
-    	targeter,
-        *armament,
-    	mtasker);
-
     std::string inside_model_file = cfg->query("Drone_inside_model_file");
     inside_model = thegame->getModelMan()->query(inside_model_file);
-
-    patrol_idea =  new PatrolIdea(*context,Vector(0,0,0), 10000);
-    ideas.push_back(patrol_idea);
-    //ideas.push_back( new AttackIdea(*context));
-    ideas.push_back( new EvadeTerrainIdea(*context) );
-    //ideas.push_back( new CRIdea(*context));
-    ideas.push_back( new Dogfight(*context));
+    
+    std::string mfd_model_file = cfg->query("Drone_mfd_model_file");
+    mfd_model = new Model(*thegame->getTexMan(), mfd_model_file);
 
     setControlMode(UNCONTROLLED);
 
@@ -265,44 +247,7 @@ void Drone::action() {
     flight_info.update(delta_t, *this, *terrain);
 
     if (control_mode == AUTOMATIC) {
-        /*
-        float best_value=-1, current_value=0;
-        Ptr<Idea> best_idea;
-        for(std::list<Ptr<Idea> >::iterator i=ideas.begin(); i!=ideas.end(); i++) {
-            Rating r = (*i)->rate();
-    //         ls_message("rating: attack=%f defense=%f order=%f opportunity=%f\n"
-    //                 "\tnecessity=%f danger=%f\n",
-    //                 r.attack, r.defense, r.order, r.opportunity,
-    //                 r.necessity, r.danger);
-            float value = personality.evaluate(r);
-            snprintf(buf,1024, "%s: %.2f\n", (*i)->name.c_str(), value);
-            info += buf;
-    //         ls_message("value = %f\n", value);
-            if (*i == current_idea) {
-                current_value = value;
-            }
-            if (value > best_value) {
-                best_value = value;
-                best_idea = *i;
-            }
-        }
-        if (current_idea && best_value > current_value + CURRENT_IDEA_BONUS) {
-            current_idea->postpone();
-            current_idea = best_idea;
-        } else if (!current_idea) {
-            current_idea = best_idea;
-        }
-        
-        current_idea->realize();
-        mtasker.scheduleAll();
-        
-        if (current_idea) {
-            getTargetInfo()->setTargetInfo(info+current_idea->info());
-        }
-    
-        //flight_info.dump();
-        auto_pilot.fly(delta_t, flight_info, *flight_controls);
-        */
+        // Drone is script-controlled now, nothing to do here.
     } else if (control_mode == MANUAL) {
         flight_controls->setRudder(    thegame->getEventRemapper()->getAxis("rudder") );
         flight_controls->setAileron(   thegame->getEventRemapper()->getAxis("aileron") );
@@ -368,9 +313,6 @@ void Drone::action() {
 
 void Drone::kill() {
 	targeter->clearCurrentTarget();
-	ideas.clear();
-	current_idea=0;
-	patrol_idea=0;
     SimpleActor::kill();
 }
 
@@ -440,19 +382,6 @@ void Drone::draw() {
     }
     
     renderer->disableLighting();
-    
-    if (current_idea == patrol_idea && thegame->debugMode()) {
-    	typedef std::deque<Vector> Path;
-    	typedef Path::iterator Iter;
-    	Path & path = patrol_idea->getPath();
-    	
-    	renderer->setColor(Vector(0,0,1));
-    	renderer->begin(JR_DRAWMODE_CONNECTED_LINES);
-    	for(Iter i=path.begin(); i!=path.end(); ++i) {
-    		*renderer << *i;
-    	}
-    	renderer->end();
-    }
 }
 
 // Our drone has been hit ...
