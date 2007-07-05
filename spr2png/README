@@ -1,0 +1,15 @@
+This is spr2png, a small python script to convert legacy .spr files (a
+homegrown and impractical format) into standard PNG format. Note that the file
+name is irrelevant for Thunder&Lightning, so many of the former .spr files are
+now really PNG files.
+
+In versions of Thunder&Lightning after Fri, Jun 29 2007, there has been a
+change in the semantic of PNG files. They will now be read to memory so that
+their origin (the zeroth color and texture coordinates (0,0) ) is the
+bottom-left corner of the image. Formerly, it was the top-right corner. This
+happened to comply with OpenGL comventions. For remaining partly
+backwards-compatible, the .spr loading was left as is.
+
+This may result in (bottom-top-) flipped textures appearing in the game. Please
+fix this by modifying the game, not the PNGs!
+

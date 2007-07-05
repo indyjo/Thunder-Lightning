@@ -1,0 +1,133 @@
+#!/usr/bin/python
+
+from optparse import OptionParser
+import vector
+import os
+from os import path
+import sys
+
+class ModelSpec:
+    def __init__(self):
+        self.origmodel = None
+        self.model = None
+        self.bounds = None
+        self.boundsexport = None
+        self.exactness = 1
+        self.transforms = []
+        self.domains = []
+        
+    def read(self, specfile):
+        for line in specfile:
+            line = line.strip()
+            if line=="" or line.startswith("#"):
+                continue
+            tokens = line.split()
+            if tokens[0] in ("origmodel","model","bounds","boundsexport","collisionorig","collisionmodel"):
+                setattr(self, tokens[0], tokens[1])
+            elif tokens[0] == "exactness":
+                setattr(self, tokens[0], float(tokens[1]))
+            elif tokens[0] == "root":
+                assert len(tokens) == 5
+                name = tokens[1]
+                pivot = vector.Vector(float(tokens[2]), float(tokens[3]), float(tokens[4]))
+                self.transforms.append( (name, None, pivot) )
+            elif tokens[0] == "childof":
+                assert len(tokens) == 6
+                parent = tokens[1]
+                name = tokens[2]
+                pivot = vector.Vector(float(tokens[3]), float(tokens[4]), float(tokens[5]))
+                self.transforms.append( (name, parent, pivot) )
+            elif tokens[0] == "domain":
+                assert len(tokens) >= 2
+                self.domains.append( (int(tokens[1]), tokens[2:]) )
+            
+    def check(self):
+        assert self.origmodel != None
+        assert self.model != None
+        assert self.bounds != None
+        n = 0
+        for xform in self.transforms:
+            if xform[1]==None:
+                n+=1
+        assert n==1, "There must be exactly one root transform"
+        
+    def write_skelspec(self, skelfile):
+        for xform in self.transforms:
+            name, parent, pivot = xform
+            if parent is None:
+                print >>skelfile, name, pivot[0], pivot[1], pivot[2] 
+            else:
+                print >>skelfile, parent, name, pivot[0], pivot[1], pivot[2] 
+    
+    def find_xform_idx(self, name):
+        for i in range(len(self.transforms)):
+            if self.transforms[i][0] == name:
+                return i
+        return None
+        
+    def makebounds_args(self, datadir):
+        args = "-e %f" % self.exactness        
+        for i in range(len(self.transforms)):
+            xform = self.transforms[i]
+            name, parent, pivot = xform
+            args += " -t %s:*:%d" % (name, i)
+            if parent is not None:
+                args += " -p %d %d" % (i, self.find_xform_idx(parent))
+        
+        for i in range(len(self.domains)):
+            domain, selectors = self.domains[i]
+            for s in selectors:
+                args += " -d %s:%d" % (s, i)
+        
+        if self.boundsexport is not None:
+            args += " -x %s/%s" % (datadir, self.boundsexport)
+        
+        if hasattr(self, "collisionmodel"):
+            model = self.collisionmodel
+        else:
+            model = self.model
+        args += " -o %s/%s %s/%s" %(datadir, self.bounds, datadir, model)
+        return args
+    
+usage = "usage: %prog [-h] SPECFILE"
+parser = OptionParser(usage)
+
+(options, args) = parser.parse_args()
+if len(args) != 1:
+    parser.error("incorrect number of arguments")
+
+bindir = path.dirname(sys.argv[0])
+
+if args[0] == "-":
+    specfile = sys.stdin
+    datadir = "."
+else:
+    specfile = open(args[0])
+    datadir = path.dirname(args[0])
+    if datadir == "":
+        datadir = "."
+
+
+spec = ModelSpec()
+spec.read(specfile)
+spec.check()
+
+cmd = "%s/skeletopus - %s/%s %s/%s" %(bindir, datadir, spec.origmodel, datadir, spec.model)
+print "Invoking", cmd
+spec.write_skelspec(sys.stdout)
+skeletopus = os.popen(cmd, "w")
+spec.write_skelspec(skeletopus)
+skeletopus.close()
+
+if hasattr(spec, "collisionorig") and hasattr(spec, "collisionmodel"):
+    cmd = "%s/skeletopus - %s/%s %s/%s" %(bindir, datadir, spec.collisionorig, datadir, spec.collisionmodel)
+    print "Invoking", cmd
+    spec.write_skelspec(sys.stdout)
+    skeletopus = os.popen(cmd, "w")
+    spec.write_skelspec(skeletopus)
+    skeletopus.close()
+
+cmd = "%s/makebounds %s" % ( bindir, spec.makebounds_args(datadir) )
+print "Invoking", cmd
+os.system(cmd)
+

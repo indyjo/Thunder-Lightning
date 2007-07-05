@@ -1,0 +1,49 @@
+-------------
+| Modeltool |
+-------------
+
+This folder contains the "modeltool" which reads 3d models in Wavefront .obj
+format plus an additional .spec file. It then outputs a .bounds file with
+geometry for the collision detector and another .obj file in which every object
+has been moved so that it's pivot point lies on the origin. This .obj will be
+read by Thunder&Lightning for objects which contain hierarchical transforms
+(e.g. Tank->Turret->Cannon).
+
+The two subtools to do the work are:
+ - Skeletopus, which reads a spec file and output the .obj with translated
+   objects.
+ - Makebounds, which creates a .bounds collision geometry from an .obj file
+   using arguments given on the command line.
+
+The only tool normally visible for the user is modeltool.
+
+
+---------
+| Usage |
+---------
+
+Modeltool's command-line syntax is very simple. Just type:
+modeltool SPECFILE
+And it will output files as defined in SPECFILE
+
+
+--------------
+| Spec files |
+--------------
+Spec files are very important in that they're read by three different programs:
+ - modeltool
+ - skeletopus and
+ - Thunder&Lightning itself.
+Spec files define a hierarchy between the objects in a wavefront .obj file.
+They also contain coordinates for pivot points and special points with some
+meaning inside the game.
+
+There are examples for .spec files in TnL's share/tnl/models directory.
+
+
+-----------
+| License |
+-----------
+All files are distributed under the GNU General Public License Version 2.
+See the file COPYING for details.
+
