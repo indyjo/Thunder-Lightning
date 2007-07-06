@@ -57,7 +57,7 @@ void Flight::applyEffect(RigidBody &rigid, Ptr<DataNode> cntrls) {
     const static float CL_x[] = {-180.0, -135.0, -90.0, -45.0, -8.0, 0.0, 18.0, 32.0, 90.0, 135.0, 180.0};
     const static float CL_y[] = {  -0.5,    1.6,   0.0,  -1.0, -0.2, 0.2,  1.6,  1.0,  0.0,  -1.6,  -0.5};
     const static float CD_x[] = {-180.0, -90.0, -45.0, -24.0, -16.0, -8.0,  0.0, 8.0,  16.0, 24.0, 45.0, 90.0, 180.0};
-    const static float CD_y[] = {   1.5,   3.0,   2.0,   0.8,   0.2,  .18, 0.15, .18,   0.2,  0.8,  3.5,  4.0,   1.5};
+    const static float CD_y[] = {   0.75,   1.5,   1.0,   0.4,   0.2,  .18, 0.15, .18,  0.2,  0.4,  1.0,  1.5,   0.75};
     const static float CD_h_x[] = {-180.0, -172.0, -120.0, -90.0, -60.0, -8.0, 0.0, 8.0, 60.0, 90.0, 120.0, 172.0, 180.0};
     const static float CD_h_y[] = {   0.0,   -1.0,   -2.5,  -3.0,  -2.5, -1.0, 0.0, 1.0,  2.5,  3.0,   2.5,   1.0,   0.0};
     const static float C_torque_x[] = { -180, -120, -90, -60, -10,  0, 10, 60, 90, 120, 180};
@@ -77,8 +77,8 @@ void Flight::applyEffect(RigidBody &rigid, Ptr<DataNode> cntrls) {
     if (v.lengthSquare() < 1e-5) direction = front;
 
     // Angle of attack (vertical, horizontal)
-    float alpha   = -asin(direction * up);
-    float alpha_h =  asin(direction * right);
+    float alpha   = -asin(std::max(-1.0f, std::min(1.0f, direction * up)));
+    float alpha_h =  asin(std::max(-1.0f, std::min(1.0f, direction * right)));
     if (direction*front < 0) {
         alpha = PI - alpha;
         alpha_h = PI - alpha_h;
@@ -109,14 +109,25 @@ void Flight::applyEffect(RigidBody &rigid, Ptr<DataNode> cntrls) {
     float D = 0.5 * C_D * rho * Vyz2 * wing_area;
     float D_h = 0.5 * C_D_h * rho * Vx2 * wing_area;
     
-    Vector aero_force = up*L - direction * D - right * D_h;
+    Vector aero_force = (direction % right)*L - direction * D - right * D_h;
     float delta_Ekin = aero_force * v;
     if (delta_Ekin > 0) {
         ls_error("delta Ekin: %5.5f\n", delta_Ekin);
     }
+    /*
+    ls_message("v:"); v.dump();
+    ls_message("dir:"); direction.dump();
+    ls_message("right:"); right.dump();
+    ls_message("front:"); front.dump();
+    ls_message("right*dir: %.2f asin: %.2f degrees: %.2f\n", right*direction, asin(right*direction), asin(right*direction)*180/PI);
+    ls_message("up:"); up.dump();
+    ls_message("Lift: %.2f, drag: %.2f, drag_horiz: %.2f\n", L, D, D_h);
+    ls_message("In v direction: Lift: %.2f, drag: %.2f, drag_horiz: %.2f\n",
+        direction*(direction%right)*L, -D, -direction*right*D_h);
+    */
 
     rigid.applyForce((max_thrust * controls->getThrottle()) * front);
-    rigid.applyForce(up * L);
+    rigid.applyForce((direction % right) * L);
     rigid.applyForce(direction * -D);
     rigid.applyForce(right * -D_h);
     
