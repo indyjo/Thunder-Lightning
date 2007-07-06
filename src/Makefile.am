@@ -36,7 +36,6 @@ tnl_libs = \
     modules/fontman/libfontman.a \
     modules/gunsight/libgunsight.a \
     modules/jogi/libjogi.a \
-    modules/map/libmap.a \
     modules/physics/libphysics.a \
     modules/math/libmath.a \
     modules/model/libmodel.a \
