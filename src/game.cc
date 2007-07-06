@@ -472,6 +472,7 @@ void Game::setCurrentView(Ptr<IView> view)
         current_view->disable();
     }
     current_view = view;
+    view_is_external = false;
 }
 
 Ptr<IActor> Game::getCurrentlyControlledActor()
@@ -734,8 +735,6 @@ void Game::decelerateSpeed() {
 }
 
 void Game::setView(int n) {
-    if (view_is_external)
-        return;
 	if (!current_view || !current_view->getViewSubject()) return;
 	if (n >= current_view->getViewSubject()->getNumViews()) return;
 	setCurrentView(current_view->getViewSubject()->getView(n));
