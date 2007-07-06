@@ -170,15 +170,16 @@ void RenderPassList::renderPasses() {
 }
 
 namespace {
-    bool isRenderToTexture(WeakPtr<RenderPass> wrp) {
+    bool isRenderToTextureAndEnabled(WeakPtr<RenderPass> wrp) {
         Ptr<RenderPass> rp = wrp.lock();
         if (rp) return rp->isRenderToTexture();
-        else return false;
+        else return rp->isEnabled();
     }
 } // namespace
 
 void RenderPassList::drawMosaic() {
-    int ntex = std::count_if(render_passes.begin(), render_passes.end(), isRenderToTexture);
+    int ntex = std::count_if(render_passes.begin(), render_passes.end(),
+        isRenderToTextureAndEnabled);
     // rows*cols=ntex
     // cols:rows=3:2
     // 2*cols = 3*rows --> cols = 3/2 * rows
@@ -214,6 +215,7 @@ void RenderPassList::drawMosaic() {
         Ptr<RenderPass> pass = i->lock();
         if (!pass) continue;
         if (!pass->isRenderToTexture()) continue;
+        if (!pass->isEnabled()) continue;
         
         int r = idx / cols;
         int c = idx % cols;

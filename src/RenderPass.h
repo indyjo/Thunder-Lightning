@@ -23,7 +23,7 @@ class JRenderer;
 /// The RenderPassList maintains a weak reference to the RenderPass, so it
 /// doesn't keep it alive. Conversely, the RenderPass keeps a weak reference
 /// to the RenderPassList.
-class RenderPass : public Object, public Weak
+class RenderPass : public SigObject, public Weak
 {
     friend class RenderPassList;
     
