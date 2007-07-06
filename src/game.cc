@@ -550,21 +550,27 @@ void Game::setupRenderer()
     renderer->enableFog();
 }
 
-
-#define MAX_STEP_SECONDS (1.0 / 15.0)
-#define MAX_CATCHUP_STEPS 1
-
 void Game::updateSimulation()
 {
+    float MAX_STEP_DELTA = config->queryFloat("Game_max_step_delta", 1.0f/30);
+    float MAX_FRAME_DELTA = config->queryFloat("Game_max_frame_delta", 1.0f/15);
+    int MAX_MS_FOR_SIMULATION = config->queryInt("Game_max_ms_for_simulation", 1000/30);
+    
     clock->update();
+    int t0 = SDL_GetTicks();
     // this will return false if pause is activated
-    for(int step_counter = 0;
-        clock->catchup(MAX_STEP_SECONDS) && step_counter < MAX_CATCHUP_STEPS;
-        step_counter++)
-    {
+    while(clock->catchup(MAX_STEP_DELTA)) {
         collisionman->run(this, clock->getStepDelta());
         cleanupActors();
         setupActors();
+        
+        if (SDL_GetTicks() - t0 >= MAX_MS_FOR_SIMULATION) {
+            break;
+        }
+        
+        if (clock->getFrameDelta() >= MAX_FRAME_DELTA) {
+            break;
+        }
     }
     clock->skip();
 }
