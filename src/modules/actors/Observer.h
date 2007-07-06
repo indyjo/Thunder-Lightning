@@ -3,6 +3,8 @@
 
 #include "simpleactor.h"
 
+class RenderPass;
+
 class Observer : public SimpleActor, public SigObject
 {
 public:
@@ -10,6 +12,8 @@ public:
 
     virtual void action();
     virtual void draw();
+    
+    void update(Ptr<RenderPass>);
     
     virtual int getNumViews();
     virtual Ptr<IView> getView(int n);

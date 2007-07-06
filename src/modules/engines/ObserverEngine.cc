@@ -13,14 +13,13 @@ void ObserverEngine::setControls(Ptr<DataNode> controls) { this->controls = cont
 void ObserverEngine::run() {
     float delta_t;
     
-    // A speciality of the observer is to call action() while paused, so we need
-    // to use a different delta_t while paused. Also we don't use the usual
-    // getStepDelta() but getRealStepDelta() to make camera motion speed
-    // independent of time factor. This creates a nice Matrix-slomo-like effect.
+    // A speciality of the observer is to update its engine on the main render
+    // passes draw, even while paused. So we need to use getRealFrameDelta() to
+    // get the (real) time that has passed since the last update.
     if (clock->isPaused()) {
         delta_t = clock->getRealFrameDelta();
     } else {
-        delta_t = clock->getRealStepDelta();
+        delta_t = clock->getFrameDelta()/clock->getTimeFactor();
     }
     
     v += Vector(

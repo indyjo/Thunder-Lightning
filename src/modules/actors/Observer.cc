@@ -1,8 +1,10 @@
+#include <interfaces/IConfig.h>
 #include <modules/actors/RelativeView.h>
 #include <modules/engines/ObserverEngine.h>
 #include <modules/gunsight/gunsight.h>
 #include <modules/weaponsys/Targeter.h>
 #include <remap.h>
+#include <RenderPass.h>
 #include "Observer.h"
 
 Observer::Observer(Ptr<IGame> thegame)
@@ -14,9 +16,14 @@ Observer::Observer(Ptr<IGame> thegame)
     setControlMode(MANUAL);
     setEngine(new ObserverEngine(thegame));
     setTargeter(new Targeter(*thegame,*this));
+    thegame->getMainRenderPass()->preScene().connect(
+        SigC::slot(*this, &Observer::update));
 }
 
 void Observer::action() {
+}
+
+void Observer::update(Ptr<RenderPass>) {
     Ptr<DataNode> c = getControls();
     Ptr<EventRemapper> e = thegame->getEventRemapper();
     
@@ -27,34 +34,33 @@ void Observer::action() {
     c->setFloat("rotate_y", 0);
     c->setFloat("rotate_z", 0);
 
-    //FIXME: Should move constants to config
     //FIXME: Should not use mouse_rel_* but proper axes to allow configurability
     //FIXME: Create a proper axis for mouse speed
-    float delta_t = 20*thegame->getClock()->getRealFrameDelta();
+    
+    Ptr<IConfig> cfg = thegame->getConfig();
+    float accel_x_factor = cfg->queryFloat("Observer_accel_x",  10);
+    float accel_y_factor = cfg->queryFloat("Observer_accel_y", -10);
+    float accel_z_factor = cfg->queryFloat("Observer_accel_z", -15);
+    float rotate_x_factor = cfg->queryFloat("Observer_rotate_x", 0.2f);
+    float rotate_y_factor = cfg->queryFloat("Observer_rotate_y", 0.2f);
+    float global_factor = cfg->queryFloat("Observer_speed_factor", 0.01f);
+    
+    float factor = global_factor / thegame->getClock()->getRealFrameDelta();
     
     if (isDollying()) {
-        c->setFloat("accel_z", -15*e->getAxis("mouse_rel_y") / delta_t);
+        c->setFloat("accel_z", factor*accel_z_factor*e->getAxis("mouse_rel_y"));
     } else if (isPanning()) {
-        c->setFloat("accel_x", 10*e->getAxis("mouse_rel_x") / delta_t);
-        c->setFloat("accel_y", -10*e->getAxis("mouse_rel_y") / delta_t);
+        c->setFloat("accel_x", factor*accel_x_factor*e->getAxis("mouse_rel_x"));
+        c->setFloat("accel_y", factor*accel_y_factor*e->getAxis("mouse_rel_y"));
     } else {
-        c->setFloat("rotate_y", 0.2f*e->getAxis("mouse_rel_x") / delta_t);
-        c->setFloat("rotate_x", 0.2f*e->getAxis("mouse_rel_y") / delta_t);
+        c->setFloat("rotate_y", factor*rotate_y_factor*e->getAxis("mouse_rel_x"));
+        c->setFloat("rotate_x", factor*rotate_x_factor*e->getAxis("mouse_rel_y"));
     }
     
-    c->setFloat("accel_x", c->getFloat("accel_x") + 5*e->getAxis("strafe_horizontal"));
-    c->setFloat("accel_y", c->getFloat("accel_y") + 5*e->getAxis("strafe_vertical"));
-    
-    SimpleActor::action();
+    engine->run();
 }
 
 void Observer::draw() {
-    if(thegame->getClock()->isPaused()) {
-        // trigger action while paused so the observer can be moved in pause mode
-        action();
-    }
-    
-    // nothing to draw
 }
 
 
