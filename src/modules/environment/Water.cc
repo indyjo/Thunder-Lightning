@@ -30,9 +30,12 @@ class WaterImpl : public SigObject
     // number of tiles to draw in each dimension
     int tiles_num;
     double age;
+    bool first_draw;
 
 public:
-    WaterImpl(Ptr<IGame> game) {
+    WaterImpl(Ptr<IGame> game)
+        : first_draw(true)
+    {
         age = 0;
         thegame = game;
         r = game->getRenderer();
@@ -92,10 +95,17 @@ public:
     void draw() {
         age += thegame->getClock()->getFrameDelta();
         
+        if (first_draw) ls_message("Water: First draw.\n");
+        
         if (use_shaders) {
             drawWithShaders();
         } else {
             drawWithoutShaders();
+        }
+
+        if (first_draw) {
+            ls_message("Water: First draw finished.\n");
+            first_draw = false;
         }
     }
     
@@ -118,8 +128,10 @@ public:
         glBindTexture(GL_TEXTURE_2D, r->getGLTexFromTxtid(bump_tex->getTxtid()));
         glEnable(GL_TEXTURE_2D);
 
+        if (first_draw) ls_message("Use program object.\n");
         glUseProgramObjectARB(program);
-
+        
+        if (first_draw) ls_message("Specify uniform values.\n");
         glUniform1fARB(glGetUniformLocationARB(program, "waves"), 0.778f);
         glUniform1fARB(glGetUniformLocationARB(program, "aspect"), r->getAspect());
         glUniform1fARB(glGetUniformLocationARB(program, "focus"), thegame->getCamera()->getFocus());
@@ -144,6 +156,7 @@ public:
         Matrix3 cam2mir = mir_orient.transpose() * cam_orient;
         glUniformMatrix3fvARB(glGetUniformLocationARB(program, "CamToMir"), 1, GL_FALSE, cam2mir.glMatrix());
 
+        if (first_draw) ls_message("Drawing.\n");
         glBegin(GL_QUADS);
         glNormal3f(0,1.0f,0);
         glColor4f(1,1,1,1);
@@ -163,6 +176,7 @@ public:
             }
         }
         glEnd();
+        if (first_draw) ls_message("Done drawing.\n");
 
         glActiveTexture(GL_TEXTURE1_ARB);
         glDisable(GL_TEXTURE_2D);
