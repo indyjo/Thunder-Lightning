@@ -42,6 +42,7 @@ namespace {
 				{"getFaction", getFaction},
 				{"setFaction", setFaction},
                 {"passMessage", passMessage},
+                {"kill", kill},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
@@ -95,6 +96,8 @@ namespace {
             getObject(self)->message(name, args);
 			return IONIL(self);
 		}
+		
+		VOID_FUNC(kill)
 	};
 } // namespace
 
