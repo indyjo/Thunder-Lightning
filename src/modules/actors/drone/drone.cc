@@ -415,29 +415,20 @@ Ptr<IView> Drone::getView(int n) {
     Transform xform(Quaternion(1,0,0,0), pilot_pos);
     chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.1f, xform));
     thegame->addWeakActor(chaser);
-
-    Ptr<FlexibleGunsight> gunsight1 = new FlexibleGunsight(thegame);
-	gunsight1->addDebugInfo(thegame, this);
-	gunsight1->addFlightModules(thegame, flight_info, controls);
-	gunsight1->addBasicCrosshairs();
-	gunsight1->addTargeting(this, targeter);
-	gunsight1->addDirectionOfFlight(this);
-    gunsight1->addArmamentToScreen(thegame, armament, 0);
-    gunsight1->addMissileWarning(thegame, this);
-    gunsight1->addInfoMessage(thegame);
-
-    Ptr<FlexibleGunsight> gunsight2 = new FlexibleGunsight(thegame);
-	gunsight2->addDebugInfo(thegame, this);
-	gunsight2->addTargeting(this, targeter);
-	gunsight2->addDirectionOfFlight(this);
-    gunsight2->addArmamentToScreen(thegame, armament, 0);
-    gunsight2->addMissileWarning(thegame, this);
-    gunsight2->addInfoMessage(thegame);
     
+    Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
+	gunsight->addDebugInfo(thegame, this);
+	gunsight->addTargeting(this, targeter);
+	gunsight->addDirectionOfFlight(this);
+    gunsight->addArmamentToScreen(thegame, armament, 0);
+    gunsight->addMissileWarning(thegame, this);
+    gunsight->addInfoMessage(thegame);
+    
+    Ptr<RelativeView> view = new RelativeView(chaser, chaser, this, gunsight);
+
+    Ptr<RenderPass> pass;
     if (n==0 || n==5) {
-        Ptr<FlexibleGunsight> gunsight = (n==0)?gunsight1:gunsight2;
-    
-        Ptr<RenderPass> pass = thegame->getRenderPassList()->createRenderPass();
+        pass = thegame->getRenderPassList()->createRenderPass();
         pass->setEnabled(true);
         pass->setResolution(256,256);
         pass->enableClearColor(true);
@@ -454,74 +445,76 @@ Ptr<IView> Drone::getView(int n) {
         pass->setRenderContextEnabled(true);
         pass->dependsOn(ctx.mirror_pass);
         
-        ctx.mirror_pass->preScene().connect(
-            SigC::bind(SigC::slot(*this, &Drone::updateZoomCamera), cam));
+        if(ctx.mirror_pass->isEnabled()) {
+            ctx.mirror_pass->preScene().connect(
+                SigC::bind(SigC::slot(*this, &Drone::updateZoomCamera), cam));
+        } else {
+            pass->preScene().connect(
+                SigC::bind(SigC::slot(*this, &Drone::updateZoomCamera), cam));
+        }
         thegame->getWater()->linkRenderPassToCamera(ctx.mirror_pass, cam);
         
         gunsight->addRenderPassRoot(pass, "mfd");
         gunsight->addBasicCrosshairs("mfd");
         
         mfd_model->getDefaultObject()->getGroups().back()->mtl.tex = pass->getTexture();
+
+        view->onEnable().connect(SigC::bind(SigC::slot(*pass, &RenderPass::setEnabled), true));
+        view->onDisable().connect(SigC::bind(SigC::slot(*pass, &RenderPass::setEnabled), false));
+        
+        if (ctx.mirror_pass->isEnabled()) {
+            view->onEnable().connect(SigC::bind(SigC::slot(*ctx.mirror_pass, &RenderPass::setEnabled), true));
+            view->onDisable().connect(SigC::bind(SigC::slot(*ctx.mirror_pass, &RenderPass::setEnabled), false));
+        }
     }
 
 	switch(n) {
     case 0:
-    	{
-            return new RelativeView(chaser,chaser,this,gunsight1);
-    	}
+	    gunsight->addBasicCrosshairs();
+    	gunsight->addFlightModules(thegame, flight_info, controls);
+    	break;
     case 1:
-        {
-            Ptr<RelativeView> view = new RelativeView(chaser, chaser, this, gunsight2);
-            view->setViewOffset(
-                Vector(0, 2, 12),
-                Vector(-1,0,0),
-                Vector(0,1,0),
-                Vector(0,0,-1));
-            chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.5f, xform));
-            return view;
-        }
+        view->setViewOffset(
+            Vector(0, 2, 12),
+            Vector(-1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,-1));
+        chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.5f, xform));
+    	break;
     case 2:
-        {
-            Ptr<RelativeView> view = new RelativeView(chaser, chaser, this, gunsight2);
-            view->setViewOffset(
-                Vector(0,0,0),
-                Vector(0,0,1),
-                Vector(0,1,0),
-                Vector(-1,0,0));
-            return view;
-        }
+        view->setViewOffset(
+            Vector(0,0,0),
+            Vector(0,0,1),
+            Vector(0,1,0),
+            Vector(-1,0,0));
+    	break;
     case 3:
-        {
-            Ptr<RelativeView> view = new RelativeView(chaser, chaser, this, gunsight2);
-            view->setViewOffset(
-                Vector(0,0,0),
-                Vector(0,0,-1),
-                Vector(0,1,0),
-                Vector(1,0,0));
-            return view;
-        }
+        view->setViewOffset(
+            Vector(0,0,0),
+            Vector(0,0,-1),
+            Vector(0,1,0),
+            Vector(1,0,0));
+    	break;
     case 4:
-        {
-            Ptr<RelativeView> view = new RelativeView(chaser, chaser, this, gunsight2);
-            view->setViewOffset(
-                Vector(0, 3, -8),
-                Vector(1,0,0),
-                Vector(0,1,0),
-                Vector(0,0,1));
-            chaser->setEngine(new ChasingEngine(thegame,this, 0.15f, 0.5f, xform));
-            return view;
-        }
+        view->setViewOffset(
+            Vector(0, 3, -8),
+            Vector(1,0,0),
+            Vector(0,1,0),
+            Vector(0,0,1));
+        chaser->setEngine(new ChasingEngine(thegame,this, 0.15f, 0.5f, xform));
+    	break;
     case 5:
-    	{
+        {
             Ptr<TargetView> target_view = new TargetView(this, pilot_pos, targeter);
             Transform xform(Quaternion(1,0,0,0), Vector(0,0,0));
             chaser->setEngine(new ChasingEngine(thegame, target_view, 0.0f, 0.1f, xform));
-            Ptr<RelativeView> view = new RelativeView(chaser, chaser, this, gunsight2);
-	    	return view;
-    	}
+            break;
+        }
     default:
     	return 0;
 	}
+	
+	return view;
 }
 
 void Drone::explode(bool deadly) {
