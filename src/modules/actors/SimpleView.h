@@ -10,6 +10,10 @@ class SimpleView : virtual public IView {
 public:
     SimpleView(Ptr<IActor> subject, Ptr<IDrawable> gunsight=0);
     
+    // configuration
+    inline void setViewSubject(Ptr<IActor> s) { subject = s; }
+    inline void setGunsight(Ptr<FlexibleGunsight> g) { gunsight = g; }
+    
     // IPositionProvider
     virtual Vector getLocation();
     virtual Vector getFrontVector();
