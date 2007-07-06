@@ -8,6 +8,7 @@
 #include <interfaces/IConfig.h>
 #include <modules/camera/SimpleCamera.h>
 #include <modules/clock/clock.h>
+#include <modules/environment/environment.h>
 #include <modules/jogi/JRenderer.h>
 #include <modules/jogi/JSprite.h>
 #include <modules/texman/TextureManager.h>
@@ -21,10 +22,10 @@ class WaterImpl : public SigObject
 {
     JRenderer *r;
     float tile_size, tile_uvspan;
-    Ptr<Texture> bump_tex;
+    Ptr<Texture> bump_tex, fallback_tex;
     Ptr<IConfig> cfg;
     Ptr<IGame> thegame;
-    bool all_ok;
+    bool use_shaders;
     GLhandleARB vertex_shader, fragment_shader, program;
     // number of tiles to draw in each dimension
     int tiles_num;
@@ -40,10 +41,10 @@ public:
         tile_uvspan = cfg->queryFloat("Water_tile_uvspan", 1.0f);
         tiles_num = cfg->queryInt("Water_tile_num", 21);
 
-        all_ok = true;
+        use_shaders = cfg->queryBool("Game_use_shaders", true) && cfg->queryBool("Water_use_shaders", true);
         
         const char *extensions = "GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader";
-        if (glewIsSupported(extensions)) {
+        if (use_shaders && glewIsSupported(extensions)) {
             ls_message("Compiling vertex shader.\n");
             vertex_shader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
             readShader(vertex_shader, cfg->query("Water_vertex_shader"));
@@ -68,13 +69,16 @@ public:
             
             bump_tex = game->getTexMan()->query(cfg->query("Water_bumpmap"), JR_HINT_FULLOPACITY);
         } else {
-            ls_warning("OpenGL Shading Language extensions not supported. Water will be ugly.\n");
-            all_ok = false;
+            if (!glewIsSupported(extensions)) {
+                ls_warning("OpenGL Shading Language extensions not supported. Falling back to normal texture.\n");
+                use_shaders = false;
+            }
+            fallback_tex = game->getTexMan()->query(cfg->query("Water_fallback_texture"), JR_HINT_FULLOPACITY);
         }
     }
     
     ~WaterImpl() {
-        if (all_ok) {
+        if (use_shaders) {
             glDeleteObjectARB(program);
         }
     }
@@ -88,7 +92,14 @@ public:
     void draw() {
         age += thegame->getClock()->getFrameDelta();
         
-        if (!all_ok) return;
+        if (use_shaders) {
+            drawWithShaders();
+        } else {
+            drawWithoutShaders();
+        }
+    }
+    
+    void drawWithShaders() {
         Ptr<RenderPass> render_pass = thegame->getCurrentContext()->mirror_pass;
         
         Vector campos = thegame->getCamera()->getLocation();
@@ -102,7 +113,6 @@ public:
         glBindTexture(GL_TEXTURE_2D,
             thegame->getRenderer()->getGLTexFromTxtid(render_pass->getTexture()->getTxtid()));
         glEnable(GL_TEXTURE_2D);
-#include <modules/jogi/JRenderer.h>
 
         glActiveTexture(GL_TEXTURE1_ARB);
         glBindTexture(GL_TEXTURE_2D, r->getGLTexFromTxtid(bump_tex->getTxtid()));
@@ -160,6 +170,71 @@ public:
         glUseProgramObjectARB(0);
         glActiveTexture(GL_TEXTURE0_ARB);
     }
+
+    void drawWithoutShaders() {
+        Vector campos = thegame->getCamera()->getLocation();
+        
+        int tile_x_begin = int(std::floor(campos[0] / tile_size) - tiles_num/2);
+        int tile_z_begin = int(std::floor(campos[2] / tile_size) - tiles_num/2);
+        int tile_x_end = tile_x_begin + tiles_num;
+        int tile_z_end = tile_z_begin + tiles_num;
+
+        JRenderer *r = thegame->getRenderer();
+
+        r->setTexture(fallback_tex->getTxtid());
+        r->enableTexturing();
+        r->enableFog();
+
+        r->begin(JR_DRAWMODE_QUADS);
+        r->setNormal(Vector(0,1.0f,0));
+        r->setColor(Vector(1,1,1));
+        for (int tile_z=tile_z_begin; tile_z < tile_z_end; ++tile_z) {
+            for (int tile_x=tile_x_begin; tile_x < tile_x_end; ++tile_x) {
+                r->setUVW(Vector(0,0,0));
+                r->vertex(Vector(tile_size * tile_x, 0, tile_size * tile_z));
+
+                r->setUVW(Vector(tile_uvspan, 0, 0));
+                r->vertex(Vector(tile_size * (tile_x+1), 0, tile_size * tile_z));
+
+                r->setUVW(Vector(tile_uvspan, tile_uvspan, 0));
+                r->vertex(Vector(tile_size * (tile_x+1), 0, tile_size * (tile_z+1)));
+
+                r->setUVW(Vector(0, tile_uvspan, 0));
+                r->vertex(Vector(tile_size * tile_x, 0, tile_size * (tile_z+1)));
+            }
+        }
+        r->end();
+        r->disableFog();
+        r->disableTexturing();
+        
+        Ptr<Environment> env = thegame->getEnvironment();
+        r->setZBufferFunc(JR_ZBFUNC_EQUAL);
+        r->setColor(env->getFogColor());
+        r->enableAlphaBlending();
+        r->begin(JR_DRAWMODE_QUADS);
+        for (int tile_z=tile_z_begin; tile_z < tile_z_end; ++tile_z) {
+            for (int tile_x=tile_x_begin; tile_x < tile_x_end; ++tile_x) {
+                Vector v1(tile_size * tile_x, 0, tile_size * tile_z);
+                r->setAlpha(env->getGroundFogStrengthAt(v1));
+                r->vertex(v1);
+
+                Vector v2(tile_size * (tile_x+1), 0, tile_size * tile_z);
+                r->setAlpha(env->getGroundFogStrengthAt(v2));
+                r->vertex(v2);
+
+                Vector v3(tile_size * (tile_x+1), 0, tile_size * (tile_z+1));
+                r->setAlpha(env->getGroundFogStrengthAt(v3));
+                r->vertex(v3);
+
+                Vector v4(tile_size * tile_x, 0, tile_size * (tile_z+1));
+                r->setAlpha(env->getGroundFogStrengthAt(v4));
+                r->vertex(v4);
+            }
+        }
+        r->end();
+        r->setZBufferFunc(JR_ZBFUNC_LEQUAL);
+        r->disableAlphaBlending();
+    }
     
     void readShader(GLhandleARB shader, const char *filename) {
         std::ifstream in(filename);
@@ -216,15 +291,13 @@ public:
     
     Ptr<RenderPass> createRenderPass() {
         Ptr<RenderPass> render_pass = thegame->getRenderPassList()->createRenderPass();
-        render_pass->setEnabled(true);
         render_pass->setResolution(
-            cfg->queryInt("Game_mirror_texture_size", 512),
-            cfg->queryInt("Game_mirror_texture_size", 512));
+            cfg->queryInt("Water_mirror_texture_size", 512),
+            cfg->queryInt("Water_mirror_texture_size", 512));
         render_pass->setRenderToTexture(true);
         
-        // only enable the render pass if shader extensions are supported
-        const char *extensions = "GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader";
-        render_pass->setEnabled(glewIsSupported(extensions));
+        // only enable the render pass if shader extensions are supported and enabled
+        render_pass->setEnabled(use_shaders);
         
         return render_pass;
     }
