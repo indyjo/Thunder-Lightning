@@ -39,10 +39,11 @@ Vector RelativeView::getMovementVector() {
 }
 
 void RelativeView::getPositionAndOrientation(Vector *pos, Matrix3 *orient) {
-    Vector up, right, front;
-    position->getOrientation(&up, &right, &front);
-    Matrix3 M = MatrixFromColumns(right, up, front);
-    *pos = position->getLocation() + M*p;
-    *orient = M;
+    Vector global_up, global_right, global_front;
+    position->getOrientation(&global_up, &global_right, &global_front);
+    Matrix3 M_global = MatrixFromColumns(global_right, global_up, global_front);
+    Matrix3 M_local  = MatrixFromColumns(right, up, front);
+    *pos = position->getLocation() + M_global*p;
+    *orient = M_global * M_local;
 }
 
