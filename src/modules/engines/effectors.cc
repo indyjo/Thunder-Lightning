@@ -194,8 +194,6 @@ void Wheel::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
             contact = true;
             Vector xloc = q.inv().rot(x - rigid.getState().x);
             Vector nloc = q.inv().rot(normal);
-            ls_message("contact at %f %f %f normal %f %f %f\n",
-                xloc[0],xloc[1],xloc[2],nloc[0],nloc[1],nloc[2]);
             rigid_partner = collidable->getRigid();
             if (rigid_partner) {
                 v_partner = rigid_partner->getVelocityAt(x);
