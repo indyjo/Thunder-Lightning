@@ -48,6 +48,13 @@ public:
 	virtual float operator() (std::vector<float> & inputs);
 };
 
+class SensitivityAxisTransform : public AxisTransform {
+    float s;
+public:
+    SensitivityAxisTransform(float s) : s(s) { }
+    virtual float operator() (std::vector<float> & inputs)
+    { return inputs[0] * pow(std::abs(inputs[0]), s); }
+};
 
 struct AxisManipulator {
     std::vector<std::string> inputs;

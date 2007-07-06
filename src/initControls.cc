@@ -1,3 +1,4 @@
+#include <interfaces/IConfig.h>
 #include "game.h"
 
 namespace {
@@ -81,6 +82,18 @@ void Game::initControls()
     r->addAxisManipulator(
         AxisManipulator(new ClampAxisTransform(), "mouse_elevator")
         .input("mouse_elevator"));
+
+    float sensitivity = config->queryFloat("Controls_joystick_sensitivity", 1.0);
+    r->addAxisManipulator(
+        AxisManipulator(new SensitivityAxisTransform(sensitivity), "js_aileron_scaled")
+        .input("js_aileron"));
+    r->addAxisManipulator(
+        AxisManipulator(new SensitivityAxisTransform(sensitivity), "js_elevator_scaled")
+        .input("js_elevator"));
+    r->addAxisManipulator(
+        AxisManipulator(new SensitivityAxisTransform(sensitivity), "js_rudder_scaled")
+        .input("js_rudder"));
+        
         
     r->map("+left",  SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_aileron_left", -1.0f));
@@ -114,18 +127,18 @@ void Game::initControls()
     r->addAxisManipulator(
         AxisManipulator(new SumAxesTransform(), "aileron")
         .input("mouse_aileron")
-        .input("js_aileron")
+        .input("js_aileron_scaled")
         .input("kbd_aileron_left")
         .input("kbd_aileron_right"));
     r->addAxisManipulator(
         AxisManipulator(new SumAxesTransform(), "elevator")
         .input("mouse_elevator")
-        .input("js_elevator")
+        .input("js_elevator_scaled")
         .input("kbd_elevator_up")
         .input("kbd_elevator_down"));
     r->addAxisManipulator(
         AxisManipulator(new SumAxesTransform(), "rudder")
-        .input("js_rudder")
+        .input("js_rudder_scaled")
         .input("kbd_rudder_left")
         .input("kbd_rudder_right"));
     r->addAxisManipulator(
