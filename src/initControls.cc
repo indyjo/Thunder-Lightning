@@ -1,5 +1,14 @@
 #include "game.h"
 
+namespace {
+    void incAxis(EventRemapper *r, const char *axis) {
+        r->setAxis(axis, std::max(0.0f, std::min(1.0f, r->getAxis(axis) + 0.05f)));
+    }
+    void decAxis(EventRemapper *r, const char *axis) {
+        r->setAxis(axis, std::max(0.0f, std::min(1.0f, r->getAxis(axis) - 0.05f)));
+    }
+}
+
 void Game::initControls()
 {
     Ptr<EventRemapper> r = getEventRemapper();
@@ -29,6 +38,10 @@ void Game::initControls()
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 0.88f));
     r->map("throttle9", SigC::bind(
             SigC::slot(*r, &EventRemapper::setAxis), "kbd_throttle", 1.0f));
+    r->map("increase-throttle", SigC::bind(
+            SigC::slot(&incAxis), ptr(r), "kbd_throttle"));
+    r->map("decrease-throttle", SigC::bind(
+            SigC::slot(&decAxis), ptr(r), "kbd_throttle"));
 
     r->map("autopilot", SigC::slot(*this, &Game::toggleControlMode));
 
