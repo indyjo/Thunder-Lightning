@@ -195,6 +195,9 @@ void JOpenGLRenderer::begin(jrdrawmode_t mode)
     case JR_DRAWMODE_TRIANGLE_FAN:
         glBegin(GL_TRIANGLE_FAN);
         break;
+    case JR_DRAWMODE_QUADS:
+        glBegin(GL_QUADS);
+        break;
     }
 }
 
