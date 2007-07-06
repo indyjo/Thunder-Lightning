@@ -76,14 +76,14 @@ void aircraftFinalExplosion(Ptr<IGame> game, Ptr<IActor> aircraft) {
         
         // Setup smoke column parameters so that the puff interval is shorter
         params.ttl = 1.0;
-        params.interval = 0.01;
+        params.interval = 0.1;
         
         // Setup smoke puff parameters so that their time to live is shorter
         // and they are much smaller then the default
         puff_params.ttl = Interval(1,3);
         puff_params.pos_deviation = 0.5;
-        puff_params.start_size = 0.5;
-        puff_params.end_size = 2.0;
+        puff_params.start_size = 1.0;
+        puff_params.end_size = 4.0;
         
         for (int i=0; i<20; i++) {
             Ptr<Spark> spark(new Spark(game));
@@ -95,7 +95,7 @@ void aircraftFinalExplosion(Ptr<IGame> game, Ptr<IActor> aircraft) {
             smoke->follow(spark);
             game->addActor(smoke);
         }
-        for (int i=0; i<180; i++) {
+        for (int i=0; i<20; i++) {
             Ptr<Spark> spark(new Spark(game));
             Vector vec = aircraft->getMovementVector() + 60*Vector(RAND2,RAND2,RAND2);
             spark->shoot(aircraft->getLocation(), vec, Vector(vec).normalize());

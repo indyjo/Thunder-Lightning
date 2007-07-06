@@ -230,7 +230,7 @@ void Missile::shootSparks()
     
     // Setup smoke column parameters so that the puff interval is shorter
     params.ttl = 1.0;
-    params.interval = 0.01;
+    params.interval = 0.1;
     
     // Setup smoke puff parameters so that their time to live is shorter
     // and they are much smaller then the default
