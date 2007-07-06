@@ -26,13 +26,17 @@ void Clock::update() {
         ticks = new_ticks;
         initialized = true;
     }
+    
+    // will be incremented with each catchup, cause we can't guarantee that
+    // the whole time span that has passed will be caught up.
+    frame_delta = 0;
+    
     real_frame_delta = (double)(new_ticks - ticks) * TICK_SECS;
+    
     if (pause_mode) {
-        frame_delta = 0;
         step_delta = real_step_delta = 0;
     } else {
-        frame_delta = time_factor * real_frame_delta;
-        time_left += frame_delta;
+        time_left = real_frame_delta * time_factor;
     }
     ticks = new_ticks;
 }
@@ -47,6 +51,7 @@ bool Clock::catchup(double time) {
     time_left -= time;
     step_delta = time;
     real_step_delta = time / time_factor;
+    frame_delta += time;
     return true;
 }
 
