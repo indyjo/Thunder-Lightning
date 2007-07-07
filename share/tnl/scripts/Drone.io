@@ -1,3 +1,5 @@
+doFile(Config scripts_dir .. "/Drone_attack.io")
+
 Drone do(
     TRAVEL_SPEED := 400 / 3.6
     TRAVEL_HEIGHT := 500
@@ -24,6 +26,7 @@ Drone do(
         self up := orient * vector(0,1,0)
         self front := orient * vector(0,0,1)
         self orient_inv := orient transpose
+        self dir := if (v lenSquare > 0.0000001, v norm, front)
         
         self altitude := p at(1)
         self height := altitude - Terrain heightAt(p(0), p(2))
@@ -47,6 +50,7 @@ Drone do(
             up = orient * vector(0,1,0)
             front = orient * vector(0,0,1)
             orient_inv = orient transpose
+            dir = if (v lenSquare > 0.0000001, v norm, front)
             
             altitude = p at(1)
             height = altitude - Terrain heightAt(p(0), p(2))
@@ -200,6 +204,10 @@ Drone do(
         self aileron := Drone supportAccelWithAileronWCS clone start(me)
         manage(aileron)
         
+        target_vector ifNil(
+            "flyVector with illegal target vector." println
+            self println
+        )
         error := target_vector - me state v
         accel target_accel := vector(0,0,0)
         aileron target_accel := vector(0,0,0)
@@ -210,6 +218,7 @@ Drone do(
             mod_target_vector := target_vector
             if (mod_target_vector dot(me state front) < 0,
                 mod_target_vector = mod_target_vector - me state front * mod_target_vector dot(me state front)
+                if (mod_target_vector at(1) < 0, mod_target_vector atSet(1,0))
                 mod_target_vector = mod_target_vector * (target_vector len / mod_target_vector len)
             )
             new_error := mod_target_vector - me state v
@@ -217,6 +226,7 @@ Drone do(
             error = new_error
             
             target_accel = 0.4*error+0.15*derivative
+            
             accel target_accel = target_accel
             aileron target_accel = target_accel
             #"error: #{error}" interpolate say
@@ -275,10 +285,10 @@ Drone do(
         )
     )
     
-    safety_height := vector(0,5,0)
-    descent_angle := 10*Number constants pi / 180
-    descent_speed := 150 / 3.6
-    final_length := 1000
+    safety_height := vector(0,3,0)
+    descent_angle := 7*Number constants pi / 180
+    descent_speed := 160 / 3.6
+    final_length := 1200
     
     returnToFinal := coro(me, rwy, dangle, final,
         height := final * dangle sin
@@ -409,7 +419,7 @@ Drone do(
         
         final_begin := a - d*final + up*height
         
-        "Proceeding to final" say
+        #"Proceeding to final" say
         self to_final := Drone followPath clone start(me,
             NavPath clone with(list(me state p, final_begin - 600 * right, final_begin)),
             250/3.6)
@@ -471,7 +481,20 @@ Drone do(
         me controls setFloat("rudder", 0)
         me controls setFloat("throttle", 0)
         
-        sleep(5)
+        loop(
+            obstacles := Game queryActorsInCapsule(
+                me location + me getFrontVector * 15,
+                me location + me getFrontVector * 200,
+                15)
+            obstacles remove(me)
+            obstacles remove(runway)
+            
+            if (obstacles isEmpty, break)
+            sleep(2)
+        )
+            
+            
+        sleep(0.5)
         me controls setFloat("throttle", 1)
         sleep(4)
         me controls setFloat("elevator", 0)
@@ -516,34 +539,58 @@ Drone do(
     )
     
     adHocCommand := method(
+        actorsInArea := Game queryActorsInSphere(location, 2000)
+        enemy := nil
+        distToEnemy := nil
+        actorsInArea foreach(actor,
+            if (actor isAlive and self dislikes(actor),
+                dist := (actor location - self location) len
+                if ( (enemy isNil or dist < distToEnemy) and hasAmmoAgainst(actor),
+                    enemy = actor
+                    distToEnemy = dist
+                )
+            )
+        )
+        
+        enemy ifNonNil(
+            return Command Attack clone with(enemy)
+        )
+        
         azimuth := 2 * Number constants pi * Random value
         dist := 2000 + 2000 * Random value
         
-        p := me location2 + vector( azimuth sin, azimuth cos ) * dist
+        p := location2 + vector( azimuth sin, azimuth cos ) * dist
         Command Goto clone with (p, 500)
     )
     
     executeCommand := coro(me, command,
         command action switch(
+            Command ATTACK, do(
+                target := command argActor link
+                target ifNonNil(
+                    task := manage( me attack clone start(me, target) )
+                    while(task running, pass)
+                )
+            ),
             Command GOTO, do(
-                manage( me travelTo clone start(me, command argVec2) )
-                loop(pass)
+                task := manage( me travelTo clone start(me, command argVec2) )
+                while(task running, pass)
             ),
             Command PATH, do(
-                manage( me followPath clone start(
+                task := manage( me followPath clone start(
                     me,
                     command argPath,
                     command argFloat ifNilEval(me TRAVEL_SPEED)
                 ) )
-                loop(pass)
+                while(task running, pass)
             ),
             Command LAND, do(
                 rwy := command argActor link
                 get_eaten := command argBool
                 if (rwy and rwy isAlive,
                     #"Performing landing." say
-                    manage( me land clone start(me, rwy, get_eaten) )
-                    loop(pass)
+                    task := manage( me land clone start(me, rwy, get_eaten) )
+                    while(task running, pass)
                 ,
                     "The runway doesn't exist anymore." say
                 )
@@ -553,8 +600,8 @@ Drone do(
                 rwy := command argActor link
                 if (rwy and rwy isAlive,
                     #"Performing takeoff." say
-                    manage( me takeoff clone start(me, rwy) )
-                    loop(pass)
+                    task := manage( me takeoff clone start(me, rwy) )
+                    while(task running, pass)
                 ,
                     "The runway doesn't exist anymore." say
                 )
@@ -569,9 +616,13 @@ Drone do(
         handler := nil
         
         loop(
+            if (handler isNil not and handler running not,
+                command = handler = nil
+                me command_queue endCurrentCommand
+            )
             c := me command_queue currentCommand(me)
-            if ( c != command,
-                #("New command: " .. c action) say
+            if (c != command,
+                //("New command: " .. c ?action) say
                 command = c
                 handler ifNonNil(
                     handler interrupt
@@ -581,10 +632,12 @@ Drone do(
                     handler = Drone executeCommand clone start(me, command)
                     manage(handler)
                 )
-                
-                c ifNil(
-                    me command_queue setFallbackCommand(me adHocCommand)
-                )
+            )
+            
+            c ifNil(
+                newCommand := me adHocCommand
+                me command_queue setAdHocCommand(newCommand)
+                //("New ad hoc command: " .. newCommand ?action) say
             )
             
             sleep(0.5)
