@@ -45,12 +45,14 @@ Carrier do(
     )
     eatDrone := method(drone,
         if (droneEatable(drone),
-            Game setView(self, 0)
-            Game setControlledActor(self)
+            if (Game viewSubject == drone,
+                Game setView(self, 0)
+                Game setControlledActor(self)
+            )
             
             coro(drone,
                 sleep(2)
-                Game removeActor(drone)
+                drone kill
                 "Drone eaten" say
             ) start(drone)
         )
@@ -65,6 +67,10 @@ Carrier do(
         )
         x := runwayBegin + d*t
         if ((x - drone location) len > 7,
+            return false
+        )
+        
+        if ((drone velocity - self velocity) length > 2,
             return false
         )
         true
