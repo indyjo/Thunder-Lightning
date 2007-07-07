@@ -35,6 +35,9 @@ EventRemapper do(
   mapKey(SDLK_9, press, "throttle8")
   mapKey(SDLK_0, press, "throttle9")
   mapKey(SDLK_a, press, "autopilot")
+  mapKey(SDLK_PLUS,  press, "increase-throttle")
+  mapKey(SDLK_MINUS, press, "decrease-throttle")
+  
   mapKey(SDLK_p, press, "pause")
   mapKey(SDLK_F11, press, "toggle-console")
 
@@ -93,10 +96,14 @@ EventRemapper do(
   if (Config Controls_enable_joystick != "false",
     mapJoystickButton(0, 0, press,  "+primary")
     mapJoystickButton(0, 0, release, "-primary")
-    mapJoystickButton(0, 1, press,  "+secondary")
-    mapJoystickButton(0, 1, release, "-secondary")
-    mapJoystickButton(0, 2, press,  "gunsight_target")
-    mapJoystickButton(0, 3, press,  "cycle-secondary")
+    mapJoystickButton(0, 1, press,  "cycle-primary")
+    mapJoystickButton(0, 2, press,  "gunsight-target")
+    mapJoystickButton(0, 3, press,  "next-friendly-target")
+    mapJoystickButton(0, 4, press,  "next-hostile-target")
+    mapJoystickButton(0, 5, press,  "+brake")
+    mapJoystickButton(0, 5, release,"-brake")
+    mapJoystickButton(0, 7, press,  "landing-gear")
+    mapJoystickButton(0, 8, press,  "landing-hook")
   
     mapJoystickAxis(0,0,"js_aileron")
     mapJoystickAxis(0,1,"js_elevator")
