@@ -49,6 +49,7 @@ void Flight::applyEffect(RigidBody &rigid, Ptr<DataNode> cntrls) {
     const static float max_torque = 600000.0f;
     const static float torque_factor=200;
     const static float torque_h_factor=5000;
+    const static float torque_z_factor = 1000;
     const static float aileron_factor=-0.01;
     const static float elevator_factor=0.01;
     const static float rudder_factor=0.01;
@@ -88,6 +89,8 @@ void Flight::applyEffect(RigidBody &rigid, Ptr<DataNode> cntrls) {
     C_L *= 1.0f - 0.3f*controls->getBrake();
     float C_D =   interp(nCD, alpha * 180 / PI, CD_x, CD_y);
     C_D *= 1.0f + 0.1f*controls->getBrake();
+    if (controls->isGearLowered()) C_D *= 1.4f;
+    if (controls->isHookLowered()) C_D *= 1.1f;
     float C_D_h = interp(nCD_h, alpha_h * 180 / PI, CD_h_x, CD_h_y);
 
     float V2 = v.lengthSquare();
@@ -135,9 +138,11 @@ void Flight::applyEffect(RigidBody &rigid, Ptr<DataNode> cntrls) {
     float torque = 0.5 * C_torque * rho * wing_area * Vyz;
     float C_torque_h = interp(nC_torque, alpha_h * 180/PI, C_torque_x, C_torque_y);
     float torque_h = 0.5 * C_torque_h * rho * wing_area * Vxz;
+    float torque_z = torque_h;
     
     rigid.applyTorque(torque_factor * right * torque);
     rigid.applyTorque(torque_h_factor * up * torque_h);
+    rigid.applyTorque(torque_z_factor * front * torque_z);
     rigid.applyTorque(aileron_factor * Vz * front * (max_torque * controls->getAileron()));
     rigid.applyTorque(elevator_factor * Vz * right * (max_torque * controls->getElevator()));
     rigid.applyTorque(rudder_factor * Vz * up    * (max_torque * controls->getRudder()));
