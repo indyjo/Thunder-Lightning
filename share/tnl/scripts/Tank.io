@@ -6,6 +6,8 @@ Tank do (
     turret weapon := armament weapon("Vulcan")
   )
   
+  isGroundTarget := true
+  
 
   maintainSpeed := coro(me, arg_target_speed,
     self target_speed := arg_target_speed

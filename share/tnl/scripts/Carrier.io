@@ -1,5 +1,6 @@
 Carrier do(
     appendProto(Runway)
+    isGroundTarget := true
     
     init := method(
         

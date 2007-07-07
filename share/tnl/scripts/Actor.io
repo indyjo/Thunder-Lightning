@@ -22,4 +22,8 @@ Actor do(
   front2 := method( f := getFrontVector; vector(f at(0,0), f at(2,0)) norm )
   right2 := method( f := front2; vector(f at(1,0), -f at(0,0)) )
   
+  // override this in the respective subclasses to give AI attackers a hint
+  // on how to tackle this target
+  isAirborneTarget := false
+  isGroundTarget := false
 )

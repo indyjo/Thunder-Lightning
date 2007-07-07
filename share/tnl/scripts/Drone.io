@@ -6,6 +6,13 @@ Drone do(
         self command_queue := CommandQueue clone
     )
     
+    isAirborneTarget := method(
+        velocity length > 36
+    )
+    isGroundTarget := method(
+        velocity length <= 36
+    )
+    
     flightState := coro(me,
         self gravity := vector(0,-9.81,0)
 
