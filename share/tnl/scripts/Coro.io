@@ -5,6 +5,7 @@ Coro := Object clone do(
         self interruptReq := false
         self managed := list
         self running := nil
+        self exception := nil
     )
     
     // Start the coroutine.
@@ -55,6 +56,7 @@ Coro := Object clone do(
             nil
         ) catch (Exception,
             ex showStack
+            self exception := ex
         )
         running = nil
         managed foreach(i,coro, coro interrupt)
