@@ -8,7 +8,7 @@ Object do(
     if (self == Protos, return "Protos")
     if (self == Core, return "Core")
     if (self == Addons, return "Addons")
-    return "Object " .. uniqueId .. " ["..(self type).."]"
+    return "Object " .. uniqueHexId .. " ["..(self type).."]"
   )
 
   inspect := method(
