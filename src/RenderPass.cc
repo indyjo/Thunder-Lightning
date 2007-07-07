@@ -152,7 +152,7 @@ void RenderPassList::renderPasses() {
     while(i != render_passes.end()) {
         Ptr<RenderPass> pass = i->lock();
         if (!pass) {
-            ls_message("Removing destroyed render pass.\n");
+            //ls_message("Removing destroyed render pass.\n");
             // remove deleted renderpasses from list
             i = render_passes.erase(i);
             continue;
