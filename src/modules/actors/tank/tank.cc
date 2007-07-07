@@ -228,12 +228,14 @@ Ptr<IView> Tank::getView(int n) {
     gunsight1->addDebugInfo(thegame, this);
     gunsight1->addTargeting(this, targeter);
     gunsight1->addArmamentToScreen(thegame, armament, 0);
+    gunsight1->addInfoMessage(thegame);
     
     Ptr<FlexibleGunsight> gunsight2 = new FlexibleGunsight(thegame);
     gunsight2->addDebugInfo(thegame, this);
 	gunsight2->addBasics(thegame, this);
     gunsight2->addTargeting(this, targeter);
     gunsight2->addArmamentToScreen(thegame, armament, 0);
+    gunsight1->addInfoMessage(thegame);
 
     Ptr<SimpleActor> chaser = new SimpleActor(thegame);
     Ptr<IView> view;
