@@ -149,7 +149,7 @@ void HeightModule::draw(FlexibleGunsight& gunsight) {
 	fontman->setColor(Vector(0,1,0));
 	
 	char buf[16];
-	snprintf(buf,16,"%.0f",flight_info.getCurrentHeight());
+	snprintf(buf,16,"%.0f",flight_info.getCurrentAltitude());
 	fontman->print(buf);
 	
 }
