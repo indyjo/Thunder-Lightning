@@ -80,6 +80,7 @@ public:
     
     // Gunsight configuration
     void addDebugInfo(Ptr<IGame>, Ptr<IActor>);
+    void addBasics(Ptr<IGame>, Ptr<IActor>);
     void addBasicCrosshairs(const char * parent="screen");
     void addFlightModules(Ptr<IGame>, FlightInfo &, Ptr<DataNode>);
     void addTargeting(Ptr<IActor>, Ptr<Targeter>);

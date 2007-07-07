@@ -140,6 +140,7 @@ Ptr<IView> Carrier::getView(int n) {
 
     Ptr<FlexibleGunsight> gunsight1 = new FlexibleGunsight(thegame);
     gunsight1->addBasicCrosshairs();
+	gunsight1->addBasics(thegame, this);
     gunsight1->addDebugInfo(thegame, this);
     gunsight1->addTargeting(this, targeter);
     gunsight1->addArmamentToScreen(thegame, armament, 0);
@@ -147,6 +148,7 @@ Ptr<IView> Carrier::getView(int n) {
 
     Ptr<FlexibleGunsight> gunsight2 = new FlexibleGunsight(thegame);
     gunsight2->addDebugInfo(thegame, this);
+	gunsight2->addBasics(thegame, this);
     gunsight2->addInfoMessage(thegame);
 
     Ptr<SimpleActor> chaser = new SimpleActor(thegame);
