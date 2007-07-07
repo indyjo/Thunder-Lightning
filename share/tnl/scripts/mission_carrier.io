@@ -38,40 +38,33 @@ startup := method(
         myvelocity := myorient*vector(0, 0, 90)
     )
 
+    alpha := -15 * Number constants pi / 180
+    corient := matrix( alpha cos,  0, -alpha sin
+                               0,  1,          0
+                       alpha sin,  0,  alpha cos)
+    cpos := mypos + myvelocity*25
+    cpos atSet(1,0,0)
+    self carrier := addCarrier(cpos, corient)
+
     if ((?me) isNil,
         self me := Drone clone
         me setLocation(mypos)
         #me setOrientation(myorient)
         me setMovementVector(myvelocity)
         me setFaction(us)
+        me command_queue appendCommand(Command Land clone with(carrier))
         Game addActor(me)
     )
     
-    alpha := -15 * Number constants pi / 180
-    corient := matrix( alpha cos,  0, -alpha sin
-                               0,  1,          0
-                       alpha sin,  0,  alpha cos)
-    mypos atSet(1,0,0)
-    self carrier := addCarrier(mypos + myvelocity*25, corient)
-
     Game setControlledActor(me)
     Game setView(me, 0)
     
     me carrier := carrier
     
-    me ai := coro(me,
-        self land := Drone performLanding clone start(me, me carrier)
-        manage(land)
-
-        loop(
-            pass
-        )
-    )
-    
     3 repeat(
         drone := me clone
         drone setLocation(mypos + vector(3000*rand2, 800, 3000*rand2))
-        drone ai := me ai
+        drone command_queue appendCommand(Command Land clone with(carrier))
         drone setControlMode(Actor AUTOMATIC)
         Game addActor(drone)
     )
