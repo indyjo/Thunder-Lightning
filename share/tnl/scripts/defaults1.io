@@ -36,9 +36,12 @@ Config do(
   
   
   // Try to restore graphics and keyboard after a program crash
-  Game_enable_SDL_parachute := "true"
-  
-  Game_loading_screen := texture_dir .. "/loading-screen.spr"
+  Game_enable_SDL_parachute     := "true"
+  Game_loading_screen           := texture_dir .. "/loading-screen.spr"
+  //Game_max_step_delta           := (1/30) asString
+  Game_max_step_delta           := (1/30) asString
+  Game_max_frame_delta          := (1/15) asString
+  Game_max_ms_for_simulation    := (1000/30) floor asString
 
   // Texman config
   TexMan_cache_size         := "256"
@@ -194,4 +197,14 @@ Config do(
   Water_bumpmap                    := texture_dir .. "/water-dudvbump.png"
   Water_tile_uvspan                := "2.0"
   Water_tile_num                   := "51"
+  Water_fallback_texture           := texture_dir .. "/terrain-tiles/water.spr"
+  
+  // Observer configuration
+  Observer_accel_x                 := "10"
+  Observer_accel_y                 := "-10"
+  Observer_accel_z                 := "-15"
+  Observer_rotate_x                := "0.2"
+  Observer_rotate_y                := "0.2"
+  Observer_speed_factor            := "0.04"
+
 ) // Config do
