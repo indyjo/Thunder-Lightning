@@ -14,7 +14,7 @@
 struct MissileWarningModule : public GunsightModule, public SigObject {
     std::vector<Ptr<IActor> > missiles;
 	Ptr<SimpleActor> actor;
-	Ptr<IFontMan> fontman;
+	Ptr<IFont> font;
     Ptr<SoundMan> soundman;
     Ptr<SoundSource> sndsource;
     SigC::Connection connection;
@@ -22,7 +22,6 @@ struct MissileWarningModule : public GunsightModule, public SigObject {
 	MissileWarningModule(const char *name, Ptr<IGame> game, Ptr<SimpleActor> actor)
 	:	GunsightModule(name, 200, 25),
 		actor(actor),
-        fontman(game->getFontMan()),
         soundman(game->getSoundMan())
 	{
         connection = actor->message_signal.connect(
@@ -30,6 +29,8 @@ struct MissileWarningModule : public GunsightModule, public SigObject {
         connection.block(true);
         sndsource = soundman->requestSource();
         sndsource->setLooping(true);
+        game->getFontMan()->selectFont(IFontMan::FontSpec("dungeon", 12, IFontMan::FontSpec::BOLD));
+        font = game->getFontMan()->getFont();
     }
 
     void onMessage(std::string name, IoObject *args) {
@@ -91,22 +92,17 @@ struct MissileWarningModule : public GunsightModule, public SigObject {
         sndsource->setPosition(actor->getLocation());
         sndsource->setPitch(pitch);
 
-		UI::Surface surface = gunsight.getSurface();
-		surface.translateOrigin(offset[0],offset[1]);
-		
-		fontman->selectFont(IFontMan::FontSpec(
-            "dungeon", 12, IFontMan::FontSpec::BOLD));
-		
-		fontman->setCursor(
-			surface.getOrigin(),
-			surface.getDX(),
-			surface.getDY());
-		fontman->setAlpha(1);
-		fontman->setColor(Vector(1,0.2,0));
-		
-		char buf[256];
-        snprintf(buf,256,"MISSILE WARNING\n", closest.second);
-		fontman->print(buf);
+        UI::Surface surface = gunsight.getSurface();
+        surface.translateOrigin(
+		    std::floor(offset[0]+width/2),
+		    std::floor(offset[1]+height/2));
+        JRenderer * r = gunsight.getRenderer();
+	    r->pushMatrix();
+	    r->multMatrix(surface.getMatrix());
+	    
+        font->drawString("MISSILE WARNING", Vector2(0), Vector(1,0.2,0), 1, IFont::VCENTER|IFont::HCENTER);
+        
+        r->popMatrix();
 	}
 	
 	void enable() {
@@ -123,7 +119,7 @@ void FlexibleGunsight::addMissileWarning(
 	Ptr<IGame> game, Ptr<SimpleActor> actor)
 {
     addModule(new MissileWarningModule("missile-warning", game, actor),
-        "screen", HCENTER | BOTTOM, HCENTER | BOTTOM, Vector(0,5,0));
+        "screen", HCENTER | BOTTOM, HCENTER | BOTTOM, Vector(0,-25,0));
 }
 
 namespace {
