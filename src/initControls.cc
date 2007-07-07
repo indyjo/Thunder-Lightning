@@ -142,7 +142,7 @@ void Game::initControls()
         .input("kbd_rudder_left")
         .input("kbd_rudder_right"));
     r->addAxisManipulator(
-        AxisManipulator(new SelectAxisByActivityTransform(0.05f, 1.0f), "throttle")
+        AxisManipulator(new SelectAxisByActivityTransform(0.025f, 0.0f), "throttle")
         .input("js_throttle2")
         .input("kbd_throttle"));
     r->addAxisManipulator(
