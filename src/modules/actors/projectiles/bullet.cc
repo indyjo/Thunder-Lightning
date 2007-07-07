@@ -63,15 +63,8 @@ void Bullet::action()
     if (age > ttl)
         die();
 
-    Vector p_old = getLocation();
     SimpleActor::action();
     engine->applyLinearAcceleration(Vector(0,-9.81,0));
-    Vector p = getLocation();
-
-    if (terrain->lineCollides(p_old, p, &p)) {
-        setLocation(p);
-        explode();
-    }
 }
 
 void Bullet::draw()
@@ -114,6 +107,21 @@ void Bullet::integrate(float delta_t, Transform * transforms) {
 }
 
 void Bullet::update(float delta_t, const Transform * new_transforms) {
+    // And a cheap-ass terrain collision test
+    Vector p_old = getLocation();
+    Vector p = new_transforms[0].vec();
+
+    if (p[1] <= 0 && p_old[1] > 0) {
+        p = p_old + (p-p_old)* (p_old[1] / (p_old[1]-p[1]));
+        setLocation(p);
+        explode();
+        return;
+    } else if (terrain->lineCollides(p_old, p, &p)) {
+        setLocation(p);
+        explode();
+        return;
+    }
+    
     engine->update(delta_t, new_transforms);
 }
 
