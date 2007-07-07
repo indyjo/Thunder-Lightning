@@ -82,23 +82,29 @@ addDrone := method(carrier, path,
     me
 )
 
+addEnemyDrone := method(p,
+    drone := Drone clone
+    drone setLocation(p)
+    drone setFaction(Mission them)
+    Game addActor(drone)
+    drone name := "badguy"
+    drone setControlMode(Actor AUTOMATIC)
+    drone
+)
+
 startup := method(
     self carrier := addCarrier
+    carrier setControlMode(Actor UNCONTROLLED)
     self drone1 := addDrone(carrier, path1(carrier location))
     drone1 setControlMode(Actor AUTOMATIC)
     self drone2 := addDrone(carrier, path2(carrier location))
+    drone2 setControlMode(Actor AUTOMATIC)
     self drone3 := addDrone(carrier, path3(carrier location))
+    drone3 setControlMode(Actor AUTOMATIC)
     Game setView(drone3, 0)
     
-    coro(mission,
-        sleep(2)
-        mission drone2 setControlMode(Actor AUTOMATIC)
-    ) start(self)
-
-    coro(mission,
-        sleep(4)
-        mission drone3 setControlMode(Actor AUTOMATIC)
-    ) start(self)
+    self bad_drone := addEnemyDrone(carrier location + vector(50,400, 1800))
+    bad_drone command_queue appendCommand( Command Attack clone with(drone1) )
 )
 
 shutdown := method(
