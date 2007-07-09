@@ -56,7 +56,7 @@ void Flight::applyEffect(RigidBody &rigid, Ptr<DataNode> cntrls) {
     const static float Crot_rest=0.001;
     const static float Crot_xy=0.0005;
     const static float CL_x[] = {-180.0, -135.0, -90.0, -45.0, -8.0, 0.0, 18.0, 32.0, 90.0, 135.0, 180.0};
-    const static float CL_y[] = {  -0.5,    1.6,   0.0,  -1.0, -0.2, 0.2,  1.6,  1.0,  0.0,  -1.6,  -0.5};
+    const static float CL_y[] = {  -0.5,    1.6,   0.0,  -1.0, -0.12, 0.12,  1.6,  1.0,  0.0,  -1.6,  -0.5};
     const static float CD_x[] = {-180.0, -90.0, -45.0, -24.0, -16.0, -8.0,  0.0, 8.0,  16.0, 24.0, 45.0, 90.0, 180.0};
     const static float CD_y[] = {   0.75,   1.5,   1.0,   0.4,   0.2,  .18, 0.15, .18,  0.2,  0.4,  1.0,  1.5,   0.75};
     const static float CD_h_x[] = {-180.0, -172.0, -120.0, -90.0, -60.0, -8.0, 0.0, 8.0, 60.0, 90.0, 120.0, 172.0, 180.0};
