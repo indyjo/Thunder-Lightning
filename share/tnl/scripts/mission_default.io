@@ -16,13 +16,13 @@ addSurviveObjective := method(target,
 )
 
 addCarrier := method(pos, angle,
-    angle ifNil( angle := 285 )
+    angle ifNil( angle := 95 )
     alpha := angle * Number constants pi / 180
     orient := matrix(  alpha cos,  0, -alpha sin
                                0,  1,          0
                        alpha sin,  0,  alpha cos)
     
-    pos ifNil( pos := vector(11341,0,-1008) )
+    pos ifNil( pos := vector(17200,0,2000) )
 
     self carrier := Carrier clone
     
@@ -102,6 +102,7 @@ startup := method(
     objectives = list()
     
     tankpos := vector(6543,0,1416)
+    tankpos2 := tankpos xz
     
     self tank1 := addTank(tankpos)
     tank1 setLocation(tankpos)
@@ -124,7 +125,7 @@ startup := method(
     
     self shooting_tanks := list
     2 repeat(
-      tank := addTank(vector(6543,0,1386) + 400*randvec)
+      tank := addTank(vector(6543,0,1386) + 1500*randvec)
       shooting_tanks append(tank)
     )
     
@@ -156,11 +157,39 @@ startup := method(
         Command Attack clone with(tank1))
     wingman2 command_queue appendCommand(
         Command Land clone with(carrier))
-    wingman2 setControlMode(Actor AUTOMATIC)
+    wingman2 setControlMode(Actor UNCONTROLLED)
     
     Game setView(wingman2, 0)
-    Game setControlledActor(wingman2)
 
+    self evil_carrier := addCarrier(vector(-4675,0,18), 0)
+    evil_carrier setFaction(them)
+    
+    self drone1 := evil_carrier spawnDrone
+    drone1 command_queue appendCommand(
+        Command Takeoff clone with(evil_carrier))
+    drone1 command_queue appendCommand(
+        Command Attack clone with(wingman1))
+    drone1 command_queue appendCommand(
+        Command Attack clone with(wingman2))
+    drone1 command_queue appendCommand(
+        Command Goto clone with(evil_carrier location2, 2000))
+    drone1 command_queue appendCommand(
+        Command Land clone with(evil_carrier))
+    drone1 setControlMode(Actor AUTOMATIC)
+
+    self drone2 := evil_carrier spawnDrone
+    drone2 command_queue appendCommand(
+        Command Takeoff clone with(evil_carrier))
+    drone2 command_queue appendCommand(
+        Command Attack clone with(wingman2))
+    drone2 command_queue appendCommand(
+        Command Attack clone with(wingman1))
+    drone2 command_queue appendCommand(
+        Command Goto clone with(evil_carrier location2, 2000))
+    drone2 command_queue appendCommand(
+        Command Land clone with(evil_carrier))
+    drone2 setControlMode(Actor AUTOMATIC)
+    
     "DefaultMission startup end" println
 )
 
