@@ -9,6 +9,7 @@
 
 class RigidEngine;
 class SoundSource;
+class Sound;
 
 namespace Effectors {
     class Thrust;
@@ -18,7 +19,8 @@ namespace Effectors {
 class Missile: public SimpleActor, public Collide::Collidable, public IProjectile
 {
 protected:
-    Missile(Ptr<IGame> thegame, Ptr<IActor> source=0);
+    /// Constructs a missile with aerodynamics taken from config with prefix cfg_prefix
+    Missile(Ptr<IGame> thegame, Ptr<IActor> source=0, const char* cfg_prefix="Missile");
     virtual ~Missile();
     
 public:
@@ -57,6 +59,7 @@ protected:
     Ptr<RigidEngine> engine;
     Ptr<Effectors::Thrust> thrust;
     Ptr<SoundSource> engine_sound_src;
+    Ptr<Sound> engine_sound;
     Ptr<IActor> source;
 };
 

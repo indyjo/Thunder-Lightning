@@ -1,3 +1,4 @@
+#include <string>
 #include <interfaces/IConfig.h>
 #include <interfaces/ITerrain.h>
 
@@ -16,27 +17,35 @@
 
 #include "Missile.h"
 
-Missile::Missile(Ptr<IGame> thegame, Ptr<IActor> source)
+Missile::Missile(Ptr<IGame> thegame, Ptr<IActor> source, const char *cfg_prefix)
 :   SimpleActor(thegame), damage(0), age(0), source(source)
 {
-    blast_begin = 0.5f;
-    blast_end = 5.0f;
-    max_lifetime = 30.0f;
-    min_explosion_age = 2.0f;
+    std::string prefix = cfg_prefix;
+    
+    Ptr<IConfig> cfg = thegame->getConfig();
+    blast_begin = cfg->queryFloat(prefix+"_blast_begin", 0.5f);
+    blast_end = cfg->queryFloat(prefix+"_blast_end", 5.0f);
+    max_lifetime = cfg->queryFloat(prefix+"_max_lifetime",30.0f);
+    min_explosion_age = cfg->queryFloat(prefix+"_min_explosion_age", 2.0f);
     
     renderer = thegame->getRenderer();
     terrain = thegame->getTerrain();
     
-    setTargetInfo(new TargetInfo("Missile", 1.0f, TargetInfo::MISSILE));
+    setTargetInfo(new TargetInfo(cfg->query(prefix+"_name","Missile"), 1.0f, TargetInfo::MISSILE));
 
     engine = new RigidEngine(thegame);
-    engine->construct(80, 60, 60, 20);
+    engine->construct(
+        cfg->queryFloat(prefix+"_mass", 80),
+        cfg->queryFloat(prefix+"_Ixx", 60),
+        cfg->queryFloat(prefix+"_Iyy", 60),
+        cfg->queryFloat(prefix+"_Izz", 20));
     
     engine->addEffector(Effectors::Gravity::getInstance());
-    engine->addEffector(new Effectors::Missile);
+    engine->addEffector(new Effectors::Missile(cfg, cfg_prefix));
     
     this->thrust = new Effectors::Thrust;
-    thrust->setMaxForce(Vector(0,0,10000)); // some random default value, very weak
+    thrust->setMaxForce(Vector(0,0,
+        cfg->queryFloat(prefix+"_max_thrust", 10000))); // some random default value, very weak
     engine->addEffector(thrust);
     
     setEngine(engine);
@@ -49,6 +58,10 @@ Missile::Missile(Ptr<IGame> thegame, Ptr<IActor> source)
     
     engine_sound_src = thegame->getSoundMan()->requestSource();
     engine_sound_src->setLooping(true);
+    engine_sound = thegame->getSoundMan()->querySound(cfg->query(prefix+"_engine_sound"));
+    
+    setModel(thegame->getModelMan()->query(
+    	cfg->query(prefix+"_model")));
 }
 
 Missile::~Missile()
@@ -61,8 +74,7 @@ void Missile::onLinked() {
     
     engine_sound_src->setPosition(getLocation());
     engine_sound_src->setVelocity(getMovementVector());
-    engine_sound_src->play(thegame->getSoundMan()->querySound(
-            thegame->getConfig()->query("Missile_engine_sound")));
+    engine_sound_src->play(engine_sound);
 
     Ptr<SmokeTrail> smoketrail =
             new SmokeTrail(thegame);
