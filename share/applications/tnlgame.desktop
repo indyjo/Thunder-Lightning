@@ -7,4 +7,5 @@ Comment[de]=Thunder and Lightning - ein futuristischer Flugsimulator
 Exec=tnl
 Icon=tnlgame
 Categories=Game
+Terminal=true
 
