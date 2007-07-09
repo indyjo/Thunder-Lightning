@@ -222,8 +222,8 @@ void RenderPassList::drawMosaic() {
         int center_x = (2*c+1) * vp_width / cols / 2;
         int center_y = (2*r+1) * vp_height / rows / 2;
 
-        ls_message("Mosaic tile. r=%d c=%d center_x=%d center_y=%d sz=%d\n",
-            r,c,center_x,center_y,sz);
+        //ls_message("Mosaic tile. r=%d c=%d center_x=%d center_y=%d sz=%d\n",
+        //    r,c,center_x,center_y,sz);
         
         GLuint tex = pass->getTexture()->getGLTex();
         
