@@ -16,11 +16,7 @@ void ObserverEngine::run() {
     // A speciality of the observer is to update its engine on the main render
     // passes draw, even while paused. So we need to use getRealFrameDelta() to
     // get the (real) time that has passed since the last update.
-    if (clock->isPaused()) {
-        delta_t = clock->getRealFrameDelta();
-    } else {
-        delta_t = clock->getFrameDelta()/clock->getTimeFactor();
-    }
+    delta_t = clock->getRealFrameDelta();
     
     v += Vector(
         delta_t*controls->getFloat("accel_x"),
