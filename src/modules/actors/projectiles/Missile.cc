@@ -150,13 +150,17 @@ void Missile::update(float delta_t, const Transform * new_transforms) {
     Vector p_old = getLocation();
     Vector p = new_transforms[0].vec();
 
-    if (terrain->lineCollides(p_old, p, &p)) {
-        //SmokeColumn::PuffParams pparams;
-        //pparams.color = Vector(35, 30, 25);
-        //thegame->addActor(
-        //        new SmokeColumn(thegame, p, SmokeColumn::Params(), pparams));
-        ls_message("Missile: killed by collision with ground.\n");
+    if (p[1] <= 0 && p_old[1] > 0) {
+        ls_message("Missile: killed by collision with water.\n");
+        p = p_old + (p-p_old)* (p_old[1] / (p_old[1]-p[1]));
+        setLocation(p);
         explode();
+        return;
+    } else if (terrain->lineCollides(p_old, p, &p)) {
+        ls_message("Missile: killed by collision with ground.\n");
+        setLocation(p);
+        explode();
+        return;
     }
     
     engine->update(delta_t, new_transforms);
