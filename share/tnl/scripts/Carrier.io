@@ -53,7 +53,6 @@ Carrier do(
             coro(drone,
                 sleep(2)
                 drone kill
-                "Drone eaten" say
             ) start(drone)
         )
     )
