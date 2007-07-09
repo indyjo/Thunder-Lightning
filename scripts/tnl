@@ -11,6 +11,7 @@ function on_error() {
   echo "    the author and the community."
   echo "  * If you want to help the author fix this bug, send a copy"
   echo "    of /tmp/stdout.txt and /tmp/stderr.txt to bugs@tnlgame.net"
+  echo "    or post it on the discussion board at http://forum.tnlgame.net"
   if [[ $debug_enabled==no ]]; then
     echo "  * If you would like to debug TnL, start again with"
     echo "    tnl --debug or set TNL_DEBUG=1"
