@@ -108,8 +108,8 @@ bool LoDQuad::getHeightAtTriangle(LoDTriangle *tri, float x, float z, float *hei
                 + ((py[1] - py[2]) * d[2]) / dp[1]
                 + ((py[0] - py[2]) * d[1]) / dp[0];
         if (out_normal) {
-            *out_normal = (Vector(vx[2],vy[2],vz[2]) - Vector(vx[0],vy[0],vz[0]))
-                % (Vector(vx[1],vy[1],vz[1]) - Vector(vx[2],vy[2],vz[2]));
+            *out_normal = (Vector(px[2],py[2],pz[2]) - Vector(px[0],py[0],pz[0]))
+                % (Vector(px[1],py[1],pz[1]) - Vector(px[2],py[2],pz[2]));
             out_normal->normalize();
         }
         return true;
