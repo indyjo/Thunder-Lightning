@@ -256,14 +256,16 @@ void Thrust::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
     rigid.applyForce(rigid.getState().q.rot(getEffectiveForce()));
 }
 
+Missile::Missile(Ptr<IConfig> cfg, const std::string & prefix)
+{
+    CdA_f = cfg->queryFloat(prefix+"_CdA_f", 0.001);
+    CdA_s = cfg->queryFloat(prefix+"_CdA_s", 0.1);
+    torque_factor_z = cfg->queryFloat(prefix+"_torque_factor_z", 300);
+    torque_factor_xy = cfg->queryFloat(prefix+"_torque_factor_xy", 300);
+    pitching_factor = cfg->queryFloat(prefix+"_pitching_factor", 0.1f);
+}
+
 void Missile::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
-    const static float cw_f = 0.3;              // frontal drag coefficient
-    const static float cw_s = 1.2;              // side drag coefficient
-    const static float torque_factor_z = 300;
-    const static float torque_factor_xy = 300;
-    const static float pitching_factor = 0.1f;
-    const static float front_area = 3.141593f * 0.063f*0.063f;
-    const static float side_area = 3.0f * 0.63f*0.63f;
     const static float rho= 1.293;            // air density
 
     Quaternion q=rigid.getState().q;
@@ -282,10 +284,10 @@ void Missile::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
     rigid.applyTorque(pitching_factor * d % v_xy);
 
     Vector v_f = d * (v*d); // frontal component of velocity
-    Vector drag_force_f = -v_f.length() * v_f * (cw_f * front_area * rho / 2.0);
+    Vector drag_force_f = -v_f.length() * v_f * (CdA_f * rho / 2.0);
 
     Vector v_s = v - v_f; // side component of velocity
-    Vector drag_force_s = -v_s.length() * v_s * (cw_s * side_area * rho / 2.0);
+    Vector drag_force_s = -v_s.length() * v_s * (CdA_s * rho / 2.0);
 
     rigid.applyForce(drag_force_f + drag_force_s);
 }
@@ -381,6 +383,7 @@ void Buoyancy::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
         rigid.applyForceAt(drag_normal, p_wcs);
         rigid.applyForceAt(drag_tangential, p_wcs);
     }
+
 }
 
 

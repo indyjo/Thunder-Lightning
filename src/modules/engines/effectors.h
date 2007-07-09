@@ -1,6 +1,8 @@
 #ifndef EFFECTORS_H
 #define EFFECTORS_H
 
+#include <string>
+#include <interfaces/IConfig.h>
 #include <interfaces/IEffector.h>
 #include <interfaces/ITerrain.h>
 #include <modules/math/Vector.h>
@@ -95,6 +97,13 @@ public:
 
 class Missile : public IEffector {
 public:
+    float CdA_f;             // Frontal area times frontal drag coefficient
+    float CdA_s;             // Area of side times drag coefficient of side
+    float torque_factor_z;
+    float torque_factor_xy;
+    float pitching_factor;
+    
+    Missile(Ptr<IConfig> cfg, const std::string & prefix);
     virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls);
 };
 
