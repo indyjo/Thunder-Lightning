@@ -63,18 +63,21 @@ Mission do(
   
   us := Faction clone do (
     setName("Blue")
+    setColor(vector(0,0,1))
     setDefaultAttitude(HOSTILE)
     setAttitudeTowards(thisContext, FRIENDLY)
   )
 
   them := Faction clone do (
     setName("Red")
+    setColor(vector(1,0,0))
     setDefaultAttitude(HOSTILE)
     setAttitudeTowards(thisContext, FRIENDLY)
   )
   
   neutrals := Faction clone do (
     setName("Green")
+    setColor(vector(0,1,0))
     setDefaultAttitude(NEUTRAL)
     setAttitudeTowards(thisContext, FRIENDLY)
   )
