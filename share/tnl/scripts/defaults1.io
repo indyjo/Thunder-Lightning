@@ -165,13 +165,48 @@ Config do(
   Io_init_script                   := scripts_dir .. "/init.io"
   Io_init_script_2                 := scripts_dir .. "/init2.io"
   
+  // Missile configurations
   DumbMissile_model                := model_dir .. "/missiles/dumbmissile.obj"
+  DumbMissile_engine_sound         := "rocket-engine-1.wav"
+  DumbMissile_mass                 := "10.705"
+  DumbMissile_Ixx                  := "6"
+  DumbMissile_Iyy                  := "6"
+  DumbMissile_Izz                  := "2"
+  DumbMissile_CdA_f                := (0.02 * Number constants pi * 0.034925 squared) asString
+  DumbMissile_CdA_s                := (1.2 * (2*0.034925*0.75 + 0.02)) asString
+  DumbMissile_torque_factor_z      := "300"
+  DumbMissile_torque_factor_xy     := "300"
+  DumbMissile_pitching_factor      := "0.1"
+  DumbMissile_blast_begin          := "0"
+  DumbMissile_blast_end            := "1.05"
+  DumbMissile_max_thrust           := "7545"
+  DumbMissile_min_explosion_age    := "0"
+  DumbMissile_max_lifetime         := "30"
+  
   SmartMissile_model               := model_dir .. "/missiles/smartmissile.obj"
-  Missile_engine_sound             := "rocket-engine-1.wav"
-
-  Missile_Kp                       := "1"
-  Missile_Ki                       := "0"
-  Missile_Kd                       := "5"
+  SmartMissile_engine_sound        := "rocket-engine-1.wav"
+  SmartMissile_mass                := "85.5"
+  SmartMissile_Ixx                 := "60"
+  SmartMissile_Iyy                 := "60"
+  SmartMissile_Izz                 := "20"
+  SmartMissile_torque_factor_z     := "300"
+  SmartMissile_torque_factor_xy    := "300"
+  SmartMissile_pitching_factor     := "0"
+  // The CdA values were calculated from unmodified previous guesswork :-/
+  SmartMissile_CdA_f               := (0.02 * Number constants pi * 0.065 squared) asString
+  SmartMissile_CdA_s               := (1.2 * 2.85*2*0.065) asString
+  SmartMissile_blast_begin         := "0.3"
+  SmartMissile_blast_end           := "1.55"
+  SmartMissile_max_thrust          := "40000"
+  SmartMissile_min_explosion_age   := "1.5"
+  SmartMissile_max_lifetime        := "75"
+  // PID constants for the smart missile's homing controller
+  //SmartMissile_Kp                  := "1"
+  //SmartMissile_Ki                  := "0"
+  //SmartMissile_Kd                  := "5"
+  SmartMissile_Kp                  := "20"
+  SmartMissile_Ki                  := "0"
+  SmartMissile_Kd                  := "50"
   
   // Weapons configuration
   Cannon_sound                     := "cannon-shoot-1.wav"
