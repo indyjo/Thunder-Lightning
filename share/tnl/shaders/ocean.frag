@@ -63,15 +63,17 @@ void main (void)
     mirrorTexCoords.x /=  aspect;
     mirrorTexCoords = vec2(0.5,0.5) + mirrorTexCoords;
 
-    vec3 envColor = vec3(texture2D(MirrorMap, mirrorTexCoords));
+    vec3 reflectionColor = vec3(texture2D(MirrorMap, mirrorTexCoords));
 
     float fresnel = max(0.0,-dot(EyeDirNorm, pxNormal));
     fresnel = max(0.0, min(1.0, 1-pow(fresnel,FresnelExponent)));
     float reflection = mix(MinReflectivity, MaxReflectivity, fresnel);
     
-    envColor = BaseColor + reflection*envColor;
-    envColor = envColor+MixRatio*(bumpColor.bbb);
-    envColor += SunColor * PhongFactor * max(0.0,pow(dot(reflectDir,SunDir), PhongExponent));
+    vec3 envColor = BaseColor + reflection*reflectionColor;
+    //envColor = envColor+MixRatio*(bumpColor.bbb);
+    //if ( length(reflectionColor) > 0.7 ) {
+        envColor += SunColor * PhongFactor * max(0.0,pow(dot(reflectDir,SunDir), PhongExponent));
+    //}
     envColor = mix(envColor, gl_Fog.color.rgb, Fog);
     gl_FragColor = vec4 (envColor, 1.0);
 }
