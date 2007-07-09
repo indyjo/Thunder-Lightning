@@ -70,6 +70,14 @@ float RigidBody::collisionImpulseMagnitude(
     Vector x3 = (A_I_inv * (A_r % n)) % A_r;
     Vector x4 = (B_I_inv * (B_r % n)) % B_r;
     float x5 = n * (x3+x4);
+    
+    ls_message("collisionImpulseMagitude.\n");
+    ls_message("  p:"); p.dump();
+    ls_message("  A_r:"); A_r.dump();
+    ls_message("  B_r:"); B_r.dump();
+    ls_message("  A_v:"); A_v.dump();
+    ls_message("  B_v:"); B_v.dump();
+    ls_message("  x1:%.2f x2:%.2f x5:%.2f result:%.2f\n", x1,x2,x5,x1/(x2+x5));
 
     return x1 / (x2 + x5);
 }
