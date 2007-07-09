@@ -127,9 +127,11 @@ Drone do(
             dt = pass
             new_error = target_accel - me state accel_lcs at(2)
             #derivative = (new_error - error) / dt
-            integral = (integral + new_error * dt) clip(0,10)
+            integral = (integral + new_error * dt) clip(0,20)
             error = new_error
-            #"accel: #{me state accel at(2)} error: #{error} int: #{integral}" interpolate say
+            #if (me == Game viewSubject,
+            #    "accel: #{me state accel at(2) asString(2)} error: #{error asString(2)} int: #{integral asString(2)}" interpolate say
+            #)
             
             me controls setFloat("throttle",
                 (0.05*error + 0.05*integral) clip(0,1))
@@ -518,24 +520,79 @@ Drone do(
     )
     
     travelTo := coro(me, target,
-        dist := (me location2 - target) length
-        segment_length := 100
-        n_segments := (dist / segment_length) ceil
-        segment_length = dist / n_segments
-        
-        step := (target - me location2)
+        steps_per_frame := 5
+
+        segment_length := 300
         
         p := me location2
         path := list
-        (n_segments + 1) repeat(
-            path append( vector(p at(0), Terrain heightAt(p at(0), p at(1)) + me TRAVEL_HEIGHT, p at(1) ) )
-            p = p + step
+        path append( vector(p at(0), Terrain heightAt(p x, p y) + me TRAVEL_HEIGHT, p at(1) ) )
+        
+        i := 0
+        loop(
+            normal := Terrain normalAt(p x, p y)
+            to_target := target - p
+            dist := to_target length
+            d := to_target norm
+            
+            if ( (p - target) length <= segment_length,
+                p = target
+                height := Terrain heightAt(p x, p y)
+                path append( vector(p at(0), height + me TRAVEL_HEIGHT, p at(1) ) )
+                break
+            ,
+                p = p + (d+normal xz) norm * segment_length
+                height := Terrain heightAt(p x, p y)
+                path append( vector(p at(0), height + me TRAVEL_HEIGHT, p at(1) ) )
+            )
+            
+            
+            #if (Game viewSubject == me,
+            #    "i:#{i} dist:#{(p - target) length asString(2)}" interpolate say
+            #)
+            
+            if (i % steps_per_frame == 0,
+                sleep(0)
+            )
+            i = i+1
         )
         
         navpath := NavPath clone with(path)
-        writeln("Navpath: ", navpath)
+        #writeln("Navpath: ", navpath size, " points: ", navpath path)
         manage ( me followPath clone start(me, navpath, me TRAVEL_SPEED) )
         loop(pass)
+    )
+    
+    travelTo2 := coro(me, target,
+        self fv := manage( me flyVector clone start(me) )
+        
+        slopemax := 35 * Number constants pi / 180
+        
+        loop(
+            p := me location2
+            dist := (target - p) length
+            if (dist < 500, break)
+            d := (target - p) norm
+            normal := Terrain normalAt(p x, p y)
+            if (normal xz dot(d) < 0,
+                tangent := (vector(0,1,0) % normal) xz
+                slope := (normal y acos / slopemax)  clip(0,1)
+                #if (Game viewSubject == me,
+                #    "normal: #{normal} d: #{d} tangent: #{tangent} slope: #{slope}" interpolate say
+                #)
+                if (d dot(tangent) < 0, tangent = tangent * -1)
+                if (tangent length > 0.00001,
+                    tangent := tangent norm
+                ,
+                    tangent := d clone
+                )
+                d := d + (tangent-d)*slope
+                d := d norm
+            )
+            d = d * me TRAVEL_SPEED
+            fv target_vector := vector( d x, (me TRAVEL_HEIGHT - me state height) * 0.1, d y )
+            pass
+        )
     )
     
     adHocCommand := method(

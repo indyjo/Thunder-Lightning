@@ -64,12 +64,61 @@ Drone do(
         )
     )
     
+    approachHigh := coro(me, target,
+        target_dist   := 5000
+        target_height := 1500
+        
+        to_target := target location2 - me location2
+        d := to_target norm
+        target_point_2d := target location2 - target_dist * d
+        target_point_3d := vector(  target_point_2d at(0),
+                                    target location at(1) + target_height,
+                                    target_point_2d at(1))
+
+        self fs := manage( me followSegment clone start(me, me location, target_point_3d, 450/3.6) )
+        
+        loop(
+            to_target := target location2 - me location2
+            dist := to_target length
+            if (dist <= target_dist, break)
+            sleep(5)
+        )
+    )
+    
+    travelToTarget := coro(me, target,
+        target_dist := 7000
+        saved_location := target location2
+        
+        self tr := manage( me travelTo clone start(me, target location2) )
+        loop(
+            sleep(15 + 10*Random value)
+            
+            to_target := target location2 - me location2
+            dist := to_target length
+            if (dist <= target_dist, break)
+            
+            if ((target location2 - saved_location) length > 1000,
+                tr interrupt
+                tr = manage( me travelTo clone start(me, target location2) )
+                saved_location = target location2
+            )
+        )
+    )
+    
     chooseAttackTask := method(target,
         dist := (target location - self location) len
-        if (dist > 1000,
-            attackWithMissileSalvo clone
-        ,
-            gainDistance clone
+        if (dist > 7000) then (
+            if (Game viewSubject == self, "Travel to target" say)
+            return travelToTarget clone
+        ) elseif (dist > 5000 and target isGroundTarget) then(
+            if (Game viewSubject == self, "Approach high" say)
+            return approachHigh clone
+        ) elseif (dist > 1000) then(
+            if (Game viewSubject == self, "Missile salvo" say)
+            return attackWithMissileSalvo clone
+        ) else (
+            if (Game viewSubject == self, "Gain distance" say)
+            return gainDistance clone
         )
     )
     
