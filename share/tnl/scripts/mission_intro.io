@@ -12,6 +12,16 @@ Intro := coro(mission,
     
     ex := try (
         mission lockCleanup
+        
+        if ((mission ?me) isNil or mission me isAlive not,
+            mission addMe
+            # Start a survival watchdog to watch me and interrupt intro when dead
+            mission survivalWatchdog := mission SurvivalWatchdog clone
+            mission survivalWatchdog start(mission me, mission intro)
+        )
+
+        Game setView(mission carrier, 2)
+        
         "Welcome to Thunder&Lightning!" say(red)
         sleep(8)
         Game setView(mission carrier, 0)
@@ -43,7 +53,7 @@ Intro := coro(mission,
         "Currently, your throttle is set to #{throttle}%." interpolate say
         if (throttle < 95,
             sleep(2)
-            "You must set full throttle to take off the carrier." say
+            "You must set full throttle to take off from the carrier." say
         )
         sleep(8)
         
@@ -69,6 +79,14 @@ Intro := coro(mission,
             if (mission me controlMode == Actor AUTOMATIC,
                 "Press (A) again to switch back to manual flight." say
                 while (mission me controlMode != Actor MANUAL, pass)
+                sleep(1)
+                "Ok, plane's in your hands!" say
+                sleep(2)
+                throttle := (mission me controls float("throttle") * 100) floor
+                if (throttle < 40,
+                    "Watch out: your throttle is set to #{throttle}%. Press 0 for full throttle." interpolate say
+                    sleep(5)
+                )
             )
             
             if (mission me controls bool("landing_gear"),
@@ -76,20 +94,13 @@ Intro := coro(mission,
                 while (mission me controls bool("landing_gear"), pass)
                 sleep(1.0)
                 "Landing gear retracted. Good." say
+                sleep(5)
             )
 
             "Now let's go. We should gain some height!" say
             sleep(2)
             "1000 meters should be enough. " say
-            sleep(5)
-            "Oh, the altitude is indicated on the right side of the HUD." say
             loop(
-                throttle := (mission me controls float("throttle") * 100) floor
-                if (throttle < 40,
-                    "Warning: throttle is set to #{throttle}%. Press 0 for full throttle." interpolate say
-                    sleep(1)
-                )
-                
                 8 repeat(
                     sleep(1)
                     if (mission me getLocation at(1,0) >= 1000,
@@ -108,7 +119,7 @@ Intro := coro(mission,
                     "Are you afraid of heights, kid?"
                 ) say
             )
-            sleep(2)
+            sleep(1)
             "Ok, now we're high enough." say
             sleep(8)
             
@@ -119,7 +130,7 @@ Intro := coro(mission,
                 first_run := false
             ,
                 skip_to_landing := false
-                "Would you like to do a training landing now?" say
+                "Would you like to do another training landing?" say
                 sleep(2)
                 "Then press the (I) key now!" say
                 
@@ -140,16 +151,22 @@ Intro := coro(mission,
             "Get us into a nice landing position please." say
             sleep(8)
             check_dist := true
+            check_landing_gear := mission me controls bool("landing_gear") not
+            check_landing_hook := mission me controls bool("landing_hook") not
             loop(
                 todo := list
 
                 to_carrier := mission carrier runwayBegin - mission me location
                 dir_to_carrier := to_carrier norm
                 runway_vector := (mission carrier runwayEnd - mission carrier runwayBegin) norm
-                if (check_dist and to_carrier dot(runway_vector) < 3000,
-                    todo append("Start the approach at least 3000m behind the carrier.")
-                ,
-                    check_dist := false
+                if (check_dist,
+                    if (to_carrier dot(runway_vector) < 3000,
+                        todo append("Start the approach at least 3000m behind the carrier.")
+                    ,
+                        "You are now far enough behind the carrier. Good." say
+                        sleep(5)
+                        check_dist := false
+                    )
                 )
 
                 if (mission me velocity len < 160/3.6,
@@ -158,11 +175,23 @@ Intro := coro(mission,
                 if (mission me velocity len > 250/3.6,
                     todo append("Reduce your speed to below 250km/h.")
                 )
-                if (mission me controls bool("landing_gear") not,
-                    todo append("Lower the landing gear (L).")
+                if (check_landing_gear,
+                    if (mission me controls bool("landing_gear") not,
+                        todo append("Lower the landing gear (L).")
+                    ,
+                        "Landing gear successfully lowered." say
+                        sleep(5)
+                        check_landing_gear := false
+                    )
                 )
-                if (mission me controls bool("landing_hook") not,
-                    todo append("Lower the tail hook (K).")
+                if (check_landing_hook,
+                    if (mission me controls bool("landing_hook") not,
+                        todo append("Lower the tail hook (K).")
+                    ,
+                        "Tail hook successfully lowered." say
+                        sleep(5)
+                        check_landing_hook := false
+                    )
                 )
                 if (mission me location at(1) > 500,
                     todo append("Descend to below 500m.")
@@ -192,6 +221,7 @@ Intro := coro(mission,
             )
             mission survivalWatchdog interrupt
             mission carrier eatDrone(mission me)
+            mission me = nil
             "Bravo, well done!" say
             sleep(8)
             "Remember that you can abort the introduction by pressing (I)." say
@@ -214,16 +244,30 @@ Intro := coro(mission,
     )
     ex catch(InterruptedException,
         interruptReq = nil
-        if(mission me isAlive,
+        if((mission ?me) isNil not and mission me isAlive,
             "Introduction was aborted." say(red)
             mission evaluate := Objective REACHED
         ,
-            "I think he's crashed, Jim!" say(yellow)
-            sleep(8)
-            "Yeah, seems this novice pilot wasn't so smart after all!" say
-            sleep(5)
-            "Get me a new one, will you?" say
-            mission evaluate := Objective MISSED
+            ex2 := try(
+                "I think he's crashed, Jim!" say(yellow)
+                sleep(8)
+                "Yeah, seems this novice pilot wasn't so smart after all!" say
+                sleep(8)
+                "Maybe you're doing something wrong." say(yellow)
+                sleep(2)
+                "That was the third one in a week!" say(yellow)
+                sleep(8)
+                "Oh, shut up and get me a new pilot, will you?" say
+                sleep(8)
+                loop(
+                    "Introduction has ended. Press (I) to restart." say(red)
+                    sleep(10)
+                )
+            )
+            ex2 catch(InterruptedException,
+                mission intro = mission Intro clone start(mission)
+                break
+            ) catch( pass )
         )
         mission unlockCleanup
     ) catch(Exception,
@@ -254,8 +298,10 @@ Intro combatTraining := method(mission,
     if ((self ?instruments_explained) not,
         "Ok, let's do some flight and combat training!" say
         sleep(8)
+        "Your altitude is indicated on the right side of the HUD." say
+        sleep(8)
         "The small numbers arranged like ladder steps each mark 50m of altitude." say
-        sleep(2)
+        sleep(5)
         "The big number to the left of them displays your exact altitude." say
         sleep(8)
         "Currently, you are #{mission me getLocation at(1,0) floor}m above sea level." interpolate say
@@ -319,6 +365,8 @@ Intro combatTraining := method(mission,
     
     "That was it, you got him! Congratulations!" say
     sleep(8)
+    "Now let's get back to the carrier." say
+    sleep(8)
 )
 
 SurvivalWatchdog := coro(actor, target_coro,
@@ -341,12 +389,8 @@ addEnemy := method(
     enemy setMovementVector(me getMovementVector)
     enemy setOrientation( me getOrientation )
     enemy setFaction(them)
+    enemy command_queue appendCommand( Command Attack clone with(me) )
     enemy setControlMode(Actor AUTOMATIC)
-    
-    killObjective := KillObjective clone
-    killObjective target := enemy
-    
-    objectives append(killObjective)
     
     enemy
 )
@@ -389,17 +433,10 @@ startup := method(
     )
 
     addCarrier
-    addMe
-    
-    Game setView(carrier, 2)
     
     self intro := Intro clone start(self)
 
     objectives = list(self)
-
-    # Start a survival watchdog to watch me and interrupt intro when dead
-    self survivalWatchdog := SurvivalWatchdog clone
-    survivalWatchdog start(me, intro)
 
     "Intro mission started" println
 )
