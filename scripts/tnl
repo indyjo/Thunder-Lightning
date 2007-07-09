@@ -16,6 +16,9 @@ function on_error() {
     echo "  * If you would like to debug TnL, start again with"
     echo "    tnl --debug or set TNL_DEBUG=1"
   fi
+  echo
+  echo -n "Press Enter to continue."
+  read
   exit -1
 }
 
