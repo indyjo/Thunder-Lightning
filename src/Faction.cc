@@ -59,3 +59,5 @@ Faction::Attitude Faction::getAttitudeTowards(WeakPtr<Faction> f) {
         return i->second;
 }
 
+void Faction::setColor(const Vector & c) { color = c; }
+const Vector& Faction::getColor() { return color; }

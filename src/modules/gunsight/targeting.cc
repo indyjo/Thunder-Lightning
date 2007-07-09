@@ -58,16 +58,7 @@ struct TargetingModule : public GunsightModule {
 			size *= zfactor / rel[2];
 			size = std::max(5.0f, size);
 			
-            if (self->getFaction()->getAttitudeTowards(targets[i]->getFaction())==Faction::HOSTILE)
-            {
-                r->setColor(Vector(1,0,0));
-            } else if (self->getFaction()->getAttitudeTowards(targets[i]->getFaction())==Faction::NEUTRAL)
-            {
-                r->setColor(Vector(0,0,1));
-            } else
-            {
-                r->setColor(Vector(0,1,0));
-            }
+		    r->setColor(targets[i]->getFaction()->getColor());
 			
 			r->begin(JR_DRAWMODE_CONNECTED_LINES);
 			*r << p+Vector(-size,-size,0)
@@ -83,13 +74,7 @@ struct TargetingModule : public GunsightModule {
 			return;
 		}
 		Ptr<IActor> target = targeter->getCurrentTarget();
-        if (self->getFaction()->getAttitudeTowards(target->getFaction())==Faction::HOSTILE) {
-            r->setColor(Vector(1,0,0));
-        } else if (self->getFaction()->getAttitudeTowards(target->getFaction())==Faction::NEUTRAL) {
-            r->setColor(Vector(0,0,1));
-        } else {
-            r->setColor(Vector(0,1,0));
-        }
+		r->setColor(target->getFaction()->getColor());
 			
 		Vector rel = M*target->getLocation();
 		

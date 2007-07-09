@@ -17,7 +17,7 @@ public:
     enum Attitude { FRIENDLY, NEUTRAL, HOSTILE };
 
     inline Faction(const char * name="<unnamed faction>")
-    : default_attitude(NEUTRAL), name(name) { }
+    : default_attitude(NEUTRAL), name(name), color(1,1,1) { }
     ~Faction();
 
     inline void setName(const std::string & name) { this->name = name; }
@@ -28,11 +28,15 @@ public:
 
     void setAttitudeTowards(WeakPtr<Faction>, Attitude);
     Attitude getAttitudeTowards(WeakPtr<Faction>);
+    
+    void setColor(const Vector &);
+    const Vector& getColor();
 
 private:
     std::string name;
     Attitude default_attitude;
     std::map<WeakPtr<Faction>, Attitude> attitudes;
+    Vector color;
 };
 
 

@@ -32,6 +32,8 @@ namespace {
 				{"setDefaultAttitude", setDefaultAttitude},
 				{"getAttitudeTowards", getAttitudeTowards},
 				{"setAttitudeTowards", setAttitudeTowards},
+				{"color", getColor},
+				{"setColor", setColor},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
@@ -86,6 +88,8 @@ namespace {
 		SET_STRING(setName)
 		GET_NUMBER(getDefaultAttitude)
 		SET_ENUM(setDefaultAttitude, Faction::Attitude)
+		GET_VECTOR(getColor)
+		SET_VECTOR(setColor)
 	};
 }
 
