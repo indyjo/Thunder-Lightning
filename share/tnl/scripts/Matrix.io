@@ -156,14 +156,38 @@ Matrix := Object clone do(
     return P + angle cos * (I-P) + angle sin * S
   )
   
+  x := method( at(0) )
+  y := method( at(1) )
+  z := method( at(2) )
+  z := method( at(3) )
+  xy := method( vector( at(0), at(1) ) )
+  xz := method( vector( at(0), at(2) ) )
+  xw := method( vector( at(0), at(3) ) )
+  yz := method( vector( at(1), at(2) ) )
+  yw := method( vector( at(1), at(3) ) )
+  zw := method( vector( at(2), at(3) ) )
+  xyz := method( vector( at(0), at(1), at(2) ) )
+  xyw := method( vector( at(0), at(1), at(3) ) )
+  xzw := method( vector( at(0), at(2), at(3) ) )
+  yzw := method( vector( at(1), at(2), at(3) ) )
+  
+  col := method(c,
+    m := Matrix clone
+    m rows := rows
+    m columns := 1
+    m entries := entries slice(c*rows, c*(rows+1))
+    m
+  )
+    
+  
   asString := method(
     if (columns == 1,
-      res := "vector( "
+      res := "vector("
       entries foreach(i,v,
-        if (i != 0, res = res .. ", ")
-        res = res .. ((v * 16) round / 16)
+        if (i != 0 , res = res .. ", ")
+        res = res .. v asString(2)
       )
-      res
+      res .. ")"
     ,
       "matrix(...)"
     )
