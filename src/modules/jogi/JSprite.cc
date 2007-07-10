@@ -92,7 +92,7 @@ jError JSprite::loadSPR(istream & in)
 }
 
 namespace {
-    void read_from_stream(png_structp png_ptr, png_bytep data, unsigned int len)
+    void read_from_stream(png_structp png_ptr, png_bytep data, png_size_t len)
     {
         istream & in = *((istream *) png_get_io_ptr(png_ptr));
         in.read((char*)data, len);
