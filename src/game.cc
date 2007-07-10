@@ -47,7 +47,7 @@
 
 #define RAND ((float) rand() / (float) RAND_MAX * 2.0 - 1.0)
 
-#define ENABLE_PROFILE
+//#define ENABLE_PROFILE
 #include <profile.h>
 
 using namespace std;
