@@ -98,6 +98,7 @@ require @opengl.org/opengl 1.1
 
 removeOwningPackage $PREFIX/bin/tnl
 removeOwningPackage $PREFIX/share/tnl/scripts/init.io
+removeOwningPackage $PREFIX/lib/libiovmall.so
 
 [Install]
 # Put your installation script here
