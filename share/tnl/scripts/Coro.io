@@ -1,3 +1,35 @@
+CoroProfiles := Object clone do(
+    profiles := list
+    
+    with := method(l,
+        profiles = l clone
+        
+        self
+    )
+    
+    asString := method(
+        res := "CoroProfiles:\n"
+        //             0         1         2         3         4         5         6
+        //             0123456789012345678901234567890123456789012345678901234567890
+        res := res .. "Name                            Sum     Passes T/pass    Instances\n"
+        profiles foreach(p,
+            d1 := p coro_type alignLeft(31)
+            d2 := p time_sum asString(7,2)
+            d3 := p passes asString(6)
+            d4 := (1000 * p avg_time_per_pass) asString(9,2)
+            d5 := p n_instances asString(5)
+            res := res .. "#{d1} #{d2} #{d3} #{d4} #{d5}\n" interpolate
+        )
+        res
+    )
+    
+    bySum := method( CoroProfiles clone with( profiles sortByKey(time_sum) ) )
+    byName := method( CoroProfiles clone with( profiles sortByKey(coro_type) ) )
+    byPasses := method( CoroProfiles clone with( profiles sortByKey(passes) ) )
+    byInstances := method( CoroProfiles clone with( profiles sortByKey(n_instances) ) )
+    byTimePerPass := method( CoroProfiles clone with( profiles sortByKey(avg_time_per_pass) ) )
+)
+
 Coro := Object clone do(
     InterruptedException := Exception clone
     
@@ -71,6 +103,71 @@ Coro := Object clone do(
         if (call sender getSlot(argName) isNil,
             call sender self setSlot(argName, call sender getSlot(defaultArgName) ifNilEval(defaultValue))
         )
+    )
+    
+    enableProfiling := method(
+        if (Coro hasSlot("profiles"), Exception raise("profiling already enabled"))
+        
+        
+        Coro profiles := Map clone
+        Coro oldPass := Coro getSlot("pass")
+        
+        Coro pass := method(
+            key := self uniqueHexId
+            profile := profiles at(key)
+            if (profile isNil,
+                profile := Object clone do(
+                    time_sum := 0
+                    time_of_last_pass := nil
+                    passes := 0
+                )
+                profile coro_instance := self
+                
+                profiles atPut(key, profile)
+            ,
+                profile time_sum := profile time_sum + (Date now asNumber - profile time_of_last_pass)
+                profile passes := profile passes + 1
+            )
+            
+            dt := oldPass
+            profile time_of_last_pass := Date now asNumber
+            dt
+        )
+        
+        nil
+    )
+    
+    getProfiles := method(
+        coros := list()
+        profiles foreach(p,
+            c := Object clone
+            c coro_type := p coro_instance type
+            c time_sum := p time_sum
+            c passes := p passes
+            coros append(c)
+        )
+        
+        coros = coros sortByKey(coro_type)
+        
+        coros_by_type := list()
+        current_type := nil
+        coros foreach(c,
+            if (c coro_type != current_type,
+                coros_by_type append(Object clone)
+                coros_by_type last coro_type := c coro_type
+                coros_by_type last n_instances := 0
+                coros_by_type last time_sum := 0
+                coros_by_type last passes := 0
+                current_type := c coro_type
+            )
+            coros_by_type last n_instances := coros_by_type last n_instances + 1
+            coros_by_type last time_sum := coros_by_type last time_sum + c time_sum
+            coros_by_type last passes := coros_by_type last passes + c passes
+            coros_by_type last avg_time_per_pass := coros_by_type last time_sum / coros_by_type last passes
+        )
+        
+        coros_by_type = coros_by_type sortByKey(time_sum)
+        CoroProfiles clone with(coros_by_type)
     )
 )
 
