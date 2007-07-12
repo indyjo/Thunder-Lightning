@@ -91,7 +91,7 @@ Carrier do(
     runwayEnd := method( getOrientation * vector(-19.456, 13.243, 28.497) + getLocation)
     
     ai := coro(me,
-        self turret_ai := me turret attackCloseTargets clone start(me, me turret)
+        self turret_ai := me turret AttackCloseTargets clone start(me, me turret)
         manage(turret_ai)
         loop(pass)
     )

@@ -24,7 +24,7 @@ TurretAI := Object clone do(
     m * v
   )
   
-  ctlElement := coro(me, arg_target_angle, arg_control_name, arg_state_name, arg_factor,
+  CtlElement := coro(me, arg_target_angle, arg_control_name, arg_state_name, arg_factor,
     argDefaults(target_angle, arg_target_angle, 0)
     argDefaults(control_name, arg_control_name, "turret_steer", -1)
     argDefaults(state_name, arg_state_name, "turret_angle", -1)
@@ -48,13 +48,13 @@ TurretAI := Object clone do(
     )
   )
 
-  aimRelative := coro(me, turret, arg_target_dir,
+  AimRelative := coro(me, turret, arg_target_dir,
     if((self ?target_dir) isNil, self target_dir := arg_target_dir)
     
     self error := nil
     
-    self cc := turret ctlElement clone start(me, nil, turret cannon_control_name, turret cannon_state_name)
-    self ct := turret ctlElement clone start(me, nil, turret turret_control_name, turret turret_state_name)
+    self cc := turret CtlElement clone start(me, nil, turret cannon_control_name, turret cannon_state_name)
+    self ct := turret CtlElement clone start(me, nil, turret turret_control_name, turret turret_state_name)
     
     manage(cc)
     manage(ct)
@@ -69,12 +69,12 @@ TurretAI := Object clone do(
     )
   )
   
-  aimAbsolute := coro(me, turret, arg_target_dir,
+  AimAbsolute := coro(me, turret, arg_target_dir,
     if((self ?target_dir) isNil, self target_dir := arg_target_dir)
     
     self error := nil
     
-    self ar := turret aimRelative clone start(me, turret)
+    self ar := turret AimRelative clone start(me, turret)
     manage(ar)
     
     loop(
@@ -84,8 +84,8 @@ TurretAI := Object clone do(
     )
   )
   
-  aimAtAndFire := coro(me, turret, target,
-    self aa := turret aimAbsolute clone start(me, turret, vector(1,0,0))
+  AimAtAndFire := coro(me, turret, target,
+    self aa := turret AimAbsolute clone start(me, turret, vector(1,0,0))
     manage(aa)
     
     weapon := turret weapon
@@ -107,7 +107,7 @@ TurretAI := Object clone do(
         self eta := delta_p len / (bullet_speed - delta_v dot(delta_p_norm))
         aa target_dir := delta_v_xy + delta_p_norm*bullet_speed + vector(0,0.5*9.81*eta*eta,0)
   
-        # Let aimAbsolute do its work and compute its error
+        # Let AimAbsolute do its work and compute its error
         pass
         
         if(aa error isNil not and aa error * delta_p len < 8,
@@ -124,12 +124,12 @@ TurretAI := Object clone do(
     )
   )
   
-  attackCloseTargets := coro(me, turret, arg_max_distance,
+  AttackCloseTargets := coro(me, turret, arg_max_distance,
     argDefaults(max_distance, arg_max_distance, 3000)
     self target := nil
     had_target := false
     
-    aaf := turret aimAtAndFire clone
+    aaf := turret AimAtAndFire clone
     manage(aaf)
 
     loop(

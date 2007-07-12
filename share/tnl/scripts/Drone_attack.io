@@ -16,14 +16,14 @@ Drone do(
         target isAirborneTarget and hasAntiAirAmmo or target isGroundTarget and hasAntiGroundAmmo
     )
     
-    attackWithMissileSalvo := coro(me, target,
+    AttackWithMissileSalvo := coro(me, target,
         dirToTarget := block(
             (target location - me location) norm
         )
         
-        self fv := me flyVector clone start(me)
+        self fv := me FlyVector clone start(me)
         fv target_vector := dirToTarget call * (300 / 3.6)
-        fv tag := "attackWithMissileSalvo"
+        fv tag := "AttackWithMissileSalvo"
         manage(fv)
         
         while( me state dir dot( dirToTarget call ) < 0.9,
@@ -38,14 +38,14 @@ Drone do(
         sleep(2)
     )
     
-    gainDistance := coro(me, target,
+    GainDistance := coro(me, target,
         toTarget := block(
             target location - me location
         )
         
         
-        self fv := me flyVector clone start(me)
-        fv tag := "gainDistance"
+        self fv := me FlyVector clone start(me)
+        fv tag := "GainDistance"
         manage(fv)
         
         fv target_vector := (vector(0,1,0) % toTarget call) norm
@@ -64,7 +64,7 @@ Drone do(
         )
     )
     
-    approachHigh := coro(me, target,
+    ApproachHigh := coro(me, target,
         target_dist   := 5000
         target_height := 1500
         
@@ -75,7 +75,7 @@ Drone do(
                                     target location at(1) + target_height,
                                     target_point_2d at(1))
 
-        self fs := manage( me followSegment clone start(me, me location, target_point_3d, 450/3.6) )
+        self fs := manage( me FollowSegment clone start(me, me location, target_point_3d, 450/3.6) )
         
         loop(
             to_target := target location2 - me location2
@@ -85,11 +85,11 @@ Drone do(
         )
     )
     
-    travelToTarget := coro(me, target,
+    TravelToTarget := coro(me, target,
         target_dist := 7000
         saved_location := target location2
         
-        self tr := manage( me travelTo clone start(me, target location2) )
+        self tr := manage( me TravelTo clone start(me, target location2) )
         loop(
             sleep(15 + 10*Random value)
             
@@ -99,30 +99,30 @@ Drone do(
             
             if ((target location2 - saved_location) length > 1000,
                 tr interrupt
-                tr = manage( me travelTo clone start(me, target location2) )
+                tr = manage( me TravelTo clone start(me, target location2) )
                 saved_location = target location2
             )
         )
     )
     
-    chooseAttackTask := method(target,
+    ChooseAttackTask := method(target,
         dist := (target location - self location) len
         if (dist > 7000) then (
             if (Game viewSubject == self, "Travel to target" say)
-            return travelToTarget clone
+            return TravelToTarget clone
         ) elseif (dist > 5000 and target isGroundTarget) then(
             if (Game viewSubject == self, "Approach high" say)
-            return approachHigh clone
+            return ApproachHigh clone
         ) elseif (dist > 1000) then(
             if (Game viewSubject == self, "Missile salvo" say)
-            return attackWithMissileSalvo clone
+            return AttackWithMissileSalvo clone
         ) else (
             if (Game viewSubject == self, "Gain distance" say)
-            return gainDistance clone
+            return GainDistance clone
         )
     )
     
-    attack := coro(me, target,
+    Attack := coro(me, target,
         self state := "ATTACKING"
         me targeter setCurrentTarget(target)
         self attackTask := nil
@@ -146,7 +146,7 @@ Drone do(
             )
             
             if (attackTask isNil or attackTask running not,
-                attackTask = me chooseAttackTask(target) start(me, target)
+                attackTask = me ChooseAttackTask(target) start(me, target)
             )
         
             ex := try( sleep(0.5) )

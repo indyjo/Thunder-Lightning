@@ -262,7 +262,7 @@ Tank do (
   )
   
   ai := coro(me,
-    self act := me turret attackCloseTargets clone start(me, me turret)
+    self act := me turret AttackCloseTargets clone start(me, me turret)
     manage(act)
     
     loop(

@@ -15,7 +15,7 @@ Drone do(
         velocity length <= 36
     )
     
-    flightState := coro(me,
+    FlightState := coro(me,
         self gravity := vector(0,-9.81,0)
 
         self p := me getLocation
@@ -61,7 +61,7 @@ Drone do(
         )
     )
     
-    accelerateXWithRudder := coro(me, arg_target_accel,
+    AccelerateXWithRudder := coro(me, arg_target_accel,
         if((self ?target_accel) isNil, self target_accel := arg_target_accel)
 
         self error := target_accel - me state accel at(0)
@@ -84,7 +84,7 @@ Drone do(
         )
     )
     
-    accelerateYWithElevator := coro(me, arg_target_accel,
+    AccelerateYWithElevator := coro(me, arg_target_accel,
         if((self ?target_accel) isNil, self target_accel := arg_target_accel)
         
         self error := target_accel - me state accel at(1)
@@ -113,7 +113,7 @@ Drone do(
         )
     )
     
-    accelerateZWithThrottle := coro(me, arg_target_accel,
+    AccelerateZWithThrottle := coro(me, arg_target_accel,
         if((self ?target_accel) isNil, self target_accel := arg_target_accel)
 
         self error := target_accel - me state accel_lcs at(2)
@@ -138,15 +138,15 @@ Drone do(
         )
     )
     
-    accelerateLCS := coro(me, arg_target_accel,
+    AccelerateLCS := coro(me, arg_target_accel,
         if((self ?target_accel) isNil, self target_accel := arg_target_accel)
         
         // forward to elevator, rudder and throttle controllers
-        self x := me accelerateXWithRudder clone start(me)
+        self x := me AccelerateXWithRudder clone start(me)
         manage(x)
-        self y := me accelerateYWithElevator clone start(me)
+        self y := me AccelerateYWithElevator clone start(me)
         manage(y)
-        self z := me accelerateZWithThrottle clone start(me)
+        self z := me AccelerateZWithThrottle clone start(me)
         manage(z)
         
         loop(
@@ -157,11 +157,11 @@ Drone do(
         )
     )
 
-    accelerateWCS := coro(me, arg_target_accel,
+    AccelerateWCS := coro(me, arg_target_accel,
         if((self ?target_accel) isNil, self target_accel := arg_target_accel)
         
         // forward to local coordinate space
-        self lcs := me accelerateLCS clone start(me)
+        self lcs := me AccelerateLCS clone start(me)
         manage(lcs)
         
         loop(
@@ -170,7 +170,7 @@ Drone do(
         )
     )
 
-    supportAccelWithAileronWCS := coro(me, arg_target_accel,
+    SupportAccelWithAileronWCS := coro(me, arg_target_accel,
         target_axis := target_accel - me state gravity
         error := target_axis dot(me state right)
         new_error := 0
@@ -186,7 +186,7 @@ Drone do(
         )
     )
     
-    balancePerceivedAccelWithAileron := coro(me,
+    BalancePerceivedAccelWithAileron := coro(me,
         error := me state perceived_accel_lcs at(0)
         loop(
             dt := pass
@@ -197,17 +197,17 @@ Drone do(
         )
     )
     
-    flyVector := coro(me, arg_target_vector,
+    FlyVector := coro(me, arg_target_vector,
         if((self ?target_vector) isNil, self target_vector := arg_target_vector)
         
-        self accel := Drone accelerateWCS clone start(me)
+        self accel := Drone AccelerateWCS clone start(me)
         manage(accel)
         
-        self aileron := Drone supportAccelWithAileronWCS clone start(me)
+        self aileron := Drone SupportAccelWithAileronWCS clone start(me)
         manage(aileron)
         
         target_vector ifNil(
-            "flyVector with illegal target vector." println
+            "FlyVector with illegal target vector." println
             self println
         )
         error := target_vector - me state v
@@ -235,14 +235,14 @@ Drone do(
         )
     )
     
-    maintainPosition := coro(me, arg_mps_per_m, arg_target_position, arg_target_vector,
+    MaintainPosition := coro(me, arg_mps_per_m, arg_target_position, arg_target_vector,
         if((self ?mps_per_m) isNil, self mps_per_m := arg_mps_per_m ifNilEval(0.2))
         if((self ?target_position) isNil, self target_position := arg_target_position)
         if((self ?target_vector) isNil, self target_vector := arg_target_vector)
         
         max_dv := 300 / 3.6
         
-        fly := Drone flyVector clone start(me, target_vector)
+        fly := Drone FlyVector clone start(me, target_vector)
         manage(fly)
         
         loop(
@@ -254,13 +254,13 @@ Drone do(
         )
     )
     
-    followSegment := coro(me, arg_a, arg_b, arg_v,
+    FollowSegment := coro(me, arg_a, arg_b, arg_v,
         if((self ?a) isNil, self a := arg_a)
         if((self ?b) isNil, self b := arg_b)
         if((self ?v) isNil, self v := arg_v)
         
         
-        mp := Drone maintainPosition clone start(me)
+        mp := Drone MaintainPosition clone start(me)
         manage(mp)
         loop(
             ab_norm := (b-a) norm
@@ -273,8 +273,8 @@ Drone do(
         )
     )
     
-    followPath := coro(me, navpath, v,
-        self fs := Drone followSegment clone start(me)
+    FollowPath := coro(me, navpath, v,
+        self fs := Drone FollowSegment clone start(me)
         manage(fs)
         
         fs v := v
@@ -292,7 +292,7 @@ Drone do(
     descent_speed := 160 / 3.6
     final_length := 1200
     
-    returnToFinal := coro(me, rwy, dangle, final,
+    ReturnToFinal := coro(me, rwy, dangle, final,
         height := final * dangle sin
         a := rwy runwayBegin + Drone safety_height
         b := rwy runwayEnd + Drone safety_height
@@ -305,7 +305,7 @@ Drone do(
         p3 := a - d*final + up*height + right*final*0.3
         p4 := a - d*final + up*height + right*final*0.1
         
-        self fp := Drone followPath clone start(me, NavPath clone with(list(p0,p1,p2,p3,p4)), 350/3.6)
+        self fp := Drone FollowPath clone start(me, NavPath clone with(list(p0,p1,p2,p3,p4)), 350/3.6)
         manage(fp)
         
         while( fp running,
@@ -313,7 +313,7 @@ Drone do(
         )
     )
     
-    finalApproach := coro(me, rwy, dangle,
+    FinalApproach := coro(me, rwy, dangle,
         //"Beginning final approach" say
         a := rwy runwayBegin + Drone safety_height
         b := rwy runwayEnd + Drone safety_height
@@ -322,7 +322,7 @@ Drone do(
         
         dspeed := Drone descent_speed
         
-        fs :=  Drone followSegment clone start(me, p0,a, dspeed)
+        fs :=  Drone FollowSegment clone start(me, p0,a, dspeed)
         manage(fs)
         #fs debug:= true
         
@@ -365,7 +365,7 @@ Drone do(
     )
         
         
-    waitForLandingClearance := coro(me, rwy,
+    WaitForLandingClearance := coro(me, rwy,
         if (rwy isRunwayLocked not,
             rwy lockRunway(me)
             return
@@ -379,7 +379,7 @@ Drone do(
         up := vector(0,1,0)
         left := (up % d) * -1
         
-        self fp := Drone followPath clone
+        self fp := Drone FollowPath clone
         manage(fp)
         loop (
             if ( fp running not,
@@ -403,7 +403,7 @@ Drone do(
     )
         
     
-    performLanding := coro(me, rwy, get_eaten,
+    PerformLanding := coro(me, rwy, get_eaten,
         # descent angle used to calculate begin of final
         dangle := Drone descent_angle
         final := Drone final_length
@@ -415,15 +415,15 @@ Drone do(
         right := up % d
         
         
-        self hold := Drone waitForLandingClearance clone start(me, rwy)
+        self hold := Drone WaitForLandingClearance clone start(me, rwy)
         manage(hold)
         while (hold running, pass)
         
         final_begin := a - d*final + up*height
         
         #"Proceeding to final" say
-        self to_final := Drone followPath clone start(me,
-            NavPath clone with(list(me state p, final_begin - 600 * right, final_begin)),
+        self to_final := Drone FollowPath clone start(me,
+            NavPath clone with(list(me state p, final_begin - right scaledBy(600), final_begin)),
             250/3.6)
         manage(to_final)
         
@@ -433,7 +433,7 @@ Drone do(
         to_final interrupt
         
         loop(
-            self fa := Drone finalApproach clone start(me, rwy, dangle)
+            self fa := Drone FinalApproach clone start(me, rwy, dangle)
             manage(fa)
             me controls setBool("landing_gear", true)
             me controls setBool("landing_hook", true)
@@ -454,7 +454,7 @@ Drone do(
             # else let's play a little safer this time
             final = final + 200
             #"Returning to final" say
-            self ret := Drone returnToFinal clone start(me, rwy, dangle, final)
+            self ret := Drone ReturnToFinal clone start(me, rwy, dangle, final)
             manage(ret)
             me controls setBool("landing_gear", false)
             while (ret running,
@@ -463,9 +463,9 @@ Drone do(
         )
     )
     
-    land := coro(me, rwy, get_eaten,
+    Land := coro(me, rwy, get_eaten,
         ex := try(
-            manage( me performLanding clone start(me, rwy, get_eaten) )
+            manage( me PerformLanding clone start(me, rwy, get_eaten) )
             loop(pass)
         )
         
@@ -474,7 +474,7 @@ Drone do(
     )
             
                 
-    takeoff := coro(me, runway,
+    TakeOff := coro(me, runway,
         me controls setBool("landing_hook", false)
         me controls setBool("landing_gear", true)
         
@@ -503,11 +503,11 @@ Drone do(
         me controls setBool("landing_gear", false)
     )
     
-    flyInFormation := coro(me, arg_partner, arg_pos,
+    FlyInFormation := coro(me, arg_partner, arg_pos,
         if((self ?partner) isNil, self partner := arg_partner)
         if((self ?pos) isNil, self pos := arg_pos)
         
-        self mp := Drone maintainPosition clone start(me, 0.5)
+        self mp := Drone MaintainPosition clone start(me, 0.5)
         manage(mp)
         
         while(partner isAlive,
@@ -519,7 +519,7 @@ Drone do(
         partner = nil
     )
     
-    travelTo := coro(me, target,
+    TravelTo := coro(me, target,
         steps_per_frame := 5
 
         segment_length := 300
@@ -559,12 +559,12 @@ Drone do(
         
         navpath := NavPath clone with(path)
         #writeln("Navpath: ", navpath size, " points: ", navpath path)
-        manage ( me followPath clone start(me, navpath, me TRAVEL_SPEED) )
+        manage ( me FollowPath clone start(me, navpath, me TRAVEL_SPEED) )
         loop(pass)
     )
     
-    travelTo2 := coro(me, target,
-        self fv := manage( me flyVector clone start(me) )
+    TravelTo2 := coro(me, target,
+        self fv := manage( me FlyVector clone start(me) )
         
         slopemax := 35 * Number constants pi / 180
         
@@ -595,7 +595,7 @@ Drone do(
         )
     )
     
-    adHocCommand := method(
+    AdHocCommand := method(
         actorsInArea := Game queryActorsInSphere(location, 2000)
         enemy := nil
         distToEnemy := nil
@@ -620,21 +620,21 @@ Drone do(
         Command Goto clone with (p, 500)
     )
     
-    executeCommand := coro(me, command,
+    ExecuteCommand := coro(me, command,
         command action switch(
             Command ATTACK, do(
                 target := command argActor link
                 target ifNonNil(
-                    task := manage( me attack clone start(me, target) )
+                    task := manage( me Attack clone start(me, target) )
                     while(task running, pass)
                 )
             ),
             Command GOTO, do(
-                task := manage( me travelTo clone start(me, command argVec2) )
+                task := manage( me TravelTo clone start(me, command argVec2) )
                 while(task running, pass)
             ),
             Command PATH, do(
-                task := manage( me followPath clone start(
+                task := manage( me FollowPath clone start(
                     me,
                     command argPath,
                     command argFloat ifNilEval(me TRAVEL_SPEED)
@@ -646,7 +646,7 @@ Drone do(
                 get_eaten := command argBool
                 if (rwy and rwy isAlive,
                     #"Performing landing." say
-                    task := manage( me land clone start(me, rwy, get_eaten) )
+                    task := manage( me Land clone start(me, rwy, get_eaten) )
                     while(task running, pass)
                 ,
                     "The runway doesn't exist anymore." say
@@ -657,7 +657,7 @@ Drone do(
                 rwy := command argActor link
                 if (rwy and rwy isAlive,
                     #"Performing takeoff." say
-                    task := manage( me takeoff clone start(me, rwy) )
+                    task := manage( me TakeOff clone start(me, rwy) )
                     while(task running, pass)
                 ,
                     "The runway doesn't exist anymore." say
@@ -668,7 +668,7 @@ Drone do(
         )
     )
     
-    executeCommandQueue := coro(me,
+    ExecuteCommandQueue := coro(me,
         command := nil
         handler := nil
         
@@ -686,13 +686,13 @@ Drone do(
                 )
                 
                 c ifNonNil(
-                    handler = Drone executeCommand clone start(me, command)
+                    handler = Drone ExecuteCommand clone start(me, command)
                     manage(handler)
                 )
             )
             
             c ifNil(
-                newCommand := me adHocCommand
+                newCommand := me AdHocCommand
                 me command_queue setAdHocCommand(newCommand)
                 //("New ad hoc command: " .. newCommand ?action) say
             )
@@ -702,9 +702,9 @@ Drone do(
     )
     
     ai := coro(me,
-        #self fly := Drone followSegment clone start(me, vector(0,1500,0), vector(0,1500,1), v)
+        #self fly := Drone FollowSegment clone start(me, vector(0,1500,0), vector(0,1500,1), v)
         #manage(fly)
-        manage (me executeCommandQueue clone start(me))
+        manage (me ExecuteCommandQueue clone start(me))
 
         loop(
             pass
@@ -715,7 +715,7 @@ Drone do(
         # ai depends on flightState. Io will run coros in LIFO order, so it seems
         # to be ok this way.
         self _ai := ai clone start(self)
-        self state := flightState clone start(self)
+        self state := FlightState clone start(self)
         
         ("AI of Drone ".. self uniqueHexId .. " started") println
     )
