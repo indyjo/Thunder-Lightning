@@ -70,7 +70,7 @@ Drone do(
         
         to_target := target location2 - me location2
         d := to_target norm
-        target_point_2d := target location2 - target_dist * d
+        target_point_2d := target location2 - d scaledBy(target_dist)
         target_point_3d := vector(  target_point_2d at(0),
                                     target location at(1) + target_height,
                                     target_point_2d at(1))

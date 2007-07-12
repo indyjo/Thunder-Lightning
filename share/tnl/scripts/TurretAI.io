@@ -11,8 +11,8 @@ TurretAI := Object clone do(
   
   worldToTurret := method(me, v,
     orient := me getOrientation
-    wcs_turret_axis := orient * turret_axis
-    wcs_reference := orient * reference
+    wcs_turret_axis := orient matMult(turret_axis)
+    wcs_reference := orient matMult(reference)
     wcs_normal := wcs_turret_axis % wcs_reference
 
     # wcs_normal, wcs_turret_axis and wcs_reference define a coordinate system.
@@ -21,7 +21,7 @@ TurretAI := Object clone do(
                   wcs_turret_axis at(0),  wcs_turret_axis at(1),  wcs_turret_axis at(2)
                   wcs_reference at(0),    wcs_reference at(1),    wcs_reference at(2))
 
-    m * v
+    m matMult(v)
   )
   
   CtlElement := coro(me, arg_target_angle, arg_control_name, arg_state_name, arg_factor,
@@ -98,14 +98,14 @@ TurretAI := Object clone do(
     
     ex := try(
       loop(
-        delta_p = ((target getLocation) - (me getLocation + me getOrientation * turret pivot))
+        delta_p = ((target getLocation) - (me getLocation + me getOrientation matMult(turret pivot) ))
         delta_p_norm = delta_p norm
         delta_v = target getMovementVector - me getMovementVector
-        delta_v_z = delta_p_norm *(1 - (delta_v dot(delta_p_norm)))
+        delta_v_z = delta_p_norm scaledBy(1 - (delta_v dot(delta_p_norm)))
         delta_v_xy = delta_v - delta_v_z
         bullet_speed := (muzzle_speed_squared - (delta_v_xy lenSquare)) sqrt
         self eta := delta_p len / (bullet_speed - delta_v dot(delta_p_norm))
-        aa target_dir := delta_v_xy + delta_p_norm*bullet_speed + vector(0,0.5*9.81*eta*eta,0)
+        aa target_dir := delta_v_xy + delta_p_norm scaledBy(bullet_speed) + vector(0,0.5*9.81*eta*eta,0)
   
         # Let AimAbsolute do its work and compute its error
         pass

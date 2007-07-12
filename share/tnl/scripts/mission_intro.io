@@ -380,7 +380,7 @@ addEnemy := method(
     enemy := Drone clone
     Game addActor(enemy)
     // set enemy's location to 1000m to the front, but not below zero
-    x := me getLocation + (1000*(me getFrontVector))
+    x := me getLocation + me getFrontVector scaledBy(1000)
     safety_altitude := Terrain heightAt(x at(0,0), x at(2,0)) + 500
     if (x at(1,0) < safety_altitude,
         x atSet(1,0, safety_altitude)

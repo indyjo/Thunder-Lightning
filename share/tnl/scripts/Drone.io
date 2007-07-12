@@ -22,9 +22,9 @@ Drone do(
         self v := me getMovementVector
         self orient := me getOrientation
         self gravity_lcs := orient * gravity
-        self right := orient * vector(1,0,0)
-        self up := orient * vector(0,1,0)
-        self front := orient * vector(0,0,1)
+        self right := orient col(0)
+        self up := orient col(1)
+        self front := orient col(2)
         self orient_inv := orient transpose
         self dir := if (v lenSquare > 0.0000001, v norm, front)
         
@@ -45,10 +45,10 @@ Drone do(
             p = me getLocation()
             v = me getMovementVector()
             orient = me getOrientation
-            gravity_lcs = orient * gravity
-            right = orient * vector(1,0,0)
-            up = orient * vector(0,1,0)
-            front = orient * vector(0,0,1)
+            gravity_lcs = orient matMult(gravity)
+            right = orient col(0)
+            up = orient col(1)
+            front = orient col(2)
             orient_inv = orient transpose
             dir = if (v lenSquare > 0.0000001, v norm, front)
             
@@ -56,8 +56,8 @@ Drone do(
             height = altitude - Terrain heightAt(p(0), p(2))
             
             perceived_accel = accel - gravity
-            accel_lcs = orient_inv * accel
-            perceived_accel_lcs = orient_inv * perceived_accel
+            accel_lcs = orient_inv matMult(accel)
+            perceived_accel_lcs = orient_inv matMult(perceived_accel)
         )
     )
     
@@ -219,15 +219,15 @@ Drone do(
             dt := pass
             mod_target_vector := target_vector
             if (mod_target_vector dot(me state front) < 0,
-                mod_target_vector = mod_target_vector - me state front * mod_target_vector dot(me state front)
+                mod_target_vector = mod_target_vector - me state front scaledBy( mod_target_vector dot(me state front) )
                 if (mod_target_vector at(1) < 0, mod_target_vector atSet(1,0))
-                mod_target_vector = mod_target_vector * (target_vector len / mod_target_vector len)
+                mod_target_vector = mod_target_vector scaledBy(target_vector len / mod_target_vector len)
             )
             new_error := mod_target_vector - me state v
-            derivative := (new_error - error) * (1/dt)
+            derivative := (new_error - error) scaledBy(1/dt)
             error = new_error
             
-            target_accel = 0.4*error+0.15*derivative
+            target_accel = error scaledBy(.4) + derivative scaledBy(.15)
             
             accel target_accel = target_accel
             aileron target_accel = target_accel
@@ -246,8 +246,8 @@ Drone do(
         manage(fly)
         
         loop(
-            delta_v := (target_position - me state p)*mps_per_m
-            if (delta_v len > max_dv, delta_v = delta_v * (max_dv / delta_v len))
+            delta_v := (target_position - me state p) scaledBy(mps_per_m)
+            if (delta_v len > max_dv, delta_v = delta_v scaledBy(max_dv / delta_v len))
             
             fly target_vector := target_vector + delta_v
             pass
@@ -263,9 +263,9 @@ Drone do(
         mp := Drone MaintainPosition clone start(me)
         manage(mp)
         loop(
-            ab_norm := (b-a) norm
-            mp target_vector := v * ab_norm
-            mp target_position := a + ab_norm * (ab_norm dot(me state p - a))
+            ab_norm := (b-a) normInPlace
+            mp target_vector := ab_norm scaledBy(v)
+            mp target_position := a + ab_norm scaledBy(ab_norm dot(me state p - a))
             if (?debug,
                 "Target pos: #{mp target_position} err: #{(mp target_position - me state p) len}" interpolate say
             )
@@ -300,10 +300,10 @@ Drone do(
         up := vector(0,1,0)
         right := up % d
         p0 := me state p
-        p1 := b + 0.3*final*d + height*up
-        p2 := p1 + right*final*0.3
-        p3 := a - d*final + up*height + right*final*0.3
-        p4 := a - d*final + up*height + right*final*0.1
+        p1 := b + d scaledBy(0.3*final) + up scaledBy(height)
+        p2 := p1 + right scaledBy(final*0.3)
+        p3 := a - d scaledBy(final) + up scaledBy(height) + right scaledBy(final*0.3)
+        p4 := a - d scaledBy(final) + up scaledBy(height) + right scaledBy(final*0.1)
         
         self fp := Drone FollowPath clone start(me, NavPath clone with(list(p0,p1,p2,p3,p4)), 350/3.6)
         manage(fp)
@@ -317,7 +317,7 @@ Drone do(
         //"Beginning final approach" say
         a := rwy runwayBegin + Drone safety_height
         b := rwy runwayEnd + Drone safety_height
-        p0 := a + (a-b) atSet(1,0) norm * dangle cos + vector(0,dangle sin, 0)
+        p0 := a + (a-b) atSet(1,0) norm scaledBy(dangle cos) + vector(0,dangle sin, 0)
         #"p0: #{p0} a:#{a}" interpolate println
         
         dspeed := Drone descent_speed
@@ -340,7 +340,7 @@ Drone do(
             return
         )
         d := p0 - a
-        p_proj := a + d*(d dot(me state p - a) )
+        p_proj := a + (me state p - a) projectedOn(d)
         if ((p_proj - me state p) len > 2.5,
             //"You are to far away from glide slope" say
             return
@@ -377,7 +377,7 @@ Drone do(
         b := rwy runwayEnd + Drone safety_height
         d := (b-a) atSet(1,0) norm
         up := vector(0,1,0)
-        left := (up % d) * -1
+        left := (up % d) neg
         
         self fp := Drone FollowPath clone
         manage(fp)
@@ -392,7 +392,7 @@ Drone do(
                 n := 64
                 n repeat(i,
                     alpha := 2*Number constants pi * i / n
-                    wpt := a + up*height + 2000 * left + 1000 * vector(alpha cos, 0, - alpha sin)
+                    wpt := a + up scaledBy(height) + left scaledBy(2000) + vector(alpha cos, 0, - alpha sin) scaledBy(1000)
                     #wpt println
                     waypoints append( wpt )
                 )
@@ -419,7 +419,7 @@ Drone do(
         manage(hold)
         while (hold running, pass)
         
-        final_begin := a - d*final + up*height
+        final_begin := a - d scaledBy(final) + up scaledBy(height)
         
         #"Proceeding to final" say
         self to_final := Drone FollowPath clone start(me,
@@ -485,8 +485,8 @@ Drone do(
         
         loop(
             obstacles := Game queryActorsInCapsule(
-                me location + me getFrontVector * 15,
-                me location + me getFrontVector * 200,
+                me location + me state front scaledBy(15),
+                me location + me state front scaledBy(200),
                 15)
             obstacles remove(me)
             obstacles remove(runway)
@@ -541,7 +541,7 @@ Drone do(
                 path append( vector(p at(0), height + me TRAVEL_HEIGHT, p at(1) ) )
                 break
             ,
-                p = p + (d+normal xz) norm * segment_length
+                p = p + (d+normal xz) norm scaledBy( segment_length )
                 height := Terrain heightAt(p x, p y)
                 path append( vector(p at(0), height + me TRAVEL_HEIGHT, p at(1) ) )
             )
@@ -580,16 +580,16 @@ Drone do(
                 #if (Game viewSubject == me,
                 #    "normal: #{normal} d: #{d} tangent: #{tangent} slope: #{slope}" interpolate say
                 #)
-                if (d dot(tangent) < 0, tangent = tangent * -1)
+                if (d dot(tangent) < 0, tangent negInPlace)
                 if (tangent length > 0.00001,
                     tangent := tangent norm
                 ,
                     tangent := d clone
                 )
-                d := d + (tangent-d)*slope
+                d := d + (tangent-d) scaledBy(slope)
                 d := d norm
             )
-            d = d * me TRAVEL_SPEED
+            d = d scaledBy(me TRAVEL_SPEED)
             fv target_vector := vector( d x, (me TRAVEL_HEIGHT - me state height) * 0.1, d y )
             pass
         )
@@ -616,7 +616,7 @@ Drone do(
         azimuth := 2 * Number constants pi * Random value
         dist := 2000 + 2000 * Random value
         
-        p := location2 + vector( azimuth sin, azimuth cos ) * dist
+        p := location2 + vector( azimuth sin, azimuth cos ) scaledBy(dist)
         Command Goto clone with (p, 500)
     )
     

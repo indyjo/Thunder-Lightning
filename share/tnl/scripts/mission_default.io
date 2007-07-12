@@ -125,7 +125,7 @@ startup := method(
     
     self shooting_tanks := list
     2 repeat(
-      tank := addTank(vector(6543,0,1386) + 1500*randvec)
+      tank := addTank(vector(6543,0,1386) + randvec scaledBy(1500))
       shooting_tanks append(tank)
     )
     

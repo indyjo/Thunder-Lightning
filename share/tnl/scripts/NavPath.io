@@ -72,8 +72,8 @@ NavPath := Object clone do(
         if (path size > 1, u := projectToPath(x))
         
         if (path size > 2) then (
-            a := (1-u) * path at(0) + u * path at(1)
-            b := (1-u) * path at(1) + u * path at(2)
+            a := path at(0) mixedWith(path at(1), u)
+            b := path at(1) mixedWith(path at(2), u)
         ) elseif(path size == 2) then(
             u := projectToPath(x)
             a := path at(0)
