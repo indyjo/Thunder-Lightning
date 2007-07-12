@@ -308,17 +308,3 @@ matrix := method(
   mat
 )
 
-Number oldmult := Number getSlot("*")
-Number setSlot("*", method(other,
-  if(other hasProto(Matrix),
-    M := Matrix clone dim(other rows, other columns)
-    for(i,0,other rows - 1, for(j,0,other columns - 1,
-      //"other ... = " .. (other at(i,j) ) .. " | " .. (other at(i,j) type) println
-      //"oldmult(other ...) = " .. (oldmult(other at(i,j))) println
-      M atSet(i,j, oldmult(other at(i,j)))
-    ))
-    M
-  ,
-    oldmult(other)
-  )
-))
