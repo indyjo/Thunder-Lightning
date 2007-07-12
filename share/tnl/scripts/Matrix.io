@@ -8,9 +8,9 @@ assert := method(v,
 )
 
 Matrix := Object clone do(
-  rows := 1
-  columns := 1
-  entries := list(0)
+  rows := 0
+  columns := 0
+  entries := list()
   
   init := method(
     self entries := entries clone
@@ -107,6 +107,45 @@ Matrix := Object clone do(
     )
   ))
   
+  matMult := method(other,
+    assert(self columns == other rows)
+    res := Matrix clone dim(self rows, other columns)
+    res rows := self rows
+    res columns := self columns
+    other columns repeat(j,
+      self rows repeat(i,
+        x := 0
+        self columns repeat(k,
+            x = x + self at(i,k) * other at(k,j)
+        )
+      )
+    )
+  )
+  
+  scaleInPlace := method(s,
+    self entries mapInPlace(v, v*s)
+    self
+  )
+  scaledBy := method(s,
+    self clone scaleInPlace(s)
+  )
+  
+  projectedOn := method(other,
+    other scaledBy( other dot(self) )
+  )
+  
+  negInPlace := method(
+    entries mapInPlace(v, -v)
+    self
+  )
+  neg := method(
+    self clone negInPlace
+  )
+  
+  mixedWith := method(other, u,
+    self + (other-self) scaleInPlace(u)
+  )
+  
   setSlot("%", method(other,
     assert(rows == 3 and columns == 1)
     assert(other hasProto(Matrix))
@@ -134,7 +173,10 @@ Matrix := Object clone do(
   length := method(lenSquare sqrt)
   
   norm := method(
-    self * (1/self len)
+    self scaledBy(1/self len)
+  )
+  normInPlace := method(
+    self scaleInPlace(1/self len)
   )
   
   projection := method(v,
@@ -175,7 +217,7 @@ Matrix := Object clone do(
     m := Matrix clone
     m rows := rows
     m columns := 1
-    m entries := entries slice(c*rows, c*(rows+1))
+    m entries := entries slice(c*rows, c*rows+rows)
     m
   )
     
