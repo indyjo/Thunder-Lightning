@@ -141,7 +141,7 @@ Coro := Object clone do(
         coros := list()
         profiles foreach(p,
             c := Object clone
-            c coro_type := p coro_instance type
+            c coro_type := p coro_instance uniqueType
             c time_sum := p time_sum
             c passes := p passes
             coros append(c)
@@ -169,7 +169,16 @@ Coro := Object clone do(
         coros_by_type = coros_by_type sortByKey(time_sum)
         CoroProfiles clone with(coros_by_type)
     )
+    
+    uniqueType := method(
+        if(self hasSlot("tag"),
+            self type .. " (" .. self tag ..")"
+        ,
+            self type
+        )
+    )
 )
+
 
 Object coro := method(
     //("message: " .. call message) println
