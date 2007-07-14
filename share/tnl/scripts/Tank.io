@@ -20,7 +20,7 @@ Tank do (
     speed := me getMovementVector dot(me getFrontVector)
     diff := self target_speed - speed
     integral := 0
-    while(1,
+    loop(
       dt := pass
       old_diff := diff
       speed := me getMovementVector dot(me getFrontVector)
@@ -47,7 +47,7 @@ Tank do (
     ) setIsActivatable(true)
  
     error := courseError
-    while(1,
+    loop(
       dt := pass
       old_error := error
       error := courseError
@@ -68,7 +68,7 @@ Tank do (
     self ms := Tank MaintainSpeed clone start(me, 0)
     manage(ms)
     
-    while(1,
+    loop(
       if( (target_v len) < 0.0001 ) then (
         mc target_course := me front2
       ) else ( mc target_course := self target_v norm )
@@ -96,7 +96,7 @@ Tank do (
     min_intercept_radius:=20
     tolerance_radius:=2
     
-    while(1,
+    loop(
       p := me location2
       v := me velocity2
       
@@ -144,7 +144,7 @@ Tank do (
     self mv := Tank MaintainVelocity clone start(me)
     manage(mv)
     
-    while(1,
+    loop(
       old_error = error
       p = me location2
       v = me velocity2
@@ -240,7 +240,7 @@ Tank do (
     self mv := Tank MaintainVelocity clone start(me)
     manage(mv)
     
-    while(1,
+    loop(
       members selectInPlace(isAlive)
       neighbors := members select(n, (n != me) and ((n getLocation - me getLocation) lenSquare < radius*radius))
       
