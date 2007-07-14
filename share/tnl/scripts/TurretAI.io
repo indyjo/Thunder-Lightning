@@ -120,7 +120,9 @@ TurretAI := Object clone do(
 
     ex catch(InterruptedException,
       weapon release
-      ex raise
+      ex pass
+    ) catch(
+      ex pass
     )
   )
   
@@ -163,7 +165,7 @@ TurretAI := Object clone do(
         )
       )
 
-      pass
+      sleep(1 + Random value)
     )
   )
 ) // AI
