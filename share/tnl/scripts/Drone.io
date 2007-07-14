@@ -59,12 +59,12 @@ Drone do(
             orient_inv = orient transpose
             dir = if (v lenSquare > 0.0000001, v norm, front)
             
-            altitude = p at(1)
-            height = altitude - Terrain heightAt(p(0), p(2))
+            altitude = p y
+            height = altitude - Terrain heightAt(p x, p z)
             
-            perceived_accel = accel - gravity
+            //perceived_accel = accel - gravity
             accel_lcs = orient_inv matMult(accel)
-            perceived_accel_lcs = orient_inv matMult(perceived_accel)
+            //perceived_accel_lcs = orient_inv matMult(perceived_accel)
         )
     )
     
