@@ -15,7 +15,7 @@ Tank do (
   isGroundTarget := true
   
 
-  maintainSpeed := coro(me, arg_target_speed,
+  MaintainSpeed := coro(me, arg_target_speed,
     self target_speed := arg_target_speed
     speed := me getMovementVector dot(me getFrontVector)
     diff := self target_speed - speed
@@ -35,7 +35,7 @@ Tank do (
     )
   )
   
-  maintainCourse := coro(me, arg_target_course,
+  MaintainCourse := coro(me, arg_target_course,
     if ((self ?target_course) isNil, self target_course := arg_target_course)
     courseError := block(
       front := me front2
@@ -60,12 +60,12 @@ Tank do (
     )
   )
   
-  maintainVelocity := coro(me, arg_target_v,
+  MaintainVelocity := coro(me, arg_target_v,
     (self ?target_v) ifNil( self target_v := arg_target_v)
     
-    self mc := Tank maintainCourse clone start(me, vector(0,0))
+    self mc := Tank MaintainCourse clone start(me, vector(0,0))
     manage(mc)
-    self ms := Tank maintainSpeed clone start(me, 0)
+    self ms := Tank MaintainSpeed clone start(me, 0)
     manage(ms)
     
     while(1,
@@ -81,13 +81,13 @@ Tank do (
     )
   )
   
-  maintainPosition := coro(me, arg_target_p, arg_target_v, arg_approach_speed,
+  MaintainPosition := coro(me, arg_target_p, arg_target_v, arg_approach_speed,
     if ((self ?target_p) isNil, self target_p := target_p)
     if ((self ?target_v) isNil, self target_v := target_v)
     if ((self ?approach_speed) isNil,
       self approach_speed := if(arg_approach_speed isNil, 20.0, arg_approach_speed))
     
-    mv := Tank maintainVelocity clone start(me)
+    mv := Tank MaintainVelocity clone start(me)
     manage(mv)
     
     // The minimum distance at which an intercept course
@@ -126,8 +126,8 @@ Tank do (
     )
   )
 
-  // A (hopefully better) variant of maintainPosition
-  maintainPosition2 := coro(me, arg_target_p, arg_target_v,
+  // A (hopefully better) variant of MaintainPosition
+  MaintainPosition2 := coro(me, arg_target_p, arg_target_v,
     if ((self ?target_p) isNil, self target_p := target_p)
     if ((self ?target_v) isNil, self target_v := target_v)
     (self ?Kp) ifNil(self Kp := 1)
@@ -141,7 +141,7 @@ Tank do (
     
     delta_t := pass
     
-    self mv := Tank maintainVelocity clone start(me)
+    self mv := Tank MaintainVelocity clone start(me)
     manage(mv)
     
     while(1,
@@ -160,7 +160,7 @@ Tank do (
     )
   )
   
-  followPath := coro(me, arg_path, arg_closed, arg_speed,
+  FollowPath := coro(me, arg_path, arg_closed, arg_speed,
     if((self ?vpath) isNil, self vpath := arg_path)
     if((self ?closed) isNil, self closed := if (arg_closed isNil, self, arg_closed))
     if((self ?speed) isNil, self speed := if (arg_speed isNil, 15.0, arg_speed))
@@ -176,7 +176,7 @@ Tank do (
       if (closed, vpath push(front))
     ) setIsActivatable(true)
     
-    self mp := Tank maintainPosition2 clone start(me)
+    self mp := Tank MaintainPosition2 clone start(me)
     manage(mp)
     
     while (path size > 1,
@@ -214,12 +214,12 @@ Tank do (
     )
   )
   
-  followTank := coro(me, arg_other, arg_x, arg_z,
+  FollowTank := coro(me, arg_other, arg_x, arg_z,
     if((self ?other) isNil, self other := arg_other)
     if((self ?x) isNil, self x := arg_x)
     if((self ?z) isNil, self z := arg_z)
     
-    self mp := Tank maintainPosition2 clone start(me)
+    self mp := Tank MaintainPosition2 clone start(me)
     manage(mp)
     while(other isAlive,
       mp target_v := me velocity2
@@ -232,12 +232,12 @@ Tank do (
     
   )
   
-  flock := coro(me, arg_members, arg_avg_dist,
+  Flock := coro(me, arg_members, arg_avg_dist,
     (self ?members)  ifNil( self members := arg_members)
     (self ?avg_dist) ifNil( self avg_dist := arg_avg_dist)
     (self ?radius)   ifNil( self radius := 2*avg_dist)
     
-    self mv := Tank maintainVelocity clone start(me)
+    self mv := Tank MaintainVelocity clone start(me)
     manage(mv)
     
     while(1,
