@@ -1,3 +1,9 @@
+Tank coro := method(
+    res := resend
+    res tag := "Tank"
+    res
+)
+
 Tank do (
   init := method(
     self turret := TurretAI clone do(
