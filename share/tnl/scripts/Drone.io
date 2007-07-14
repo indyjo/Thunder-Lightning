@@ -1,3 +1,10 @@
+Drone coro := method(
+    res := resend
+    res tag := "Drone"
+    res
+)
+
+
 doFile(Config scripts_dir .. "/Drone_attack.io")
 
 Drone do(
