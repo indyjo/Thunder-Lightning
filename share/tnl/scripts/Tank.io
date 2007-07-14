@@ -100,7 +100,7 @@ Tank do (
       p := me location2
       v := me velocity2
       
-      dist2target := ((target_p - p) len)
+      dist2target := (target_p - p) len
       
       if (dist2target < tolerance_radius,
         mv target_v := target_v
@@ -109,16 +109,16 @@ Tank do (
       )
       
       
-      dir2target := ((target_p - p) * (1/dist2target))
+      dir2target := (target_p - p) scaledBy(1/dist2target)
       // target velocity parallel
-      tvpa := dir2target * dir2target dot(target_v)
+      tvpa := target_v projectedOn(dir2target)
       // target velocity perpendicular
       tvpe := target_v - tvpa
       
-      intercept_v := tvpe + dir2target * ((approach_speed squared - tvpe lenSquare ) sqrt)
+      intercept_v := tvpe + dir2target scaledBy((approach_speed squared - tvpe lenSquare ) sqrt)
       t := (((dist2target - tolerance_radius) / (min_intercept_radius - tolerance_radius)) clip(0,1))
       
-      mv target_v := ((1-t)*v + t*intercept_v)
+      mv target_v := v mixedWith(intercept_v, t)
       
       //writeln("target v: ", target_v entries, "target p:", target_p entries,
       //  " dp: ", (target_p-p) entries, " --> ", mv target_v entries)
@@ -150,9 +150,9 @@ Tank do (
       v = me velocity2
       
       error = target_p - p
-      derivative = ((error-old_error) * (1/delta_t))
+      derivative = (error-old_error) scaledBy(1/delta_t)
       
-      mv target_v := target_v + Kp*error + Kd*derivative
+      mv target_v := target_v + error scaledBy(Kp) + derivative scaledBy(Kd)
       
       //writeln("target v: ", target_v entries, "target p:", target_p entries,
       //  " dp: ", (target_p-p) entries, " --> ", mv target_v entries)
@@ -198,15 +198,15 @@ Tank do (
           continue
         )
         c := vpath at(2)
-        a2 := a + t*(b-a)
-        b2 := b + t*(c-b)
+        a2 := a mixedWith(b, t)
+        b2 := b mixedWith(c, t)
         t := positionOnSegment(a2,b2)
         a = a2
         b = b2
       )
       
-      mp target_v := ((b - a) norm * speed)
-      mp target_p := (a + ((b-a)*t))
+      mp target_v := (b - a) norm scaledBy(speed)
+      mp target_p := a mixedWith(b, t)
       //writeln("mp target_p: ", mp target_p entries)
       //writeln("mp target_v: ", mp target_v entries)
       
@@ -223,7 +223,7 @@ Tank do (
     manage(mp)
     while(other isAlive,
       mp target_v := me velocity2
-      mp target_p := other location2 + x*other right2 + z*other front2
+      mp target_p := other location2 + other right2 scaledBy(x) + other front2 scaledBy(z)
       pass
     )
     
@@ -249,8 +249,9 @@ Tank do (
       neighbors foreach(i,neighbor,
         d := neighbor getLocation - me getLocation
         dist := d len
+        d scaleInPlaceBy(1/dist)
         // gradient of the function (dist - avg_dist)^2
-        gradient = gradient + 2*(dist - avg_dist)*(1/dist)*d
+        gradient = gradient + d scaledBy( 2*(dist - avg_dist) )
         avg_velocity := avg_velocity + neighbor getMovementVector
       )
       
@@ -259,7 +260,7 @@ Tank do (
       if (neighbors size == 0,
         mv target_v := vector(0,0)
       ,
-        avg_velocity = avg_velocity * (1/neighbors size)
+        avg_velocity = avg_velocity scaledBy(1/neighbors size)
         avg_velocity2 := vector(avg_velocity at(0,0), avg_velocity at (2,0))
         mv target_v := avg_velocity2 + gradient2
       )
