@@ -3,7 +3,7 @@ assert := method(v,
     self
   ,
     code := call argAt(0) code
-    Exception raise("Assertion failed", "Assertion: " .. code)
+    Exception raise("Assertion failed: " .. code)
   )
 )
 
@@ -109,17 +109,19 @@ Matrix := Object clone do(
   
   matMult := method(other,
     assert(self columns == other rows)
-    res := Matrix clone dim(self rows, other columns)
+    res := Matrix clone
     res rows := self rows
-    res columns := self columns
+    res columns := other columns
     other columns repeat(j,
       self rows repeat(i,
         x := 0
         self columns repeat(k,
             x = x + self at(i,k) * other at(k,j)
         )
+        res entries append(x)
       )
     )
+    res
   )
   
   scaleInPlace := method(s,
