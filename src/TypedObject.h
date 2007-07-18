@@ -25,7 +25,9 @@ class TypedObject {
     const Type * type;
 public:
     TypedObject(const Type & type) : type(&type) { }
-    const Type & getType() const { return *type; }
+    
+    inline const Type & getType() const { return *type; }
+    inline void setType(const Type & t) { type = &t; }
 
     inline bool instanceOf(const Type & t) { return &t == type; }
     inline bool isA(const Type & t) { return type->isA(t); }
