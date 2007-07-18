@@ -11,11 +11,9 @@ class Cannon : public Weapon {
 public:
     Cannon(Ptr<IGame> game,
         const std::string & name="Cannon",
-        int rounds=40,
-        float loadtime=3,
-        bool singleshot=true);
+        int rounds=40);
     
-    virtual void onFire();
+    virtual WeakPtr<IActor> onFire();
     float factor;
 };
 

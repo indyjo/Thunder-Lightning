@@ -78,7 +78,10 @@ Carrier::Carrier(Ptr<IGame> thegame, IoObject * io_peer_init)
     setTargeter(new Targeter(*thegame, *this));
     setArmament(new Armament(this, this));
     
-    Ptr<Cannon> machinegun = new Cannon(thegame, "Vulcan", 1500, 4.0/60, false);
+    Ptr<IConfig> cfg = thegame->getConfig();
+    
+    Ptr<Cannon> machinegun = new Cannon(thegame,
+        "Vulcan", cfg->queryInt("Carrier_Vulcan_rounds", 1500));
     machinegun->factor = thegame->getConfig()->queryFloat("Carrier_Vulcan_factor", 1);
     machinegun->addBarrel(new SkeletonProvider(skeleton, "main_turret_nozzle_left", "main_turret_pivot", "main_turret_pivot_dir"));
     machinegun->addBarrel(new SkeletonProvider(skeleton, "main_turret_nozzle_right", "main_turret_pivot", "main_turret_pivot_dir"));

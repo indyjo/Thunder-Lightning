@@ -4,13 +4,30 @@
 #include "Armament.h"
 #include "ProjectileLauncher.h"
 
+ProjectileLauncher::ProjectileLauncher(
+    Ptr<IGame> game,
+    Ptr<Targeter> targeter,
+    IProjectileFactory * factory,
+    const std::string & name,
+    int rounds)
+:     Weapon(game->getConfig(), name,rounds)
+    , game(game)
+    , targeter(targeter)
+    , factory(factory)
+{
+    Ptr<IConfig> cfg = game->getConfig();
+    launch_speed = cfg->queryFloat(name+"_launch_speed", 0.0f);
+    needs_target = cfg->queryFloat(name+"_needs_target", true);
+}
+
+
 bool ProjectileLauncher::canFire() {
     if (needs_target && ptr(targeter->getCurrentTarget())==0) 
         return false;
     return Weapon::canFire();
 }
 
-void ProjectileLauncher::onFire() {
+WeakPtr<IActor> ProjectileLauncher::onFire() {
     Ptr<IProjectile> projectile = factory->create(game, targeter->getCurrentTarget(), armament->getSourceActor());
     
     Ptr<Collide::Collidable> collidable = projectile->asCollidable();
@@ -48,4 +65,6 @@ void ProjectileLauncher::onFire() {
     if (target) target->message("missileShot", self);
 
     IoState_popRetainPool(IOSTATE);
+    
+    return projectile;
 }

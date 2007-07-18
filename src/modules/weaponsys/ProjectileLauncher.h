@@ -11,24 +11,15 @@ class ProjectileLauncher : public Weapon {
     Ptr<Targeter> targeter;
     IProjectileFactory *factory;
 public:
-    inline ProjectileLauncher(
+    ProjectileLauncher(
         Ptr<IGame> game,
         Ptr<Targeter> targeter,
         IProjectileFactory * factory,
         const std::string & name,
-        int rounds, float loadtime, bool singleshot=true,
-        bool needs_target=false)
-        
-        : Weapon(name,rounds,loadtime,singleshot)
-        , game(game)
-        , targeter(targeter)
-        , factory(factory)
-        , launch_speed(0.0f)
-        , needs_target(needs_target)
-    { }
+        int rounds);
 
     virtual bool canFire();
-    virtual void onFire();
+    virtual WeakPtr<IActor> onFire();
 
     float launch_speed;
     bool needs_target;

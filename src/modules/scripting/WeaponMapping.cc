@@ -33,6 +33,11 @@ namespace {
                 {"roundsLeft", getRoundsLeft},
                 {"setRoundsLeft", setRoundsLeft},
                 {"isTriggered", isTriggered},
+                {"isGuided", isGuided},
+                {"maxRange", maxRange},
+                {"referenceSpeed", referenceSpeed},
+                {"timeOfAcceleration", timeOfAcceleration},
+                {"lastFiredRound", lastFiredRound},
                 {NULL, NULL}
             };
             IoObject *self = IoObject_new(state);
@@ -53,6 +58,19 @@ namespace {
         GET_NUMBER(getRoundsLeft)
         SET_INT(setRoundsLeft)
         GET_BOOLEAN(isTriggered)
+        GET_BOOLEAN(isGuided)
+        GET_NUMBER(maxRange)
+        GET_NUMBER(referenceSpeed)
+        GET_NUMBER(timeOfAcceleration)
+        
+        static IoObject * lastFiredRound(IoObject *self, IoObject *locals, IoMessage *m) {
+            Ptr<IActor> round = getObject(self)->lastFiredRound().lock();
+            if (round) {
+                return wrapObject<Ptr<IActor> >(round, IOSTATE);
+            } else {
+                return IONIL(self);
+            }
+        }
     };
 } // namespace
 

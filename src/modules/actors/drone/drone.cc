@@ -107,14 +107,16 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
     setArmament(new Armament(this, this));
     targeter = new Targeter(*thegame,*this);
 
-    Ptr<Cannon> machinegun = new Cannon(thegame, "Vulcan", 500, 2.0/60, false);
+    Ptr<Cannon> machinegun = new Cannon(thegame, "Vulcan",
+        cfg->queryInt("Drone_Vulcan_rounds", 500));
     machinegun->addBarrel(new SkeletonProvider(skeleton, "MG_0", "origin", "z"));
     machinegun->addBarrel(new SkeletonProvider(skeleton, "MG_1", "origin", "z"));
     armament->addWeapon(0,machinegun);
 
     Ptr<ProjectileLauncher> smart_missile_launcher = new ProjectileLauncher(
         thegame, targeter, ProjectileFactories::factories.smart_missile_2_factory,
-        "Sidewinder", 6, 2, true, true);
+        "Sidewinder",
+        cfg->queryInt("Drone_Sidewinder_rounds", 6));
     smart_missile_launcher->addBarrel(
         new SkeletonProvider(skeleton, "Launcher_0", "origin", "z"));
     smart_missile_launcher->addBarrel(
@@ -123,7 +125,8 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
 
     Ptr<ProjectileLauncher> dumb_missile_launcher = new ProjectileLauncher(
         thegame, targeter, ProjectileFactories::factories.dumb_missile_factory,
-        "Hydra", 40, 0.5);
+        "Hydra",
+        cfg->queryInt("Drone_Hydra_rounds", 14));
     dumb_missile_launcher->addBarrel(
         new SkeletonProvider(skeleton, "Launcher_0", "origin", "z"));
     dumb_missile_launcher->addBarrel(
