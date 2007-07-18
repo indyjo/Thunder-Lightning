@@ -116,18 +116,22 @@ Game::Game(int argc, const char **argv)
     // The locations given above may be overridden here
     config->feedArguments(argc, argv);
     
-    ls_message("Continuing initialization from Io language:\n");
+    ls_message("Creating IoScriptingManager\n");
     io_scripting_manager = new IoScriptingManager(this);
+    ls_message("Adding basic mappings...");
     addBasicMappings(this, io_scripting_manager->getMainState());
+    ls_message("done");
     {
         char buf[256];
 		strncpy(buf,config->query("Io_init_script", "<noinit>"),256);
         if (0==strcmp(buf,"<noinit>")) {
+            ls_error("Io_init_script not found.");
             throw runtime_error("Io_init_script not found.");
         }
+        ls_message("Executing Io script \"%s\"\n", buf);
 		IoState_doFile_(io_scripting_manager->getMainState(), buf);
     }
-    ls_message("done.\n");
+    ls_message("Back in C++.\n");
 
     event_remapper = new EventRemapper();
 
