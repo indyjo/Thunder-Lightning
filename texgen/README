@@ -1,0 +1,15 @@
+----------
+| texgen |
+----------
+
+This folder contains texgen, a python-based terrain mapper. It was very slow and
+has been replaced by texgen2.
+
+-----------
+| License |
+-----------
+
+texgen is published under the GNU General Public License. See the file
+COPYING for details.
+For custom licenses please contact Jonas Eschenburg <jonas@tnlgame.net>
+
