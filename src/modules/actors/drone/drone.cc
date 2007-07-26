@@ -414,6 +414,8 @@ Ptr<IView> Drone::getView(int n) {
 	Vector pilot_pos = thegame->getConfig()->queryVector(
 		"Drone_pilot_pos", Vector(0,0,0));
     Ptr<SimpleActor> chaser = new SimpleActor(thegame);
+    Ptr<RelativeView> view = new RelativeView(chaser, chaser, this, 0);
+    mapViewEvents(view);
     
     Transform xform(Quaternion(1,0,0,0), pilot_pos);
     chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.1f, xform));
@@ -422,7 +424,7 @@ Ptr<IView> Drone::getView(int n) {
     Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
 	gunsight->addDebugInfo(thegame, this);
 	gunsight->addBasics(thegame, this);
-	gunsight->addTargeting(this, targeter);
+	gunsight->addTargeting(view, targeter, armament);
 	gunsight->addDirectionOfFlight(this);
     gunsight->addArmamentToScreen(thegame, armament, 0);
     gunsight->addMissileWarning(thegame, this);

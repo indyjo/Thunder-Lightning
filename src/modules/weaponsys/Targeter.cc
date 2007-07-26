@@ -76,8 +76,14 @@ void Targeter::selectNearestFriendlyTarget() {
 void Targeter::selectTargetInGunsight() {
 	vector<Ptr<IActor> > actors;
 	listTargets(actors);
-	selectTargetInGunsightFrom(actors);
+	selectTargetNearVectorFrom(self.getLocation(), self.getFrontVector(), actors);
 }	
+
+void Targeter::selectTargetNearVector(const Vector & pos, const Vector & dir) {
+	vector<Ptr<IActor> > actors;
+	listTargets(actors);
+	selectTargetNearVectorFrom(pos, dir, actors);
+}
 
 void Targeter::clearCurrentTarget() {
 	current = 0;
@@ -203,13 +209,13 @@ namespace {
 		}
 	};
 }
-void Targeter::selectTargetInGunsightFrom(vector<Ptr<IActor> > & actors) {
+void Targeter::selectTargetNearVectorFrom(const Vector& pos, const Vector& dir, vector<Ptr<IActor> > & actors) {
 	if(actors.empty()) {
 		current=0;
 		return;
 	}
 	current=*max_element(
 		actors.begin(),actors.end(),
-		MoreInFrontOf(self.getLocation(),self.getFrontVector()));
+		MoreInFrontOf(pos,dir));
 }
 

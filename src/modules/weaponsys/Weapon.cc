@@ -50,10 +50,11 @@ void Weapon::trigger() {
     triggered = true;
     if (singleshot && canFire()) {
         barrels[next_barrel].secs_since_fire = 0;
-        onFire();
+        last_fired_round = onFire();
         --rounds;
         ++next_barrel;
         if (next_barrel == barrels.size()) next_barrel=0;
+        fire_signal.emit(this);
         triggered = false;
     } else {
         // ensure that not all barrels fire at one

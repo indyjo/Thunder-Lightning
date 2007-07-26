@@ -100,7 +100,18 @@ void SimpleActor::mapTargeterEvents() {
     sheet->map("nearest-target", SigC::slot(*targeter, &Targeter::selectNearestTarget));
     sheet->map("nearest-hostile-target", SigC::slot(*targeter, &Targeter::selectNearestHostileTarget));
     sheet->map("nearest-friendly-target", SigC::slot(*targeter, &Targeter::selectNearestFriendlyTarget));
-    sheet->map("gunsight-target", SigC::slot(*targeter, &Targeter::selectTargetInGunsight));
+    //sheet->map("gunsight-target", SigC::slot(*targeter, &Targeter::selectTargetInGunsight));
+}
+
+void SimpleActor::mapViewEvents(Ptr<SimpleView> view) {
+    view->getEventSheet(thegame->getEventRemapper())->map("gunsight-target",
+        SigC::bind(SigC::slot(*this, &SimpleActor::onSelectTargetInView), ptr(view)));
+}
+
+void SimpleActor::onSelectTargetInView(IView * view) {
+    if (control_mode == MANUAL && targeter && view) {
+        targeter->selectTargetNearVector(view->getLocation(), view->getFrontVector());
+    }
 }
 
 // IActor
@@ -151,12 +162,16 @@ int SimpleActor::getNumViews() { return 4; }
 Ptr<IView> SimpleActor::getView(int n) { 
     // TODO: this should be implemented in Io
     
+    Ptr<RelativeView> view = new RelativeView(this, this, this);
+    
     Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
 	gunsight->addDebugInfo(thegame, this);
-	if (targeter) {
-	    gunsight->addTargeting(this, targeter);
+	if (targeter && armament) {
+	    gunsight->addTargeting(view, targeter, armament);
 	}
     gunsight->addInfoMessage(thegame);
+    
+    view->setGunsight(gunsight);
 
 	switch(n) {
 	case 0:

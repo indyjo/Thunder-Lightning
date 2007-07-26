@@ -140,12 +140,14 @@ int Carrier::getNumViews() {
 }
 
 Ptr<IView> Carrier::getView(int n) {
+    Ptr<SimpleActor> chaser = new SimpleActor(thegame);
+    Ptr<RelativeView> view = new RelativeView(chaser, chaser, this);
 
     Ptr<FlexibleGunsight> gunsight1 = new FlexibleGunsight(thegame);
     gunsight1->addBasicCrosshairs();
 	gunsight1->addBasics(thegame, this);
     gunsight1->addDebugInfo(thegame, this);
-    gunsight1->addTargeting(this, targeter);
+    gunsight1->addTargeting(view, targeter, armament);
     gunsight1->addArmamentToScreen(thegame, armament, 0);
     gunsight1->addInfoMessage(thegame);
 
@@ -153,9 +155,9 @@ Ptr<IView> Carrier::getView(int n) {
     gunsight2->addDebugInfo(thegame, this);
 	gunsight2->addBasics(thegame, this);
     gunsight2->addInfoMessage(thegame);
-
-    Ptr<SimpleActor> chaser = new SimpleActor(thegame);
-    Ptr<RelativeView> view;
+    
+    view->setGunsight(gunsight2);
+    mapViewEvents(view);
     
     switch(n) {
     case 0:
@@ -164,7 +166,6 @@ Ptr<IView> Carrier::getView(int n) {
                 "frontview_viewpoint", "frontview_lookat",
                 "origin", "up"),
                 0.1f, 0.1f));
-        view = new RelativeView(chaser, chaser, this, gunsight2);
         view->onEnable().connect(SigC::bind(
             SigC::slot(*this, & Carrier::setControlTarget),
             CARRIER));
@@ -175,7 +176,7 @@ Ptr<IView> Carrier::getView(int n) {
                 "main_turret_pivot", "main_turret_pivot_dir",
                 "main_turret_pivot", "main_turret_pivot_up"),
                 0.0f, 0.1f));
-        view = new RelativeView(chaser, chaser, this, gunsight1);
+        view->setGunsight(gunsight1);
         view->onEnable().connect(SigC::bind(
             SigC::slot(*this, & Carrier::setControlTarget),
             MAIN_TURRET));
@@ -186,7 +187,6 @@ Ptr<IView> Carrier::getView(int n) {
                 "backview_viewpoint", "backview_lookat",
                 "origin", "up"),
                 0.1f, 0.1f));
-        view = new RelativeView(chaser, chaser, this, gunsight2);
         view->onEnable().connect(SigC::bind(
             SigC::slot(*this, & Carrier::setControlTarget),
             CARRIER));
@@ -197,7 +197,6 @@ Ptr<IView> Carrier::getView(int n) {
                 "deckview_viewpoint", "deckview_lookat",
                 "origin", "up"),
                 0.1f, 0.1f));
-        view = new RelativeView(chaser, chaser, this, gunsight2);
         view->onEnable().connect(SigC::bind(
             SigC::slot(*this, & Carrier::setControlTarget),
             CARRIER));
@@ -208,7 +207,6 @@ Ptr<IView> Carrier::getView(int n) {
                 "landingview_viewpoint", "landingview_lookat",
                 "origin", "up"),
                 0.1f, 0.1f));
-        view = new RelativeView(chaser, chaser, this, gunsight2);
         view->onEnable().connect(SigC::bind(
             SigC::slot(*this, & Carrier::setControlTarget),
             CARRIER));
@@ -219,7 +217,6 @@ Ptr<IView> Carrier::getView(int n) {
                 "bayview_viewpoint", "bayview_lookat",
                 "origin", "up"),
                 0.1f, 0.1f));
-        view = new RelativeView(chaser, chaser, this, gunsight2);
         view->onEnable().connect(SigC::bind(
             SigC::slot(*this, & Carrier::setControlTarget),
             CARRIER));

@@ -19,7 +19,7 @@ class Armament;
 class Targeter;
 class EventSheet;
 
-class SimpleActor : virtual public IActor, public Weak
+class SimpleActor : virtual public IActor, virtual public Weak, virtual public SigObject
 {
 protected:
     Ptr<IGame> thegame;
@@ -72,6 +72,12 @@ public:
     Ptr<EventSheet> getEventSheet();
     void mapArmamentEvents();
     void mapTargeterEvents();
+    
+    // Prepares a view object to handle view-specific events like "gunsight-target"
+    void mapViewEvents(Ptr<SimpleView> view);
+    // Called when the user has requested to select target in gunsight
+    // with 'G'. The Actor must decide whether to proceed or to ignore.
+    virtual void onSelectTargetInView(IView * view);
 
     typedef SigC::Signal2<void, std::string, IoObject *> MessageSignal;
     /// Emitted when a message was received

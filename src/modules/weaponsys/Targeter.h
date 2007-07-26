@@ -29,6 +29,7 @@ public:
 	void selectNearestHostileTarget();
 	void selectNearestFriendlyTarget();
 	
+	void selectTargetNearVector(const Vector & pos, const Vector & dir);
 	void selectTargetInGunsight();
 	
 	void clearCurrentTarget();
@@ -40,7 +41,7 @@ protected:
 	void selectNextFrom(std::vector<Ptr<IActor> > & actors);
 	void selectPreviousFrom(std::vector<Ptr<IActor> > & actors);
 	void selectNearestFrom(std::vector<Ptr<IActor> > & actors);
-	void selectTargetInGunsightFrom(std::vector<Ptr<IActor> > & actors);
+	void selectTargetNearVectorFrom(const Vector& pos, const Vector& dir, std::vector<Ptr<IActor> > & actors);
 
 	IActor & self;
 	IActorStage & stage;

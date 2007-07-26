@@ -132,18 +132,25 @@ struct TargetingModule : public GunsightModule {
 struct AimingModule : public GunsightModule {
 	Ptr<IActor> self;
 	Ptr<Targeter> targeter;
+	Ptr<Armament> armament;
 	
 	AimingModule(
 		float width, float height,
-		Ptr<IActor> self,
-		Ptr<Targeter> targeter)
+		Ptr<IView> view,
+		Ptr<Targeter> targeter,
+		Ptr<Armament> armament)
 	:	GunsightModule("aiming", width, height),
-		self(self),
-		targeter(targeter)
+		view(view),
+		targeter(targeter),
+		armament(armament)
 	{
 	}
 	
 	void draw(FlexibleGunsight & gunsight) {
+	    if(armament->currentWeapon(0)->isGuided()) {
+	        return;
+	    }
+	
 		JRenderer *r = gunsight.getRenderer();
 		UI::Surface surface = gunsight.getSurface();
 		surface.translateOrigin(
@@ -159,8 +166,8 @@ struct AimingModule : public GunsightModule {
 		r->pushMatrix();
 		r->multMatrix(surface.getMatrix());
 		
-		Vector p = self->getLocation();
-		Vector v = self->getMovementVector();
+		Vector p = view->getLocation();
+		Vector v = view->getMovementVector();
 		
 	    Ptr<IActor> other = targeter->getCurrentTarget();
 	    if (!other) {
@@ -168,12 +175,18 @@ struct AimingModule : public GunsightModule {
 	      return;
 	    }
 	    Vector target_p = other->getLocation();
+	    if ((target_p-p).length() > armament->currentWeapon(0)->maxRange()) {
+	      r->popMatrix();
+	      return;
+	    }
+
+	    
 	    Vector target_v = other->getMovementVector();
 	    
 	    Vector target_dir = (target_p-p).normalize();
 	    Vector target_vrel = target_v - target_dir*(target_dir*target_v);
 	    float target_vrel2 = target_vrel.lengthSquare();
-	    float v2 = v.length() + BULLET_SPEED;
+	    float v2 = v.length() + armament->currentWeapon(0)->referenceSpeed();
 	    v2 *= v2;
 	    if (target_vrel2 > v2) {
 	      r->popMatrix();
@@ -203,16 +216,17 @@ struct AimingModule : public GunsightModule {
 };
 
 void FlexibleGunsight::addTargeting(
-	Ptr<IActor> self,
-	Ptr<Targeter> targeter)
+	Ptr<IView> view,
+	Ptr<Targeter> targeter,
+	Ptr<Armament> armament)
 {
     addModule(new TargetingModule(
     		surface.getWidth(), surface.getHeight(),
-    		self,targeter),
+    		view->getViewSubject(),targeter),
         "screen", HCENTER | VCENTER, HCENTER | VCENTER);
     addModule(new AimingModule(
     		surface.getWidth(), surface.getHeight(),
-    		self,targeter),
+    		view,targeter,armament),
         "screen", HCENTER | VCENTER, HCENTER | VCENTER);
 }
 

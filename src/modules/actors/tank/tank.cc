@@ -222,19 +222,22 @@ int Tank::getNumViews() {
 }
 
 Ptr<IView> Tank::getView(int n) {
+    Ptr<SimpleActor> chaser = new SimpleActor(thegame);
+    Ptr<SimpleView> view = new RelativeView(chaser, chaser, this);
+    mapViewEvents(view);
 
     Ptr<FlexibleGunsight> gunsight1 = new FlexibleGunsight(thegame);
     gunsight1->addBasicCrosshairs();
 	gunsight1->addBasics(thegame, this);
     gunsight1->addDebugInfo(thegame, this);
-    gunsight1->addTargeting(this, targeter);
+    gunsight1->addTargeting(view, targeter, armament);
     gunsight1->addArmamentToScreen(thegame, armament, 0);
     gunsight1->addInfoMessage(thegame);
     
     Ptr<FlexibleGunsight> gunsight2 = new FlexibleGunsight(thegame);
     gunsight2->addDebugInfo(thegame, this);
 	gunsight2->addBasics(thegame, this);
-    gunsight2->addTargeting(this, targeter);
+    gunsight2->addTargeting(view, targeter, armament);
     gunsight2->addArmamentToScreen(thegame, armament, 0);
     gunsight1->addInfoMessage(thegame);
 
