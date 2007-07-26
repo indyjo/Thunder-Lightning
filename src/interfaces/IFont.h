@@ -1,6 +1,7 @@
 #ifndef IFONT_H
 #define IFONT_H
 
+#include <modules/math/Vector.h>
 #include "IFontMetrics.h"
 
 struct IFont : public IFontMetrics {
@@ -16,6 +17,7 @@ struct IFont : public IFontMetrics {
         BOTTOM  = 0x10,
         VCENTER = 0x20
     };
+    
     virtual void drawString(
         const char *str,                                    ///< The string to draw
         const Vector2 & pos,                                ///< The position to draw at
