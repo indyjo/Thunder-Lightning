@@ -5,8 +5,20 @@
 
 SimpleView::SimpleView(Ptr<IActor> subject, Ptr<IDrawable> gunsight)
 :	subject(subject),
-	gunsight(gunsight)
+	gunsight(gunsight),
+	is_enabled(false)
 { }
+
+Ptr<EventSheet> SimpleView::getEventSheet(Ptr<EventRemapper> remap) {
+    if (!event_sheet) {
+        event_sheet = new EventSheet;
+        event_remapper = remap;
+        if (isEnabled()) {
+            event_remapper->addEventSheet(event_sheet);
+        }
+    }
+    return event_sheet;
+}
 
 Vector SimpleView::getLocation() {
 	Vector pos;
@@ -59,13 +71,19 @@ Ptr<IDrawable> SimpleView::getGunsight() {
 }
 
 void SimpleView::enable() {
+    if (is_enabled) return;
+    is_enabled = true;
     on_enable.emit();
+    if(event_sheet) event_remapper->addEventSheet(event_sheet);
     if(gunsight) gunsight->enable();
 }
 
 void SimpleView::disable() {
+    if (!is_enabled) return;
+    is_enabled = false;
     on_disable.emit();
     if(gunsight) gunsight->disable();
+    if(event_sheet) event_remapper->removeEventSheet(event_sheet);
 }
 
 SigC::Signal0<void> & SimpleView::onEnable() {
@@ -75,4 +93,11 @@ SigC::Signal0<void> & SimpleView::onEnable() {
 SigC::Signal0<void> & SimpleView::onDisable() {
     return on_disable;
 }
+
+bool SimpleView::isEnabled() {
+    return is_enabled;
+}
+
+Ptr<RenderPass> SimpleView::getRenderPass() { return render_pass; }
+void SimpleView::setRenderPass(Ptr<RenderPass> p) {render_pass = p; }
 

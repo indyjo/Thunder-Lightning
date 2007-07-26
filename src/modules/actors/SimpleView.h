@@ -3,8 +3,10 @@
 
 #include <tnl.h>
 #include <interfaces/IView.h>
+#include <remap.h>
 
 class FlexibleGunsight;
+class RenderPass;
 
 class SimpleView : virtual public IView {
 public:
@@ -13,6 +15,12 @@ public:
     // configuration
     inline void setViewSubject(Ptr<IActor> s) { subject = s; }
     inline void setGunsight(Ptr<FlexibleGunsight> g) { gunsight = g; }
+    
+    // Event handling. A SimpleView can be configured to catch events while
+    // enabled. Those events can be mapped to member functions of other
+    // objects. The SimpleView's address can be bound as an argument to the
+    // handler function.
+    Ptr<EventSheet> getEventSheet(Ptr<EventRemapper>);
     
     // IPositionProvider
     virtual Vector getLocation();
@@ -34,7 +42,11 @@ public:
     
     SigC::Signal0<void> & onEnable();
     SigC::Signal0<void> & onDisable();
+    bool isEnabled();
     
+    virtual Ptr<RenderPass> getRenderPass();
+    void setRenderPass(Ptr<RenderPass>);
+
 protected:
 	// To be overwritten by subclasses
 	virtual void getPositionAndOrientation(
@@ -44,6 +56,11 @@ protected:
     Ptr<FlexibleGunsight> gunsight;
 private:
     SigC::Signal0<void> on_enable, on_disable;
+    SigC::Signal2<void, Vector, Vector> on_gunsight_target;
+    bool is_enabled;
+    Ptr<EventRemapper> event_remapper;
+    Ptr<EventSheet> event_sheet;
+    Ptr<RenderPass> render_pass;
 };
 
 #endif
