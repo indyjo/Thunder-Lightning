@@ -23,7 +23,7 @@
 #include <modules/scripting/mappings.h>
 #include <modules/actors/Observer.h>
 #include <modules/config/config.h>
-#include <RenderContext.h>
+#include <SceneRenderPass.h>
 #include <sound.h>
 #include <Faction.h>
 
@@ -235,18 +235,6 @@ Game::Game(int argc, const char **argv)
     if (GLEW_VERSION_2_0) ls_message("  - detected OpenGL 2.0 support. Nice!\n");
     ls_message("Done.\n");
     
-    ls_message("Creating render pass list... ");
-    renderpasslist = new RenderPassList(this);
-    ls_message("done.\n");
-    ls_message("Preparing Main render pass...");
-    renderpass_main = renderpasslist->createRenderPass();
-    renderpass_main->setEnabled(true);
-    renderpass_main->setResolution(
-        config->queryInt("Game_xres", 1024),
-        config->queryInt("Game_yres", 768));
-    ls_message("done.\n");
-
-    
     if (config->queryBool("Game_grab_mouse",false)) {
 	    SDL_WM_GrabInput(SDL_GRAB_ON);
 	    SDL_ShowCursor(SDL_DISABLE);
@@ -263,6 +251,8 @@ Game::Game(int argc, const char **argv)
 
    	ls_message("Initializing Environment...");
     environment = new Environment(this);
+    ls_message("Water...");
+    water = new Water(this);
    	ls_message(" done.\n");
    	ls_message("Initializing Camera...");
    	camera = new Camera(this);
@@ -273,6 +263,10 @@ Game::Game(int argc, const char **argv)
     }
    	ls_message(" done.\n");
 
+    ls_message("Preparing Main render pass...");
+    RenderContext ctx(camera);
+    renderpass_main = new SceneRenderPass(this, ctx);
+    ls_message("done.\n");
 
     {
     	ls_message("Querying from config %p:\n", ptr(config));
@@ -468,8 +462,16 @@ void Game::setCurrentView(Ptr<IView> view)
     if (view) {
         view->enable();
         setGunsight(view->getGunsight());
+        if (view->getRenderPass()) {
+            renderpass_main = view->getRenderPass();
+        } else {
+            RenderContext ctx(camera);
+            renderpass_main = new SceneRenderPass(this, ctx);
+        }
     } else {
         setGunsight(0);
+        RenderContext ctx(camera);
+        renderpass_main = new SceneRenderPass(this, ctx);
     }
     
     if (current_view) {
@@ -509,11 +511,7 @@ bool Game::debugMode() {
 void Game::initModules(Status & stat)
 {
     ls_message("initModules\n");
-    stat.beginJob("Initialize modules", 3);
-
-    stat.beginJob("Initialize Water.\n", 1);
-    water = new Water(this);
-    stat.endJob();
+    stat.beginJob("Initialize modules", 2);
     
     stat.beginJob("Initialize LOD terrain",1);
     quadman = new LoDQuadManager(this, stat);
@@ -611,10 +609,6 @@ void Game::updateSound() {
 }
 
 void Game::setupMainRender() {
-    RenderContext ctx = RenderContext::MainRenderContext(getCamera(), water->createRenderPass());
-    water->linkRenderPassToCamera(ctx.mirror_pass, getCamera());
-    getMainRenderPass()->setRenderContext(ctx);
-    getMainRenderPass()->setRenderContextEnabled(true);
 }
 
 void Game::updateIoScripting() {
@@ -632,8 +626,9 @@ void Game::updateIoScripting() {
     }
 }
 
-void Game::renderWithContext(const RenderContext *ctx)
+void Game::renderScene(SceneRenderPass * pass)
 {
+    RenderContext* ctx = &pass->context;
     this->render_context = ctx;
     
     Ptr<ICamera> old_camera = getCamera();
@@ -662,7 +657,7 @@ void Game::renderWithContext(const RenderContext *ctx)
 
     if (ctx->draw_water) {
         renderer->setZBufferFunc(JR_ZBFUNC_LESS);
-        water->draw();
+        water->draw(pass);
         renderer->setZBufferFunc(JR_ZBFUNC_LEQUAL);
     }
 
@@ -693,9 +688,12 @@ void Game::doFrame()
 
     setupRenderer();
     setupMainRender();
+    water->update();
 
-    getRenderPassList()->renderPasses();
-    if (debug_mode) getRenderPassList()->drawMosaic();
+    pre_draw.emit();
+    renderpass_main->render();
+    if (debug_mode) renderpass_main->drawMosaic();
+    post_draw.emit();
     
     SDL_GL_SwapBuffers();
     FINISH_PROFILE_STEP("render passes")
@@ -712,10 +710,6 @@ const RenderContext *Game::getCurrentContext()
 Ptr<RenderPass> Game::getMainRenderPass()
 {
     return renderpass_main;
-}
-Ptr<RenderPassList> Game::getRenderPassList()
-{
-    return renderpasslist;
 }
 
 

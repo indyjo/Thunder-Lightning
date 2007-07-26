@@ -4,50 +4,74 @@
 #include <list>
 #include <modules/texman/TextureManager.h>
 #include <modules/math/Vector.h>
-#include <RenderContext.h>
 #include <Weak.h>
 
-struct IGame;
+class RenderPassInstance;
 class RenderPassList;
 class JRenderer;
 
-/// This class abstracts a full render pass. A render pass begins with setting
-/// up the render target (width, height, render to texture, cleaning), optionally
-/// drawing a scene defined by a RenderContext and drawing customized graphics
-/// before or after that scene. A RenderPass belongs to a RenderPassList which
-/// is responsible for creation of render passes and managing the order in which
-/// these are performed. A render pass gets performed as long as
-///   - it is enabled
-///   - it hasn't been deleted
-///   - the RenderPassList hasn't been deleted
-/// The RenderPassList maintains a weak reference to the RenderPass, so it
-/// doesn't keep it alive. Conversely, the RenderPass keeps a weak reference
-/// to the RenderPassList.
+/// This class abstracts a render pass. A render pass consists of
+/// optionally cleaning the depth and color buffers and drawing something.
+/// Information about output width/height and whether to render into a texture
+/// or not is _not_ stored for the render pass itself but for its dependencies.
+
+/// A render pass might be stacked on another pass, in which case stackedOn()
+/// must be called before drawing. This is the usual way of compositing, e.g. a
+/// background and a foreground image.
+
 class RenderPass : public SigObject, public Weak
 {
-    friend class RenderPassList;
-    
-    RenderPass(WeakPtr<RenderPassList>);
-    
 public:
+    RenderPass(JRenderer *r);
     ~RenderPass();
+    
+    inline JRenderer * getRenderer() { return renderer; }
     
     /// Sets whether this RenderPass will be drawn (true) or not (false).
     /// Default to true.
+    /// @note this will also enable or disable depenent render passes, but not
+    ///       the render pass this one is stacked upon.
     void setEnabled(bool);
     bool isEnabled();
     
-    /// If other comes after this render pass in the RenderPassList,
-    /// move this pass to the place right behind other.
-    /// The default place for a newly created RenderPass is at the
-    /// beginning of the list.
-    void dependsOn(Ptr<RenderPass> other);
+    /// @name Connections to other RenderPass instances.
+    /// @{
     
-    /// Sets resolution of render. Defaults to 256x256.
-    void setResolution(int resx, int resy);
-    int getWidth();
-    int getHeight();
+    /// Registers a render-to-texture dependency which will be executed every
+    /// time before this render pass is executed.
+    /// @note Must be called before render() is called.
+    /// @note Normally, textures must be square, i.e. width == height.
+    /// @note It is recommended to choose texture sizes which are a power of 2.
+    /// @param width  the x size of the texture
+    /// @param height the y size of the texture
+    /// @return a texture that will contain the render passes result image
+    Ptr<Texture> dependsOn(Ptr<RenderPass> other, int width, int height);
     
+    /// Like dependsOn() registers a render-to-texture dependency but doesn't
+    /// create a new texture. Instead, it will recycle the given texture.
+    void addDependency(Ptr<RenderPass> other, Ptr<Texture> tex);
+    
+    /// Removes a dependency identified by the texture it renders to
+    void removeDependency(Ptr<Texture> tex);
+    /// Removes a dependency identified by its RenderPass
+    void removeDependency(Ptr<RenderPass> pass);
+    
+    /// Removes all registered dependencies
+    void clearDependencies();
+    
+    /// Configures this render pass to be stacked on top of another render pass.
+    /// @param other The parent in the render pass stack. May be set to 0
+    ///              to clear the stacked-on relationship.
+    void stackedOn(Ptr<RenderPass> other);
+    
+    /// Traverses the stacked-on list and returns the bottom-most element.
+    Ptr<RenderPass> getBottomOfStack();
+    
+    /// @}
+    
+    /// @name Clearing of depth and color buffer before rendering
+    /// @{
+
     /// Sets background color used when clearing color buffer. Defaults to black.
     void setBackgroundColor(const Vector&);
     const Vector &getBackgroundColor();
@@ -60,65 +84,60 @@ public:
     void enableClearColor(bool);
     bool isClearColorEnabled();
     
-    /// Rendering can target a texture
-    void setRenderToTexture(bool);
-    bool isRenderToTexture();
-    Ptr<Texture> getTexture();
+    /// @}
     
-    /// The render context determines how the main scene gets drawn.
-    void setRenderContext(const RenderContext &ctx);
-    RenderContext &getRenderContext();
-    void setRenderContextEnabled(bool);
-    bool isRenderContextEnabled();
-    
+    /// @name Signals to perform customized drawing
+    /// @{
     typedef SigC::Signal1<void, Ptr<RenderPass> > RenderSignal;
-    /// This signal is fired before the main scene gets drawn
-    RenderSignal & preScene();
-    /// This signal is fired after the main scene was draw
-    RenderSignal & postScene();
+    /// This signal is fired before dependencies are rendered
+    RenderSignal & preDepends();
+    /// This signal is fired before draw() gets executed
+    RenderSignal & preDraw();
+    /// This signal is fired after draw() gets executed
+    RenderSignal & postDraw();
+    /// @}
     
-private:
-    /// Called by RenderPassList
-    void beginRender(JRenderer *);
-    /// Called by RenderPassList
-    void endRender(JRenderer *);
+    /// Triggers a render to the currently active frame buffer.
+    /// This will perform actions in the following order:
+    ///   # Execute the render to texture passes of all dependencies in the stack,
+    ///   # draw the stack parents,
+    ///   # optionally clear color and/or depth buffer,
+    ///   # emit the preDraw() signal,
+    ///   # call draw() and,
+    ///   # emit the postDraw() signal.
+    /// @note if this render pass is disabled, its dependencies are not rendered,
+    ///       neither color nor depth buffer are cleared,
+    ///       draw is not called and no signals are emitted.
+    void render();
     
-    void createTex();
-
-    WeakPtr<RenderPassList> renderpasslist;
-    bool enabled, context_enabled, rendertotex_enabled,
-        clear_depth_enabled, clear_color_enabled;
-    int width, height;
-    bool tex_needs_update;
-    Ptr<Texture> tex;
-    RenderContext context;
-    Vector background_color;
-    RenderSignal pre_scene, post_scene;
-};
-
-class RenderPassList: public Object, public Weak {
-    friend class RenderPass;
-public:
-
-    RenderPassList(WeakPtr<IGame>);
-    ~RenderPassList();
+    /// Triggers a render to a texture.
+    /// The result of calling this after render() is undefined as rendering to
+    /// a texture may overwrite data in the main render buffer.
+    /// Otherwise, this function will perform the same sequence of operations
+    /// as render().
+    void renderToTexture(Ptr<Texture>);
     
-    /// Creates a new RenderPass, disabled and at the front of the list
-    Ptr<RenderPass> createRenderPass();
-    
-    /// Do the actual rendering of the passes
-    void renderPasses();
-    
-    /// Debug function to draw a mosaic of all textures on the main surface
+    /// Debugging function that draws a mosaic of all generated textures.
     void drawMosaic();
-
-private:
-    /// Called by the individual render passes to implement dependencies
-    void move(WeakPtr<RenderPass> pass, WeakPtr<RenderPass> behind_pass);
     
-    typedef std::list<WeakPtr<RenderPass> > Passes;
-    Passes render_passes;
-    WeakPtr<IGame> thegame;
+protected:
+    /// Do the drawing associated with this render pass. This function may
+    /// be overridden by child classes. The default does nothing.
+    virtual void draw();
+    
+private:
+    JRenderer *renderer;
+    
+    Ptr<RenderPass> stack_parent;
+    
+    typedef std::pair<Ptr<RenderPass>, Ptr<Texture> > Dependency;
+    typedef std::vector<Dependency> Dependencies;
+    Dependencies dependencies;
+
+    bool enabled, clear_depth_enabled, clear_color_enabled;
+    Vector background_color;
+
+    RenderSignal pre_draw, post_draw, pre_depends;
 };
 
 

@@ -18,7 +18,7 @@ class Water;
 struct RenderContext;
 class Camera;
 
-class Game: public IGame, public ActorStage, public SigObject, public Weak
+class Game: public IGame, public ActorStage, public SigObject
 {
 public:
     static Game * the_game;
@@ -28,10 +28,9 @@ public:
 
     void run();
     
-    virtual void renderWithContext(const RenderContext *);
+    virtual void renderScene(SceneRenderPass *) ;
     virtual const RenderContext *getCurrentContext();
     virtual Ptr<RenderPass> getMainRenderPass();
-    virtual Ptr<RenderPassList> getRenderPassList();
 
     virtual Ptr<TextureManager> getTexMan();
     virtual JRenderer *getRenderer();
@@ -133,7 +132,6 @@ private:
     Ptr<Water> water;
 	Ptr<IoScriptingManager> io_scripting_manager;
     Ptr<UI::Console> console;
-    Ptr<RenderPassList> renderpasslist;
     Ptr<RenderPass> renderpass_main;
 };
 

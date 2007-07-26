@@ -6,6 +6,7 @@
 
 struct IActor;
 struct IDrawable;
+class RenderPass;
 
 struct IView : virtual public IPositionProvider,
 			   virtual public IMovementProvider
@@ -15,6 +16,7 @@ struct IView : virtual public IPositionProvider,
     virtual void enable()=0;
     virtual void disable()=0;
     virtual bool isEnabled()=0;
+    virtual Ptr<RenderPass> getRenderPass()=0;
 };
 
 #endif

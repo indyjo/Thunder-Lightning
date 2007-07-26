@@ -4,6 +4,7 @@
 #include <object.h>
 #include <interfaces/IActorStage.h>
 #include <modules/ui/Surface.h>
+#include <Weak.h>
 
 class TextureManager;
 class JRenderer;
@@ -26,18 +27,24 @@ struct IView;
 
 struct RenderContext;
 class RenderPass;
-class RenderPassList;
+class SceneRenderPass;
 
 namespace Collide {
 	class CollisionManager;
 }
 
-struct IGame : virtual public Object, virtual public IActorStage
+struct IGame : virtual public Object, virtual public IActorStage, virtual public Weak
 {
-    virtual void renderWithContext(const RenderContext *) = 0;
+    /// Called by the SceneRenderPass with itself as an argument.
+    /// Sets the current context and camera and renders a scene according
+    /// to the configuration of the context.
+    virtual void renderScene(SceneRenderPass *) = 0;
+    
+    /// During rendering, a RenderContext is active.
+    /// @return the currently active RenderContext
     virtual const RenderContext *getCurrentContext() = 0;
+    
     virtual Ptr<RenderPass> getMainRenderPass()=0;
-    virtual Ptr<RenderPassList> getRenderPassList()=0;
 
     virtual Ptr<TextureManager> getTexMan()=0;
     virtual JRenderer *getRenderer()=0;
@@ -65,6 +72,9 @@ struct IGame : virtual public Object, virtual public IActorStage
     typedef SigC::Signal2<void, const char *, const Vector&> InfoMessageSignal;
     /// Allow listeners to hook into infoMessages
     InfoMessageSignal info_message_signal;
+    
+    typedef SigC::Signal0<void> DrawSignal;
+    DrawSignal pre_draw, post_draw;
     
     /// Obsolete time delta function. Replaced by Clock.
     virtual double  getTimeDelta()=0;
