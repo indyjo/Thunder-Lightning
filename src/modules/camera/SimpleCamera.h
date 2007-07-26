@@ -5,61 +5,71 @@
 #include <modules/jogi/JCamera.h>
 #include <modules/math/Plane.h>
 
-class SimpleCamera: public ICamera
+class SimpleCameraBase: public ICamera
 {
-    bool dirty;
+protected:
+    SimpleCameraBase();
+    ~SimpleCameraBase();
+    
+public:
+    void setFocus(float val);
+    void setAspect(float val);
+    void setNearDistance(float val);
+    void setFarDistance(float val);
+
+    // ICamera methods
+    virtual Vector getFrontVector();
+    virtual Vector getRightVector();
+    virtual Vector getUpVector();
+
+    virtual float getFocus();
+    virtual float getAspect();
+    virtual float getNearDistance();
+    virtual float getFarDistance();
+
+    virtual Matrix3 getOrient();
+    virtual Matrix3 getOrientInv();
+    virtual void getCamera(JCamera *cam);
+    virtual void getFrontBackPlane(float plane[4]);
+    virtual void getFrustumPlanes(float planes[6][4]);
+    
+    // Derived classes must implement:
+    // getOrientation, getLocation, getMovementVector
+protected:
     float focus, aspect;
-    Vector location;
-    Matrix3 orient, orient_inv;
-    Plane planes[6];
-    JCamera jcam;
     float near_dist, far_dist;
+};
+
+class SimpleCamera: public SimpleCameraBase
+{
+    Vector location, velocity;
+    Matrix3 orient;
 
 public:
     /// Creates a new camera with default value
     SimpleCamera();
     /// Creates a new camera with values copied from other.
     SimpleCamera(Ptr<ICamera> other);
+
+    void alignWith(IMovementProvider *provider);
     
     SimpleCamera & operator= (ICamera & other);
     
-    // SimpleCamera methods
-    void setFocus(float val);
-    void setAspect(float val);
-    void setNearDistance(float val);
-    void setFarDistance(float val);
-    
     // IPositionProvider methods
     virtual Vector getLocation();
-    virtual Vector getFrontVector();
-    virtual Vector getRightVector();
-    virtual Vector getUpVector();
     virtual void getOrientation(Vector *up, Vector *right, Vector *front);
+    
+    // IMovementProvider methods
+    virtual Vector getMovementVector();
     
     // IPositionReceiver methods
     virtual void setLocation(const Vector &p);
     virtual void setOrientation(const Vector & up,
     							const Vector & right,
     							const Vector & front);
-
-    // ICamera methods
-    virtual void alignWith(IPositionProvider *pos_provider);
-
-    virtual void getCamera(JCamera *cam);
-    
-    virtual void getFrontBackPlane(float plane[4]);
-    virtual void getFrustumPlanes(float planes[6][4]);
-    virtual float getFocus();
-    virtual float getAspect();
-    
-    virtual const Matrix3 & getOrient();
-    virtual const Matrix3 & getOrientInv();
-    virtual float getNearDistance();
-    virtual float getFarDistance();
-    
-
-private:
-    void update();
+    							
+    // IMovementReceiver methods
+    virtual void setMovementVector(const Vector& velocity);
 };
 
 
