@@ -16,14 +16,14 @@ Observer::Observer(Ptr<IGame> thegame)
     setControlMode(MANUAL);
     setEngine(new ObserverEngine(thegame));
     setTargeter(new Targeter(*thegame,*this));
-    thegame->getMainRenderPass()->preScene().connect(
+    thegame->pre_draw.connect(
         SigC::slot(*this, &Observer::update));
 }
 
 void Observer::action() {
 }
 
-void Observer::update(Ptr<RenderPass>) {
+void Observer::update() {
     Ptr<DataNode> c = getControls();
     Ptr<EventRemapper> e = thegame->getEventRemapper();
     

@@ -5,7 +5,7 @@
 
 class RenderPass;
 
-class Observer : public SimpleActor, public SigObject
+class Observer : public SimpleActor
 {
 public:
     Observer(Ptr<IGame>);
@@ -13,7 +13,7 @@ public:
     virtual void action();
     virtual void draw();
     
-    void update(Ptr<RenderPass>);
+    void update();
     
     virtual int getNumViews();
     virtual Ptr<IView> getView(int n);
