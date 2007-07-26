@@ -1,6 +1,7 @@
 #ifndef UI_SURFACE_H
 #define UI_SURFACE_H
 
+#include <interfaces/ICamera.h>
 #include <modules/math/MatrixVector.h>
 
 
@@ -56,11 +57,10 @@ public:
     /** Creates a Surface from the given camera specification.
       * The surface is constructed relative to the camera.
       * @param aspect   the ratio of width/height of the camera
-      * @param focus    the camera focus distance
+      * @param focus    the camera focal length
       * @param width    the desired width of the surface
       * @param height   the desired height of the surface
-      * @param factor   A distance factor. A value of 2 doubles the distance of
-      *                 the surface to the camera.
+      * @param dist     distance of the surface from camera center
       * @return a surface where the origin is the upper left corner, dx points to
       *         the right and dy to the bottom.
       */
@@ -68,15 +68,23 @@ public:
                                       float focus,
                                       float width=1,
                                       float height=1,
-                                      float factor=1)
+                                      float dist=1)
     {
-        float dx2 = aspect * factor;
-        float dy2 = factor;
-        float dist = focus * factor;
-        float f = 2/factor;
+        float dx2 = aspect * dist / focus;
+        float dy2 = dist / focus;
         return Surface(Vector(-dx2, dy2, dist),
-                       Vector(f*dx2/width, 0, 0),
-                       Vector(0, -f*dy2/height, 0), width, height);
+                       Vector(2*dx2/width, 0, 0),
+                       Vector(0, -2*dy2/height, 0), width, height);
+    }
+    
+    inline static Surface FromCamera( Ptr<ICamera> cam,
+                                      float width=1,
+                                      float height=1,
+                                      float dist=1 ) {
+        return FromCamera(
+            cam->getAspect(),
+            cam->getFocus(),
+            width, height, dist);
     }
 
     /// Translate the origin by the specified surface units

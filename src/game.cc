@@ -401,7 +401,8 @@ UI::Surface Game::getScreenSurface() {
     int yres = renderer->getHeight();
     float aspect = renderer->getAspect();
     float focus = renderer->getFocus();
-    return UI::Surface::FromCamera(aspect, focus, xres, yres);
+    float dist = (renderer->getClipNear() + renderer->getClipFar())/2;
+    return UI::Surface::FromCamera(aspect, focus, xres, yres, dist);
 }
 
 Ptr<Clock> Game::getClock()
