@@ -15,9 +15,9 @@ CoroProfiles := Object clone do(
         profiles foreach(p,
             d1 := p coro_type alignLeft(31)
             d2 := p time_sum asString(7,2)
-            d3 := p passes asString(6)
+            d3 := p passes asString(6,0)
             d4 := (1000 * p avg_time_per_pass) asString(9,2)
-            d5 := p n_instances asString(5)
+            d5 := p n_instances asString(5,0)
             res := res .. "#{d1} #{d2} #{d3} #{d4} #{d5}\n" interpolate
         )
         res
@@ -89,6 +89,8 @@ Coro := Object clone do(
         ) catch (Exception,
             ex showStack
             self exception := ex
+        ) catch (
+            ex pass
         )
         running = nil
         managed foreach(i,coro, coro interrupt)
@@ -113,6 +115,7 @@ Coro := Object clone do(
         Coro oldPass := Coro getSlot("pass")
         
         Coro pass := method(
+            cur_time := Date now asNumber
             key := self uniqueHexId
             profile := profiles at(key)
             if (profile isNil,
@@ -125,7 +128,7 @@ Coro := Object clone do(
                 
                 profiles atPut(key, profile)
             ,
-                profile time_sum := profile time_sum + (Date now asNumber - profile time_of_last_pass)
+                profile time_sum := profile time_sum + (cur_time - profile time_of_last_pass)
                 profile passes := profile passes + 1
             )
             
