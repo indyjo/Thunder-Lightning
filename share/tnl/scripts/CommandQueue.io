@@ -18,7 +18,14 @@ CommandQueue := Object clone do (
     )
     
     clearCommands := method(
-        commands removeAll
+        if (commands size > 0 and commands first abortable not,
+            first := commands first
+            commands removeAll
+            commands append(first)
+        ,
+            commands removeAll
+        )
+        self
     )
     
     endCurrentCommand := method(

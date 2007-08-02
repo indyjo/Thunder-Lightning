@@ -16,6 +16,8 @@ Command := Object clone do(
     argFloat := nil
     argPath  := nil
     
+    abortable := true
+    
     workLeft := method(context_actor,
         false
     )
@@ -94,6 +96,7 @@ Command do(
     
     Takeoff := Command clone do(
         action = TAKEOFF
+        abortable = false
         
         with := method( runway,
             self argActor = WeakLink clone setLink(runway)
@@ -127,9 +130,8 @@ Command do(
     Join := Command clone do(
         action = JOIN
         
-        with := method( leader, rel_pos,
+        with := method( leader,
             self argActor = WeakLink clone setLink(leader)
-            self argVec3  = rel_pos clone
             self
         )
         
