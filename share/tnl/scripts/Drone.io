@@ -8,6 +8,8 @@ Drone coro := method(
 doFile(Config scripts_dir .. "/Drone_attack.io")
 
 Drone do(
+    appendProto(CommonAI)
+    
     TRAVEL_SPEED := 400 / 3.6
     TRAVEL_HEIGHT := 500
 
@@ -637,10 +639,12 @@ Drone do(
                 )
             ),
             Command GOTO, do(
+                me callSubordinates
                 task := manage( me TravelTo clone start(me, command argVec2) )
                 while(task running, pass)
             ),
             Command PATH, do(
+                me callSubordinates
                 task := manage( me FollowPath clone start(
                     me,
                     command argPath,
@@ -649,6 +653,7 @@ Drone do(
                 while(task running, pass)
             ),
             Command LAND, do(
+                me dispatchSubordinates(command)
                 rwy := command argActor link
                 get_eaten := command argBool
                 if (rwy and rwy isAlive,
@@ -661,6 +666,7 @@ Drone do(
                 
             ),
             Command TAKEOFF, do(
+                me dispatchSubordinates(command)
                 rwy := command argActor link
                 if (rwy and rwy isAlive,
                     #"Performing takeoff." say
@@ -671,40 +677,18 @@ Drone do(
                 )
                 
             ),
+            Command JOIN, do(
+                me callSubordinates
+                leader := command argActor link
+                if (leader and leader isAlive,
+                    p := leader formationPositionOf(me)
+                    task := manage( me FlyInFormation(me, leader, p) )
+                    while(task running, pass)
+                ,
+                    "Can't join, leader seems to be dead." say
+                )
+            ),
             ("Command " .. command action .. " not implemented yet.") say
-        )
-    )
-    
-    ExecuteCommandQueue := coro(me,
-        command := nil
-        handler := nil
-        
-        loop(
-            if (handler isNil not and handler running not,
-                command = handler = nil
-                me command_queue endCurrentCommand
-            )
-            c := me command_queue currentCommand(me)
-            if (c != command,
-                //("New command: " .. c ?action) say
-                command = c
-                handler ifNonNil(
-                    handler interrupt
-                )
-                
-                c ifNonNil(
-                    handler = Drone ExecuteCommand clone start(me, command)
-                    manage(handler)
-                )
-            )
-            
-            c ifNil(
-                newCommand := me AdHocCommand
-                me command_queue setAdHocCommand(newCommand)
-                //("New ad hoc command: " .. newCommand ?action) say
-            )
-            
-            sleep(0.5)
         )
     )
     

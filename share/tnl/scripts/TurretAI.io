@@ -127,7 +127,7 @@ TurretAI := Object clone do(
   )
   
   AttackCloseTargets := coro(me, turret, arg_max_distance,
-    argDefaults(max_distance, arg_max_distance, 3000)
+    argDefaults(max_distance, arg_max_distance, turret weapon maxRange)
     self target := nil
     had_target := false
     

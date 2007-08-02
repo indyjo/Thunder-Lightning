@@ -5,11 +5,16 @@ Tank coro := method(
 )
 
 Tank do (
+  appendProto(CommonAI)
+  
+  TRAVEL_SPEED := 15
+
   init := method(
     self turret := TurretAI clone do(
       pivot := vector(0, 2.336049, -1.867034)
     )
     turret weapon := armament weapon("Vulcan")
+    self command_queue := CommandQueue clone
   )
   
   isGroundTarget := true
@@ -160,53 +165,23 @@ Tank do (
     )
   )
   
-  FollowPath := coro(me, arg_path, arg_closed, arg_speed,
-    if((self ?vpath) isNil, self vpath := arg_path)
-    if((self ?closed) isNil, self closed := if (arg_closed isNil, self, arg_closed))
-    if((self ?speed) isNil, self speed := if (arg_speed isNil, 15.0, arg_speed))
+  FollowPath := coro(me, arg_navpath, arg_speed,
+    argDefaults(navpath, arg_navpath)
+    argDefaults(speed, arg_speed, me TRAVEL_SPEED)
     
-    positionOnSegment := block(a,b,
-      d := b - a
-      p := me location2
-      (p - a) dot(d) / d lenSquare
-    ) setIsActivatable(true)
-    
-    popSegment := block(
-      front := vpath removeAt(0)
-      if (closed, vpath push(front))
-    ) setIsActivatable(true)
+    if( navpath type != "NavPath", Exception raise("Invalid navpath"))
+    if( speed hasProto(Number) not, Exception raise("Invalid speed"))
     
     self mp := Tank MaintainPosition2 clone start(me)
     manage(mp)
     
-    while (path size > 1,
-      a := vpath at(0)
-      b := vpath at(1)
-      t := positionOnSegment(a,b)
-      //writeln("path segment: ",a entries," -> ", b entries, " t: ",t)
-      if ( t > 1,
-        popSegment
-        continue
-      )
-      if ((a-b) lenSquare < 0.0001,
-        popSegment
-        continue
-      )
-      if (vpath size > 2,
-        if( positionOnSegment(b,vpath at(2)) between(0,1),
-          popSegment
-          continue
-        )
-        c := vpath at(2)
-        a2 := a mixedWith(b, t)
-        b2 := b mixedWith(c, t)
-        t := positionOnSegment(a2,b2)
-        a = a2
-        b = b2
-      )
-      
-      mp target_v := (b - a) norm scaledBy(speed)
-      mp target_p := a mixedWith(b, t)
+    while (navpath done not,
+      segment := navpath currentSegmentSmoothed(me location2)
+      a := segment at(0)
+      b := segment at(1)
+      d := (b-a) normInPlace
+      mp target_v := d scaledBy(speed)
+      mp target_p := (me location2 - a) projectedOn(d) + a
       //writeln("mp target_p: ", mp target_p entries)
       //writeln("mp target_v: ", mp target_v entries)
       
@@ -248,26 +223,42 @@ Tank do (
       gradient := vector(0,0,0)
       neighbors foreach(i,neighbor,
         d := neighbor getLocation - me getLocation
-        dist := d len
-        d scaleInPlaceBy(1/dist)
+        distSquare := d lenSquare
+        dist := distSquare sqrt
         // gradient of the function (dist - avg_dist)^2
-        gradient = gradient + d scaledBy( 2*(dist - avg_dist) )
+        gradient = gradient + d scaledBy( 2*(distSquare - dist*avg_dist) )
         avg_velocity := avg_velocity + neighbor getMovementVector
       )
-      
-      gradient2 := vector(gradient at(0,0), gradient at(2,0))
       
       if (neighbors size == 0,
         mv target_v := vector(0,0)
       ,
         avg_velocity = avg_velocity scaledBy(1/neighbors size)
-        avg_velocity2 := vector(avg_velocity at(0,0), avg_velocity at (2,0))
-        mv target_v := avg_velocity2 + gradient2
+        mv target_v := avg_velocity xz + gradient xz
       )
       pass
     )
   )
   
+  ExecuteCommand := coro(me, command,
+    command action switch(
+      Command GOTO, do(
+        path := NavPath clone with(list( me location2, command argVec2 ))
+        task := manage( me FollowPath clone start(me, path) )
+        while(task running, pass)
+      ),
+      Command PATH, do(
+        task := manage( me FollowPath clone start(
+          me,
+          command argPath,
+          command argFloat ifNilEval(me TRAVEL_SPEED)
+        ) )
+        while(task running, pass)
+      ),
+      ("Command " .. command action .. " not implemented yet.") say
+    )
+  )
+
   ai := coro(me,
     self act := me turret AttackCloseTargets clone start(me, me turret)
     manage(act)
@@ -275,7 +266,7 @@ Tank do (
     loop(
       pass
     )
-  )
+  ) do( type="ai" )
   
   on("start_ai",
     self _ai := ai clone start(self)

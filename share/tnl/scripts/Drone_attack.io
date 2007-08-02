@@ -17,6 +17,7 @@ Drone do(
     )
     
     AttackWithMissileSalvo := coro(me, target,
+        me dispatchSubordinates(me command_queue currentCommand)
         dirToTarget := block(
             (target location - me location) norm
         )
@@ -35,14 +36,13 @@ Drone do(
         sleep(1)
         if (Random value > 0.5, me armament weapon("Sidewinder") trigger)
         
-        sleep(2)
+        sleep(4)
     )
     
     GainDistance := coro(me, target,
         toTarget := block(
             target location - me location
         )
-        
         
         self fv := me FlyVector clone start(me)
         fv tag := "GainDistance"
@@ -86,6 +86,7 @@ Drone do(
     )
     
     TravelToTarget := coro(me, target,
+        me callSubordinates
         target_dist := 7000
         saved_location := target location2
         
