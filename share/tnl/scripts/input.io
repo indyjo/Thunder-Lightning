@@ -7,8 +7,7 @@ EventRemapper do(
   release := nil
   
   mapKey(SDLK_ESCAPE, press, "endgame")
-  mapKey(SDLK_TAB, press,  "map_magnify")
-  mapKey(SDLK_TAB, release, "map_demagnify")
+  mapKey(SDLK_TAB, press,  "switch-mfd")
 
   mapKey(SDLK_UP, press, "+forward")
   mapKey(SDLK_UP, release, "-forward")
