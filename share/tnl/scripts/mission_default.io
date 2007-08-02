@@ -38,13 +38,14 @@ addTank := method(pos,
     tank := Tank clone
     tank setLocation(pos)
     tank setFaction(them)
-    tank setControlMode(Actor AUTOMATIC)
+    tank setControlMode(Actor UNCONTROLLED)
     Game addActor(tank)
     tank
 )
 
 FollowStupidPath := coro(me,
     x := me getLocation
+
     x := vector(x at(0), x at(2))
     waypoints := list(  x+vector(0,0),
                         x+vector(0,-200),
@@ -54,15 +55,16 @@ FollowStupidPath := coro(me,
                         x+vector(600,-100),
                         x+vector(600,-200),
                         x+vector(400,-400))
-    self fp := Tank followPath clone start(me, waypoints)
+    self fp := Tank FollowPath clone
     manage(fp)
     loop(
+        if (fp running not, fp start(me, NavPath clone with(waypoints)))
         pass
     )
 )
 
 FollowStupidTank := coro(me,
-    self ft := Tank followTank clone start(me, me tank_to_follow, me xpos, me zpos)
+    self ft := Tank FollowTank clone start(me, me tank_to_follow, me xpos, me zpos)
     manage(ft)
     loop(
         pass
@@ -104,9 +106,14 @@ startup := method(
     tankpos := vector(6543,0,1416)
     tankpos2 := tankpos xz
     
+    "Here" println
     self tank1 := addTank(tankpos)
+    "There" println
     tank1 setLocation(tankpos)
     tank1 ai := FollowStupidPath
+    "Control mode:" println
+    tank1 controlMode asString println
+    tank1 setControlMode(Actor AUTOMATIC)
     addKillObjective(tank1)
 
     self tank2 := addTank(tankpos + vector(30, 0 , -30) )
@@ -114,6 +121,7 @@ startup := method(
     tank2 xpos := 20
     tank2 zpos := -35
     tank2 ai := FollowStupidTank
+    tank2 setControlMode(Actor AUTOMATIC)
     addKillObjective(tank2)
 
     self tank3 := addTank(tankpos + vector(-20, 0, -30))
@@ -121,11 +129,18 @@ startup := method(
     tank3 xpos := -20
     tank3 zpos := -35
     tank3 ai := FollowStupidTank
+    tank3 setControlMode(Actor AUTOMATIC)
     addKillObjective(tank3)
     
     self shooting_tanks := list
-    2 repeat(
-      tank := addTank(vector(6543,0,1386) + randvec scaledBy(1500))
+    shooting_positions := list(
+        tankpos + vector(800, 0, -500),
+        tankpos + vector(-200, 0, -500),
+        tankpos + vector(-200, 0, 500),
+        tankpos + vector(800, 0, 500))
+    shooting_positions foreach(p,
+      tank := addTank(p)
+      tank setControlMode(Actor AUTOMATIC)
       shooting_tanks append(tank)
     )
     
@@ -175,20 +190,14 @@ startup := method(
         Command Goto clone with(evil_carrier location2, 2000))
     drone1 command_queue appendCommand(
         Command Land clone with(evil_carrier))
-    drone1 setControlMode(Actor AUTOMATIC)
 
     self drone2 := evil_carrier spawnDrone
     drone2 command_queue appendCommand(
-        Command Takeoff clone with(evil_carrier))
-    drone2 command_queue appendCommand(
-        Command Attack clone with(wingman2))
-    drone2 command_queue appendCommand(
-        Command Attack clone with(wingman1))
-    drone2 command_queue appendCommand(
-        Command Goto clone with(evil_carrier location2, 2000))
-    drone2 command_queue appendCommand(
-        Command Land clone with(evil_carrier))
+        Command Join clone with(drone1))
     drone2 setControlMode(Actor AUTOMATIC)
+    
+    drone1 addSubordinate(drone2)
+    drone1 setControlMode(Actor AUTOMATIC)
     
     "DefaultMission startup end" println
 )
