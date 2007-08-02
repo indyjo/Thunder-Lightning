@@ -48,7 +48,7 @@ Config do(
   TexMan_missing_texture    := texture_dir .. "/missing-texture.png"
 
   // Environment config
-  Environment_clip_min      := "0.2"
+  Environment_clip_min      := "1.0"
   Environment_clip_max      := "20000"
   Environment_fog_r         := (202/255) asString
   Environment_fog_g         := (164/255) asString
@@ -147,6 +147,10 @@ Config do(
   Drone_RightWheel_C_norm          := Drone_LeftWheel_C_norm
 
   Drone_max_tailhook_force         := "40000"
+  
+  Drone_Vulcan_rounds              := "250"
+  Drone_Sidewinder_rounds          := "6"
+  Drone_Hydra_rounds               := "14"
 
   // Tank configuration
   Tank_model_path                  := model_dir .. "/newtank"
@@ -155,8 +159,10 @@ Config do(
   Tank_cannon_sound                := "cannon-shoot-1.wav"
   Tank_engine_sound_low            := "car-engine-1-loop.wav"
   Tank_engine_sound_high           := "car-engine-2-loop.wav"
+  Tank_cannon_rounds               := "25"
   Tank_cannon_factor               := "10"
-  Tank_vulcan_factor               := "0.8"
+  Tank_vulcan_rounds               := "1200"
+  Tank_vulcan_factor               := "0.5"
 
   // FontMan configuration
   FontMan_dir                      := fonts_dir
@@ -209,21 +215,56 @@ Config do(
   SmartMissile_Kd                  := "50"
   
   // Weapons configuration
-  Cannon_sound                     := "cannon-shoot-1.wav"
+  Cannon_loadtime                  := "2"
+  Cannon_singleshot                := "true"
+  Cannon_guided                    := "false"
+  Cannon_max_range                 := "8000"
+  Cannon_time_of_accel             := "0"
+  Cannon_factor                    := "10"
   Cannon_muzzle_velocity           := "1200"
+  Cannon_reference_speed           := Cannon_muzzle_velocity
+  
+  Cannon_sound                     := "cannon-shoot-1.wav"
   Cannon_reference_distance        := "200.0"
   Cannon_gain                      := "1.0"
-  Vulcan_sound                     := "cannon-shoot-2.wav"
+  
+  Vulcan_loadtime                  := (1/5) asString
+  Vulcan_singleshot                := "false"
+  Vulcan_guided                    := "false"
+  
+  Vulcan_max_range                 := "2000"
   Vulcan_muzzle_velocity           := "1200"
+  Vulcan_reference_speed           := Vulcan_muzzle_velocity
+  Vulcan_time_of_accel             := "0"
+
+  Vulcan_sound                     := "cannon-shoot-2.wav"
   Vulcan_reference_distance        := "100.0"
   Vulcan_gain                      := "0.05"
+  
+  Hydra_loadtime                   := "1"
+  Hydra_singleshot                 := "true"
+  Hydra_guided                     := "false"
+  Hydra_max_range                  := "1500"
+  Hydra_time_of_accel              := "1.05"
+  Hydra_reference_speed            := "739.14"
+  Hydra_launch_speed               := "0"
+  Hydra_needs_target               := "false"
 
+  Sidewinder_loadtime              := "1"
+  Sidewinder_singleshot            := "true"
+  Sidewinder_guided                := "true"
+  Sidewinder_max_range             := "10000"
+  Sidewinder_time_of_accel         := "0.0"
+  Sidewinder_reference_speed       := "0.0"
+  Sidewinder_launch_speed          := "0"
+  Sidewinder_needs_target          := "true"
 
   // Carrier configuration
   Carrier_model_path               := model_dir .. "/carrier"
   Carrier_skeleton                 := Carrier_model_path .. "/Carrier.spec"
   Carrier_model_bounds             := Carrier_model_path .. "/carrier.bounds"
   Carrier_model_hull               := Carrier_model_path .. "/carrier-hull-reduced.obj"
+  Carrier_Vulcan_rounds            := "5000"
   
   // Water rendering configuration
   Water_vertex_shader              := shaders_dir .. "/ocean.vert"
