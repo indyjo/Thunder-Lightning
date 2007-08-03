@@ -70,10 +70,7 @@ void main (void)
     float reflection = mix(MinReflectivity, MaxReflectivity, fresnel);
     
     vec3 envColor = BaseColor + reflection*reflectionColor;
-    //envColor = envColor+MixRatio*(bumpColor.bbb);
-    //if ( length(reflectionColor) > 0.7 ) {
-        envColor += SunColor * PhongFactor * max(0.0,pow(dot(reflectDir,SunDir), PhongExponent));
-    //}
+    envColor += SunColor * PhongFactor * pow(max(0.0,dot(reflectDir,SunDir)), PhongExponent);
     envColor = mix(envColor, gl_Fog.color.rgb, Fog);
     gl_FragColor = vec4 (envColor, 1.0);
 }
