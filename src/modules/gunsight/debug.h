@@ -6,20 +6,20 @@
 struct IFontMan;
 struct IGame;
 
-class FPSModule : public GunsightModule {
+class FPSModule : public UI::Component {
 	Ptr<IGame> game;
 	float fps;
 public:
 	FPSModule(Ptr<IGame> game);
-    void draw(FlexibleGunsight &);
+    void draw(UI::Panel &);
 };
 
-class TargetInfoModule : public GunsightModule {
+class TargetInfoModule : public UI::Component {
 	Ptr<IGame> game;
 	Ptr<IActor> actor;
 public:
 	TargetInfoModule(Ptr<IGame>, Ptr<IActor>);
-	void draw(FlexibleGunsight &);
+	void draw(UI::Panel &);
 };
 
 

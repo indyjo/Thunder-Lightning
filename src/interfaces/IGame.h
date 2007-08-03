@@ -55,8 +55,6 @@ struct IGame : virtual public Object, virtual public IActorStage, virtual public
     virtual UI::Surface getScreenSurface()=0;
     virtual Ptr<Clock> getClock()=0;
     virtual Ptr<ITerrain> getTerrain()=0;
-    virtual Ptr<IDrawable> getGunsight()=0;
-    virtual void setGunsight(Ptr<IDrawable>)=0;
     virtual Ptr<Environment> getEnvironment()=0;
     virtual Ptr<Water> getWater()=0;
     virtual Ptr<IFontMan> getFontMan()=0;

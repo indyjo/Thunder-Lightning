@@ -41,8 +41,6 @@ public:
     virtual UI::Surface getScreenSurface();
     virtual Ptr<Clock> getClock();
     virtual Ptr<ITerrain> getTerrain();
-    virtual Ptr<IDrawable> getGunsight();
-    virtual void setGunsight(Ptr<IDrawable>);
     virtual Ptr<Environment> getEnvironment();
     virtual Ptr<Water> getWater();
     virtual Ptr<IFontMan> getFontMan();
@@ -127,7 +125,6 @@ private:
     Ptr<Collide::CollisionManager> collisionman;
     Ptr<ILoDQuadManager> quadman;
     Ptr<ISkyBox> skybox;
-    Ptr<IDrawable> gunsight;
     Ptr<Environment> environment;
     Ptr<Water> water;
 	Ptr<IoScriptingManager> io_scripting_manager;

@@ -350,7 +350,6 @@ void Game::run()
     collisionman = 0;
     quadman = 0;
     skybox = 0;
-    gunsight = 0;
     environment = 0;
     water = 0;
     io_scripting_manager = 0;
@@ -415,15 +414,6 @@ Ptr<ITerrain> Game::getTerrain()
     return quadman;
 }
 
-Ptr<IDrawable> Game::getGunsight()
-{
-    return gunsight;
-}
-
-void Game::setGunsight(Ptr<IDrawable> gunsight) {
-    this->gunsight=gunsight;
-}
-
 Ptr<IFontMan> Game::getFontMan() {
     return fontman;
 }
@@ -462,7 +452,6 @@ void Game::setCurrentView(Ptr<IView> view)
 {
     if (view) {
         view->enable();
-        setGunsight(view->getGunsight());
         if (view->getRenderPass()) {
             renderpass_main = view->getRenderPass();
         } else {
@@ -470,7 +459,6 @@ void Game::setCurrentView(Ptr<IView> view)
             renderpass_main = new SceneRenderPass(this, ctx);
         }
     } else {
-        setGunsight(0);
         RenderContext ctx(camera);
         renderpass_main = new SceneRenderPass(this, ctx);
     }

@@ -8,67 +8,66 @@ struct IGame;
 class FlightInfo;
 class JRenderer;
 
-struct FlightGunsight : public FlexibleGunsight {
-	FlightGunsight(Ptr<IGame>, FlightInfo &);
-};
-
-struct CrosshairModule : public GunsightModule {
+struct CrosshairModule : public UI::Component {
 	CrosshairModule();
-    void draw(FlexibleGunsight &);
+    void draw(UI::Panel &);
 };
 
-struct HUDFrameModule : public GunsightModule {
-	HUDFrameModule(float screen_x, float screen_y);
-    void draw(FlexibleGunsight &);
+struct HUDFrameModule : public UI::Component {
+	HUDFrameModule();
+    virtual void draw(UI::Panel &);
+    virtual void onLayout(UI::Panel &);
 };
 
-class SpeedModule : public GunsightModule {
+class SpeedModule : public UI::Component {
 	FlightInfo& flight_info;
 	Ptr<IFontMan> fontman;
 public:
 	SpeedModule(Ptr<IGame>, FlightInfo&);
-    void draw(FlexibleGunsight &);
+    void draw(UI::Panel &);
 };
 
-class HeightModule : public GunsightModule {
+class HeightModule : public UI::Component {
 	FlightInfo& flight_info;
 	Ptr<IFontMan> fontman;
 public:
 	HeightModule(Ptr<IGame>, FlightInfo&);
-    void draw(FlexibleGunsight &);
+    void draw(UI::Panel &);
 };
 
-class HeightGraphModule : public GunsightModule {
+class HeightGraphModule : public UI::Component {
     FlightInfo& flight_info;
     Ptr<IFontMan> fontman;
 public:
-    HeightGraphModule(float screen_h, Ptr<IGame>, FlightInfo&);
-    void draw(FlexibleGunsight &);
+    HeightGraphModule(Ptr<IGame>, FlightInfo&);
+    void draw(UI::Panel &);
+    virtual void onLayout(UI::Panel &);
 };
 
-class SpeedGraphModule : public GunsightModule {
+class SpeedGraphModule : public UI::Component {
     FlightInfo& flight_info;
     Ptr<IFontMan> fontman;
 public:
-    SpeedGraphModule(float screen_h, Ptr<IGame>, FlightInfo&);
-    void draw(FlexibleGunsight &);
+    SpeedGraphModule(Ptr<IGame>, FlightInfo&);
+    void draw(UI::Panel &);
+    virtual void onLayout(UI::Panel &);
 };
 
-class HorizonIndicator : public GunsightModule {
+class HorizonIndicator : public UI::Component {
 	FlightInfo& flight_info;
 	Ptr<IFontMan> fontman;
 public:
 	HorizonIndicator(Ptr<IGame>, FlightInfo &, float w, float h);
-	void draw(FlexibleGunsight &);
+	void draw(UI::Panel &);
 	void drawIndicator(JRenderer *, int degrees, Vector center, Vector right);
 };
 
-class GearHookIndicator : public GunsightModule {
+class GearHookIndicator : public UI::Component {
 	Ptr<DataNode> controls;
 	Ptr<IFontMan> fontman;
 public:
 	GearHookIndicator(Ptr<IGame>, Ptr<DataNode> controls);
-	void draw(FlexibleGunsight &);
+	void draw(UI::Panel &);
 };
 
 

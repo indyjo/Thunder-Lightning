@@ -4,19 +4,19 @@
 #include <interfaces/IGame.h>
 #include "gunsight.h"
 
-class ControlModeModule : public GunsightModule {
+class ControlModeModule : public UI::Component {
 	Ptr<IFont> font;
 	Ptr<IActor> actor;
 public:
 	ControlModeModule(Ptr<IGame> game, Ptr<IActor> actor)
-	    : GunsightModule("control-mode", 200, 20)
+	    : UI::Component("control-mode", 200, 20)
 	    , actor(actor)
 	{
         game->getFontMan()->selectFont(IFontMan::FontSpec("dungeon", 12, IFontMan::FontSpec::BOLD));
         font = game->getFontMan()->getFont();
 	}
 	
-    void draw(FlexibleGunsight & gunsight) {
+    void draw(UI::Panel & gunsight) {
         UI::Surface surface = gunsight.getSurface();
         surface.translateOrigin(
 		    offset[0]+width/2,

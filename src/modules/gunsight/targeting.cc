@@ -6,27 +6,27 @@
 #include <modules/weaponsys/Targeter.h>
 #include <modules/weaponsys/Weapon.h>
 #include <interfaces/IFontMan.h>
+#include <interfaces/IView.h>
 #include <TargetInfo.h>
 #include <Faction.h>
 #include "gunsight.h"
 
 using namespace std;
 
-struct TargetingModule : public GunsightModule {
+struct TargetingModule : public UI::Component {
 	Ptr<IActor> self;
 	Ptr<Targeter> targeter;
 	
 	TargetingModule(
-		float width, float height,
 		Ptr<IActor> self,
 		Ptr<Targeter> targeter)
-	:	GunsightModule("targeting", width, height),
+	:	UI::Component("targeting", 16, 16),
 		self(self),
 		targeter(targeter)
 	{
 	}
 	
-	void draw(FlexibleGunsight & gunsight) {
+	void draw(UI::Panel & gunsight) {
 		JRenderer *r = gunsight.getRenderer();
 		UI::Surface surface = gunsight.getSurface();
 		surface.translateOrigin(
@@ -121,6 +121,11 @@ struct TargetingModule : public GunsightModule {
 		
 		r->popMatrix();
 	}
+
+	void onLayout(UI::Panel & panel) {
+	    width = panel.getSurface().getWidth();
+	    height = panel.getSurface().getHeight();
+	}
 };
 
 
@@ -129,24 +134,23 @@ struct TargetingModule : public GunsightModule {
 #define BULLET_RANGE 1000.0f
 #define BULLET_TTL (BULLET_RANGE / BULLET_SPEED)
 
-struct AimingModule : public GunsightModule {
-	Ptr<IActor> self;
+struct AimingModule : public UI::Component {
+	Ptr<IMovementProvider> view;
 	Ptr<Targeter> targeter;
 	Ptr<Armament> armament;
 	
 	AimingModule(
-		float width, float height,
-		Ptr<IView> view,
+		Ptr<IMovementProvider> view,
 		Ptr<Targeter> targeter,
 		Ptr<Armament> armament)
-	:	GunsightModule("aiming", width, height),
+	:	UI::Component("aiming", 16, 16),
 		view(view),
 		targeter(targeter),
 		armament(armament)
 	{
 	}
 	
-	void draw(FlexibleGunsight & gunsight) {
+	void draw(UI::Panel & gunsight) {
 	    if(armament->currentWeapon(0)->isGuided()) {
 	        return;
 	    }
@@ -213,36 +217,38 @@ struct AimingModule : public GunsightModule {
 		
 		r->popMatrix();
 	}
+	
+	void onLayout(UI::Panel & panel) {
+	    width = panel.getSurface().getWidth();
+	    height = panel.getSurface().getHeight();
+	}
 };
 
 void FlexibleGunsight::addTargeting(
-	Ptr<IView> view,
+	Ptr<IMovementProvider> view,
 	Ptr<Targeter> targeter,
 	Ptr<Armament> armament)
 {
     addModule(new TargetingModule(
-    		surface.getWidth(), surface.getHeight(),
-    		view->getViewSubject(),targeter),
+    		& (targeter->getSubjectActor()),targeter),
         "screen", HCENTER | VCENTER, HCENTER | VCENTER);
     addModule(new AimingModule(
-    		surface.getWidth(), surface.getHeight(),
     		view,targeter,armament),
         "screen", HCENTER | VCENTER, HCENTER | VCENTER);
 }
 
 
-struct DirectionOfFlightModule : public GunsightModule {
+struct DirectionOfFlightModule : public UI::Component {
 	Ptr<IActor> self;
 	
 	DirectionOfFlightModule(
-		float width, float height,
 		Ptr<IActor> self)
-	:	GunsightModule("direction-of-flight", width, height),
+	:	UI::Component("direction-of-flight", width, height),
 		self(self)
 	{
 	}
 	
-	void draw(FlexibleGunsight & gunsight) {
+	void draw(UI::Panel & gunsight) {
 		JRenderer *r = gunsight.getRenderer();
 		UI::Surface surface = gunsight.getSurface();
 		surface.translateOrigin(
@@ -279,29 +285,32 @@ struct DirectionOfFlightModule : public GunsightModule {
 		
 		r->popMatrix();
 	}
+
+	void onLayout(UI::Panel & panel) {
+	    width = panel.getSurface().getWidth();
+	    height = panel.getSurface().getHeight();
+	}
 };
 
 void FlexibleGunsight::addDirectionOfFlight(
 	Ptr<IActor> self)
 {
-    addModule(new DirectionOfFlightModule(
-    		surface.getWidth(), surface.getHeight(),
-    		self),
+    addModule(new DirectionOfFlightModule(self),
         "screen", HCENTER | VCENTER, HCENTER | VCENTER);
 }
 
-struct InterceptionModule : public GunsightModule {
+struct InterceptionModule : public UI::Component {
 	Ptr<IActor> self, other;
 	
 	InterceptionModule(
 		float width, float height,
 		Ptr<IActor> self, Ptr<IActor> other)
-	:	GunsightModule("interception", width, height),
+	:	UI::Component("interception", width, height),
 		self(self), other(other)
 	{
 	}
 	
-	void draw(FlexibleGunsight & gunsight) {
+	void draw(UI::Panel & gunsight) {
 		JRenderer *r = gunsight.getRenderer();
 		UI::Surface surface = gunsight.getSurface();
 		surface.translateOrigin(
@@ -363,24 +372,24 @@ void FlexibleGunsight::addInterception(
 	Ptr<IActor> self, Ptr<IActor> other)
 {
     addModule(new InterceptionModule(
-    		surface.getWidth(), surface.getHeight(),
+    		getSurface().getWidth(), getSurface().getHeight(),
     		self, other),
         "screen", HCENTER | VCENTER, HCENTER | VCENTER);
 }
 
-struct CurrentWeaponModule : public GunsightModule {
+struct CurrentWeaponModule : public UI::Component {
 	Ptr<Armament> arms;
 	Ptr<IFontMan> fontman;
     size_t weapon_group;
 	
 	CurrentWeaponModule(const char *name, Ptr<IGame> game, Ptr<Armament> arms, size_t weapon_group)
-	:	GunsightModule(name, 200, 25),
+	:	UI::Component(name, 200, 25),
 		arms(arms),
 		fontman(game->getFontMan()),
         weapon_group(weapon_group)
 	{ }
 	
-	void draw(FlexibleGunsight & gunsight) {
+	void draw(UI::Panel & gunsight) {
 		UI::Surface surface = gunsight.getSurface();
 		surface.translateOrigin(offset[0],offset[1]);
 		

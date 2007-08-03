@@ -11,7 +11,7 @@
 
 #include "gunsight.h"
 
-struct MissileWarningModule : public GunsightModule, public SigObject {
+struct MissileWarningModule : public UI::Component, public SigObject {
     std::vector<Ptr<IActor> > missiles;
 	Ptr<SimpleActor> actor;
 	Ptr<IFont> font;
@@ -20,7 +20,7 @@ struct MissileWarningModule : public GunsightModule, public SigObject {
     SigC::Connection connection;
 	
 	MissileWarningModule(const char *name, Ptr<IGame> game, Ptr<SimpleActor> actor)
-	:	GunsightModule(name, 200, 25),
+	:	UI::Component(name, 200, 25),
 		actor(actor),
         soundman(game->getSoundMan())
 	{
@@ -76,7 +76,7 @@ struct MissileWarningModule : public GunsightModule, public SigObject {
         return std::make_pair(closest, min_dist);
     }
 	
-	void draw(FlexibleGunsight & gunsight) {
+	void draw(UI::Panel & gunsight) {
         updateMissileList();
 
         std::pair<Ptr<IActor>, float> closest = closestMissile();
@@ -129,7 +129,7 @@ namespace {
 #define FADEOUT_BEGIN 6.0f
 #define FADEOUT_END   8.0f
 
-struct InfoMessageModule : public GunsightModule, public SigObject {
+struct InfoMessageModule : public UI::Component, public SigObject {
 
     struct TimestampedString {
         std::string     text;
@@ -149,7 +149,7 @@ struct InfoMessageModule : public GunsightModule, public SigObject {
     SigC::Connection connection;
 	
 	InfoMessageModule(const char *name, Ptr<IGame> game)
-        :	GunsightModule(name, game->getScreenSurface().getWidth(), game->getScreenSurface().getHeight()*0.4f)
+        :	UI::Component(name, game->getScreenSurface().getWidth(), game->getScreenSurface().getHeight()*0.4f)
 	{
         connection = game->info_message_signal.connect(
             SigC::slot(*this, &InfoMessageModule::onMessage));
@@ -171,7 +171,7 @@ struct InfoMessageModule : public GunsightModule, public SigObject {
         while (!messages.empty() && messages.back().age > FADEOUT_END) messages.pop_back();
     }
 
-	void draw(FlexibleGunsight & gunsight) {
+	void draw(UI::Panel & gunsight) {
         update(clock->getRealFrameDelta());
         if (messages.empty())
             return;

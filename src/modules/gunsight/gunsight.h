@@ -1,115 +1,39 @@
 #ifndef GUNSIGHT_H
 #define GUNSIGHT_H
 
-#include <vector>
-#include <string>
-
-#include <interfaces/ICamera.h>
-#include <interfaces/IDrawable.h>
-#include <modules/ui/Surface.h>
-#include <modules/math/Vector.h>
-#include <RenderPass.h>
+#include <interfaces/IGame.h>
+#include <modules/jogi/JRenderer.h>
+#include <modules/ui/Panel.h>
 
 struct IGame;
 struct ICamera;
-class JRenderer;
-class FlexibleGunsight;
-class Environment;
+struct IMovementProvider;
 class FlightInfo;
 class Targeter;
 class Armament;
 class SimpleActor;
-class RenderPass;
 class DataNode;
 
-class GunsightModule : virtual public Object {
-protected:
-    float width, height;
-    Vector offset;
-    std::string name;
-    Ptr<RenderPass> render_pass;
+class FlexibleGunsight : public UI::Panel {
+    Ptr<IGame> thegame;
 public:
-    GunsightModule(const char *name, float w, float h);
-    
-    inline void setOffset(const Vector & ofs) { offset=ofs; }
-    inline const Vector & getOffset() { return offset; }
-    
-    inline float getWidth() { return width; }
-    inline float getHeight() { return height; }
-    
-    inline const std::string & getName() const { return name; }
-    virtual void draw(FlexibleGunsight &)=0;
-
-    // default to doing nothing
-    virtual void enable();
-    virtual void disable();
-    
-    inline void setRenderPass(Ptr<RenderPass> pass) { render_pass = pass; }
-    inline Ptr<RenderPass> getRenderPass() { return render_pass; }
-};
-
-
-class FlexibleGunsight : public IDrawable, public SigObject {
-protected:
-    UI::Surface surface;
-    Ptr<IGame> game;
-    Ptr<ICamera> camera;
-    Ptr<Environment> env;
-    typedef std::vector<Ptr<GunsightModule> > Modules;
-    Modules modules;
-    JRenderer * renderer;
-public:
-    enum {
-        LEFT=0x01,
-        RIGHT=0x02,
-        HCENTER=0x00,
-        TOP=0x04,
-        BOTTOM=0x08,
-        VCENTER=0x00
-    };
-
     FlexibleGunsight(Ptr<IGame>);
-    void addModule(Ptr<GunsightModule>,
-        std::string relative_to="screen",
-        int parent_corner=0, int child_corner=0,
-        Vector ofs=Vector(0,0,0), bool ofs_in_pixels=true);
-        
-    inline const UI::Surface & getSurface() { return surface; }
-    inline JRenderer* getRenderer() { return renderer; }
-    inline Ptr<ICamera> getCamera() { return camera; }
+    virtual ~FlexibleGunsight();
+
+    virtual void draw(const UI::Surface & surface);
     
     // Gunsight configuration
     void addDebugInfo(Ptr<IGame>, Ptr<IActor>);
     void addBasics(Ptr<IGame>, Ptr<IActor>);
     void addBasicCrosshairs(const char * parent="screen");
     void addFlightModules(Ptr<IGame>, FlightInfo &, Ptr<DataNode>);
-    void addTargeting(Ptr<IActor>, Ptr<Targeter>);
+    void addTargeting(Ptr<IMovementProvider>, Ptr<Targeter>, Ptr<Armament>);
     void addArmamentToScreen(Ptr<IGame>, Ptr<Armament>, size_t);
     void addArmamentToScreenRight(Ptr<IGame>, Ptr<Armament>, size_t);
     void addDirectionOfFlight(Ptr<IActor>);
     void addInterception(Ptr<IActor> src, Ptr<IActor> target);
     void addMissileWarning(Ptr<IGame> game, Ptr<SimpleActor> actor);
     void addInfoMessage(Ptr<IGame> game);
-    
-    // To draw modules belonging to another render pass (for rendertotexture)
-    void addRenderPassRoot(Ptr<RenderPass> render_pass, const char *name);
-    
-    // IDrawable implementation
-    virtual void draw();
-    void drawRenderPass(Ptr<RenderPass> render_pass);
-    
-    // Module enabling/disabling
-    void enable();
-    void disable();
 };
-
-struct PlaceholderModule : public GunsightModule {
-    inline PlaceholderModule(const char *name, float w, float h)
-    : GunsightModule(name,w,h) { }
-    
-    virtual void draw(FlexibleGunsight &);
-};
-
-typedef FlexibleGunsight DefaultGunsight;
 
 #endif

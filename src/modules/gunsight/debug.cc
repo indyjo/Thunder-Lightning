@@ -18,11 +18,11 @@ void FlexibleGunsight::addDebugInfo(
 }
 
 FPSModule::FPSModule(Ptr<IGame> game)
-:	GunsightModule("fps",100,20),game(game), fps(15)
+:	UI::Component("fps",100,20),game(game), fps(15)
 {
 }
 
-void FPSModule::draw(FlexibleGunsight & gunsight) {
+void FPSModule::draw(UI::Panel & gunsight) {
     //if (!game->debugMode()) return;
 	UI::Surface surface = gunsight.getSurface();
 	Ptr<IFontMan> fontman = game->getFontMan();
@@ -51,13 +51,13 @@ void FPSModule::draw(FlexibleGunsight & gunsight) {
 
 
 TargetInfoModule::TargetInfoModule(Ptr<IGame> game, Ptr<IActor> actor)
-:	GunsightModule("target-info", 320, 200),
+:	UI::Component("target-info", 320, 200),
 	game(game),
 	actor(actor)
 {
 }
 
-void TargetInfoModule::draw(FlexibleGunsight & gunsight) {
+void TargetInfoModule::draw(UI::Panel & gunsight) {
     if (!game->debugMode()) return;
 	UI::Surface surface = gunsight.getSurface();
 	JRenderer *r=game->getRenderer();
@@ -97,3 +97,4 @@ void TargetInfoModule::draw(FlexibleGunsight & gunsight) {
 	r->disableAlphaBlending();
 	r->popMatrix();
 }
+

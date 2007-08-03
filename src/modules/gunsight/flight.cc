@@ -15,16 +15,14 @@ void FlexibleGunsight::addBasicCrosshairs(const char *parent) {
 
 void FlexibleGunsight::addFlightModules(Ptr<IGame> game, FlightInfo &fi, Ptr<DataNode> controls)
 {
-    Ptr<GunsightModule> hud_frame = new HUDFrameModule(surface.getWidth(), surface.getHeight());
+    Ptr<UI::Component> hud_frame = new HUDFrameModule();
     addModule(hud_frame, "screen", HCENTER | VCENTER, HCENTER | VCENTER);
     addModule(
-        new HeightGraphModule(
-                surface.getHeight(),game,fi),
+        new HeightGraphModule(game,fi),
        "hud-frame", RIGHT | VCENTER, RIGHT | VCENTER,
         Vector(-8,0,0));
     addModule(
-        new SpeedGraphModule(
-                surface.getHeight(),game,fi),
+        new SpeedGraphModule(game,fi),
        "hud-frame", LEFT | VCENTER, LEFT | VCENTER,
         Vector(8,0,0));
     addModule(new HeightModule(game,fi),
@@ -45,11 +43,11 @@ void FlexibleGunsight::addFlightModules(Ptr<IGame> game, FlightInfo &fi, Ptr<Dat
 
 
 CrosshairModule::CrosshairModule()
-: GunsightModule("crosshairs", 33, 33)
+: UI::Component("crosshairs", 33, 33)
 {
 }
 
-void CrosshairModule::draw(FlexibleGunsight & gunsight) {
+void CrosshairModule::draw(UI::Panel & gunsight) {
 	JRenderer *r = gunsight.getRenderer();
 	UI::Surface surface = gunsight.getSurface();
 	surface.translateOrigin(
@@ -73,12 +71,12 @@ void CrosshairModule::draw(FlexibleGunsight & gunsight) {
 }
 
 
-HUDFrameModule::HUDFrameModule(float screen_x, float screen_y)
-: GunsightModule("hud-frame", 0.5*screen_x, 0.5*screen_y)
+HUDFrameModule::HUDFrameModule()
+: UI::Component("hud-frame")
 {
 };
 
-void HUDFrameModule::draw(FlexibleGunsight & gunsight) {
+void HUDFrameModule::draw(UI::Panel & gunsight) {
 	JRenderer *r = gunsight.getRenderer();
 	UI::Surface surface = gunsight.getSurface();
 	surface.translateOrigin(offset[0],offset[1]);
@@ -88,8 +86,8 @@ void HUDFrameModule::draw(FlexibleGunsight & gunsight) {
 	
 	r->setColor(Vector(0,1,0));
 	r->begin(JR_DRAWMODE_CONNECTED_LINES);
-	*r << Vector(8,0,0) << Vector(0,0,0)
-	   << Vector(0,height-1,0) << Vector(8,height-1,0);
+	*r << Vector(8,1,0) << Vector(1,1,0)
+	   << Vector(1,height-1,0) << Vector(8,height-1,0);
 	r->end();
 	r->begin(JR_DRAWMODE_CONNECTED_LINES);
 	*r << Vector(width-1-8,0,0) << Vector(width-1,0,0)
@@ -99,14 +97,19 @@ void HUDFrameModule::draw(FlexibleGunsight & gunsight) {
 	r->popMatrix();
 }
 
+void HUDFrameModule::onLayout(UI::Panel & panel) {
+    width = panel.getSurface().getWidth() / 2;
+    height = panel.getSurface().getHeight() / 2;
+}
+
 SpeedModule::SpeedModule(Ptr<IGame> game, FlightInfo& fi)
-:	GunsightModule("speed", 48, 16),
+:	UI::Component("speed", 48, 16),
 	flight_info(fi)
 {
 	fontman = game->getFontMan();
 }
 
-void SpeedModule::draw(FlexibleGunsight& gunsight) {
+void SpeedModule::draw(UI::Panel& gunsight) {
 	UI::Surface surface = gunsight.getSurface();
 	surface.translateOrigin(offset[0],offset[1]);
 	
@@ -128,13 +131,13 @@ void SpeedModule::draw(FlexibleGunsight& gunsight) {
 }
 
 HeightModule::HeightModule(Ptr<IGame> game, FlightInfo& fi)
-:	GunsightModule("height", 48, 16),
+:	UI::Component("height", 48, 16),
 	flight_info(fi)
 {
 	fontman = game->getFontMan();
 }
 
-void HeightModule::draw(FlexibleGunsight& gunsight) {
+void HeightModule::draw(UI::Panel& gunsight) {
 	UI::Surface surface = gunsight.getSurface();
 	surface.translateOrigin(offset[0],offset[1]);
 	
@@ -154,15 +157,14 @@ void HeightModule::draw(FlexibleGunsight& gunsight) {
 	
 }
 
-HeightGraphModule::HeightGraphModule(
-    float screen_h, Ptr<IGame> game, FlightInfo & fi)
-:   GunsightModule("height-graph", 48, 0.5*screen_h - 16),
+HeightGraphModule::HeightGraphModule(Ptr<IGame> game, FlightInfo & fi)
+:   UI::Component("height-graph", 48, 16),
     flight_info(fi)
 {
     fontman = game->getFontMan();
 }
 
-void HeightGraphModule::draw(FlexibleGunsight& gunsight) {
+void HeightGraphModule::draw(UI::Panel& gunsight) {
     JRenderer *r = gunsight.getRenderer();
     UI::Surface surface = gunsight.getSurface();
     surface.translateOrigin(offset[0],offset[1]);
@@ -236,17 +238,19 @@ void HeightGraphModule::draw(FlexibleGunsight& gunsight) {
     r->popMatrix();
 }
 
+void HeightGraphModule::onLayout(UI::Panel & panel) {
+    height = panel.getSurface().getHeight() / 2 - 16;
+}
 
 
-SpeedGraphModule::SpeedGraphModule(
-    float screen_h, Ptr<IGame> game, FlightInfo & fi)
-:   GunsightModule("speed-graph", 48, 0.5*screen_h - 16),
+SpeedGraphModule::SpeedGraphModule(Ptr<IGame> game, FlightInfo & fi)
+:   UI::Component("speed-graph", 48, 16),
     flight_info(fi)
 {
     fontman = game->getFontMan();
 }
 
-void SpeedGraphModule::draw(FlexibleGunsight& gunsight) {
+void SpeedGraphModule::draw(UI::Panel& gunsight) {
     JRenderer *r = gunsight.getRenderer();
     UI::Surface surface = gunsight.getSurface();
     surface.translateOrigin(offset[0],offset[1]);
@@ -316,13 +320,16 @@ void SpeedGraphModule::draw(FlexibleGunsight& gunsight) {
     r->popMatrix();
 }
 
+void SpeedGraphModule::onLayout(UI::Panel & panel) {
+    height = panel.getSurface().getHeight() / 2 - 16;
+}
 
 HorizonIndicator::HorizonIndicator(
 	Ptr<IGame> game,
 	FlightInfo &fi,
 	float w,
 	float h)
-:	GunsightModule("horizon-indicator",w,h),
+:	UI::Component("horizon-indicator",w,h),
 	fontman(game->getFontMan()),
 	flight_info(fi)
 {
@@ -330,7 +337,7 @@ HorizonIndicator::HorizonIndicator(
 
 #define PI 3.141593f
 
-void HorizonIndicator::draw(FlexibleGunsight & gunsight) {
+void HorizonIndicator::draw(UI::Panel & gunsight) {
 	UI::Surface surf = gunsight.getSurface();
     surf.translateOrigin(offset[0],offset[1]);
 	
@@ -373,13 +380,13 @@ void HorizonIndicator::drawIndicator(
 GearHookIndicator::GearHookIndicator(
 	Ptr<IGame> game,
 	Ptr<DataNode> controls)
-:	GunsightModule("horizon-indicator",150,40),
+:	UI::Component("horizon-indicator",150,40),
     controls(controls),
 	fontman(game->getFontMan())
 {
 }
 
-void GearHookIndicator::draw(FlexibleGunsight & gunsight) {
+void GearHookIndicator::draw(UI::Panel & gunsight) {
     UI::Surface surf = gunsight.getSurface();
     surf.translateOrigin(offset[0],offset[1]);
     	
