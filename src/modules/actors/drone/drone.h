@@ -14,12 +14,13 @@
 #include <modules/scripting/IoIncludes.h>
 
 
+class DroneCockpit;
 class RigidEngine;
 class Targeter;
 class SoundSource;
 struct Context;
 class RenderPass;
-class SimpleCamera;
+struct ICamera;
 
 namespace Effectors { class Wheel; class TailHook; }
 
@@ -64,18 +65,15 @@ public:
 private:
     void updateDerivedObjects();
     void drawWheels();
-    void updateZoomCamera(Ptr<RenderPass>, Ptr<SimpleCamera>);
     
 private:
     JRenderer * renderer;
     Ptr<ITerrain> terrain;
     Ptr<SoundSource> engine_sound_src;
+    Ptr<DroneCockpit> cockpit;
 
     // 3d model
-    Ptr<Skeleton> skeleton;
-    Ptr<Model> inside_model;
     Ptr<Model> wheel_model;
-    Ptr<Model> mfd_model;
 
     // flight stuff
     Ptr<RigidEngine> engine;

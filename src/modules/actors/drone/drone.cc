@@ -3,7 +3,7 @@
 #include <string>
 #include <sigc++/bind.h>
 #include <modules/actors/fx/SpecialEffects.h>
-#include <modules/camera/SimpleCamera.h>
+#include <modules/camera/FollowingCamera.h>
 #include <modules/clock/clock.h>
 #include <modules/engines/effectors.h>
 #include <modules/engines/rigidengine.h>
@@ -12,6 +12,7 @@
 #include <modules/math/SpecialMatrices.h>
 #include <modules/model/Skeleton.h>
 #include <modules/model/SkeletonProvider.h>
+#include <modules/ui/PanelRenderPass.h>
 #include <modules/weaponsys/Targeter.h>
 #include <modules/weaponsys/Cannon.h>
 #include <modules/weaponsys/ProjectileLauncher.h>
@@ -21,13 +22,15 @@
 
 #include <remap.h>
 #include <sound.h>
-#include <RenderPass.h>
+#include <SceneRenderPass.h>
 #include <interfaces/IConfig.h>
 #include <interfaces/ICamera.h>
 #include <interfaces/IModelMan.h>
 #include <interfaces/ITerrain.h>
 
 #include "drone.h"
+#include "DroneCockpit.h"
+
 #include <modules/actors/SimpleView.h>
 #include <modules/actors/RelativeView.h>
 
@@ -37,6 +40,7 @@
 
 #define CURRENT_IDEA_BONUS 0.05f
 
+/*
 struct TargetView: public SimpleView {
 	Ptr<Targeter> targeter;
 	Vector view_pos;
@@ -68,6 +72,7 @@ struct TargetView: public SimpleView {
 	    *orient = MatrixFromColumns(right,up,front);
 	}
 };
+*/
 
 
 Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
@@ -193,11 +198,18 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
     wheels[1] = new Effectors::Wheel(terrain, thegame->getCollisionMan(), this, left_wheel);
     wheels[2] = new Effectors::Wheel(terrain, thegame->getCollisionMan(), this, right_wheel);
 
+    std::string model_file = cfg->query("Drone_wheel_model_file");
+    wheel_model = thegame->getModelMan()->query(model_file);
+    
+    // Cockpit initialization ...
+
     std::string inside_model_file = cfg->query("Drone_inside_model_file");
-    inside_model = thegame->getModelMan()->query(inside_model_file);
+    Ptr<Model> inside_model = thegame->getModelMan()->query(inside_model_file);
     
     std::string mfd_model_file = cfg->query("Drone_mfd_model_file");
-    mfd_model = new Model(*thegame->getTexMan(), mfd_model_file);
+    Ptr<Model> mfd_model = new Model(*thegame->getTexMan(), mfd_model_file);
+    
+    this->cockpit = new DroneCockpit(thegame, thegame->getRenderer(), this, inside_model, mfd_model);
 
     setControlMode(UNCONTROLLED);
 
@@ -209,6 +221,8 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
     Ptr<EventSheet> sheet = getEventSheet();
     sheet->map("landing-gear", SigC::slot(*this, &Drone::toggleLandingGear));
     sheet->map("landing-hook", SigC::slot(*this, &Drone::toggleLandingHook));
+    
+    sheet->map("switch-mfd", SigC::slot(*cockpit, &DroneCockpit::switchMfdMode));
     		
 	ls_message("</Drone::Drone>\n");
 }
@@ -318,68 +332,11 @@ void Drone::kill() {
 
 void Drone::draw() {
 	if (!isAlive()) return;
-    renderer->enableSmoothShading();
-
-    float frustum[6][4];
-    float dist = 0.0;
-
-    Vector p = engine->getLocation();
-
-    thegame->getCamera()->getFrustumPlanes(frustum);
-    
-    for(int plane=0; plane<6; plane++) {
-        float d = 0;
-        for(int i=0; i<3; i++) d += frustum[plane][i]*p[i];
-        d += frustum[plane][3];
-        if (d < -RADIUS) return;
-        if (plane == PLANE_MINUS_Z) dist = d;
-    }
-    
-    dist /= thegame->getCamera()->getFocus();
-
-    if (dist > MAX_POINT_DISTANCE) return;
-    if (dist > MAX_MODEL_DISTANCE) {
-        renderer->disableTexturing();
-        renderer->enableAlphaBlending();
-        renderer->begin(JR_DRAWMODE_POINTS);
-        renderer->setColor(Vector(0,0,0));
-        renderer->setAlpha(1.0 - (dist-MAX_MODEL_DISTANCE) /
-                (MAX_POINT_DISTANCE - MAX_MODEL_DISTANCE));
-        renderer->vertex(p);
-        renderer->end();
-        renderer->disableAlphaBlending();
-        return;
-    }
-
-    Matrix Translation = TranslateMatrix<4,float>(p);
-
-    Vector right, up, front;
-    getOrientation(&up, &right, &front);
-    Matrix Rotation    = Matrix::Hom(
-        MatrixFromColumns(right, up, front));
-
-    Matrix Mmodel  = Translation * Rotation;
-    renderer->setCullMode(JR_CULLMODE_CULL_NEGATIVE);
-    renderer->setAlpha(1);
-    renderer->setColor(Vector(1,1,1));
-    
-    renderer->enableLighting();
-
-    Vector pilot_pos = skeleton->getPoint("PilotSeat");
-	Vector cam_pos = thegame->getCamera()->getLocation();
-    if ((pilot_pos-cam_pos).lengthSquare()<1) {
-        inside_model->draw(*renderer, Mmodel, Rotation);
-        renderer->disableLighting();
-        mfd_model->draw(*renderer, Mmodel, Rotation);
-    } else {
-        skeleton->draw(*renderer);
-    }
+    SimpleActor::draw();
     
     if (isLandingGearLowered()) {
         drawWheels();
     }
-    
-    renderer->disableLighting();
 }
 
 // Our drone has been hit ...
@@ -407,115 +364,92 @@ float Drone::getRelativeDamage() {
 }
 
 int Drone::getNumViews() {
-	return 6;
+	return 5;
 }
 
 Ptr<IView> Drone::getView(int n) {
 	Vector pilot_pos = thegame->getConfig()->queryVector(
 		"Drone_pilot_pos", Vector(0,0,0));
+	
     Ptr<SimpleActor> chaser = new SimpleActor(thegame);
-    Ptr<RelativeView> view = new RelativeView(chaser, chaser, this, 0);
-    mapViewEvents(view);
-    
-    Transform xform(Quaternion(1,0,0,0), pilot_pos);
-    chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.1f, xform));
     thegame->addWeakActor(chaser);
     
     Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
 	gunsight->addDebugInfo(thegame, this);
 	gunsight->addBasics(thegame, this);
-	gunsight->addTargeting(view, targeter, armament);
+	gunsight->addTargeting(chaser, targeter, armament);
 	gunsight->addDirectionOfFlight(this);
     gunsight->addArmamentToScreen(thegame, armament, 0);
     gunsight->addMissileWarning(thegame, this);
     gunsight->addInfoMessage(thegame);
+
+    Ptr<SceneRenderPass> scene_pass = thegame->createRenderPass(chaser);
+    gunsight->setCamera(scene_pass->context.camera);
+    Ptr<RenderPass> cockpit_pass;
     
-    Ptr<RelativeView> view = new RelativeView(chaser, chaser, this, gunsight);
+    Ptr<UI::PanelRenderPass> hud_pass = new UI::PanelRenderPass(thegame->getRenderer());
+    hud_pass->setPanel(gunsight);
+    
+    // For inside-cockpit view: setup cockpit rendering
+    if (n == 0 || n == 2 || n == 3 || n == 5) {
+        Ptr<FollowingCamera> cam = new FollowingCamera;
+        cam->setTarget(scene_pass->context.camera);
+        cam->ownAspect(false);
+        cam->ownFocus(false);
+        cam->setNearDistance(0.1);
+        cam->setFarDistance(4.0);
 
-    Ptr<RenderPass> pass;
-    if (n==0 || n==5) {
-        pass = thegame->getRenderPassList()->createRenderPass();
-        pass->setEnabled(true);
-        pass->setResolution(256,256);
-        pass->enableClearColor(true);
-        pass->setRenderToTexture(true);
-        Ptr<SimpleCamera> cam = new SimpleCamera(thegame->getCamera());
-        
-        RenderContext ctx = RenderContext::MainRenderContext(
-            cam,
-            thegame->getWater()->createRenderPass());
-        ctx.camera = cam;
-        ctx.draw_gunsight = false;
-        ctx.draw_console = false;
-        pass->setRenderContext(ctx);
-        pass->setRenderContextEnabled(true);
-        pass->dependsOn(ctx.mirror_pass);
-        
-        if(ctx.mirror_pass->isEnabled()) {
-            ctx.mirror_pass->preScene().connect(
-                SigC::bind(SigC::slot(*this, &Drone::updateZoomCamera), cam));
-        } else {
-            pass->preScene().connect(
-                SigC::bind(SigC::slot(*this, &Drone::updateZoomCamera), cam));
-        }
-        thegame->getWater()->linkRenderPassToCamera(ctx.mirror_pass, cam);
-        
-        gunsight->addRenderPassRoot(pass, "mfd");
-        gunsight->addBasicCrosshairs("mfd");
-        
-        mfd_model->getDefaultObject()->getGroups().back()->mtl.tex = pass->getTexture();
-
-        view->onEnable().connect(SigC::bind(SigC::slot(*pass, &RenderPass::setEnabled), true));
-        view->onDisable().connect(SigC::bind(SigC::slot(*pass, &RenderPass::setEnabled), false));
-        
-        if (ctx.mirror_pass->isEnabled()) {
-            view->onEnable().connect(SigC::bind(SigC::slot(*ctx.mirror_pass, &RenderPass::setEnabled), true));
-            view->onDisable().connect(SigC::bind(SigC::slot(*ctx.mirror_pass, &RenderPass::setEnabled), false));
-        }
+        cockpit_pass = cockpit->createRenderPass(cam);
+        cockpit_pass->getBottomOfStack()->stackedOn(scene_pass);
+    
+        hud_pass->stackedOn(cockpit_pass);
+    } else {
+        hud_pass->stackedOn(scene_pass);
     }
+    
+    Ptr<SimpleView> view = new SimpleView(this, chaser, hud_pass);
+    mapViewEvents(view);
+    
+    
+    Transform xform(Quaternion(1,0,0,0), pilot_pos);
 
 	switch(n) {
     case 0:
 	    gunsight->addBasicCrosshairs();
     	gunsight->addFlightModules(thegame, flight_info, controls);
+        chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.1f,
+            xform,
+            Transform::identity() ));
     	break;
     case 1:
-        view->setViewOffset(
-            Vector(0, 2, 12),
-            Vector(-1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,-1));
-        chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.5f, xform));
+        chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.1f,
+            xform,
+            Transform(Quaternion::Rotation(Vector(0,1,0), 180*PI/180), Vector(0,2,12)) ));
     	break;
     case 2:
-        view->setViewOffset(
-            Vector(0,0,0),
-            Vector(0,0,1),
-            Vector(0,1,0),
-            Vector(-1,0,0));
+        chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.1f,
+            xform,
+            Transform(Quaternion::Rotation(Vector(0,1,0), 90*PI/180), Vector(0)) ));
     	break;
     case 3:
-        view->setViewOffset(
-            Vector(0,0,0),
-            Vector(0,0,-1),
-            Vector(0,1,0),
-            Vector(1,0,0));
+        chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.1f,
+            xform,
+            Transform(Quaternion::Rotation(Vector(0,1,0), -90*PI/180), Vector(0)) ));
     	break;
     case 4:
-        view->setViewOffset(
-            Vector(0, 3, -8),
-            Vector(1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,1));
-        chaser->setEngine(new ChasingEngine(thegame,this, 0.15f, 0.5f, xform));
+        chaser->setEngine(new ChasingEngine(thegame,this, 0.2f, 0.5f,
+            Transform(Quaternion(1,0,0,0), Vector(0,3,-8)),
+            Transform::identity() ));
     	break;
     case 5:
+        /*
         {
             Ptr<TargetView> target_view = new TargetView(this, pilot_pos, targeter);
             Transform xform(Quaternion(1,0,0,0), Vector(0,0,0));
             chaser->setEngine(new ChasingEngine(thegame, target_view, 0.0f, 0.1f, xform));
             break;
         }
+        */
     default:
     	return 0;
 	}
@@ -622,36 +556,16 @@ void Drone::updateDerivedObjects() {
 }
 
 void Drone::drawWheels() {
-	if (!wheel_model) {
-		Ptr<IConfig> cfg = thegame->getConfig();
-	    std::string model_file = cfg->query("Drone_wheel_model_file");
-	    wheel_model = thegame->getModelMan()->query(model_file);
-	}
-	
-    Vector right, up, front;
-    getOrientation(&up, &right, &front);
-    Matrix Rotation    = Matrix::Hom(
-        MatrixFromColumns(right, up, front));
-
     renderer->setCullMode(JR_CULLMODE_CULL_NEGATIVE);
     renderer->setAlpha(1);
-    renderer->setColor(Vector(1,1,1));
+    renderer->setColor(Vector(1,0,1));
     
+    Matrix3 orient = getOrientationAsMatrix();
+    
+    renderer->enableLighting();
 	for(int i=0; i<3; ++i) {
-		//if (!wheel_states[i].contact) continue;
-    	Matrix Translation =
-    		TranslateMatrix<4,float>(wheels[i]->getCurrentPos());
-    	Matrix Mmodel  = Translation * Rotation;
-    	wheel_model->draw(*renderer, Mmodel, Rotation);
+    	wheel_model->draw(*renderer, orient, wheels[i]->getCurrentPos());
 	}
-}
-
-
-void Drone::updateZoomCamera(Ptr<RenderPass> pass, Ptr<SimpleCamera> cam) {
-    cam->setFocus(16*thegame->getCamera()->getFocus());
-    cam->setAspect(1.0);
-    cam->alignWith(this);
-    cam->setNearDistance(5.0f);
-    cam->setFarDistance(thegame->getCamera()->getFarDistance());
+    renderer->disableLighting();
 }
 
