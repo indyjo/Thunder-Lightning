@@ -27,7 +27,11 @@ public:
     Model(TextureManager & texman, const std::string & filename);
     virtual ~Model();
 
-    void draw(JRenderer &, const Matrix & Mmodel, const Matrix & Mnormal);
+    void draw(JRenderer &);
+    void draw(JRenderer &, const Matrix & Mmodel);
+    void draw(JRenderer &, const Transform &);
+    void draw(JRenderer &, const Matrix3 & orient, const Vector & pos);
+    
     Ptr<Object> getObject(const std::string & name);
     inline Ptr<Object> getDefaultObject() { return objects.front(); }
     

@@ -204,22 +204,26 @@ void Model::parseMtlFile(TextureManager & texman, const string & filename, map<s
     }
 }
 
-
-void Model::draw(JRenderer & r, const Matrix & Mmodel, const Matrix & Mnormal)
-{
-    Vector vtx;
-    Vector col(1,1,1);
-    Vector ambient=0.25*Vector(.97,.83,.74);
-
-    r.pushMatrix();
-    r.multMatrix(Mmodel);
-    
+void Model::draw(JRenderer & r) {
     for (int i=0; i<objects.size(); ++i) {
         objects[i]->draw(r);
     }
-    
+}
+
+void Model::draw(JRenderer & r, const Matrix & Mmodel) {
+    r.pushMatrix();
+    r.multMatrix(Mmodel);
+    draw(r);
     r.popMatrix();
     r.disableTexturing();
+}
+
+void Model::draw(JRenderer & r, const Transform & xform) {
+    draw(r, xform.toMatrix());
+}
+
+void Model::draw(JRenderer & r, const Matrix3& orient, const Vector& pos) {
+    draw(r, Matrix::Hom(orient, pos));
 }
 
 Ptr<Model::Object> Model::getObject(const std::string & name) {
@@ -244,7 +248,6 @@ void Model::setCullmode(jrcullmode_t cullmode) {
 typedef Model::Object MObject;
 void MObject::draw(JRenderer & r)
 {
-    r.setAmbientColor(0.25*Vector(.97,.83,.74));
     Ptr<JMaterial> jmat = r.createMaterial();
     
     // Todo: proper lighting
