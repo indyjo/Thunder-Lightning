@@ -3,6 +3,9 @@
 
 #include <interfaces/IConfig.h>
 #include <modules/texman/TextureManager.h>
+#include <modules/jogi/jogi.h>
+
+#include "TextureManager.h"
 #include <tnl.h>
 
 using namespace std;
@@ -93,15 +96,4 @@ void TextureManager::shutdown()
 	while(!cache_queue.empty())
 		cache_queue.pop();
 }
-
-Texture::Texture(jrtxtid_t t, JRenderer &r)
-: tex(t), renderer(r)
-{
-}
-
-Texture::~Texture()
-{
-    renderer.destroyTexture(tex);
-}
-
 

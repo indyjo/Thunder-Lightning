@@ -4,31 +4,13 @@
 #include <string>
 #include <map>
 #include <queue>
-#include <modules/jogi/jogi.h>
+#include <modules/jogi/JRenderer.h>
 #include <Weak.h>
+
+#include "Texture.h"
 
 struct IConfig;
 class TextureManager;
-
-class Texture : public Object, public Weak
-{
-    jrtxtid_t tex;
-    JRenderer &renderer;
-    
-protected:
-    ~Texture();
-    
-public:
-    Texture(jrtxtid_t t, JRenderer &r);
-
-    inline int getWidth() { return renderer.getTextureWidth(tex); }
-    inline int getHeight() { return renderer.getTextureHeight(tex); }
-    
-    inline jrtxtid_t getTxtid() { return tex; }
-    inline unsigned int getGLTex() { return renderer.getGLTexFromTxtid(tex); }
-};
-
-typedef Ptr<Texture> TexPtr;
 
 class TextureManager : virtual public Object
 {
