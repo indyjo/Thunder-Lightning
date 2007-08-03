@@ -1,14 +1,3 @@
-//
-// Vertex shader for environment mapping with an
-// equirectangular 2D texture
-//
-// Authors: John Kessenich, Randi Rost
-//
-// Copyright (c) 2002-2004 3Dlabs Inc. Ltd.
-//
-// See 3Dlabs-License.txt for license information
-//
-
 varying vec3  Normal;
 varying vec3  EyeDir;
 varying vec3  SunDir;
@@ -16,11 +5,10 @@ varying float Fog;
 
 const float GroundFog_min = 0.0;
 const float GroundFog_max = 400.0;
-const float GroundFog_scale = 1.0/3500.0f;
+const float GroundFog_scale = 1.0/3500.0;
 
 const vec3 SunDirWCS = vec3(-0.91381, 0.40614, 0);
 
-uniform vec3  LightPos;
 uniform vec3  CamPos;
 
 float uniformFog(float l) {
@@ -60,7 +48,7 @@ float groundFog(float y_a, float y_b, float dist) {
 void main(void) 
 {
     gl_Position    = ftransform();
-    Normal         = normalize(gl_NormalMatrix * gl_Normal);
+    Normal         = gl_NormalMatrix * gl_Normal;
     vec4 pos       = gl_ModelViewMatrix * gl_Vertex;
     EyeDir         = pos.xyz / pos.w;
     gl_TexCoord[0] = gl_MultiTexCoord0;
