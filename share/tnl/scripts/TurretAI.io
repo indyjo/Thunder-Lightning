@@ -1,3 +1,86 @@
+AimHelper := Object clone do(
+    with := method(s, t, w, tur,
+        source = s
+        target = t
+        weapon = w
+        turret = tur
+        muzzle_speed_squared = weapon referenceSpeed squared
+        requestTracer
+        self
+    )
+    
+    offset := vector(0,0,0)
+    tracer := nil
+    tracer_offset := nil
+    weapon := nil
+    turret := nil
+    source := nil
+    target := nil
+    distance := Number constants inf
+    muzzle_speed_squared := nil
+    
+    requestTracer := method(
+        weapon onFireNotify(self)
+    )
+    weaponFired := method(
+        tracer = weapon lastFiredRound
+        tracer_offset = turret cannonDirWCS(source) - aimDir_initial(target location, target velocity)
+    )
+    
+    aimDir_initial := method(target_p, target_v,
+        origin := turret pivotWCS(source)
+        delta_p := target_p - origin
+        delta_p_norm := delta_p norm
+        
+        delta_v := target_v - source velocity
+        delta_v_z_len := delta_p_norm dot(delta_v)
+        delta_v_z := delta_p_norm scaledBy(delta_v_z_len)
+        delta_v_xy := delta_v - delta_v_z
+        bullet_speed := (muzzle_speed_squared - (delta_v_xy lenSquare)) max(0) sqrt
+        #self eta := delta_p len / (bullet_speed - delta_v_z_len)
+        
+        result := delta_v_xy + delta_p_norm scaledBy(bullet_speed) # + vector(0,0.5*9.81*eta*eta,0)
+        result norm
+    )
+    
+    
+    aimDir := method(
+        dir := aimDir_initial(target location, target velocity) + offset
+        dir norm
+        #aimDir_initial(target location, target velocity)
+    )
+    
+    update := method(
+        origin := turret pivotWCS(source)
+        to_target := target location - origin
+        distance = to_target len
+
+        tracer ifNil(
+            return
+        )
+        tracer isAlive ifFalse(
+            tracer = nil
+            requestTracer
+            return
+        )
+        
+        to_tracer := tracer location - origin
+        dir := to_target scaledBy(1/distance)
+        if (to_tracer dot(dir) >= distance,
+            dir_to_tracer := to_tracer norm
+            dir_to_target := to_target norm
+            
+            delta := dir_to_tracer - dir_to_target
+            #("Delta: " .. delta .. " length " .. (delta len)) say
+            
+            offset = offset + (tracer_offset - delta - offset) scaledBy(0.5)
+            
+            tracer = nil
+            requestTracer
+        )
+    )
+)
+
 TurretAI := Object clone do(
   turret_control_name := "turret_steer"
   turret_state_name := "turret_angle"
@@ -10,18 +93,35 @@ TurretAI := Object clone do(
   weapon := nil
   
   worldToTurret := method(me, v,
+    self hasSlot("LCS_inv") ifFalse(
+        normal := turret_axis % reference
+        self LCS_inv := matrix(  normal x,      normal y,      normal z
+                                 turret_axis x, turret_axis y, turret_axis z
+                                 reference x,   reference y,   reference z)
+    )
+
+    LCS_inv matMult( me orientation transpose matMult(v) )
+  )
+  
+  pivotWCS := method(me,
+    me location + me orientation matMult(pivot)
+  )
+  
+  cannonDirLCS := method(me,
+    turret := me controls float(turret_state_name)
+    cannon := me controls float(cannon_state_name)
+    
+    vector(cannon cos * turret sin, cannon sin, cannon cos * turret cos)
+  )
+  
+  cannonDirWCS := method(me,
     orient := me getOrientation
-    wcs_turret_axis := orient matMult(turret_axis)
-    wcs_reference := orient matMult(reference)
-    wcs_normal := wcs_turret_axis % wcs_reference
-
-    # wcs_normal, wcs_turret_axis and wcs_reference define a coordinate system.
-    # We form the inverse matrix, consisting of these vectors as rows.
-    m := matrix(  wcs_normal at(0),       wcs_normal at(1),       wcs_normal at(2)
-                  wcs_turret_axis at(0),  wcs_turret_axis at(1),  wcs_turret_axis at(2)
-                  wcs_reference at(0),    wcs_reference at(1),    wcs_reference at(2))
-
-    m matMult(v)
+    y := orient matMult(turret_axis)
+    z := orient matMult(reference)
+    x := y % z
+    
+    dir := cannonDirLCS(me)
+    x scaledBy(dir x) + y scaledBy(dir y) + z scaledBy(dir z)
   )
   
   CtlElement := coro(me, arg_target_angle, arg_control_name, arg_state_name, arg_factor,
@@ -30,7 +130,7 @@ TurretAI := Object clone do(
     argDefaults(state_name, arg_state_name, "turret_angle", -1)
     argDefaults(factor, arg_factor, 1)
     
-    self error := nil
+    self error := Number constants inf
     integral := 0
     dt := nil
     
@@ -61,11 +161,11 @@ TurretAI := Object clone do(
     
     loop(
       pass
-      error = (cc error ifNilEval(0) squared + ct error ifNilEval(0) squared) sqrt
+      error = (cc error squared + ct error squared) sqrt
       target_dir = target_dir norm
       #("Target_dir: " .. target_dir asString) say
-      cc target_angle := target_dir at(1,0) asin
-      ct target_angle := target_dir at(0,0) atan2(target_dir at(2,0))
+      cc target_angle := target_dir y asin
+      ct target_angle := target_dir x atan2(target_dir z)
     )
   )
   
@@ -89,28 +189,17 @@ TurretAI := Object clone do(
     manage(aa)
     
     weapon := turret weapon
-    
-    delta_p := delta_p_norm := nil
-    delta_v := delta_v_xy := delta_v_z := nil
-    
-    // TODO: we should be able to read this from the weapon
-    muzzle_speed_squared := Config Cannon_muzzle_velocity asNumber squared
+    helper := AimHelper clone with(me, target, weapon, turret)
     
     ex := try(
       loop(
-        delta_p = ((target getLocation) - (me getLocation + me getOrientation matMult(turret pivot) ))
-        delta_p_norm = delta_p norm
-        delta_v = target getMovementVector - me getMovementVector
-        delta_v_z = delta_p_norm scaledBy(1 - (delta_v dot(delta_p_norm)))
-        delta_v_xy = delta_v - delta_v_z
-        bullet_speed := (muzzle_speed_squared - (delta_v_xy lenSquare)) sqrt
-        self eta := delta_p len / (bullet_speed - delta_v dot(delta_p_norm))
-        aa target_dir := delta_v_xy + delta_p_norm scaledBy(bullet_speed) + vector(0,0.5*9.81*eta*eta,0)
+        helper update
+        aa target_dir := helper aimDir
   
         # Let AimAbsolute do its work and compute its error
         pass
         
-        if(aa error isNil not and aa error * delta_p len < 8,
+        if(aa error isNil not and aa error * helper distance < 8,
           weapon trigger
         ,
           weapon release
