@@ -232,8 +232,8 @@ Config do(
   Vulcan_singleshot                := "false"
   Vulcan_guided                    := "false"
   
-  Vulcan_max_range                 := "2000"
-  Vulcan_muzzle_velocity           := "1200"
+  Vulcan_max_range                 := "5000"
+  Vulcan_muzzle_velocity           := "800"
   Vulcan_reference_speed           := Vulcan_muzzle_velocity
   Vulcan_time_of_accel             := "0"
 
@@ -244,7 +244,7 @@ Config do(
   Hydra_loadtime                   := "1"
   Hydra_singleshot                 := "true"
   Hydra_guided                     := "false"
-  Hydra_max_range                  := "1500"
+  Hydra_max_range                  := "5000"
   Hydra_time_of_accel              := "1.05"
   Hydra_reference_speed            := "739.14"
   Hydra_launch_speed               := "0"
@@ -253,7 +253,7 @@ Config do(
   Sidewinder_loadtime              := "1"
   Sidewinder_singleshot            := "true"
   Sidewinder_guided                := "true"
-  Sidewinder_max_range             := "10000"
+  Sidewinder_max_range             := "12000"
   Sidewinder_time_of_accel         := "0.0"
   Sidewinder_reference_speed       := "0.0"
   Sidewinder_launch_speed          := "0"
