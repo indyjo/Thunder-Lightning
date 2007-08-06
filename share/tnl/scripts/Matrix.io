@@ -57,7 +57,6 @@ Matrix := Object clone do(
   )
   
   dot := method(other,
-    assert(other hasProto(Matrix))
     assert(columns == 1)
     assert(other rows == rows and other columns == 1)
     
@@ -69,7 +68,6 @@ Matrix := Object clone do(
   setSlot("'", getSlot("transpose") )
 
   setSlot("+", method(other,
-    assert(other hasProto(Matrix))
     assert(other rows == rows and other columns == columns)
     M := Matrix clone dim(rows,columns)
     M entries foreach(i,v,
@@ -78,7 +76,6 @@ Matrix := Object clone do(
   ))
 
   setSlot("-", method(other,
-    assert(other hasProto(Matrix))
     assert(other rows == rows and other columns == columns)
     M := Matrix clone dim(rows,columns)
     M entries foreach(i,v,
@@ -88,14 +85,7 @@ Matrix := Object clone do(
 
   setSlot("*", method(other,
     if(other hasProto(Matrix),
-      assert(self columns == other rows)
-      M := Matrix clone dim(self rows, other columns)
-      for(i,0,rows-1, for(j,0,other columns-1,
-        x := 0
-        for(k,0,columns-1, x=x+self at(i,k)*other at(k,j))
-        M atSet(i,j,x)
-      ))
-      M
+      matMult(other)
     ,
       M := Matrix clone dim(rows,columns)
       if(other hasProto(Number),
@@ -106,7 +96,7 @@ Matrix := Object clone do(
       )
     )
   ))
-  
+
   matMult := method(other,
     assert(self columns == other rows)
     res := Matrix clone
@@ -115,8 +105,12 @@ Matrix := Object clone do(
     other columns repeat(j,
       self rows repeat(i,
         x := 0
-        self columns repeat(k,
-            x = x + self at(i,k) * other at(k,j)
+        self_idx := i
+        other_idx := j * other rows
+        self columns repeat(
+            x = x + self entries at(self_idx) * other entries at(other_idx)
+            self_idx = self_idx + self rows
+            other_idx = other_idx + 1
         )
         res entries append(x)
       )
@@ -203,7 +197,7 @@ Matrix := Object clone do(
   x := method( at(0) )
   y := method( at(1) )
   z := method( at(2) )
-  z := method( at(3) )
+  w := method( at(3) )
   xy := method( vector( at(0), at(1) ) )
   xz := method( vector( at(0), at(2) ) )
   xw := method( vector( at(0), at(3) ) )
