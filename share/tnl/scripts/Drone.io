@@ -682,7 +682,7 @@ Drone do(
                 leader := command argActor link
                 if (leader and leader isAlive,
                     p := leader formationPositionOf(me)
-                    task := manage( me FlyInFormation(me, leader, p) )
+                    task := manage( me FlyInFormation clone start(me, leader, p) )
                     while(task running, pass)
                 ,
                     "Can't join, leader seems to be dead." say

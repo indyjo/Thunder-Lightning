@@ -48,7 +48,7 @@ CommonAI := Object clone do(
             )
             c := me command_queue currentCommand(me)
             if (c != command,
-                //("New command: " .. c ?action) say
+                if (me == Game viewSubject, ("New command: " .. c ?action) say)
                 command = c
                 handler ifNonNil(
                     handler interrupt
