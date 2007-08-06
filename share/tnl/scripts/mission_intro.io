@@ -4,6 +4,8 @@ Sequence say := method(color,
     nil
 )
 
+instruments_explained := false
+
 Intro := coro(mission,
     red := vector(1,0,0)
     yellow := vector(1,1,0)
@@ -296,6 +298,7 @@ Intro combatTraining := method(mission,
         sleep(5)
     )
     if ((self ?instruments_explained) not,
+        self instruments_explained := true
         "Ok, let's do some flight and combat training!" say
         sleep(8)
         "Your altitude is indicated on the right side of the HUD." say
@@ -339,7 +342,6 @@ Intro combatTraining := method(mission,
         sleep(8)
         "Are you ready for a challenge? Let's try your combat skills!" say
         sleep(5)
-        self instruments_explained := true
     )
     
     mission him := mission addEnemy
