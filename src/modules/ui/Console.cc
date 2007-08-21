@@ -32,10 +32,8 @@ namespace {
 
 namespace UI {
 
-Console::Console(IGame * game,
-                 const Surface & surface)
+Console::Console(IGame * game)
 :   game(game),
-    surface(surface),
     bracecount(0),
     cursor_pos(0),
     enabled(false)
@@ -46,8 +44,6 @@ Console::Console(IGame * game,
 
     Ptr<IFontMan> fontman = game->getFontMan();
     fontman->selectFont(IFontMan::FontSpec("dungeon", 12));
-    max_lines = (int) (surface.getHeight() / fontman->getMetrics()->getLineHeight());
-    ls_message("Console of %d rows.\n", max_lines);
 
 	IoState* state = game->getIoScriptingManager()->getMainState();
 	connectTo(state);
@@ -69,8 +65,6 @@ void Console::putChar(char c) {
     case '\n':
     case '\r':
         lines.push_back("");
-        if (lines.size() > max_lines)
-            lines.pop_front();
         break;
     case '\t':
         {
@@ -84,14 +78,16 @@ void Console::putChar(char c) {
         //if (lines.back().size() == max_chars)
         //    lines.push_back("");
         lines.back().append(1,c);
-        if (lines.size() > max_lines)
-            lines.pop_front();
     }
 }
 
 void Console::draw(JRenderer *renderer) {
     if (!enabled) return;
-    surface= game->getScreenSurface();
+    Surface surface= Surface::FromCamera(
+        renderer->getAspect(),
+        renderer->getFocus(),
+        renderer->getWidth(),
+        renderer->getHeight());
     Ptr<IFontMan> fontman = game->getFontMan();
 
     renderer->setCoordSystem(JR_CS_EYE);
@@ -118,7 +114,9 @@ void Console::draw(JRenderer *renderer) {
     fontman->setColor(Vector(0,1,0));
     fontman->setCursor(Vector(0,0,0), Vector(1,0,0), Vector(0,1,0));
 
-    for(int i=0; i<lines.size(); i++) {
+    size_t max_lines = (size_t) (surface.getHeight() / fontman->getMetrics()->getLineHeight());
+    max_lines = std::min(max_lines, lines.size());
+    for(int i=lines.size()-max_lines; i<lines.size(); i++) {
         fontman->print(lines[i].c_str());
         if (i!=lines.size()-1) fontman->print("\n");
     }
