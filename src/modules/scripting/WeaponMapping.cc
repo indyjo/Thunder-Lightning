@@ -2,14 +2,28 @@
 // |  WeaponMapping                                              |
 // ---------------------------------------------------------------
 
-
 #include <modules/weaponsys/Weapon.h>
-
-#include <IoList.h>
 
 #include "mappings.h"
 
 namespace {
+
+    struct ConnectionContainer : public Object {
+        virtual ~ConnectionContainer() { }
+        
+        SigC::Connection connection;
+    };
+    
+    void onFireCallback(Ptr<IWeapon> weapon, IoObject * self, Ptr<ConnectionContainer> cc) {
+        cc->connection.disconnect();
+        
+        IoMessage *message = IoMessage_newWithName_label_(IOSTATE, IOSYMBOL("weaponFired"),
+            IOSYMBOL("fire callback"));
+        
+        IoObject * result = IoState_tryToPerform(IOSTATE, self, self, message);
+        if (result) IoState_stackRetain_(IOSTATE, result);
+        IoState_stopRetaining_(IOSTATE, self);
+    }
     
     struct WeaponMapping
         :   public TemplatedObjectMapping<Weapon, ReinterpretCastMapping<Weapon> >
@@ -38,6 +52,7 @@ namespace {
                 {"referenceSpeed", referenceSpeed},
                 {"timeOfAcceleration", timeOfAcceleration},
                 {"lastFiredRound", lastFiredRound},
+                {"onFireNotify", onFireNotify},
                 {NULL, NULL}
             };
             IoObject *self = IoObject_new(state);
@@ -70,6 +85,18 @@ namespace {
             } else {
                 return IONIL(self);
             }
+        }
+
+        static IoObject * onFireNotify(IoObject *self, IoObject *locals, IoMessage *m) {
+    		BEGIN_FUNC("onFireNotify")
+    		IOASSERT(IoMessage_argCount(m) == 1, "Expected one argument")
+    		IoObject *arg = IoMessage_locals_valueArgAt_(m, locals, 0);
+    		IoState_retain_(IOSTATE, arg);
+    		
+    		Ptr<ConnectionContainer> cc = new ConnectionContainer;
+    		cc->connection = getObject(self)->onFireSig().connect(
+    		    SigC::bind(SigC::slot(&onFireCallback), arg, cc));
+    		return IONIL(self);
         }
     };
 } // namespace
