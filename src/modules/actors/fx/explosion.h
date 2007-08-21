@@ -22,7 +22,6 @@ public:
 private:
     double age;
     JRenderer *renderer;
-    Ptr<IPositionProvider> camera;
     TexPtr *tex;
     int frames;
     double secs_per_frame;

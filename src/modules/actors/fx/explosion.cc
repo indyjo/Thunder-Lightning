@@ -7,6 +7,7 @@
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
 #include <modules/jogi/jogi.h>
+#include <modules/drawing/billboard.h>
 #include <sound.h>
 
 
@@ -26,8 +27,6 @@ Explosion::Explosion(Ptr<IGame> thegame, const Vector & pos,
   renderer(thegame->getRenderer()), size_factor(size_factor)
 {
     setLocation(pos);
-
-    camera = thegame->getCamera();
 
     Ptr<IConfig> cfg = thegame->getConfig();
     frames=atoi( cfg->query("Explosion_frames","0") );
@@ -98,46 +97,25 @@ void Explosion::draw() {
 
     TexPtr tex=this->tex[framenum];
 
-    Vector cam = camera->getLocation();
-    Vector up = camera->getUpVector();
-    Vector right = camera->getRightVector();
-    Vector dist(getLocation()-cam);
-    Vector sprite_pos(cam + 0.9 * dist);
-    dist.normalize();
-    Matrix R = Matrix::Hom(RotateAxisMatrix(dist, (float)rot));
-
-    static const float x_coord[5] = {-1, 1, 1, -1, -1};
-    static const float y_coord[5] = {1, 1, -1, -1, 1};
-    static const float u_coord[5] = {0, 1, 1, 0, 0};
-    static const float v_coord[5] = {0, 0, 1, 1, 0};
-    jvertex_coltxt vtx={{0,0,0},{255,255,255},{0,0,0}};
-    //jvertex_coltxt vtx={{0,0,0},{0,0,0},{0,0,0}};
+    Ptr<ICamera> camera = thegame->getCamera();
 
     renderer->enableAlphaBlending();
     renderer->setBlendMode(JR_BLENDMODE_ADDITIVE);
-    renderer->setVertexMode(JR_VERTEXMODE_GOURAUD_TEXTURE);
     renderer->setCullMode(JR_CULLMODE_NO_CULLING);
     renderer->setTexture(tex->getTxtid());
+    renderer->enableTexturing();
+    
     renderer->disableZBufferWriting();
     renderer->disableFog();
-    renderer->begin(JR_DRAWMODE_TRIANGLE_FAN);
-    renderer->setAlpha(0.5);
-    for (int i=0; i<5; i++) {
-        Vector v = (size*size_factor) * (x_coord[i]*right + y_coord[i]*up);
-        v = R * v;
-        v += sprite_pos;
-        vtx.p.x=v[0];
-        vtx.p.y=v[1];
-        vtx.p.z=v[2];
+    
+    renderer->setColor(Vector(1,1,1));
+    renderer->setAlpha(1.0);
+    drawBillboard(renderer, getLocation(), camera, rot, size*size_factor, size*size_factor);
 
-        vtx.txt.x = (float) (tex->getWidth()-1)  * u_coord[i];
-        vtx.txt.y = (float) (tex->getHeight()-1) * v_coord[i];
-
-        renderer->addVertex(&vtx);
-    }
-    renderer->end();
     renderer->enableFog();
     renderer->enableZBufferWriting();
     renderer->setBlendMode(JR_BLENDMODE_BLEND);
     renderer->disableAlphaBlending();
+    renderer->disableTexturing();
 }
+

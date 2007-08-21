@@ -28,6 +28,7 @@ public:
     virtual void onUnlinked();
 
     virtual void action();
+    virtual void draw();
 
     virtual void shoot(const Vector &pos, const Vector &vec, const Vector &dir);
     virtual Ptr<IActor> getSource();
@@ -38,9 +39,6 @@ public:
     virtual void integrate(float delta_t, Transform * transforms);
     virtual void update(float delta_t, const Transform * new_transforms);
     virtual void collide(const Collide::Contact & c);
-
-    virtual int getNumViews();
-    virtual Ptr<IView> getView(int n);
 
     virtual void explode();
     virtual void shootSparks();

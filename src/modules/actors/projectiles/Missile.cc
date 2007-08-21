@@ -2,12 +2,12 @@
 #include <interfaces/IConfig.h>
 #include <interfaces/ITerrain.h>
 
-#include <modules/actors/RelativeView.h>
 #include <modules/actors/fx/explosion.h>
 #include <modules/actors/fx/smokecolumn.h>
 #include <modules/actors/fx/smoketrail.h>
 #include <modules/actors/fx/spark.h>
 #include <modules/clock/clock.h>
+#include <modules/drawing/lensflare.h>
 #include <modules/engines/ChasingEngine.h>
 #include <modules/engines/effectors.h>
 #include <modules/engines/rigidengine.h>
@@ -114,6 +114,26 @@ void Missile::action()
     }
 }
 
+void Missile::draw()
+{
+    SimpleActor::draw();
+    
+    // Draw a cool lens flare effect
+    
+    Vector to_cam = (thegame->getCamera()->getLocation() - getLocation()).normalize();
+    float intensity = std::max(0.0f, - to_cam * getFrontVector());
+    
+    FlareParams params(thegame->getTexMan(), thegame->getConfig());
+    params.half_size = 2;
+    drawLensFlare(thegame->getRenderer(),
+                  getLocation()-1.0f*getFrontVector(),
+                  thegame->getCamera(),
+                  params,
+                  intensity,
+                  age
+                 );
+}
+
 void Missile::shoot(
         const Vector &pos,
         const Vector &vec,
@@ -177,31 +197,6 @@ void Missile::collide(const Collide::Contact & c) {
     if (age <= min_explosion_age) return;
     explode();
 }
-
-
-int Missile::getNumViews() { return 1; }
-
-Ptr<IView> Missile::getView(int n) { 
-    Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
-    gunsight->addDebugInfo(thegame, this);
-    if (n < 4) {
-        gunsight->addBasicCrosshairs();
-        gunsight->addDirectionOfFlight(this);
-    }
-
-    Ptr<SimpleActor> chaser = new SimpleActor(thegame);
-    chaser->setEngine(new ChasingEngine(thegame,this, 0.05f, 0.1f));
-    thegame->addWeakActor(chaser);
-
-    Ptr<RelativeView> view = new RelativeView(chaser, chaser, this, gunsight);
-    view->setViewOffset(
-        Vector(3,-2,-1),
-        Vector(1,0,0),
-        Vector(0,1,0),
-        Vector(0,0,1));
-    return view;
-}
-
 
 #define RAND ((float) rand() / (float) RAND_MAX * 2.0 - 1.0)
 #define RAND_POS ((float) rand() / (float) RAND_MAX)
