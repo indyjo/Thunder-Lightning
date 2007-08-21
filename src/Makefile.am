@@ -46,7 +46,8 @@ tnl_libs = \
     modules/texman/libtexman.a \
     modules/weaponsys/libweaponsys.a \
     modules/actors/projectiles/libprojectiles.a \
-    modules/actors/fx/libfx.a
+    modules/actors/fx/libfx.a \
+    modules/drawing/libdrawing.a
 
 tnl_bin_LDADD = $(tnl_libs) @SDL_LIBS@ @SIGC_LIBS@ @OPENGL_LIBS@  \
     @OPENAL_LIBS@ @ALUT_LIBS@ @LIBPNG_LIBS@ @IO_LIBS@ @GLEW_LIBS@

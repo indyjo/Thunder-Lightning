@@ -172,6 +172,7 @@ src/modules/camera/Makefile
 src/modules/clock/Makefile
 src/modules/collide/Makefile
 src/modules/config/Makefile
+src/modules/drawing/Makefile
 src/modules/engines/Makefile
 src/modules/environment/Makefile
 src/modules/flight/Makefile

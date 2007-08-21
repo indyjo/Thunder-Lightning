@@ -6,6 +6,7 @@ SUBDIRS = \
 	clock           \
 	collide         \
 	config          \
+	drawing         \
 	engines         \
 	environment     \
 	flight          \
