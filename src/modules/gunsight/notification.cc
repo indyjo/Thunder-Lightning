@@ -221,8 +221,8 @@ struct InfoMessageModule : public UI::Component, public SigObject {
 	}
 };
 
-void FlexibleGunsight::addInfoMessage(Ptr<IGame> game)
+void FlexibleGunsight::addStaticInfoMessage(Ptr<IGame> game)
 {
     addModule(new InfoMessageModule("info-messages", game),
-        "screen", HCENTER | TOP, HCENTER | TOP);
+        "root", HCENTER | TOP, HCENTER | TOP);
 }

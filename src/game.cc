@@ -7,6 +7,7 @@
 #include <GL/glew.h>
 #include <modules/math/Vector.h>
 #include <modules/camera/camera.h>
+#include <modules/camera/FollowingCamera.h>
 #include <modules/clock/clock.h>
 #include <modules/LoDTerrain/LoDTerrain.h>
 #include <modules/skybox/skybox.h>
@@ -15,10 +16,12 @@
 #include <modules/model/model.h>
 #include <modules/model/modelman.h>
 #include <modules/fontman/fontman.h>
+#include <modules/gunsight/gunsight.h>
 #include <modules/ui/loadingscreen.h>
 #include <modules/collide/CollisionManager.h>
 #include <modules/ui/Console.h>
 #include <modules/ui/Surface.h>
+#include <modules/ui/PanelRenderPass.h>
 #include <modules/scripting/IoScriptingManager.h>
 #include <modules/scripting/mappings.h>
 #include <modules/actors/Observer.h>
@@ -286,7 +289,7 @@ Game::Game(int argc, const char **argv)
         stat.endJob();
     }
 
-    console = new UI::Console(this, getScreenSurface());
+    console = new UI::Console(this);
     addMappings(this, io_scripting_manager->getMainState());
     {
 		char buf[256];
@@ -298,6 +301,14 @@ Game::Game(int argc, const char **argv)
 		IoState_doFile_(io_scripting_manager->getMainState(), buf);
 		ls_message("Done excuting initial setup script: %s\n", buf);
     }
+    
+    Ptr<FlexibleGunsight> overlay = new FlexibleGunsight(this);
+    overlay->addStaticInfoMessage(this);
+    overlay->addStaticDebugInfo(this);
+    Ptr<UI::PanelRenderPass> overlay_pass = new UI::PanelRenderPass(renderer);
+    overlay_pass->setPanel(overlay);
+    this->renderpass_overlay = overlay_pass;
+    overlay_pass->stackedOn(renderpass_main);
 }
 
 Game::~Game()
@@ -454,13 +465,16 @@ void Game::setCurrentView(Ptr<IView> view)
         view->enable();
         if (view->getRenderPass()) {
             renderpass_main = view->getRenderPass();
+            renderpass_overlay->stackedOn(renderpass_main);
         } else {
             RenderContext ctx(camera);
             renderpass_main = new SceneRenderPass(this, ctx);
+            renderpass_overlay->stackedOn(renderpass_main);
         }
     } else {
         RenderContext ctx(camera);
         renderpass_main = new SceneRenderPass(this, ctx);
+        renderpass_overlay->stackedOn(renderpass_main);
     }
     
     if (current_view) {
@@ -573,26 +587,20 @@ void Game::updateView()
         externalView();
         event_remapper->triggerAction("current_view_subject_killed");
     }
-    if (current_view) {
-        camera->alignWith(&*current_view);
-    }
-
-    camera->setNearDistance(renderer->getClipNear());
-    camera->setFarDistance(renderer->getClipFar());
 }
 
 void Game::updateSound() {
     soundman->update(clock->getFrameDelta());
 
     if (current_view) {
-        Vector pos = current_view->getLocation();
+        Vector pos = current_view->getViewHead()->getLocation();
         soundman->setListenerPosition(pos);
 
         Vector up, right, front;
-        current_view->getOrientation(&up, &right, &front);
+        current_view->getViewHead()->getOrientation(&up, &right, &front);
         soundman->setListenerOrientation(up, front);
 
-        soundman->setListenerVelocity(current_view->getMovementVector());
+        soundman->setListenerVelocity(current_view->getViewHead()->getMovementVector());
         soundman->setListenerVelocity(Vector(0,0,0));
     }
 }
@@ -613,6 +621,18 @@ void Game::updateIoScripting() {
             IoState_tryToPerform(IOSTATE, self, IOSTATE->lobby, msg);
         }
     }
+}
+
+Ptr<SceneRenderPass> Game::createRenderPass(Ptr<IMovementProvider> view) {
+    Ptr<FollowingCamera> camera = new FollowingCamera;
+    camera->setTarget(view);
+    camera->setFocus(config->queryFloat("Camera_focus", 1.5));
+    camera->setAspect(config->queryFloat("Camera_aspect", 1));
+    camera->setNearDistance(environment->getClipMin());
+    camera->setFarDistance(environment->getClipMax());
+    
+    RenderContext ctx(camera);
+    return new SceneRenderPass(this, ctx);
 }
 
 void Game::renderScene(SceneRenderPass * pass)
@@ -656,9 +676,6 @@ void Game::renderScene(SceneRenderPass * pass)
     if (ctx->clip_above_water) renderer->popClipPlanes(1);
     if (ctx->clip_below_water) renderer->popClipPlanes(1);
 
-    if (ctx->draw_gunsight && gunsight) gunsight->draw();
-    if (ctx->draw_console) console->draw(renderer);
-
     this->camera = old_camera;
     
     this->render_context = 0;
@@ -680,8 +697,9 @@ void Game::doFrame()
     water->update();
 
     pre_draw.emit();
-    renderpass_main->render();
-    if (debug_mode) renderpass_main->drawMosaic();
+    renderpass_overlay->render();
+    if (debug_mode) renderpass_overlay->drawMosaic();
+    console->draw(renderer);
     post_draw.emit();
     
     SDL_GL_SwapBuffers();
@@ -695,12 +713,6 @@ const RenderContext *Game::getCurrentContext()
 {
     return render_context;
 }
-
-Ptr<RenderPass> Game::getMainRenderPass()
-{
-    return renderpass_main;
-}
-
 
 void Game::clearScreen() {
     SDL_GL_SwapBuffers();
@@ -751,9 +763,9 @@ void Game::externalView() {
         
         Ptr<Observer> observer = new Observer(this);
         if (current_view) {
-            observer->setLocation(current_view->getLocation());
+            observer->setLocation(current_view->getViewHead()->getLocation());
             Vector up, right, front;
-            current_view->getOrientation(&up, &right, &front);
+            current_view->getViewHead()->getOrientation(&up, &right, &front);
             observer->setOrientation(up, right, front);
         }
         addWeakActor(ptr(observer));

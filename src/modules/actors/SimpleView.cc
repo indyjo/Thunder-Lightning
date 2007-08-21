@@ -1,11 +1,12 @@
+#include <RenderPass.h>
 #include <interfaces/IActor.h>
-#include <modules/gunsight/gunsight.h>
 
 #include "SimpleView.h"
 
-SimpleView::SimpleView(Ptr<IActor> subject, Ptr<IDrawable> gunsight)
+SimpleView::SimpleView(Ptr<IActor> subject, Ptr<IMovementProvider> head, Ptr<RenderPass> pass)
 :	subject(subject),
-	gunsight(gunsight),
+    head(head),
+    render_pass(pass),
 	is_enabled(false)
 { }
 
@@ -20,70 +21,35 @@ Ptr<EventSheet> SimpleView::getEventSheet(Ptr<EventRemapper> remap) {
     return event_sheet;
 }
 
-Vector SimpleView::getLocation() {
-	Vector pos;
-	Matrix3 orient;
-	getPositionAndOrientation(&pos, &orient);
-	return pos;
-}
-
-Vector SimpleView::getFrontVector() {
-	Vector pos;
-	Matrix3 orient;
-	getPositionAndOrientation(&pos, &orient);
-	return orient*Vector(0,0,1);
-}
-
-Vector SimpleView::getRightVector() {
-	Vector pos;
-	Matrix3 orient;
-	getPositionAndOrientation(&pos, &orient);
-	return orient*Vector(1,0,0);
-}
-
-Vector SimpleView::getUpVector() {
-	Vector pos;
-	Matrix3 orient;
-	getPositionAndOrientation(&pos, &orient);
-	return orient*Vector(0,1,0);
-}
-
-void SimpleView::getOrientation(Vector * up, Vector * right, Vector * front)
-{
-	Vector pos;
-	Matrix3 orient;
-	getPositionAndOrientation(&pos, &orient);
-	*up = orient*Vector(0,1,0);
-	*right = orient*Vector(1,0,0);
-	*front = orient*Vector(0,0,1);
-}
-
-Vector SimpleView::getMovementVector() {
-	return subject->getMovementVector();
-}
-
 Ptr<IActor> SimpleView::getViewSubject() {
 	return subject;
 }
 
-Ptr<IDrawable> SimpleView::getGunsight() {
-	return gunsight;
+Ptr<IMovementProvider> SimpleView::getViewHead() {
+    return head;
 }
+
+Ptr<RenderPass> SimpleView::getRenderPass() {
+    return render_pass;
+}
+
 
 void SimpleView::enable() {
     if (is_enabled) return;
     is_enabled = true;
     on_enable.emit();
     if(event_sheet) event_remapper->addEventSheet(event_sheet);
-    if(gunsight) gunsight->enable();
 }
 
 void SimpleView::disable() {
     if (!is_enabled) return;
     is_enabled = false;
     on_disable.emit();
-    if(gunsight) gunsight->disable();
     if(event_sheet) event_remapper->removeEventSheet(event_sheet);
+}
+
+bool SimpleView::isEnabled() {
+    return is_enabled;
 }
 
 SigC::Signal0<void> & SimpleView::onEnable() {
@@ -94,10 +60,4 @@ SigC::Signal0<void> & SimpleView::onDisable() {
     return on_disable;
 }
 
-bool SimpleView::isEnabled() {
-    return is_enabled;
-}
-
-Ptr<RenderPass> SimpleView::getRenderPass() { return render_pass; }
-void SimpleView::setRenderPass(Ptr<RenderPass> p) {render_pass = p; }
 

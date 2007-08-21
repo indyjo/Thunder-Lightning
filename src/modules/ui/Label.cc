@@ -24,13 +24,14 @@ void Label::draw(Panel& panel) {
     surface.translateOrigin(offset[0],offset[1]);
     
     JRenderer * r = panel.getRenderer();
+    std::string text = getText();
     r->enableAlphaBlending();
     r->pushMatrix();
     r->multMatrix(surface.getMatrix());
     if (isShadowEnabled()) {
-        font->drawString(getText().c_str(), Vector2(0,1), getShadowColor(), getShadowAlpha(), IFont::LEFT|IFont::TOP);
+        font->drawString(text.c_str(), Vector2(0,1), getShadowColor(), getShadowAlpha(), IFont::LEFT|IFont::TOP);
     }
-    font->drawString(getText().c_str(), Vector2(0), getColor(), getAlpha(), IFont::LEFT|IFont::TOP);
+    font->drawString(text.c_str(), Vector2(0), getColor(), getAlpha(), IFont::LEFT|IFont::TOP);
     r->popMatrix();
     r->disableAlphaBlending();
 }

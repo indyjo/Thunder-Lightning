@@ -30,7 +30,7 @@ public:
     
     virtual void renderScene(SceneRenderPass *) ;
     virtual const RenderContext *getCurrentContext();
-    virtual Ptr<RenderPass> getMainRenderPass();
+    virtual Ptr<SceneRenderPass> createRenderPass(Ptr<IMovementProvider> view_head);
 
     virtual Ptr<TextureManager> getTexMan();
     virtual JRenderer *getRenderer();
@@ -130,5 +130,6 @@ private:
 	Ptr<IoScriptingManager> io_scripting_manager;
     Ptr<UI::Console> console;
     Ptr<RenderPass> renderpass_main;
+    Ptr<RenderPass> renderpass_overlay;
 };
 

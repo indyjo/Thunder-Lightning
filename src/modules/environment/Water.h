@@ -4,7 +4,7 @@
 #include <interfaces/IGame.h>
 #include <object.h>
 
-class RenderPass;
+class SceneRenderPass;
 
 class WaterImpl;
 class Water : public Object {
@@ -13,9 +13,9 @@ public:
     Water(Ptr<IGame>);
     ~Water();
     
-    void draw();
-    Ptr<RenderPass> createRenderPass();
-    void linkRenderPassToCamera(Ptr<RenderPass> render_pass, Ptr<ICamera> cam);
+    bool needsRenderPass();
+    void draw(SceneRenderPass *);
+    void update();
 };
 
 

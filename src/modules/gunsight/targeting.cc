@@ -197,13 +197,20 @@ struct AimingModule : public UI::Component {
 	      return;
 	    }
 	    Vector desired_v = target_vrel + target_dir * sqrt(v2 - target_vrel2);
-		
-		Vector dir = M*(desired_v).normalize();
+	    Vector desired_dir = Vector(desired_v).normalize();
+	    
+	    Vector desired_projectile_v = desired_v + desired_dir * armament->currentWeapon(0)->referenceSpeed();
+	    float time_to_impact = (target_p-p).length() / ((desired_projectile_v-target_v)*target_dir);
+	    float gravity_offset = 0.5f * 9.81 * time_to_impact*time_to_impact;
+	    Vector point_of_impact = time_to_impact * desired_v;
+	    Vector point_of_aim = point_of_impact + Vector(0, gravity_offset, 0);
+	    
+		Vector dir = M*(point_of_aim).normalize();
 		if (dir[2] <= 0) {
 	      r->popMatrix();
 	      return;
 	    }
-		
+	    
 		p=(zfactor/dir[2])*Vector(dir[0], -dir[1], 0);
 		
 		float size = 4;

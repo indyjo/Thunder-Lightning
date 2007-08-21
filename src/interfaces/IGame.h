@@ -44,7 +44,12 @@ struct IGame : virtual public Object, virtual public IActorStage, virtual public
     /// @return the currently active RenderContext
     virtual const RenderContext *getCurrentContext() = 0;
     
-    virtual Ptr<RenderPass> getMainRenderPass()=0;
+    /// Create a SceneRenderPass with default values and a camera configured
+    /// to follow view_head.
+    /// While it is possible to create a RenderPass manually, this is usually
+    /// the easiest method. The camera's aspect and focal length will be taken
+    /// from config.
+    virtual Ptr<SceneRenderPass> createRenderPass(Ptr<IMovementProvider> view_head)=0;
 
     virtual Ptr<TextureManager> getTexMan()=0;
     virtual JRenderer *getRenderer()=0;

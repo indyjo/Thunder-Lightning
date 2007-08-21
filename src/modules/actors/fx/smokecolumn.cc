@@ -74,7 +74,6 @@ SmokeColumn::SmokeColumn(Ptr<IGame> thegame, const Vector &pos,
 {
     setLocation(pos);
     this->renderer = thegame->getRenderer();
-    this->camera = thegame->getCamera();
     Ptr<IConfig> config( thegame->getConfig() );
     this->smoke_tex = thegame->getTexMan()->query(
             config->query("SmokeColumn_puffy_tex"), JR_HINT_GREYSCALE);
@@ -109,6 +108,7 @@ void SmokeColumn::action()
 
 void SmokeColumn::draw()
 {
+    Ptr<ICamera> camera = thegame->getCamera();
     Vector eye = camera->getLocation();
     Vector up, right, front;
     camera->getOrientation(&up, &right, &front);

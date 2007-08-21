@@ -76,7 +76,6 @@ protected:
     Params params;
     PuffParams puff_params;
     JRenderer *renderer;
-    Ptr<ICamera> camera;
     SmokeList smokelist;
     TexPtr smoke_tex;
 };

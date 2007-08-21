@@ -19,7 +19,6 @@ class Console : public IEventFilter, public IoCallbackContext, virtual public Si
     typedef Lines::iterator LinesIter;
 
     IGame * game;
-    Surface surface;
 
     Lines lines, command_history;
     LinesIter history_pointer;
@@ -27,11 +26,10 @@ class Console : public IEventFilter, public IoCallbackContext, virtual public Si
     int bracecount;
     size_t cursor_pos;
 
-    int max_lines;
     bool enabled;
 
 public:
-    Console(IGame * game, const Surface & surface);
+    Console(IGame * game);
 
     void putString(const char * str);
     void putChar(char c);

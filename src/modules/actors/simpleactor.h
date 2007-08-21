@@ -18,6 +18,7 @@
 class Armament;
 class Targeter;
 class EventSheet;
+class SimpleView;
 
 class SimpleActor : virtual public IActor, virtual public Weak, virtual public SigObject
 {

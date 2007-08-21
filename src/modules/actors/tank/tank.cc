@@ -10,8 +10,10 @@
 #include <interfaces/ITerrain.h>
 #include <sound.h>
 #include <remap.h>
-#include <modules/actors/RelativeView.h>
+#include <SceneRenderPass.h>
+#include <modules/actors/SimpleView.h>
 #include <modules/model/SkeletonProvider.h>
+#include <modules/ui/PanelRenderPass.h>
 #include <modules/weaponsys/Armament.h>
 #include <modules/weaponsys/Targeter.h>
 #include <modules/weaponsys/Cannon.h>
@@ -24,6 +26,7 @@
 #define RADIUS 6.0f
 
 
+/*
 struct TurretView: public SimpleView {
 	Ptr<TankEngine> engine;
 	
@@ -45,7 +48,7 @@ struct TurretView: public SimpleView {
 	    *pos = subject->getLocation() + (*orient) * Vector(0,6,-12);
 	}
 };
-
+*/
 
 Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
 : SimpleActor(thegame),
@@ -67,7 +70,7 @@ Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
     tank_engine = new TankEngine(thegame);
     setEngine(tank_engine);
     
-    setTargeter(new Targeter(*thegame, *this));
+    setTargeter(new Targeter(thegame->getTerrain(), *thegame, *this));
 
     //brain = new TankBrain(thegame, thegame->getClock(),
     //                      this, tank_controls, tank_engine);
@@ -172,10 +175,6 @@ void Tank::action() {
     updateDerivedObjects();
 }
 
-
-#define MAX_MODEL_DISTANCE 3000.0f
-#define MAX_POINT_DISTANCE 10000.0f
-
 void Tank::draw() {
     renderer->enableLighting();
     SimpleActor::draw();
@@ -218,61 +217,56 @@ void Tank::setControlMode(ControlMode m) {
 }
 
 int Tank::getNumViews() {
-	return 4;
+	return 3;
 }
 
 Ptr<IView> Tank::getView(int n) {
     Ptr<SimpleActor> chaser = new SimpleActor(thegame);
-    Ptr<SimpleView> view = new RelativeView(chaser, chaser, this);
-    mapViewEvents(view);
-
-    Ptr<FlexibleGunsight> gunsight1 = new FlexibleGunsight(thegame);
-    gunsight1->addBasicCrosshairs();
-	gunsight1->addBasics(thegame, this);
-    gunsight1->addDebugInfo(thegame, this);
-    gunsight1->addTargeting(view, targeter, armament);
-    gunsight1->addArmamentToScreen(thegame, armament, 0);
-    gunsight1->addInfoMessage(thegame);
+    thegame->addWeakActor(chaser);
     
-    Ptr<FlexibleGunsight> gunsight2 = new FlexibleGunsight(thegame);
-    gunsight2->addDebugInfo(thegame, this);
-	gunsight2->addBasics(thegame, this);
-    gunsight2->addTargeting(view, targeter, armament);
-    gunsight2->addArmamentToScreen(thegame, armament, 0);
-    gunsight1->addInfoMessage(thegame);
+    Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
+	gunsight->addBasics(thegame, this);
+    gunsight->addTargeting(chaser, targeter, armament);
+    gunsight->addArmamentToScreen(thegame, armament, 0);
 
-    Ptr<SimpleActor> chaser = new SimpleActor(thegame);
-    Ptr<IView> view;
+    Ptr<SceneRenderPass> scene_pass = thegame->createRenderPass(chaser);
+    gunsight->setCamera(scene_pass->context.camera);
+    
+    Ptr<UI::PanelRenderPass> hud_pass = new UI::PanelRenderPass(thegame->getRenderer());
+    hud_pass->stackedOn(scene_pass);
+    hud_pass->setPanel(gunsight);
+    
+    Ptr<SimpleView> view = new SimpleView(this, chaser, hud_pass);
+    mapViewEvents(view);
     
     switch(n) {
     case 0:
         chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.1f,
             Transform::identity(),
             Transform(Quaternion(1,0,0,0), Vector(0,4,-8))));
-        view = new RelativeView(chaser, chaser, this, gunsight2);
         break;
     case 1:
+        gunsight->addBasicCrosshairs();
         chaser->setEngine(new ChasingEngine(thegame,new SkeletonProvider(skeleton, "MGCamera",
                 "MG", "MGFront",
                 "MG", "MGUp"), 0.0f, 0.1f));
-        view = new RelativeView(chaser, chaser, this, gunsight1);
         break;
+    /*
     case 2:
     	view = new TurretView(this, tank_engine, gunsight1);
         chaser->setEngine(new ChasingEngine(thegame,view, 0.1f, 0.1f));
-        view = new RelativeView(chaser, chaser, this, gunsight1);
+        view->setGunsight(gunsight1);
         break;
-    case 3:
+    */
+    case 2:
         chaser->setEngine(new ChasingEngine(thegame, this, 0.1f, 0.5f,
             Transform::identity(),
             Transform(Quaternion::Rotation(Vector(0,1,0), PI), Vector(0,6,18))));
-        view = new RelativeView(chaser, chaser, this, gunsight2);
         break;
     default:
     	return 0;
     }
 
-    thegame->addWeakActor(chaser);
     return view;
 }
 

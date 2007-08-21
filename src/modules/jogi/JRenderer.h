@@ -1,10 +1,12 @@
 #ifndef _JOGI_RENDERER_H
 #define _JOGI_RENDERER_H
 
+#include <modules/math/Matrix.h>
 #include "JCamera.h"
 #include "JMaterial.h"
 #include "JLight.h"
 #include "types.h"
+#include "types3d.h"
 
 typedef enum {
     JR_DRAWMODE_POINTS=0,

@@ -270,6 +270,55 @@ class TargetViewModule : public MfdModule {
         }
     };
     
+    class AttitudeLabel : public UI::Label {
+        WeakPtr<SimpleActor> subject;
+    public:
+        AttitudeLabel(const char *name, Ptr<SimpleActor> subject)
+        : UI::Label(name), subject(subject)
+        { }
+        
+        virtual std::string getText() {
+            Ptr<SimpleActor> subject = this->subject.lock();
+            if (!subject) return "<no subject>";
+            Ptr<IActor> target = subject->getTargeter()->getCurrentTarget();
+            if (!target) return "";
+            if (!target->getFaction()) return "";
+            
+            setColor(target->getFaction()->getColor());
+            
+            switch(subject->getFaction()->getAttitudeTowards(target->getFaction())) {
+            case Faction::FRIENDLY:
+                return "Friendly";
+            case Faction::NEUTRAL:
+                return "Neutral";
+            case Faction::HOSTILE:
+                return "Hostile";
+            }
+            
+            // should never be reached
+            return "attitude?";
+        }
+    };
+
+    class NameLabel : public UI::Label {
+        WeakPtr<SimpleActor> subject;
+    public:
+        NameLabel(const char *name, Ptr<SimpleActor> subject)
+        : UI::Label(name), subject(subject)
+        { }
+        
+        virtual std::string getText() {
+            Ptr<SimpleActor> subject = this->subject.lock();
+            if (!subject) return "<no subject>";
+            Ptr<IActor> target = subject->getTargeter()->getCurrentTarget();
+            if (!target) return "";
+            Ptr<TargetInfo> ti = target->getTargetInfo();
+            if (!ti) return "";
+            
+            return ti->getTargetName();
+        }
+    };
+    
 public:
     TargetViewModule(WeakPtr<IGame> game, Ptr<Drone> drone) : game(game), drone(drone) { }
     
@@ -294,6 +343,16 @@ public:
         
         fontman->selectFont(IFontMan::FontSpec("dungeon", 10, IFontMan::FontSpec::BOLD));
 
+        Ptr<NameLabel> name = new NameLabel("name", drone);
+        name->setColor(Vector(0,1,0));
+        name->setFont(fontman->getFont());
+        name->setAlpha(1);
+        panel->add(name, "label",
+            UI::Panel::HCENTER|UI::Panel::BOTTOM,
+            UI::Panel::HCENTER|UI::Panel::TOP);
+        
+        fontman->selectFont(IFontMan::FontSpec("dungeon", 8, IFontMan::FontSpec::BOLD));
+
         Ptr<RangeLabel> range = new RangeLabel("range", drone);
         range->setFont(fontman->getFont());
         range->setColor(Vector(1,0,0));
@@ -303,7 +362,13 @@ public:
             UI::Panel::HCENTER|UI::Panel::VCENTER,
             Vector2(0,0.2));
         
-        
+        Ptr<AttitudeLabel> attitude = new AttitudeLabel("attitude", drone);
+        attitude->setFont(fontman->getFont());
+        attitude->setAlpha(1);
+        panel->add(attitude, "range",
+            UI::Panel::HCENTER|UI::Panel::TOP,
+            UI::Panel::HCENTER|UI::Panel::BOTTOM);
+
         Ptr<UI::PanelRenderPass> result = new UI::PanelRenderPass(renderer);
         result->setPanel(panel);
         result->stackedOn(pass);

@@ -13,7 +13,7 @@
 #include <modules/jogi/JSprite.h>
 #include <modules/texman/TextureManager.h>
 
-#include <RenderPass.h>
+#include <SceneRenderPass.h>
 #include <tnl.h>
 
 #include "Water.h"
@@ -86,19 +86,15 @@ public:
         }
     }
     
-    void updateContext(Ptr<RenderPass> render_pass, Ptr<ICamera> cam) {
-        RenderContext ctx = RenderContext::MirroredRenderContext(cam);
-        render_pass->setRenderContext(ctx);
-        render_pass->setRenderContextEnabled(true);
-    }
-    
-    void draw() {
+    void update() {
         age += thegame->getClock()->getFrameDelta();
-        
+    }
+
+    void draw(SceneRenderPass *pass) {
         if (first_draw) ls_message("Water: First draw.\n");
         
         if (use_shaders) {
-            drawWithShaders();
+            drawWithShaders(pass->getMirrorTexture(), pass->getMirrorCamera()->camToMir());
         } else {
             drawWithoutShaders();
         }
@@ -109,9 +105,7 @@ public:
         }
     }
     
-    void drawWithShaders() {
-        Ptr<RenderPass> render_pass = thegame->getCurrentContext()->mirror_pass;
-        
+    void drawWithShaders(Ptr<Texture> tex, const Matrix3 cam2mir) {
         Vector campos = thegame->getCamera()->getLocation();
         
         int tile_x_begin = int(std::floor(campos[0] / tile_size) - tiles_num/2);
@@ -121,7 +115,7 @@ public:
         
         glActiveTexture(GL_TEXTURE0_ARB);
         glBindTexture(GL_TEXTURE_2D,
-            thegame->getRenderer()->getGLTexFromTxtid(render_pass->getTexture()->getTxtid()));
+            thegame->getRenderer()->getGLTexFromTxtid(tex->getTxtid()));
         glEnable(GL_TEXTURE_2D);
 
         glActiveTexture(GL_TEXTURE1_ARB);
@@ -141,19 +135,7 @@ public:
         glUniform1iARB(glGetUniformLocationARB(program, "MirrorMap"), 0);
         glUniform1iARB(glGetUniformLocationARB(program, "BumpMap"), 1);
         glUniform1fARB(glGetUniformLocationARB(program, "Time"), age);
-        
         glUniform3fARB(glGetUniformLocationARB(program, "CamPos"), campos[0], campos[1], campos[2]);
-        
-        Matrix3 cam_orient = thegame->getCamera()->getOrient();
-        Vector up,right,front;
-        
-        thegame->getCamera()->getOrientation(&up,&right,&front);
-        right[1] = -right[1];
-        front[1] = -front[1];
-        up = front%right;
-        
-        Matrix3 mir_orient = MatrixFromColumns(right, up, front);
-        Matrix3 cam2mir = mir_orient.transpose() * cam_orient;
         glUniformMatrix3fvARB(glGetUniformLocationARB(program, "CamToMir"), 1, GL_FALSE, cam2mir.glMatrix());
 
         if (first_draw) ls_message("Drawing.\n");
@@ -303,24 +285,9 @@ public:
         }
     }
     
-    Ptr<RenderPass> createRenderPass() {
-        Ptr<RenderPass> render_pass = thegame->getRenderPassList()->createRenderPass();
-        render_pass->setResolution(
-            cfg->queryInt("Water_mirror_texture_size", 512),
-            cfg->queryInt("Water_mirror_texture_size", 512));
-        render_pass->setRenderToTexture(true);
-        
-        // only enable the render pass if shader extensions are supported and enabled
-        render_pass->setEnabled(use_shaders);
-        
-        return render_pass;
+    bool needsRenderPass() {
+        return use_shaders;
     }
-    
-    void linkRenderPassToCamera(Ptr<RenderPass> render_pass, Ptr<ICamera> cam) {
-        render_pass->preScene().connect(
-            SigC::bind(SigC::slot(*this, &WaterImpl::updateContext), cam));
-    }
-
 }; // class WaterImpl
 
 Water::Water(Ptr<IGame> game) {
@@ -329,15 +296,13 @@ Water::Water(Ptr<IGame> game) {
 
 Water::~Water() { }
 
-void Water::draw() {
-    pImpl->draw();
+void Water::draw(SceneRenderPass* pass) {
+    pImpl->draw(pass);
 }
-
-Ptr<RenderPass> Water::createRenderPass() {
-    return pImpl->createRenderPass();
+bool Water::needsRenderPass() {
+    return pImpl->needsRenderPass();
 }
-
-void Water::linkRenderPassToCamera(Ptr<RenderPass> render_pass, Ptr<ICamera> cam) {
-    pImpl->linkRenderPassToCamera(render_pass, cam);
+void Water::update() {
+    pImpl->update();
 }
 

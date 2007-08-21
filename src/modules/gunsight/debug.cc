@@ -11,10 +11,14 @@ void FlexibleGunsight::addDebugInfo(
 	Ptr<IGame> game,
 	Ptr<IActor> actor)
 {
-    addModule(new FPSModule(game),
-        "screen", LEFT | TOP, LEFT | TOP, Vector(5,5,0));
     addModule(new TargetInfoModule(game,actor),
         "screen", LEFT | BOTTOM, LEFT | BOTTOM, Vector(5,-5,0));
+}
+
+void FlexibleGunsight::addStaticDebugInfo(Ptr<IGame> game)
+{
+    addModule(new FPSModule(game),
+        "screen", LEFT | TOP, LEFT | TOP, Vector(5,5,0));
 }
 
 FPSModule::FPSModule(Ptr<IGame> game)

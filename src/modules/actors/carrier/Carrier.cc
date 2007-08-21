@@ -1,17 +1,20 @@
 #include <string>
 #include <interfaces/IConfig.h>
 #include <interfaces/IModelMan.h>
-#include <modules/actors/RelativeView.h>
+#include <modules/actors/SimpleView.h>
+#include <modules/camera/FollowingCamera.h>
 #include <modules/collide/CollisionManager.h>
 #include <modules/engines/ChasingEngine.h>
 #include <modules/engines/effectors.h>
 #include <modules/engines/Turret.h>
 #include <modules/gunsight/gunsight.h>
 #include <modules/model/SkeletonProvider.h>
+#include <modules/ui/PanelRenderPass.h>
 #include <modules/weaponsys/Armament.h>
 #include <modules/weaponsys/Targeter.h>
 #include <modules/weaponsys/Cannon.h>
 #include <remap.h>
+#include <SceneRenderPass.h>
 #include "Carrier.h"
 
 Carrier::Carrier(Ptr<IGame> thegame, IoObject * io_peer_init)
@@ -75,7 +78,7 @@ Carrier::Carrier(Ptr<IGame> thegame, IoObject * io_peer_init)
     Vector pivot(0,0,0);
     main_turret = new Turret(base, elevator, pivot);
     
-    setTargeter(new Targeter(*thegame, *this));
+    setTargeter(new Targeter(thegame->getTerrain(), *thegame, *this));
     setArmament(new Armament(this, this));
     
     Ptr<IConfig> cfg = thegame->getConfig();
@@ -141,22 +144,18 @@ int Carrier::getNumViews() {
 
 Ptr<IView> Carrier::getView(int n) {
     Ptr<SimpleActor> chaser = new SimpleActor(thegame);
-    Ptr<RelativeView> view = new RelativeView(chaser, chaser, this);
-
-    Ptr<FlexibleGunsight> gunsight1 = new FlexibleGunsight(thegame);
-    gunsight1->addBasicCrosshairs();
-	gunsight1->addBasics(thegame, this);
-    gunsight1->addDebugInfo(thegame, this);
-    gunsight1->addTargeting(view, targeter, armament);
-    gunsight1->addArmamentToScreen(thegame, armament, 0);
-    gunsight1->addInfoMessage(thegame);
-
-    Ptr<FlexibleGunsight> gunsight2 = new FlexibleGunsight(thegame);
-    gunsight2->addDebugInfo(thegame, this);
-	gunsight2->addBasics(thegame, this);
-    gunsight2->addInfoMessage(thegame);
     
-    view->setGunsight(gunsight2);
+    Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
+	gunsight->addBasics(thegame, this);
+
+    Ptr<SceneRenderPass> scene_pass = thegame->createRenderPass(chaser);
+    gunsight->setCamera(scene_pass->context.camera);
+    
+    Ptr<UI::PanelRenderPass> hud_pass = new UI::PanelRenderPass(thegame->getRenderer());
+    hud_pass->stackedOn(scene_pass);
+    hud_pass->setPanel(gunsight);
+    
+    Ptr<SimpleView> view = new SimpleView(this, chaser, hud_pass);
     mapViewEvents(view);
     
     switch(n) {
@@ -171,12 +170,14 @@ Ptr<IView> Carrier::getView(int n) {
             CARRIER));
         break;
     case 1:
+        gunsight->addBasicCrosshairs();
+        gunsight->addTargeting(chaser, targeter, armament);
+        gunsight->addArmamentToScreen(thegame, armament, 0);
         chaser->setEngine(new ChasingEngine(thegame,new SkeletonProvider(skeleton,
                 "main_turret_viewpoint",
                 "main_turret_pivot", "main_turret_pivot_dir",
                 "main_turret_pivot", "main_turret_pivot_up"),
                 0.0f, 0.1f));
-        view->setGunsight(gunsight1);
         view->onEnable().connect(SigC::bind(
             SigC::slot(*this, & Carrier::setControlTarget),
             MAIN_TURRET));

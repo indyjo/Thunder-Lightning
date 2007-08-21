@@ -2,6 +2,7 @@
 #include "simpleactor.h"
 #include <interfaces/ICamera.h>
 #include <interfaces/IProjectile.h>
+#include <modules/actors/SimpleView.h>
 #include <modules/clock/clock.h>
 #include <modules/engines/newtonianengine.h>
 #include <modules/gunsight/gunsight.h>
@@ -11,7 +12,7 @@
 #include <modules/weaponsys/Targeter.h>
 #include <remap.h>
 #include <Faction.h>
-#include "RelativeView.h"
+#include <SceneRenderPass.h>
 
 SimpleActor::SimpleActor( Ptr<IGame> game)
 :   thegame(game), self(0), state(ALIVE), control_mode(UNCONTROLLED), is_linked(false)
@@ -110,7 +111,7 @@ void SimpleActor::mapViewEvents(Ptr<SimpleView> view) {
 
 void SimpleActor::onSelectTargetInView(IView * view) {
     if (control_mode == MANUAL && targeter && view) {
-        targeter->selectTargetNearVector(view->getLocation(), view->getFrontVector());
+        targeter->selectTargetNearVector(view->getViewHead()->getLocation(), view->getViewHead()->getFrontVector());
     }
 }
 
@@ -157,59 +158,12 @@ void SimpleActor::applyDamage(float damage, int domain, Ptr<IProjectile> project
     }
 }
 
-int SimpleActor::getNumViews() { return 4; }
+int SimpleActor::getNumViews() { return 1; }
 
-Ptr<IView> SimpleActor::getView(int n) { 
-    // TODO: this should be implemented in Io
-    
-    Ptr<RelativeView> view = new RelativeView(this, this, this);
-    
-    Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
-	gunsight->addDebugInfo(thegame, this);
-	if (targeter && armament) {
-	    gunsight->addTargeting(view, targeter, armament);
-	}
-    gunsight->addInfoMessage(thegame);
-    
-    view->setGunsight(gunsight);
-
-	switch(n) {
-	case 0:
-	    gunsight->addBasicCrosshairs();
-		return new RelativeView(
-            this,
-            Vector(0,0,0),
-            Vector(1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,1),
-            gunsight);
-    case 1:
-    	return new RelativeView(
-            this,
-            Vector(0,0,0),
-            Vector(-1,0,0),
-            Vector(0,1,0),
-            Vector(0,0,-1),
-            gunsight);
-    case 2:
-    	return new RelativeView(
-            this,
-            Vector(0,0,0),
-            Vector(0,0,1),
-            Vector(0,1,0),
-            Vector(-1,0,0),
-            gunsight);
-    case 3:
-    	return new RelativeView(
-            this,
-            Vector(0,0,0),
-            Vector(0,0,-1),
-            Vector(0,1,0),
-            Vector(1,0,0),
-            gunsight);
-    default:
-    	return 0;
-	}
+Ptr<IView> SimpleActor::getView(int n) {
+    Ptr<SceneRenderPass> scene_pass = thegame->createRenderPass(this);
+    Ptr<SimpleView> view = new SimpleView(this, this, scene_pass);
+	return view;
 }
 
 bool SimpleActor::hasControlMode(ControlMode m) {
@@ -226,11 +180,11 @@ void SimpleActor::setControlMode(ControlMode m) {
         }
     }
     
-    if (control_mode==MANUAL && m!=control_mode)  {
+    if (control_mode==MANUAL && m!=control_mode && event_sheet)  {
         thegame->getEventRemapper()->removeEventSheet(getEventSheet());
     }
     control_mode = m;
-    if (m==MANUAL) {
+    if (m==MANUAL && event_sheet) {
         thegame->getEventRemapper()->addEventSheet(getEventSheet());
     }
 }
@@ -314,6 +268,10 @@ void SimpleActor::setMovementVector(const Vector & v) {
 
 // IDrawable
 void SimpleActor::draw() {
+    if (! getTargetInfo()->isA(TargetInfo::PHYSICAL)) {
+        return;
+    }
+    
     JRenderer *renderer = thegame->getRenderer();
     
     float bounding_radius = 1.0;
@@ -358,15 +316,7 @@ void SimpleActor::draw() {
     
     renderer->enableLighting();
     if (model) {
-        Vector right, up, front;
-        getOrientation(&up, &right, &front);
-        Matrix Translation = TranslateMatrix<4,float>(getLocation());
-        Matrix Rotation    = Matrix::Hom(
-            MatrixFromColumns(right, up, front));
-
-        Matrix Mmodel  = Translation * Rotation;
-        model->draw(*renderer, Mmodel, Rotation);
-        renderer->disableLighting();
+        model->draw(*renderer, getTransform());
     }
     if (skeleton) {
         skeleton->draw(*renderer);

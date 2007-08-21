@@ -32,7 +32,6 @@
 #include "DroneCockpit.h"
 
 #include <modules/actors/SimpleView.h>
-#include <modules/actors/RelativeView.h>
 
 #define PI 3.14159265358979323846
 
@@ -110,7 +109,7 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
 
     // Weapons stuff
     setArmament(new Armament(this, this));
-    targeter = new Targeter(*thegame,*this);
+    targeter = new Targeter(thegame->getTerrain(), *thegame,*this);
 
     Ptr<Cannon> machinegun = new Cannon(thegame, "Vulcan",
         cfg->queryInt("Drone_Vulcan_rounds", 500));
@@ -375,13 +374,11 @@ Ptr<IView> Drone::getView(int n) {
     thegame->addWeakActor(chaser);
     
     Ptr<FlexibleGunsight> gunsight = new FlexibleGunsight(thegame);
-	gunsight->addDebugInfo(thegame, this);
 	gunsight->addBasics(thegame, this);
 	gunsight->addTargeting(chaser, targeter, armament);
 	gunsight->addDirectionOfFlight(this);
     gunsight->addArmamentToScreen(thegame, armament, 0);
     gunsight->addMissileWarning(thegame, this);
-    gunsight->addInfoMessage(thegame);
 
     Ptr<SceneRenderPass> scene_pass = thegame->createRenderPass(chaser);
     gunsight->setCamera(scene_pass->context.camera);

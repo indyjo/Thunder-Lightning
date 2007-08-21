@@ -14,9 +14,6 @@ public:
     virtual void draw();
     
     void update();
-    
-    virtual int getNumViews();
-    virtual Ptr<IView> getView(int n);
 
 protected:
     void mapEvents();

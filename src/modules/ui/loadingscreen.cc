@@ -37,7 +37,6 @@ void LoadingScreen::update(Status * stat) {
     r->enableAlphaBlending();
     
     r->disableZBuffer();
-    r->setClipRange(0.1, 10.0);
     
     r->setColor(Vector(1,1,1));
     r->setAlpha(1.0);
