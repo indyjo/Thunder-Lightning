@@ -5,10 +5,11 @@
 
 using namespace std;
 
-Targeter::Targeter(IActorStage &stage, IActor &self)
+Targeter::Targeter(Ptr<ITerrain> terrain, IActorStage &stage, IActor &self)
 :	self(self),
 	stage(stage),
-	max_range(-1)
+	max_range(10000),
+	terrain(terrain)
 {
 }
 
@@ -158,6 +159,11 @@ void Targeter::listFriendlyTargets(vector<Ptr<IActor> > & actors) {
 	
 	actors.resize(remove_if(actors.begin(),actors.end(),not_friendly(faction))
 	              - actors.begin());
+}
+
+bool Targeter::hasLineOfSightTo(Ptr<IActor> target) {
+    Vector x;
+    return terrain->lineCollides(self.getLocation(), target->getLocation(), &x);
 }
 
 void Targeter::selectNextFrom(vector<Ptr<IActor> > & actors) {
