@@ -11,6 +11,7 @@ public:
     static const Type           NONE,
     							
     							VIRTUAL,
+    							PHYSICAL,
                                 
                                 STATIC,
                                 
