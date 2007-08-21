@@ -320,12 +320,11 @@ Intro combatTraining := method(mission,
         sleep(8)
         "Press left mouse button or (Ctrl) to fire." say
         sleep(8)
-        "The Lightning is equipped with a 2-barrel Vulcan cannon" say
+        "The Lightning is equipped with a twin Vulcan cannon" say
         sleep(8)
         "and there are Sidewinder and Hydra missiles at your command." say
         sleep(8)
-        "The sidewinder is a heat-seeking missile that will find its way" say
-        "towards your enemy." say
+        "The sidewinder is a heat-seeking air-to-air missile." say
         sleep(8)
         "The Hydra is an unguided but effective ground attack rocket." say
         sleep(8)

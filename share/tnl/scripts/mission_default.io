@@ -43,6 +43,12 @@ addTank := method(pos,
     tank
 )
 
+addGuardingTank := method(pos,
+    tank := addTank(pos)
+    tank setControlMode(Actor AUTOMATIC)
+    tank
+)
+
 FollowStupidPath := coro(me,
     x := me getLocation
 
@@ -103,7 +109,7 @@ startup := method(
     
     objectives = list()
     
-    tankpos := vector(6543,0,1416)
+    tankpos := vector(-4977,0,3476)
     tankpos2 := tankpos xz
     
     "Here" println
@@ -132,17 +138,18 @@ startup := method(
     tank3 setControlMode(Actor AUTOMATIC)
     addKillObjective(tank3)
     
-    self shooting_tanks := list
-    shooting_positions := list(
-        tankpos + vector(800, 0, -500),
-        tankpos + vector(-200, 0, -500),
-        tankpos + vector(-200, 0, 500),
-        tankpos + vector(800, 0, 500))
-    shooting_positions foreach(p,
-      tank := addTank(p)
-      tank setControlMode(Actor AUTOMATIC)
-      shooting_tanks append(tank)
-    )
+    addGuardingTank(tankpos + vector(800, 0, -500))
+    #addGuardingTank(tankpos + vector(-200, 0, -500))
+    addGuardingTank(tankpos + vector(-200, 0, 500))
+    #addGuardingTank(tankpos + vector(800, 0, 500))
+    
+    addGuardingTank(vector(567.4, 0, 564.8))
+    addGuardingTank(vector(-568.1, 0, -564.5))
+    addGuardingTank(vector(-3192.0, 0, -555.2))
+    addGuardingTank(vector(-4046.8, 0, -1886.2))
+    addGuardingTank(vector(-5054.6, 0, -283.48))
+    addGuardingTank(vector(562.2, 0, -5630.2))
+    addGuardingTank(vector(836.7, 0, -3904.6))
     
     self carrier := addCarrier
     carrier setFaction(us)
@@ -176,7 +183,7 @@ startup := method(
     
     Game setView(wingman2, 0)
 
-    self evil_carrier := addCarrier(vector(-4675,0,18), 0)
+    self evil_carrier := addCarrier(vector(-5540,0,1128), 0)
     evil_carrier setFaction(them)
     
     self drone1 := evil_carrier spawnDrone
