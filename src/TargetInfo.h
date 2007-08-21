@@ -19,6 +19,8 @@ public:
                                 
                                 DETECTABLE,
                                 
+                                DECOY,
+                                
                                 AERIAL,
                                 BALLISTIC,
                                 AIRCRAFT,
@@ -35,7 +37,8 @@ public:
                                 DUMB_MISSILE,
                                 GUIDED_MISSILE,
                                 TANK,
-                                CARRIER;
+                                CARRIER,
+                                DECOY_FLARE;
 
 public:
     TargetInfo( const std::string & name,
