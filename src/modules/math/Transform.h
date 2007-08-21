@@ -47,7 +47,7 @@ public:
         return XTransform(q.conj(), -q.conj().rot(t));
     }
     
-    inline Matrix toMatrix() {
+    inline Matrix toMatrix() const {
         Matrix mat;
         q.toMatrix(mat);
         mat(0,3) = t[0];
