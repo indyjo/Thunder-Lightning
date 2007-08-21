@@ -42,3 +42,18 @@ void SkeletonProvider::getOrientation(Vector *up, Vector *right, Vector *front) 
     *right = M * Vector(1,0,0);
     *front = M * Vector(0,0,1);
 }
+
+Vector SkeletonProvider::getMovementVector() {
+    if (movement_provider) {
+        return movement_provider->getMovementVector();
+    } else {
+        return Vector(0);
+    }
+}
+
+SkeletonProvider& SkeletonProvider::withMovementFrom(Ptr<IMovementProvider> p) {
+    movement_provider = p;
+    return *this;
+}
+
+
