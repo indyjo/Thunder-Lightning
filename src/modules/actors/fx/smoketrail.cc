@@ -21,7 +21,6 @@ SmokeTrail::SmokeTrail(Ptr<IGame> thegame)
 {
     this->renderer = thegame->getRenderer();
     this->state=ALIVE;
-    this->camera = thegame->getCamera();
     Ptr<IConfig> config( thegame->getConfig() );
     this->smoke = thegame->getTexMan()->query(
             config->query("SmokeTrail_smoke_tex"), JR_HINT_GREYSCALE);
@@ -108,6 +107,7 @@ void SmokeTrail::draw()
 {
     if (trail.size() < 2) return;
 
+    Ptr<ICamera> camera = thegame->getCamera();
     Vector eye = camera->getLocation();
     Vector v_right, v_up, v_front;
     camera->getOrientation(&v_right, &v_up, &v_front);
@@ -163,3 +163,4 @@ void SmokeTrail::toggleDebugMode()
 {
     debug_mode = !debug_mode;
 }
+

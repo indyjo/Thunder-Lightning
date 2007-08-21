@@ -38,7 +38,6 @@ private:
     Vector last_segment, last_point, last_solid_point;
     Ptr<IActor> pos;
     JRenderer *renderer;
-    Ptr<ICamera> camera;
     std::deque<TrailPoint> trail;
     TexPtr smoke, puffy;
     bool debug_mode;
