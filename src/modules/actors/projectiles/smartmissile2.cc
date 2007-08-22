@@ -12,6 +12,7 @@
 
 #define PI 3.14159265358979323846264338327f
 #define SCAN_ANGLE (120 * PI / 180.0)
+#define RAND ((float) rand() / (float) RAND_MAX)
 
 /**
 A missile similiar to the AIM-9 Sidewinder missile.
@@ -21,7 +22,7 @@ http://www.chinfo.navy.mil/navpalib/factfile/missiles/wep-side.html
 
 
 SmartMissile2::SmartMissile2(Ptr<IGame> thegame, Ptr<IActor> target, Ptr<IActor> source)
-:   Missile(thegame, source, "SmartMissile"), target(target)
+:   Missile(thegame, source, "SmartMissile"), target(target), last_decoy_check(0)
 {
     setTargetInfo(new TargetInfo(
         "Interceptor Missile", 1.0f, TargetInfo::GUIDED_MISSILE));
@@ -40,6 +41,27 @@ void SmartMissile2::action()
     // If no target and old enough -> explode
     if (!target && age > min_explosion_age) {
         explode();
+    }
+    
+    // Periodically (every 0.5s) check for decoys
+    if (target && age - last_decoy_check > 0.5) {
+        last_decoy_check = age;
+        
+        IActorStage::ActorVector actors;
+        thegame->queryActorsInSphere(actors, target->getLocation(), 150);
+        for(IActorStage::ActorVector::iterator i=actors.begin(); i!=actors.end(); ++i) {
+            bool is_decoy = false || 
+                            (*i)->getTargetInfo() &&
+                            (*i)->getTargetInfo()->isA(TargetInfo::DECOY);
+                            
+            // for every decoy, assume a 15% probability of successfully 
+            // detracting the missile every time we check!
+            float randval = RAND;
+            if (is_decoy && randval < 0.15f) {
+                target = *i;
+                break;
+            }
+        }
     }
 
     float delta_t = thegame->getClock()->getStepDelta();

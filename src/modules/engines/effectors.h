@@ -34,7 +34,15 @@ private:
     static Ptr<Gravity> singleton;
 };
 
-
+/// Effector that will provide a simple drag force contrary to motion vector
+class Drag: public IEffector {
+    float CdA;
+public:
+    /// Initialize with Cd times A value
+    Drag(float CdA=1.0);
+    
+    virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls);
+};
 
 class Flight : public IEffector {
     Ptr<FlightControls> controls;

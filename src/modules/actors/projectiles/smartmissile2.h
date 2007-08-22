@@ -19,7 +19,7 @@ private:
 
 private:
     Ptr<IActor> target;
-    
+    float last_decoy_check;
     Integral<Vector> I_error_dt;
     Differential<Vector> d_error_dt;
 };

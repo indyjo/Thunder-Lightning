@@ -137,6 +137,16 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
         new SkeletonProvider(skeleton, "Launcher_1", "origin", "z"));
     armament->addWeapon(0,dumb_missile_launcher);
 
+    Ptr<ProjectileLauncher> decoy_launcher = new ProjectileLauncher(
+        thegame, targeter, ProjectileFactories::factories.decoy_factory,
+        "Decoy",
+        cfg->queryInt("Drone_Decoy_rounds", 14));
+    decoy_launcher->addBarrel(
+        new SkeletonProvider(skeleton, "Launcher_0", "origin", "z"));
+    decoy_launcher->addBarrel(
+        new SkeletonProvider(skeleton, "Launcher_1", "origin", "z"));
+    armament->addWeapon(0,decoy_launcher);
+
     // Prepare collidable
     setBoundingGeometry(
         thegame->getCollisionMan()->queryGeometry(

@@ -38,6 +38,18 @@ Ptr<Gravity> Gravity::getInstance() {
 }
 
 
+Drag::Drag(float CdA)
+: CdA(CdA)
+{
+}
+
+void Drag::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
+    const static float rho = 1.293; // air density
+    Vector v = rigid.getLinearVelocity();
+    rigid.applyForce((-0.5f*rho*CdA) * v.length() * v);
+}
+
+
 #define PI 3.14159265358979323846
 
 void Flight::applyEffect(RigidBody &rigid, Ptr<DataNode> cntrls) {

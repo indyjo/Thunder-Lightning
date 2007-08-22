@@ -12,6 +12,7 @@ struct ProjectileFactories {
     IProjectileFactory * dumb_missile_factory;
     //IProjectileFactory * smart_missile_factory;
     IProjectileFactory * smart_missile_2_factory;
+    IProjectileFactory * decoy_factory;
 
     ProjectileFactories();
 
