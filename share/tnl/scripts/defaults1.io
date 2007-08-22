@@ -259,6 +259,15 @@ Config do(
   Sidewinder_launch_speed          := "0"
   Sidewinder_needs_target          := "true"
 
+  Decoy_loadtime                   := "0.7"
+  Decoy_singleshot                 := "true"
+  Decoy_guided                     := "false"
+  Decoy_max_range                  := "0"
+  Decoy_time_of_accel              := "0"
+  Decoy_reference_speed            := "1.0"
+  Decoy_launch_speed               := "0"
+  Decoy_needs_target               := "false"
+  
   // Carrier configuration
   Carrier_model_path               := model_dir .. "/carrier"
   Carrier_skeleton                 := Carrier_model_path .. "/Carrier.spec"
