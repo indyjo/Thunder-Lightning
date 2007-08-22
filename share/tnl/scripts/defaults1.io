@@ -282,5 +282,12 @@ Config do(
   Observer_rotate_x                := "0.2"
   Observer_rotate_y                := "0.2"
   Observer_speed_factor            := "0.04"
+  
+  // Lensflare configuration
+  Lensflare_reflex_tex             := texture_dir .. "/lensreflex.png"
+  Lensflare_sparkle_thin_tex       := texture_dir .. "/sparkle-thin.png"
+  Lensflare_sparkle_thick_tex      := texture_dir .. "/sparkle-thick.png"
+  Lensflare_rot_speed_thin         := "-0.5"
+  Lensflare_rot_speed_thick        := "1.5"
 
 ) // Config do
