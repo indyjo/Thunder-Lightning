@@ -6,6 +6,8 @@
 #include <modules/engines/effectors.h>
 #include <modules/engines/rigidengine.h>
 #include <modules/model/modelman.h>
+#include <modules/scripting/IoScriptingManager.h>
+#include <modules/scripting/mappings.h>
 #include <sound.h>
 
 #include "smartmissile2.h"
@@ -58,6 +60,21 @@ void SmartMissile2::action()
             // detracting the missile every time we check!
             float randval = RAND;
             if (is_decoy && randval < 0.15f) {
+                // Send the target a message signalling that the missile lost its lock
+                IoState * state = thegame->getIoScriptingManager()->getMainState();
+                IoState_pushRetainPool(state);
+
+                IoObject *self = IOCLONE(thegame->getIoScriptingManager()->getMainState()->objectProto);
+                IoState_stackRetain_(state,self);
+
+                IoObject_setSlot_to_(self, IOSYMBOL("missile"),
+                    wrapObject<Ptr<IActor> >(this, state));
+
+                target->message("lockLost", self);
+
+                IoState_popRetainPool(state);
+
+                // Now change the target to the decoy
                 target = *i;
                 break;
             }
