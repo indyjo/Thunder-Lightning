@@ -142,7 +142,7 @@ void Console::draw(JRenderer *renderer) {
 bool Console::feedEvent(SDL_Event & ev) {
     if (ev.type == SDL_KEYDOWN) {
         Uint16 unicode = ev.key.keysym.unicode;
-        ls_message("Console::feedEvent(%d key:%s)\n", unicode, SDL_GetKeyName(ev.key.keysym.sym));
+        //ls_message("Console::feedEvent(%d key:%s)\n", unicode, SDL_GetKeyName(ev.key.keysym.sym));
 
         if (ev.key.keysym.sym == SDLK_F11) {
             disable();
@@ -226,6 +226,7 @@ bool Console::feedEvent(SDL_Event & ev) {
 				- std::count(command.begin(),command.end(),')');
 			
         	if (bracecount == 0) {
+        	    ls_message("Console: executing Io code: %s\n", buffer.c_str());
 	        	IoState* state = game->getIoScriptingManager()->getMainState();
 				IoObject* result = IoState_doCString_(
 					state,
