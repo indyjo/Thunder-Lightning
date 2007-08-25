@@ -142,7 +142,7 @@ TurretAI := Object clone do(
       while(error >  (Number pi), error = error - (Number pi * 2))
       while(error < (-Number pi), error = error + (Number pi * 2))
       
-      integral = integral + dt*error
+      integral = (integral + dt*error) clip(-0.5, 0.5)
       
       me controls setFloat(control_name, factor * (1.5 * error + 2*integral) clip(-1,1))
     )
