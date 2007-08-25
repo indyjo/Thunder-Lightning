@@ -197,7 +197,8 @@ void RigidEngine::update(float delta_t, const Transform * new_transforms) {
     
     struct RigidBodyState result = y;
     result.x = new_transforms[0].vec();
-    result.q = (result.q + delta_t / 6 * (k1.q + 2.0f*k2.q + 2.0f*k3.q + k4.q)).normalize();
+    //result.q = (result.q + delta_t / 6 * (k1.q + 2.0f*k2.q + 2.0f*k3.q + k4.q)).normalize();
+    result.q = new_transforms[0].quat();
     result.P += delta_t / 6 * (k1.P + 2*k2.P + 2*k3.P + k4.P);
     result.L += delta_t / 6 * (k1.L + 2*k2.L + 2*k3.L + k4.L);
     
