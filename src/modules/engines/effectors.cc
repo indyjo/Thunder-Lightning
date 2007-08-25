@@ -290,8 +290,8 @@ void Missile::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
     Vector omega_xy = omega - omega_z;
     Vector v_z = d * (v*d);
     Vector v_xy = v - v_z;
-    rigid.applyTorque(-torque_factor_z * rho * omega_z.length()*omega_z);
-    rigid.applyTorque(-torque_factor_xy * rho * omega_xy.length()*omega_xy);
+    rigid.applyTorque(-torque_factor_z * rho * omega_z);
+    rigid.applyTorque(-torque_factor_xy * rho * omega_xy);
     // cheap-ass pitching moment
     rigid.applyTorque(pitching_factor * d % v_xy);
 
