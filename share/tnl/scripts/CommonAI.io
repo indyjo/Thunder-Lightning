@@ -69,6 +69,25 @@ CommonAI := Object clone do(
             sleep(0.5)
         )
     ) do( tag := "CommonAI" )
-
+    
+    DispenseDecoys := coro(me,
+        weapon := me armament weapon("Decoy")
+        ex := try( loop(
+            mypos := me location
+            
+            me missiles selectInPlace(isAlive)
+            min_dist := me missiles map(missile, (missile location - mypos) length) min
+            
+            if (min_dist isNil not and min_dist < 5000,
+                weapon trigger
+            )
+            
+            sleep(0.8)
+        ))
+        
+        weapon release
+        
+        ex pass
+    )
 )
 
