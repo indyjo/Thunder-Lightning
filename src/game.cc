@@ -365,6 +365,9 @@ void Game::run()
     water = 0;
     io_scripting_manager = 0;
     console = 0;
+    renderpass_main = 0;
+    renderpass_overlay = 0;
+    
     SDL_WM_GrabInput(SDL_GRAB_OFF);
     SDL_ShowCursor(SDL_ENABLE);
 }
