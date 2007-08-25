@@ -236,7 +236,7 @@ class TargetViewModule : public MfdModule {
             float focus = 0.25 * (drone->getLocation()-target->getLocation()).length() / target_size;
             cam->setFocus(std::max(1.0f, std::min(100.0f, focus)));
             cam->setAspect(1);
-            cam->setNearDistance(5.0);
+            cam->setNearDistance(6.0);
             cam->setFarDistance(thegame->getEnvironment()->getClipMax());
         }
         
@@ -397,7 +397,7 @@ DroneCockpit::DroneCockpit( WeakPtr<IGame> game,
     missile_view->addWeapon(drone->getArmament()->getWeapon("Hydra"));
     
     mfd_modules.push_back(new TargetViewModule(thegame, drone));
-    mfd_modules.push_back(new MagViewModule(thegame, drone));
+    //mfd_modules.push_back(new MagViewModule(thegame, drone));
     mfd_modules.push_back(missile_view);
     
     Ptr<MfdModule> module = mfd_modules[0];
