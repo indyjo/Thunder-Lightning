@@ -49,22 +49,26 @@ WeakPtr<IActor> ProjectileLauncher::onFire() {
     //ls_message("to: "); move.dump();
     projectile->shoot(start, move, front);
     
-    // Send the target a message signalling the missile shot
-    IoObject *self = IOCLONE(game->getIoScriptingManager()->getMainState()->objectProto);
-    IoState_pushRetainPool(IOSTATE);
-    IoState_stackRetain_(IOSTATE,self);
+    if (isGuided()) {
+        // Send the target a message signalling the missile shot
+        IoState *state = game->getIoScriptingManager()->getMainState();
+        IoState_pushRetainPool(state);
 
-    IoObject_setSlot_to_(self, IOSYMBOL("source"),
-        wrapObject<Ptr<IActor> >(armament->getSourceActor(), IOSTATE));
-    IoObject_setSlot_to_(self, IOSYMBOL("target"),
-        wrapObject<Ptr<IActor> >(targeter->getCurrentTarget(), IOSTATE));
-    IoObject_setSlot_to_(self, IOSYMBOL("missile"),
-        wrapObject<Ptr<IActor> >(projectile, IOSTATE));
+        IoObject *self = IOCLONE(state->objectProto);
+        IoState_stackRetain_(IOSTATE,self);
 
-    Ptr<IActor> target = targeter->getCurrentTarget();
-    if (target) target->message("missileShot", self);
+        IoObject_setSlot_to_(self, IOSYMBOL("source"),
+            wrapObject<Ptr<IActor> >(armament->getSourceActor(), IOSTATE));
+        IoObject_setSlot_to_(self, IOSYMBOL("target"),
+            wrapObject<Ptr<IActor> >(targeter->getCurrentTarget(), IOSTATE));
+        IoObject_setSlot_to_(self, IOSYMBOL("missile"),
+            wrapObject<Ptr<IActor> >(projectile, IOSTATE));
 
-    IoState_popRetainPool(IOSTATE);
+        Ptr<IActor> target = targeter->getCurrentTarget();
+        if (target) target->message("missileShot", self);
+
+        IoState_popRetainPool(IOSTATE);
+    }
     
     return projectile;
 }
