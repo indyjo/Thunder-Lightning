@@ -294,7 +294,16 @@ void Missile::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
     rigid.applyTorque(-torque_factor_xy * rho * omega_xy);
     // cheap-ass pitching moment
     rigid.applyTorque(pitching_factor * d % v_xy);
-
+    
+    //ls_message("Missile::applyEffect()\n");
+    //ls_message("  omega: "); omega.dump();
+    //ls_message("  d: "); d.dump();
+    //ls_message("  omega_z:  "); omega_z.dump();
+    //ls_message("  omega_xy: "); omega_xy.dump();
+    //ls_message("  "); (-torque_factor_z * rho * omega_z).dump();
+    //ls_message("  "); (-torque_factor_xy * rho * omega_xy).dump();
+    //ls_message("  "); (pitching_factor * d % v_xy).dump();
+    
     Vector v_f = d * (v*d); // frontal component of velocity
     Vector drag_force_f = -v_f.length() * v_f * (CdA_f * rho / 2.0);
 
@@ -330,10 +339,10 @@ void Buoyancy::addBuoyancyFromMesh(
         Vector n = (b-a)%(c-a);
         n.normalize();
         
-        ls_message("a: "); a.dump();
-        ls_message("b: "); b.dump();
-        ls_message("c: "); c.dump();
-        ls_message(" ->n: "); n.dump();
+        //ls_message("a: "); a.dump();
+        //ls_message("b: "); b.dump();
+        //ls_message("c: "); c.dump();
+        //ls_message(" ->n: "); n.dump();
         
         Vector n2 = (b-a)%n;
         n2.normalize();
