@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <vector>
 #include <limits>
 
@@ -20,7 +21,7 @@ struct MissileWarningModule : public UI::Component, public SigObject {
     SigC::Connection connection;
 	
 	MissileWarningModule(const char *name, Ptr<IGame> game, Ptr<SimpleActor> actor)
-	:	UI::Component(name, 200, 25),
+	:	UI::Component(name, 200, 30),
 		actor(actor),
         soundman(game->getSoundMan())
 	{
@@ -34,19 +35,39 @@ struct MissileWarningModule : public UI::Component, public SigObject {
     }
 
     void onMessage(std::string name, IoObject *args) {
-        if (name != "missileShot")
-            return;
+        if (name == "missileShot") {
+            ls_message("MissileWarningModule: Handling missileShot event\n");
 
-        ls_message("MissileWarningModule: Handling missileShot event\n");
+            IoObject *self = args;
+            IoObject *io_missile = IoObject_rawGetSlot_(args, IOSYMBOL("missile"));
+            if (!io_missile)
+                return;
 
-        IoObject *self = args;
-        IoObject *io_missile = IoObject_rawGetSlot_(args, IOSYMBOL("missile"));
-        if (!io_missile)
-            return;
+            Ptr<IActor> missile = unwrapObject<Ptr<IActor> >(io_missile);
+            Ptr<TargetInfo> ti = missile->getTargetInfo();
+            
+            if (ti && ti->isA(TargetInfo::GUIDED_MISSILE)) {
+                missiles.push_back(missile);
+            }
+        } else if (name == "lockLost") {
+            ls_message("MissileWarningModule: Handling lockLost event\n");
+            
+            IoObject *self = args;
+            IoObject *io_missile = IoObject_rawGetSlot_(args, IOSYMBOL("missile"));
+            if (!io_missile)
+                return;
 
-        Ptr<IActor> missile = unwrapObject<Ptr<IActor> >(io_missile);
+            Ptr<IActor> missile = unwrapObject<Ptr<IActor> >(io_missile);
 
-        missiles.push_back(missile);
+            // find and erase the missile from the missiles list
+            std::vector<Ptr<IActor> >::iterator i =
+                find(missiles.begin(), missiles.end(), missile);
+            
+            if (i != missiles.end()) {
+                missiles.erase(i);
+            }
+            ls_message("lockLost done.\n");
+        }
     }
 
     void updateMissileList() {
@@ -100,7 +121,11 @@ struct MissileWarningModule : public UI::Component, public SigObject {
 	    r->pushMatrix();
 	    r->multMatrix(surface.getMatrix());
 	    
-        font->drawString("MISSILE WARNING", Vector2(0), Vector(1,0.2,0), 1, IFont::VCENTER|IFont::HCENTER);
+        font->drawString("MISSILE WARNING", Vector2(0), Vector(1,0.2,0), 1, IFont::BOTTOM|IFont::HCENTER);
+        
+        char buf[32];
+        snprintf(buf, 32, "%.1f km", closest.second / 1000);
+        font->drawString(buf, Vector2(0), Vector(1,0.7,0), 1, IFont::TOP|IFont::HCENTER);
         
         r->popMatrix();
 	}
