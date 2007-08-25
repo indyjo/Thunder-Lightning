@@ -6,7 +6,8 @@ libmath_a_SOURCES =                     \
         Ballistic.cc Ballistic.h        \
         Collide.cc Collide.h            \
         Differential.h                  \
-	    Feedback.cc Feedback.h		\
+	    Feedback.cc Feedback.h	        \
+	    Interpolator.h                  \
         Interval.cc Interval.h          \
         Line.cc Line.h                  \
 	    Matrix.h SpecialMatrices.h MatrixVector.h \
