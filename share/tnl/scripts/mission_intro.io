@@ -294,7 +294,7 @@ Intro chooseFromList := method(l,
 
 Intro combatTraining := method(mission,
     if (self ?instruments_explained,
-        "I already explained the basics so we can proceed to combat training."
+        "I already explained the basics so we can proceed to combat training." say
         sleep(5)
     )
     if ((self ?instruments_explained) not,
