@@ -87,7 +87,13 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
         setIoObject(io_peer_init);
     else
         createIoObject();
+    		
+	ls_message("</Drone::Drone>\n");
+}
 
+void Drone::init() {
+	ls_message("<Drone::init>\n");
+	
 	Ptr<IConfig> cfg = thegame->getConfig();
     setTargetInfo(new TargetInfo(
         "Drone", cfg->queryFloat("Drone_target_radius",15),
@@ -232,8 +238,8 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
     sheet->map("landing-hook", SigC::slot(*this, &Drone::toggleLandingHook));
     
     sheet->map("switch-mfd", SigC::slot(*cockpit, &DroneCockpit::switchMfdMode));
-    		
-	ls_message("</Drone::Drone>\n");
+    
+	ls_message("</Drone::init>\n");
 }
 
 Drone::~Drone() {

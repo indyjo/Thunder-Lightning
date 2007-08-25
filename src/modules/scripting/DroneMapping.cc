@@ -51,6 +51,7 @@ namespace {
 			IoObject *peer = IoObject_rawClonePrimitive(self);
             Drone *clone = new Drone(game, peer);
 			retarget(peer, clone);
+            clone->init();
             if (getObject(self)) {
                 Drone *me = getObject(self);
                 clone->setFaction(me->getFaction());

@@ -30,6 +30,8 @@ class Drone : public SimpleActor, public Collide::Collidable, virtual public Sig
 public:
     Drone(Ptr<IGame> thegame, IoObject * io_peer=0);
     virtual ~Drone();
+    
+    void init();
 
     virtual void onLinked();
     virtual void onUnlinked();
