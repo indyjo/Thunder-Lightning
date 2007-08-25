@@ -180,8 +180,8 @@ Config do(
   DumbMissile_Izz                  := "2"
   DumbMissile_CdA_f                := (0.02 * Number constants pi * 0.034925 squared) asString
   DumbMissile_CdA_s                := (1.2 * (2*0.034925*0.75 + 0.02)) asString
-  DumbMissile_torque_factor_z      := "300"
-  DumbMissile_torque_factor_xy     := "300"
+  DumbMissile_torque_factor_z      := "3"
+  DumbMissile_torque_factor_xy     := "3"
   DumbMissile_pitching_factor      := "0.1"
   DumbMissile_blast_begin          := "0"
   DumbMissile_blast_end            := "1.05"
@@ -195,8 +195,8 @@ Config do(
   SmartMissile_Ixx                 := "60"
   SmartMissile_Iyy                 := "60"
   SmartMissile_Izz                 := "20"
-  SmartMissile_torque_factor_z     := "300"
-  SmartMissile_torque_factor_xy    := "300"
+  SmartMissile_torque_factor_z     := "100"
+  SmartMissile_torque_factor_xy    := "100"
   SmartMissile_pitching_factor     := "0"
   // The CdA values were calculated from unmodified previous guesswork :-/
   SmartMissile_CdA_f               := (0.02 * Number constants pi * 0.065 squared) asString
@@ -210,9 +210,9 @@ Config do(
   //SmartMissile_Kp                  := "1"
   //SmartMissile_Ki                  := "0"
   //SmartMissile_Kd                  := "5"
-  SmartMissile_Kp                  := "20"
+  SmartMissile_Kp                  := "8"
   SmartMissile_Ki                  := "0"
-  SmartMissile_Kd                  := "50"
+  SmartMissile_Kd                  := "20"
   
   // Weapons configuration
   Cannon_loadtime                  := "2"
@@ -228,6 +228,7 @@ Config do(
   Cannon_reference_distance        := "200.0"
   Cannon_gain                      := "1.0"
   
+  Vulcan_factor                    := "0.25"
   Vulcan_loadtime                  := (1/5) asString
   Vulcan_singleshot                := "false"
   Vulcan_guided                    := "false"
@@ -273,7 +274,7 @@ Config do(
   Carrier_skeleton                 := Carrier_model_path .. "/Carrier.spec"
   Carrier_model_bounds             := Carrier_model_path .. "/carrier.bounds"
   Carrier_model_hull               := Carrier_model_path .. "/carrier-hull-reduced.obj"
-  Carrier_Vulcan_rounds            := "5000"
+  Carrier_Vulcan_rounds            := "2400"
   
   // Water rendering configuration
   Water_vertex_shader              := shaders_dir .. "/ocean.vert"
