@@ -171,6 +171,8 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
         possible.t0 = 0.0f;
         possible.t1 = delta_t;
         for(ContactIter i=possible_contacts.begin(); i!= possible_contacts.end(); i++) {
+            if (!i->first->isCollidingEnabled() || !i->second->isCollidingEnabled())
+                continue;
         	if (i->first->noCollideWith(i->second))
         		continue;
             if (!i->first->getRigid() && !i->second->getRigid())
@@ -253,7 +255,7 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
                     }
 
 
-                    stop_time = pc.t0;
+                    stop_time = (pc.t0 + pc.t1)/2;
                     /*
                     ls_warning("Found first contact #%d!\n", found_contacts);
                     ls_warning("t0:%f t1:%f\n", pc.t0, pc.t1);
@@ -310,6 +312,10 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
         // now we calculate and apply the collision impulse (if possible) and
         // notify the objects of the collision
         for(int c = 0; c<found_contacts; c++) {
+            ls_message("Contact %d of %d between %p and %p\n",
+                c+1, found_contacts,
+                ptr(contact[c].collidables[0]),
+                ptr(contact[c].collidables[1]));
             contact[c].applyCollisionImpulse();
             for(int i=0; i<2; i++)
                 contact[c].collidables[i]->integrate(stop_time,

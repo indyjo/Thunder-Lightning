@@ -1,5 +1,6 @@
 #include "bullet.h"
 #include <modules/actors/fx/explosion.h>
+#include <modules/engines/effectors.h>
 #include <modules/engines/rigidengine.h>
 #include <interfaces/ICamera.h>
 #include <interfaces/ITerrain.h>
@@ -31,6 +32,8 @@ Bullet::Bullet(IGame *thegame, Ptr<IActor> source, float factor)
     engine->construct(0.05f, 2e-6, 2e-6, 2e-6);
     //engine->construct(, 1, 1, 1);
     setEngine(engine);
+
+    engine->addEffector(Effectors::Gravity::getInstance());
 
     // Prepare collidable
     setBoundingGeometry(new Collide::BoundingGeometry(1,1));
@@ -64,7 +67,6 @@ void Bullet::action()
         die();
 
     SimpleActor::action();
-    engine->applyLinearAcceleration(Vector(0,-9.81,0));
 }
 
 void Bullet::draw()
@@ -147,6 +149,8 @@ void Bullet::die() {
 }
 
 void Bullet::explode(bool direct_hit) {
+    setCollidingEnabled(false);
+
     Vector vec;
     int i,j;
     Ptr<Spark> spark;

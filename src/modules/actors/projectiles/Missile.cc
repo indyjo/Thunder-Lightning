@@ -65,7 +65,9 @@ Missile::Missile(Ptr<IGame> thegame, Ptr<IActor> source, const char *cfg_prefix)
 }
 
 Missile::~Missile()
-{ }
+{
+    ls_message("~Missile()\n");
+}
 
 void Missile::onLinked() {
     SimpleActor::onLinked();
@@ -209,6 +211,7 @@ void Missile::explode()
     thegame->addActor(new Explosion(thegame, getLocation(), 2.5));
     
     state = DEAD;
+    setCollidingEnabled(false);
 
     typedef IActorStage::ActorVector Actors;
     typedef Actors::iterator Iter;

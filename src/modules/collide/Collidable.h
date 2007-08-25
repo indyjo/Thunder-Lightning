@@ -22,11 +22,12 @@ class Collidable : virtual public Object{
     RigidBody *rigid;
     Ptr<Collidable> ncparent, ncpartner;
     void *nctag;
+    bool enabled;
 protected:
     inline Collidable(Ptr<BoundingGeometry> b=0,
                       RigidBody *r=0, IActor *a=0,
                       Ptr<Collidable> ncparent=0)
-    :   bounding(b), rigid(r), actor(a), ncparent(ncparent), ncpartner(0), nctag(0)
+    :   bounding(b), rigid(r), actor(a), ncparent(ncparent), ncpartner(0), nctag(0), enabled(true)
     { }
 protected:
     inline void setBoundingGeometry(Ptr<BoundingGeometry> b) {
@@ -45,8 +46,13 @@ protected:
     		root = ptr(root->ncparent);
     	return root;
     }
-    	
+    
 public:
+    /// Returns wether this collidable is enabled for collisions
+    inline bool isCollidingEnabled() const { return enabled; }
+    /// Sets wether this collidable is enabled for collisions. Default is true.
+    void setCollidingEnabled(bool b) { enabled = b; }
+
     /// returns associated bounding geometry.
     inline Ptr<BoundingGeometry>
     getBoundingGeometry() { return bounding; }
@@ -106,6 +112,7 @@ public:
     // score points and so on.
     // The default implementation is to do nothing
     virtual void collide(const Contact &);
+
 };
 	
 } // namespace Collide
