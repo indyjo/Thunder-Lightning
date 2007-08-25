@@ -26,4 +26,22 @@ Actor do(
   // on how to tackle this target
   isAirborneTarget := false
   isGroundTarget := false
+  
+  // list of missiles homing into this actor
+  missiles := list()
+  
+  on("missileShot",
+    self hasLocalSlot("missiles") ifFalse(self missiles := list())
+    
+    missiles append(missile)
+    missiles selectInPlace(isAlive)
+  )
+  
+  on("lockLost",
+    self hasLocalSlot("missiles") ifFalse(self missiles := list())
+    
+    id := missile actorId
+    missiles selectInPlace(m, m isAlive and m actorId != id)
+  )
+    
 )
