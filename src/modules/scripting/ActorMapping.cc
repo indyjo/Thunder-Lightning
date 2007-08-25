@@ -43,6 +43,7 @@ namespace {
 				{"setFaction", setFaction},
                 {"passMessage", passMessage},
                 {"kill", kill},
+                {"actorId", actorId},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
@@ -98,6 +99,14 @@ namespace {
 		}
 		
 		VOID_FUNC(kill)
+
+        static IoObject *actorId(IoObject *self, IoObject*locals, IoObject*m) {
+			BEGIN_FUNC("Actor.actorId")
+			char buf[32];
+			snprintf(buf, 32, "%p", getObject(self));
+			
+			return IOSYMBOL(buf);
+		}
 	};
 } // namespace
 
