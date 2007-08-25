@@ -1,3 +1,4 @@
+#include <modules/actors/fx/smokecolumn.h>
 #include <modules/collide/CollisionManager.h>
 #include <modules/clock/clock.h>
 #include <modules/drawing/lensflare.h>
@@ -36,6 +37,22 @@ Decoy::~Decoy() {
 void Decoy::onLinked() {
     SimpleActor::onLinked();
     thegame->getCollisionMan()->add(this);
+    
+    SmokeColumn::Params params;
+    params.interval=0.1;
+    params.ttl=8;
+    SmokeColumn::PuffParams puffparams;
+    puffparams.start_size=1.5f;
+    puffparams.end_size=3.5f;
+    puffparams.color=Vector(0.9,0.9,0.9);
+    puffparams.ttl=Interval(3,5);
+    puffparams.pos_deviation=0.2;
+    puffparams.direction_deviation=0.5;
+    puffparams.fadeout=2.0;
+    Ptr<FollowingSmokeColumn> smoke =
+            new FollowingSmokeColumn(thegame, params, puffparams);
+    smoke->follow(this);
+    thegame->addActor(smoke);
 }
 
 void Decoy::onUnlinked() {

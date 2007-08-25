@@ -4,6 +4,7 @@
 #include <list>
 #include <tnl.h>
 #include <modules/actors/simpleactor.h>
+#include <modules/math/Interpolator.h>
 #include <modules/math/Interval.h>
 #include <modules/texman/TextureManager.h>
 #include <interfaces/IFollower.h>
@@ -27,7 +28,8 @@ public:
                 omega(-0.2,0.2),
                 direction_vector(0,10,0),
                 wind_vector(10,4,0), wind_influence(0.1),
-                color(200./255, 200./255, 200./255)
+                color(Vector(200./255, 200./255, 200./255)),
+                fadein(0.3), fadeout(0.3)
         { }
         Interval ttl;
         float pos_deviation;
@@ -37,7 +39,8 @@ public:
         Vector direction_vector;
         Vector wind_vector;
         float wind_influence;
-        Vector color;
+        Interpolator<float, Vector> color;
+        float fadein, fadeout;
     };
     
     class SmokePuff {
@@ -48,13 +51,14 @@ public:
         float ttl; // time to live
         float age;
         float opacity;
+        float fadein, fadeout;
         
     public:
         SmokePuff(const Vector &p, float opacity, const PuffParams & params);
         inline bool isDead() { return ttl<age; };
         void action(IGame *game, double time_passed, const PuffParams & params);
         void draw(JRenderer *r,
-                const Vector &right, const Vector &up, const Vector &front,
+                Ptr<IPositionProvider> observer,
                 const PuffParams & params);
     };
 

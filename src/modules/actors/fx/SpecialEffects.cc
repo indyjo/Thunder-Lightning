@@ -19,15 +19,20 @@
 void aircraftFirstExplosion(Ptr<IGame> game, Ptr<IActor> aircraft) {
     {
         SmokeColumn::Params params;
-        params.interval=0.01;
-        params.ttl=1.2;
+        params.interval=0.1;
+        params.ttl=60;
         SmokeColumn::PuffParams puffparams;
-        puffparams.start_size=0.5f;
-        puffparams.end_size=1.5f;
-        puffparams.color=Vector(0.4,0.4,0.4);
-        puffparams.ttl=Interval(3,5);
-        puffparams.pos_deviation=0.2;
+        puffparams.start_size=1.5f;
+        puffparams.end_size=8.0f;
+        puffparams.color = Interpolator<float, Vector>()
+            .node(0,   Vector(255,249,184)/255)
+            .node(0.10,Vector(212,104,  0)/255)
+            .node(0.40,Vector(0.2,0.2,0.3))
+            .node(1.00,Vector(0.2,0.2,0.2));
+        puffparams.ttl=Interval(5,7);
+        puffparams.pos_deviation=0.5;
         puffparams.direction_deviation=0.5;
+        puffparams.fadeout= 2.0;
         Ptr<FollowingSmokeColumn> smoke =
                new FollowingSmokeColumn(game, params, puffparams);
         smoke->follow(aircraft);
@@ -76,14 +81,20 @@ void aircraftFinalExplosion(Ptr<IGame> game, Ptr<IActor> aircraft) {
         
         // Setup smoke column parameters so that the puff interval is shorter
         params.ttl = 1.0;
-        params.interval = 0.1;
+        params.interval = 0.01;
         
         // Setup smoke puff parameters so that their time to live is shorter
         // and they are much smaller then the default
-        puff_params.ttl = Interval(1,3);
+        puff_params.ttl = Interval(0.4,0.6);
         puff_params.pos_deviation = 0.5;
-        puff_params.start_size = 1.0;
-        puff_params.end_size = 4.0;
+        puff_params.start_size = 0.2;
+        puff_params.end_size = 1.5;
+        puff_params.color = Interpolator<float, Vector>()
+            .node(0,Vector(1.0,1.0,0.7))
+            .node(0.1,Vector(1.0,0.8,0.2))
+            .node(1,Vector(0.2,0.2,0.3));
+        puff_params.fadein = 0.05;
+        puff_params.fadeout = 0.2;
         
         for (int i=0; i<20; i++) {
             Ptr<Spark> spark(new Spark(game));

@@ -2,6 +2,7 @@
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
 #include <modules/clock/clock.h>
+#include <modules/drawing/billboard.h>
 
 #define max(x,y) ((x)>(y)?(x):(y))
 
@@ -19,10 +20,12 @@ SmokeColumn::SmokePuff::SmokePuff(
 {
     this->v = params.direction_vector + params.direction_deviation * RANDVEC;
     this->p = p + params.pos_deviation * RANDVEC;
-    this->ttl = params.ttl.a + params.ttl.length() * RAND2;
+    this->ttl = params.ttl.a + params.ttl.length() * RAND;
     this->age = 0;
     this->omega = params.omega.a + params.omega.length() * RAND2;
     this->opacity = opacity;
+    this->fadein = params.fadein;
+    this->fadeout = params.fadeout;
 }
 
 void SmokeColumn::SmokePuff::action(IGame *game,
@@ -35,34 +38,25 @@ void SmokeColumn::SmokePuff::action(IGame *game,
 }
 
 void SmokeColumn::SmokePuff::draw(JRenderer *r,
-        const Vector &right, const Vector &up, const Vector &front,
-        const PuffParams & params)
+                                  Ptr<IPositionProvider> observer,
+                                  const PuffParams & params)
 {
     float size = params.start_size + (age / ttl) *
             (params.end_size - params.start_size);
-    Matrix3 M2 = MatrixFromColumns<float>(right, up, front)
-                * RotateZMatrix<float>(omega * age);
-    Matrix M = TranslateMatrix<4,float>(p)
-            * Matrix::Hom(M2);
 
     float alpha;
-    if (age < 0.3) alpha = age/0.3;
-    else alpha = 1.0 - (age-0.3)/(ttl-0.3);
+    if (age < fadein) {
+        alpha = age/fadein;
+    } else if (age >= ttl - fadeout) {
+        alpha = 1 - (age - ttl + fadeout) / fadeout;
+    } else {
+        alpha = 1;
+    }
     alpha *= opacity;
     
     r->setAlpha(alpha);
-    r->setColor(params.color);
-    r->pushMatrix();
-    r->multMatrix(M);
-    r->begin(JR_DRAWMODE_TRIANGLE_FAN);
-    
-    r->setUVW(Vector(1,1,0)); *r << size*Vector(1,1,0);
-    r->setUVW(Vector(1,0,0)); *r << size*Vector(1,-1,0);
-    r->setUVW(Vector(0,0,0)); *r << size*Vector(-1,-1,0);
-    r->setUVW(Vector(0,1,0)); *r << size*Vector(-1,1,0);
-    
-    r->end();
-    r->popMatrix();
+    r->setColor(params.color(age/ttl));
+    drawBillboard(r, p, observer, age * omega, size, size, 0);
 }
 
 
@@ -109,22 +103,17 @@ void SmokeColumn::action()
 void SmokeColumn::draw()
 {
     Ptr<ICamera> camera = thegame->getCamera();
-    Vector eye = camera->getLocation();
-    Vector up, right, front;
-    camera->getOrientation(&up, &right, &front);
 
     renderer->enableAlphaBlending();
+    renderer->enableSmoothShading();
     renderer->setVertexMode(JR_VERTEXMODE_GOURAUD_TEXTURE);
     renderer->setCullMode(JR_CULLMODE_NO_CULLING);
     renderer->setTexture(smoke_tex->getTxtid());
     renderer->disableZBufferWriting();
 
-    renderer->begin(JR_DRAWMODE_TRIANGLES);
     for (SmokeIterator i=smokelist.begin(); i!=smokelist.end(); i++) {
-        (*i)->draw(renderer, right, up, front, puff_params);
-        //thegame->drawDebugTriangleAt((*i)->p);
+        (*i)->draw(renderer, camera, puff_params);
     }
-    renderer->end();
 
     renderer->enableZBufferWriting();
     renderer->disableAlphaBlending();
@@ -153,7 +142,7 @@ void FollowingSmokeColumn::action()
     age +=time_delta;
     if (age > params.ttl && smokelist.size()==0) { state = DEAD; return; }
 
-    if(target->getState() == ALIVE) {
+    if(target->getState() == ALIVE && age <= params.ttl) {
         setLocation(target->getLocation());
         Vector p = getLocation();
 

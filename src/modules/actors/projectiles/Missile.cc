@@ -239,17 +239,18 @@ void Missile::shootSparks()
     SmokeColumn::Params params;
     SmokeColumn::PuffParams puff_params;
     
-    // Setup smoke column parameters so that the puff interval is shorter
     params.ttl = 1.0;
-    params.interval = 0.1;
+    params.interval = 0.025;
     
     // Setup smoke puff parameters so that their time to live is shorter
     // and they are much smaller then the default
-    puff_params.ttl = Interval(0.2,0.8);
+    puff_params.ttl = Interval(0.7,0.8);
     puff_params.pos_deviation = 0.5;
     puff_params.start_size = 0.5;
     puff_params.end_size = 2.0;
     puff_params.color = Vector(0.3,0.3,0.4);
+    puff_params.fadein = 0.05;
+    puff_params.fadeout = 0.6;
     
     for (i=0; i<NUM_SPARKS; i++) {
         Ptr<Spark> spark(new Spark(thegame));
