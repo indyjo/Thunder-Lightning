@@ -49,6 +49,7 @@ EventTarget := Object clone do(
     name := nil
     registeredIn := nil
     action := nil
+    handlerVars := Object clone
     remove := method( registeredIn handlers removeAt(name) )
   )
   
@@ -64,12 +65,27 @@ EventTarget := Object clone do(
     //assert(call argCount == 2)
     // arg 0 should evaluate to a string
     if (self hasLocalSlot("handlers") not, self handlers := Map clone)
-    action := call argAt(1)
-    handlers atPut(name,action)
+    
+    handler := MessageHandler clone
+    handler name := name asSymbol
+    handler action := call argAt(1) clone
+    handler registeredIn := self
+    handler handlerVars := Object clone
+    
+    writeln("New handler for ", name, " in context ", self uniqueHexId, ": ");
+    handler println
+    
+    handlers atPut(name, handler)
+    handlers keys println
+    handlers values println
+    
+    // return the handlerVars slot so we can set some variables accessible in
+    // the handler.
+    handler handlerVars
   )
   
   // Enable or disable message logging by setting logMessages
-  logMessages := true
+  logMessages := false
   
   // this method is also called by the C++ backend,
   // so its signature must not be changed!
@@ -85,6 +101,8 @@ EventTarget := Object clone do(
       " received by ", self identify)
     locals := Locals clone
     locals appendProto(args)
+    locals appendProto(handler handlerVars)
+    
     locals self := self
     locals thisHandler := handler
 
@@ -97,19 +115,17 @@ EventTarget := Object clone do(
   // Searches through the object ancestry to
   // find a handler for 'name'.
   // It returns
-  //  * a new handler object or
+  //  * the found handler object or
   //  * nil if no handler was found.
   messageHandler := method(name,
-    obj := self contextWithSlot("handlers")
-    while(obj,
-      handler := MessageHandler clone
-      handler name = name
-      handler registeredIn = obj
-      handler action = obj handlers at(name)
+    context := self contextWithSlot("handlers")
+    while(context,
+      handler := context handlers at(name)
+      handler ifNonNil( return handler)
       
-      if (handler action, return handler)
-      obj = obj ancestorWithSlot("handlers")
+      context = context ancestorWithSlot("handlers")
     )
     nil
   )
 )
+
