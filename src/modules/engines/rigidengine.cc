@@ -1,7 +1,18 @@
+#include <tnl.h>
 #include <algorithm>
 #include "rigidengine.h"
 #include <modules/clock/clock.h>
 #include <DataNode.h>
+
+
+namespace {
+    void dump_state(const RigidBodyState & s, const char* indent) {
+        ls_message("%sx: ",indent); s.x.dump();
+        ls_message("%sP: ",indent); s.P.dump();
+        ls_message("%sq: %.2f   ",indent, s.q.real()); s.q.imag().dump();
+        ls_message("%sL: ",indent); s.L.dump();
+    }
+} // namespace
 
 RigidEngine::RigidEngine(Ptr<IGame> thegame)
 :   thegame(thegame)
@@ -90,6 +101,10 @@ void RigidEngine::setMovementVector(const Vector & new_v) {
 
 
 void RigidEngine::integrate(float delta_t, Transform * transforms) {
+    //ls_message("RigidEngine::integrate() of body with mass %.2f\n", getBase().M);
+    //ls_message("  state(t=0):\n");
+    //dump_state(getState(), "    ");
+    
     // shortcut to query current state
     if (delta_t == 0) {
         const struct RigidBodyState & state = getState();
@@ -133,12 +148,22 @@ void RigidEngine::integrate(float delta_t, Transform * transforms) {
     result.x += delta_t / 6 * (k1.x + 2*k2.x + 2*k3.x + k4.x);
     result.q = (result.q + delta_t / 6 * (k1.q + 2.0f*k2.q + 2.0f*k3.q + k4.q)).normalize();
     
+    //ls_message("  state(t=%.2f):\n", delta_t);
+    //dump_state(result, "    ");
+    
     transforms[0] = Transform(result.q.normalize(), result.x);
     
     setState(y);
+    
+    //s_message("  state(t=0 again):\n");
+    //dump_state(getState(), "    ");
 }
 
 void RigidEngine::update(float delta_t, const Transform * new_transforms) {
+    //ls_message("RigidEngine::update() of body with mass %.2f\n", getBase().M);
+    //ls_message("  state(t=0):\n");
+    //dump_state(getState(), "    ");
+
     clearAndApplyEffectors();
     struct RigidBodyState y = getState();
     struct RigidBodyState k1 = getDerivative();
@@ -177,6 +202,9 @@ void RigidEngine::update(float delta_t, const Transform * new_transforms) {
     result.L += delta_t / 6 * (k1.L + 2*k2.L + 2*k3.L + k4.L);
     
     setState(result);
+
+    //ls_message("  state(t=%.3f):\n", delta_t);
+    //dump_state(getState(), "    ");
 }
 
 void RigidEngine::addEffector(Ptr<IEffector> effector) {
