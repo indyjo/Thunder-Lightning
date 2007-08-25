@@ -12,8 +12,6 @@ Carrier do(
             cannon_state_name := "main_turret_angle_y"
         )
         turret weapon := armament weapon("Vulcan")
-        turret weapon setMaxRounds(10000)
-        turret weapon setRoundsLeft(10000)
         
         self reservedHoldingLevels := list
         self runwayLocked := nil
