@@ -167,6 +167,7 @@ Matrix := Object clone do(
   
   len := method(lenSquare sqrt)
   length := method(lenSquare sqrt)
+  distTo := method(other, (other - self) len)
   
   norm := method(
     self scaledBy(1/self len)
