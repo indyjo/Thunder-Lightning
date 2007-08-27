@@ -46,6 +46,7 @@ Carrier do(
             if (Game viewSubject == drone,
                 Game setView(self, 0)
                 Game setControlledActor(self)
+                drone setControlMode(Actor UNCONTROLLED)
             )
             
             coro(drone,
