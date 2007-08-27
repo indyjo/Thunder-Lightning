@@ -27,8 +27,29 @@ Drone do(
         fv tag := "AttackWithMissileSalvo"
         manage(fv)
         
+        // while we don't have line of sight (LOS)
+        while ( (x := Terrain lineIntersection(me location, target location mixedWith(me location, 0.01)) ) isNil not,
+            normal := Terrain normalAt(x x, x z)
+            to_x := x - me location
+            dist := to_x len
+
+            // calculate a vector that
+            //  - lies in the plane of to_x and normal
+            //  - is perpendicular to to_x
+            //  - points in the same direction as normal
+            evasion_vect := ((to_x % normal) % to_x) normInPlace
+            
+            // deviate from course to target by up to 50% (30 degrees)
+            fv target_vector := (to_x + evasion_vect scaledBy(dist*0.5)) normInPlace
+            //"Correcting course by #{(fv target_vector dot( dirToTarget call ) acos * 180 / Number constants pi) asString(0,1)} degrees" interpolate say
+            fv target_vector scaleInPlace( 350 / 3.6 )
+            
+            sleep(2)
+        )
+        
+        // now point to target
         while( me state dir dot( dirToTarget call ) < 0.9,
-            fv target_vector := dirToTarget call * (300 / 3.6)
+            fv target_vector := dirToTarget call * (400 / 3.6)
             pass
         )
         
