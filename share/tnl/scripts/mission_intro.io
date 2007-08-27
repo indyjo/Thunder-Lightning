@@ -225,8 +225,14 @@ Intro := coro(mission,
             mission carrier eatDrone(mission me)
             mission me = nil
             "Bravo, well done!" say
-            sleep(8)
-            "Remember that you can abort the introduction by pressing (I)." say
+            sleep(4)
+            if (mission ?combat_training_completed,
+                "Let's do another combat training." say
+            ,
+                "The next phase will be combat training." say
+            )
+            sleep(4)
+            "Remember that you can skip training by pressing (I)." say(red)
             sleep(8)
         )
             
@@ -368,6 +374,8 @@ Intro combatTraining := method(mission,
     sleep(8)
     "Now let's get back to the carrier." say
     sleep(8)
+    
+    mission combat_training_completed := true
 )
 
 SurvivalWatchdog := coro(actor, target_coro,

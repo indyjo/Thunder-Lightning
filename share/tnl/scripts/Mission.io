@@ -97,6 +97,7 @@ MissionManager := Object clone do(
   
   defaultMission := Mission clone
   defaultMission doFile(path .. "/mission_default.io")
+  defaultMission init
   
   introMission := Mission clone
   introMission doFile(path .. "/mission_intro.io")
