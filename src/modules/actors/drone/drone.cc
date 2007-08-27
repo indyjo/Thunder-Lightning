@@ -359,13 +359,6 @@ void Drone::applyDamage(float damage, int domain, Ptr<IProjectile> projectile) {
 	if (!isAlive()) return;
     SimpleActor::applyDamage(damage,domain,projectile);
 
-	// TODO: This all belongs into an Io script
-    if (projectile->getSource()) {
-		Ptr<IActor> src = projectile->getSource();
-		float dist2 = (src->getLocation()-getLocation()).lengthSquare();
-		if (src->getFaction()->getAttitudeTowards(getFaction()) != Faction::FRIENDLY)
-			targeter->setCurrentTarget(src);
-	}
     if (this->damage < 0.5 && this->damage+damage>0.5) {
     	explode(false);
     }
