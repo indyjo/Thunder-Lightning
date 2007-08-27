@@ -43,6 +43,9 @@ public:
     
     void addBarrel(Ptr<IPositionProvider>);
     
+    inline float getLoadTime() { return loadtime; }
+    inline void setLoadTime(float t) { loadtime = t; }
+    
     virtual const char * getName();
     
     virtual int getMaxRounds();

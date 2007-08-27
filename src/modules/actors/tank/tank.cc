@@ -103,6 +103,8 @@ Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
     machinegun->addBarrel(new SkeletonProvider(skeleton, "MGBottomLeft", "CannonTip", "CannonTipFront"));
     machinegun->addBarrel(new SkeletonProvider(skeleton, "MGTopLeft", "CannonTip", "CannonTipFront"));
     machinegun->addBarrel(new SkeletonProvider(skeleton, "MGBottomRight", "CannonTip", "CannonTipFront"));
+    machinegun->setLoadTime(
+        thegame->getConfig()->queryFloat("Tank_vulcan_loadtime", machinegun->getLoadTime()));
     armament->addWeapon(0, machinegun);
 
     Ptr<Cannon> cannon=new Cannon(thegame, "Cannon", cfg->queryInt("Tank_cannon_rounds", 25));
