@@ -163,6 +163,7 @@ Config do(
   Tank_cannon_factor               := "10"
   Tank_vulcan_rounds               := "1200"
   Tank_vulcan_factor               := "0.5"
+  Tank_vulcan_loadtime             := (2/5) asString
 
   // FontMan configuration
   FontMan_dir                      := fonts_dir
@@ -228,7 +229,7 @@ Config do(
   Cannon_reference_distance        := "200.0"
   Cannon_gain                      := "1.0"
   
-  Vulcan_factor                    := "0.25"
+  Vulcan_factor                    := "0.45"
   Vulcan_loadtime                  := (1/5) asString
   Vulcan_singleshot                := "false"
   Vulcan_guided                    := "false"
