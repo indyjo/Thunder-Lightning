@@ -847,7 +847,7 @@ void Game::actionTriggered(const char *action) {
     IoObject* self = getProtoObject<Ptr<IGame> >(
         io_scripting_manager->getMainState());
 
-    IoMessage *message = IoMessage_newWithName_label_(IOSTATE, IOSYMBOL("sendMessage"),
+    IoMessage *message = IoMessage_newWithName_label_(IOSTATE, IOSYMBOL("onMessage"),
         IOSYMBOL("Game::actionTriggered"));
     
     IoMessage_addCachedArg_(message, IOSYMBOL(action));
