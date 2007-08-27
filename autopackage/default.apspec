@@ -74,10 +74,10 @@ green; echo "Installing TnL data into $build_root/usr/local."; normal
 prepareBuild \
   CXXFLAGS="$CXXFLAGS" \
   '--enable-release' \
-  '--with-io-dir=/home/jonas/src/git/Io-work/' \
+  "--with-io-dir=$io_dir" \
   '--with-libpng-libs=/usr/lib/libpng.a /usr/lib/libz.a' \
   '--with-sigc-libs=/usr/lib/libsigc-1.2.a' \
-  '--with-glew-libs=/home/jonas/src/glew/lib/libGLEW.a'
+  '--with-glew-libs=/usr/lib/libGLEW.a'
 
 [BuildUnprepare]
 unprepareBuild
