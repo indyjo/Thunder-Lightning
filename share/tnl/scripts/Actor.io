@@ -27,21 +27,7 @@ Actor do(
   isAirborneTarget := false
   isGroundTarget := false
   
-  // list of missiles homing into this actor
-  missiles := list()
-  
-  on("missileShot",
-    self hasLocalSlot("missiles") ifFalse(self missiles := list())
-    
-    missiles append(missile)
-    missiles selectInPlace(isAlive)
+  hasLineOfSightTo := method(actor,
+    Terrain lineIntersection(self location, actor location) isNil not
   )
-  
-  on("lockLost",
-    self hasLocalSlot("missiles") ifFalse(self missiles := list())
-    
-    id := missile actorId
-    missiles selectInPlace(m, m isAlive and m actorId != id)
-  )
-    
 )

@@ -1,4 +1,4 @@
-CommonAI := Object clone do(
+CommonAI := EventTarget clone do(
     formation_positions := list(vector(50,10,-50), vector(100,20,-100), vector(150,30,-150), vector(200,40,-200))
     formationPosition := method(i, formation_positions at(i))
 
@@ -69,6 +69,29 @@ CommonAI := Object clone do(
             sleep(0.5)
         )
     ) do( tag := "CommonAI" )
+    
+    
+    
+    ///////////////////////////////////////////////////////////////////////////
+    // Decoy dispension
+    ///////////////////////////////////////////////////////////////////////////
+
+    // list of missiles homing into this actor
+    missiles := list()
+  
+    on("missileShot",
+        self hasLocalSlot("missiles") ifFalse(self missiles := list())
+
+        missiles append(missile)
+        missiles selectInPlace(isAlive)
+    )
+
+    on("lockLost",
+        self hasLocalSlot("missiles") ifFalse(self missiles := list())
+
+        id := missile actorId
+        missiles selectInPlace(m, m isAlive and m actorId != id)
+    )
     
     DispenseDecoys := coro(me,
         weapon := me armament weapon("Decoy")
