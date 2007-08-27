@@ -72,8 +72,10 @@ EventTarget := Object clone do(
     handler registeredIn := self
     handler handlerVars := Object clone
     
-    writeln("New handler for ", name, " in context ", self uniqueHexId, ": ");
-    handler println
+    logMessages ifTrue(
+      writeln("New handler for ", name, " in context ", self uniqueHexId, ": ")
+      handler println
+    )
     
     handlers atPut(name, handler)
     handlers keys println
@@ -87,45 +89,39 @@ EventTarget := Object clone do(
   // Enable or disable message logging by setting logMessages
   logMessages := false
   
-  // this method is also called by the C++ backend,
-  // so its signature must not be changed!
   onMessage := method(name, args,
-    handler := messageHandler(name)
-    if( handler isNil,
-      logMessages and writeln("received message ",name,
-        " is unhandled by ", self identify)
-      return
-    )
-    logMessages and writeln(handler registeredIn identify,
-      " handles message ", name,
-      " received by ", self identify)
-    locals := Locals clone
-    locals appendProto(args)
-    locals appendProto(handler handlerVars)
-    
-    locals self := self
-    locals thisHandler := handler
-
-    locals doMessage(handler action)
-  )
-  
-  // Define the older sendMessage name as an alias to onMessage
-  sendMessage := getSlot("onMessage")
-  
-  // Searches through the object ancestry to
-  // find a handler for 'name'.
-  // It returns
-  //  * the found handler object or
-  //  * nil if no handler was found.
-  messageHandler := method(name,
-    context := self contextWithSlot("handlers")
-    while(context,
-      handler := context handlers at(name)
-      handler ifNonNil( return handler)
-      
-      context = context ancestorWithSlot("handlers")
-    )
+    logMessages ifTrue( ("Dispatching message " .. name) println)
+    dispatchMessage(name,args,self)
     nil
   )
+  
+  dispatchMessage := method(name,args,original_context,
+    handlers := self getLocalSlot("handlers")
+    handlers ifNonNil(
+
+      handler := handlers at(name)
+      handler ifNonNil(
+        logMessages and writeln(handler registeredIn identify,
+          " handles message ", name,
+          " received by ", self identify)
+        locals := Locals clone
+        locals appendProto(args)
+        locals appendProto(handler handlerVars)
+
+        locals self := original_context
+        locals thisHandler := handler
+
+        locals doMessage(handler action)
+      )
+    )
+
+  
+    self protos foreach(p,
+      if (p hasSlot("dispatchMessage"),
+        p dispatchMessage(name,args,original_context)
+      )
+    )
+  )
 )
+
 
