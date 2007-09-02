@@ -18,12 +18,15 @@ struct IFont : public IFontMetrics {
         VCENTER = 0x20
     };
     
+    /// Draws a string at a specified pen position with specified color, alpha and alignment.
     virtual void drawString(
         const char *str,                                    ///< The string to draw
-        const Vector2 & pos,                                ///< The position to draw at
+        const Vector2 & pos,                                ///< The pen position to draw at
         const Vector3 & color=Vector3(1,1,1),               ///< The RGB color to draw in
         float alpha=1,                                      ///< The opacity to draw with
-        int   anchor = TOP | LEFT                           ///< Which point of the text box 'pos' specifies
+        int   anchor = TOP | LEFT,                          ///< Which point of the text box 'pos' specifies
+        float startofline_x=0,                              ///< X coordinate to reset pen to after a newline
+        Vector2 * out_pos=0                                 ///< (Optional) pen position after drawing
         )=0;
 };
 
