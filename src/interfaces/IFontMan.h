@@ -25,7 +25,7 @@ public:
     virtual void setCursor(const Vector & c,
                    const Vector & px,
                    const Vector & py)=0;
-    virtual const Vector & getCursor()=0;
+    virtual Vector getCursor()=0;
     virtual void print(const char *text)=0;
 
     /// Returns a metrics object describing the metrics of the currently selected font.
