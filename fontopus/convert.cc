@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
+#include <climits>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -47,14 +48,18 @@ void render(FT_Bitmap in, unsigned char *out, int width, int xofs, int yofs) {
 typedef pair<FT_ULong, FT_UInt> CharcodeGlyphPair;
 typedef vector<CharcodeGlyphPair> Mapping;
 
-Mapping getMapping(FT_Face face) {
+Mapping getMapping(FT_Face face,
+                   unsigned int min_charcode=0,
+                   unsigned int max_charcode=UINT_MAX) {
 	Mapping mapping;
 	FT_ULong charcode;
 	FT_UInt glyph;
 	
 	charcode = FT_Get_First_Char(face, &glyph);
 	while (glyph != 0) {
-		mapping.push_back(CharcodeGlyphPair(charcode,glyph));
+		if (charcode >= min_charcode && charcode <= max_charcode) {
+		    mapping.push_back(CharcodeGlyphPair(charcode,glyph));
+		}
 		charcode = FT_Get_Next_Char(face, charcode, &glyph);
 	}
 	return mapping;
@@ -89,9 +94,21 @@ void getExactBoundingBox(FT_Face face, const Mapping & mapping, int *xmin, int *
 }
 
 	
-void convert(const char *infile, const char *outfile, int size) {
-	std::cout << "Converting font in file " << infile << " to file " << outfile;
-	std::cout << " at size " << size << std::endl;
+void convert(const char *infile,
+             const char *outfile,
+             int size,
+             unsigned int min_charcode,
+             unsigned int max_charcode
+            )
+{
+    std::string outfile_str = outfile;
+    std::string outfile_base = outfile_str.substr(0, outfile_str.size() - 4);
+    
+	std::cout << "Converting font in file " << infile << " to files "
+	    << outfile_str << ", "
+	    << outfile_base << ".font and "
+	    << outfile_base << ".jft";
+	    << " at size " << size << std::endl;
 	
 	FT_Library library;
 	DO_CHECKED(FT_Init_FreeType( &library ), "Error initializing FreeType 2", return);
@@ -114,7 +131,7 @@ void convert(const char *infile, const char *outfile, int size) {
 	
 	DO_CHECKED(FT_Set_Pixel_Sizes( face, 0, size ), "Error etting pixel size.", return);
 	
-	Mapping mapping = getMapping(face);
+	Mapping mapping = getMapping(face, min_charcode, max_charcode);
 	sortMappingByGlyph(mapping);
 	int n_chars = mapping.size();
 	
@@ -143,7 +160,7 @@ void convert(const char *infile, const char *outfile, int size) {
 	}
 	for(int i=0; i<min_pow2_size*min_pow2_size; i++) pixels[i]=0;
 		
-	ofstream font((std::string(outfile)+".font").c_str());
+	ofstream font((outfile_base+".font").c_str());
 	
 	font << face->family_name << std::endl;
 	font << face->style_name << std::endl;
@@ -182,7 +199,14 @@ void convert(const char *infile, const char *outfile, int size) {
 		font << "bearingy   " << CEIL26DOT6(face->glyph->metrics.horiBearingY) << endl;
 	}
 	
+	ofstream jft((outfile_base+".jft").c_str());
+	
+	jft << outfile_str << std::endl;
+	jft << mapping.size() << std::endl;
+	
+	
 	exportPNG(outfile, pixels, min_pow2_size, min_pow2_size);
 	
 	delete [] pixels;
 }
+
