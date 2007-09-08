@@ -34,8 +34,7 @@ void FPSModule::draw(UI::Panel & gunsight) {
 
 	surface.translateOrigin(offset[0],offset[1]);
 	
-	fontman->selectFont(IFontMan::FontSpec(
-		"dungeon", 12));
+	fontman->selectNamedFont("HUD_font_medium");
 	
 	fontman->setCursor(
 		surface.getOrigin(),
@@ -87,8 +86,7 @@ void TargetInfoModule::draw(UI::Panel & gunsight) {
 	r->end();
 	
 	Ptr<IFontMan> fontman = game->getFontMan();
-	fontman->selectFont(IFontMan::FontSpec(
-		"dungeon", 8));
+	fontman->selectNamedFont("HUD_font_small");
 	
 	fontman->setCursor(
 		Vector(5,5,0),

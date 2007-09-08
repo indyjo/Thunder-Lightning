@@ -12,7 +12,10 @@ public:
     FontMan(IGame * thegame);
     ~FontMan();
     
-    virtual void selectFont(const FontSpec & font);
+    virtual Ptr<IFont> selectFont(const FontSpec & font);
+    virtual Ptr<IFont> selectFont(Ptr<IFont> font);
+    virtual Ptr<IFont> selectNamedFont(const char *);
+    
     virtual void setColor(const Vector & col);
     virtual void setAlpha(float alpha);
     virtual void setCursor(const Vector & c,
@@ -32,7 +35,7 @@ private:
     JRenderer * renderer;
     std::string dir;
     std::map<std::string, Ptr<IFont> > fonts;
-    Ptr<IFont> current_font;
+    Ptr<IFont> current_font, default_font;
     Vector begin, px, py, color;
     Vector2 cursor;
     float alpha;

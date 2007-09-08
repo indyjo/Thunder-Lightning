@@ -5,21 +5,26 @@
 #include <object.h>
 #include <modules/math/Vector.h>
 
-struct IFontMetrics;
-struct IFont;
+#include "IFont.h"
 
 struct IFontMan : virtual public Object
 {
 public:
     struct FontSpec {
         enum Style { STANDARD, BOLD };
-        FontSpec(const std::string & name, int size = 10, Style style = STANDARD);
+        inline FontSpec(const char * str) { fromString(str); }
+        inline FontSpec(const std::string & str) { fromString(str); }
+        FontSpec(const std::string & name, int size, Style style = STANDARD);
 
         std::string name;
         int size;
         Style style;
+        
+        void fromString(std::string repr);
     };
-    virtual void selectFont(const FontSpec & font)=0;
+    virtual Ptr<IFont> selectFont(const FontSpec & font)=0;
+    virtual Ptr<IFont> selectFont(Ptr<IFont> font)=0;
+    virtual Ptr<IFont> selectNamedFont(const char *)=0;
     virtual void setColor(const Vector & col)=0;
     virtual void setAlpha(float)=0;
     virtual void setCursor(const Vector & c,

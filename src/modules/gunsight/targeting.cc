@@ -388,20 +388,23 @@ struct CurrentWeaponModule : public UI::Component {
 	Ptr<Armament> arms;
 	Ptr<IFontMan> fontman;
     size_t weapon_group;
+    Ptr<IGame> thegame;
 	
 	CurrentWeaponModule(const char *name, Ptr<IGame> game, Ptr<Armament> arms, size_t weapon_group)
 	:	UI::Component(name, 200, 25),
 		arms(arms),
+		thegame(game),
 		fontman(game->getFontMan()),
         weapon_group(weapon_group)
-	{ }
+	{
+        height = fontman->selectNamedFont("HUD_font_medium")->getLineHeight();
+	}
 	
 	void draw(UI::Panel & gunsight) {
 		UI::Surface surface = gunsight.getSurface();
 		surface.translateOrigin(offset[0],offset[1]);
 		
-		fontman->selectFont(IFontMan::FontSpec(
-			"dungeon", 12));
+        fontman->selectNamedFont("HUD_font_medium");
 		
 		fontman->setCursor(
 			surface.getOrigin(),
@@ -425,12 +428,12 @@ void FlexibleGunsight::addArmamentToScreen(
 	Ptr<IGame> game, Ptr<Armament> arms, size_t weapon_group)
 {
     addModule(new CurrentWeaponModule("primary", game, arms, weapon_group),
-        "screen", LEFT | BOTTOM, LEFT | BOTTOM, Vector(5,5,0));
+        "screen", LEFT | BOTTOM, LEFT | BOTTOM, Vector(5,-5,0));
 }
 
 void FlexibleGunsight::addArmamentToScreenRight(
 	Ptr<IGame> game, Ptr<Armament> arms, size_t weapon_group)
 {
     addModule(new CurrentWeaponModule("secondary", game, arms, weapon_group),
-        "screen", RIGHT | BOTTOM, RIGHT | BOTTOM, Vector(-5,5,0));
+        "screen", RIGHT | BOTTOM, RIGHT | BOTTOM, Vector(-5,-5,0));
 }

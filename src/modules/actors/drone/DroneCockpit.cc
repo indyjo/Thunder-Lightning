@@ -1,5 +1,6 @@
 #include <sigc++/sigc++.h>
 #include <interfaces/ICamera.h>
+#include <interfaces/IConfig.h>
 #include <interfaces/IFont.h>
 #include <interfaces/IFontMan.h>
 #include <modules/camera/FollowingCamera.h>
@@ -40,7 +41,7 @@ public:
         background->setBackgroundColor(Vector(0,0.5,0));
         
         Ptr<IFontMan> fontman = thegame->getFontMan();
-        fontman->selectFont(IFontMan::FontSpec("dungeon", 12, IFontMan::FontSpec::STANDARD));
+        fontman->selectFont(thegame->getConfig()->query("MFD_font_title", "default"));
         
         Ptr<UI::Panel> panel = new UI::Panel(renderer);
         Ptr<UI::StaticLabel> label = new UI::StaticLabel("label", "Dummy", fontman->getFont());
@@ -81,7 +82,7 @@ public:
         Ptr<SceneRenderPass> scene = new SceneRenderPass(thegame, ctx);
         
         Ptr<IFontMan> fontman = thegame->getFontMan();
-        fontman->selectFont(IFontMan::FontSpec("dungeon", 12, IFontMan::FontSpec::STANDARD));
+        fontman->selectFont(thegame->getConfig()->query("MFD_font_title", "default"));
         
         Ptr<UI::Panel> panel = new UI::Panel(renderer);
         Ptr<UI::StaticLabel> label = new UI::StaticLabel("label", "Telescope", fontman->getFont());
@@ -166,7 +167,7 @@ public:
         }
 
         Ptr<IFontMan> fontman = thegame->getFontMan();
-        fontman->selectFont(IFontMan::FontSpec("dungeon", 12, IFontMan::FontSpec::STANDARD));
+        fontman->selectFont(thegame->getConfig()->query("MFD_font_title", "default"));
         
         Ptr<UI::Panel> panel = new UI::Panel(renderer);
         Ptr<UI::StaticLabel> label = new UI::StaticLabel("label", "MissileCam", fontman->getFont());
@@ -330,7 +331,7 @@ public:
         Ptr<TargetPass> pass = new TargetPass(thegame, drone, renderer);
 
         Ptr<IFontMan> fontman = thegame->getFontMan();
-        fontman->selectFont(IFontMan::FontSpec("dungeon", 12, IFontMan::FontSpec::STANDARD));
+        fontman->selectFont(thegame->getConfig()->query("MFD_font_title", "default"));
         
         Ptr<UI::Panel> panel = new UI::Panel(renderer);
         Ptr<UI::StaticLabel> label = new UI::StaticLabel("label", "Target", fontman->getFont());
@@ -341,7 +342,7 @@ public:
             UI::Panel::HCENTER|UI::Panel::VCENTER,
             Vector2(0,-0.2));
         
-        fontman->selectFont(IFontMan::FontSpec("dungeon", 10, IFontMan::FontSpec::BOLD));
+        fontman->selectFont(thegame->getConfig()->query("MFD_font_default", "default"));
 
         Ptr<NameLabel> name = new NameLabel("name", drone);
         name->setColor(Vector(0,1,0));
@@ -351,7 +352,7 @@ public:
             UI::Panel::HCENTER|UI::Panel::BOTTOM,
             UI::Panel::HCENTER|UI::Panel::TOP);
         
-        fontman->selectFont(IFontMan::FontSpec("dungeon", 8, IFontMan::FontSpec::BOLD));
+        fontman->selectFont(thegame->getConfig()->query("MFD_font_small", "default"));
 
         Ptr<RangeLabel> range = new RangeLabel("range", drone);
         range->setFont(fontman->getFont());

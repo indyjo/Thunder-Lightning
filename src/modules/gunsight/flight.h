@@ -1,6 +1,7 @@
 #ifndef FLIGHT_GUNSIGHT_H
 #define FLIGHT_GUNSIGHT_H
 
+#include <modules/ui/Label.h>
 #include "gunsight.h"
 
 struct IFontMan;
@@ -19,20 +20,18 @@ struct HUDFrameModule : public UI::Component {
     virtual void onLayout(UI::Panel &);
 };
 
-class SpeedModule : public UI::Component {
+class SpeedModule : public UI::Label {
 	FlightInfo& flight_info;
-	Ptr<IFontMan> fontman;
 public:
 	SpeedModule(Ptr<IGame>, FlightInfo&);
-    void draw(UI::Panel &);
+    virtual std::string getText();
 };
 
-class HeightModule : public UI::Component {
+class HeightModule : public UI::Label {
 	FlightInfo& flight_info;
-	Ptr<IFontMan> fontman;
 public:
 	HeightModule(Ptr<IGame>, FlightInfo&);
-    void draw(UI::Panel &);
+    virtual std::string getText();
 };
 
 class HeightGraphModule : public UI::Component {

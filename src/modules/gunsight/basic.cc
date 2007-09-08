@@ -12,7 +12,7 @@ public:
 	    : UI::Component("control-mode", 200, 20)
 	    , actor(actor)
 	{
-        game->getFontMan()->selectFont(IFontMan::FontSpec("dungeon", 12, IFontMan::FontSpec::BOLD));
+        game->getFontMan()->selectNamedFont("HUD_font_medium");
         font = game->getFontMan()->getFont();
 	}
 	

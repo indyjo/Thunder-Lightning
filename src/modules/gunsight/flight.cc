@@ -1,4 +1,6 @@
 #include <cmath>
+#include <interfaces/IConfig.h>
+#include <interfaces/IFont.h>
 #include <interfaces/IFontMan.h>
 #include <interfaces/IGame.h>
 #include <modules/flight/flightinfo.h>
@@ -37,7 +39,8 @@ void FlexibleGunsight::addFlightModules(Ptr<IGame> game, FlightInfo &fi, Ptr<Dat
     	"hud-frame", HCENTER | VCENTER, HCENTER | VCENTER);
     addModule(
         new GearHookIndicator( game, controls),
-        "screen", RIGHT | BOTTOM, RIGHT | BOTTOM);
+        "screen", RIGHT | BOTTOM, RIGHT | BOTTOM,
+        Vector(-5,-5,0));
 }
 
 
@@ -103,58 +106,29 @@ void HUDFrameModule::onLayout(UI::Panel & panel) {
 }
 
 SpeedModule::SpeedModule(Ptr<IGame> game, FlightInfo& fi)
-:	UI::Component("speed", 48, 16),
+:	UI::Label("speed", game->getFontMan()->selectNamedFont("HUD_font_big")),
 	flight_info(fi)
 {
-	fontman = game->getFontMan();
+    setColor(Vector(0,1,0));
 }
 
-void SpeedModule::draw(UI::Panel& gunsight) {
-	UI::Surface surface = gunsight.getSurface();
-	surface.translateOrigin(offset[0],offset[1]);
-	
-	fontman->selectFont(IFontMan::FontSpec(
-		"dungeon", 12, IFontMan::FontSpec::BOLD));
-	
-	fontman->setCursor(
-		surface.getOrigin(),
-		surface.getDX(),
-		surface.getDY());
-	fontman->setAlpha(1);
-	fontman->setColor(Vector(0,1,0));
-	
-	char buf[16];
-	snprintf(buf,16,"%.0f",
-		flight_info.getCurrentSpeed() * 3.6f);
-	fontman->print(buf);
-	
+std::string SpeedModule::getText() {
+    char buf[16];
+    snprintf(buf,16,"%.0f", flight_info.getCurrentSpeed() * 3.6f);
+    return buf;
 }
 
 HeightModule::HeightModule(Ptr<IGame> game, FlightInfo& fi)
-:	UI::Component("height", 48, 16),
+:	UI::Label("height", game->getFontMan()->selectNamedFont("HUD_font_big")),
 	flight_info(fi)
 {
-	fontman = game->getFontMan();
+    setColor(Vector(0,1,0));
 }
 
-void HeightModule::draw(UI::Panel& gunsight) {
-	UI::Surface surface = gunsight.getSurface();
-	surface.translateOrigin(offset[0],offset[1]);
-	
-	fontman->selectFont(IFontMan::FontSpec(
-		"dungeon", 12, IFontMan::FontSpec::BOLD));
-	
-	fontman->setCursor(
-		surface.getOrigin(),
-		surface.getDX(),
-		surface.getDY());
-	fontman->setAlpha(1);
-	fontman->setColor(Vector(0,1,0));
-	
-	char buf[16];
-	snprintf(buf,16,"%.0f",flight_info.getCurrentAltitude());
-	fontman->print(buf);
-	
+std::string HeightModule::getText() {
+    char buf[16];
+    snprintf(buf,16,"%.0f", flight_info.getCurrentAltitude());
+    return buf;
 }
 
 HeightGraphModule::HeightGraphModule(Ptr<IGame> game, FlightInfo & fi)
@@ -172,8 +146,7 @@ void HeightGraphModule::draw(UI::Panel& gunsight) {
     r->pushMatrix();
     r->multMatrix(surface.getMatrix());
     
-    fontman->selectFont(IFontMan::FontSpec(
-        "dungeon", 8));
+    fontman->selectNamedFont("HUD_font_small");
     fontman->setAlpha(1);
     fontman->setColor(Vector(0,1,0));
   
@@ -258,8 +231,7 @@ void SpeedGraphModule::draw(UI::Panel& gunsight) {
     r->pushMatrix();
     r->multMatrix(surface.getMatrix());
     
-    fontman->selectFont(IFontMan::FontSpec(
-        "dungeon", 8));
+    fontman->selectNamedFont("HUD_font_small");
     fontman->setAlpha(1);
     fontman->setColor(Vector(0,1,0));
   
@@ -384,14 +356,15 @@ GearHookIndicator::GearHookIndicator(
     controls(controls),
 	fontman(game->getFontMan())
 {
+    Ptr<IFont> font = fontman->selectNamedFont("HUD_font_medium");
+    font->getStringDims("Gear is DOWN\nHook is DOWN", &width, &height);
 }
 
 void GearHookIndicator::draw(UI::Panel & gunsight) {
     UI::Surface surf = gunsight.getSurface();
     surf.translateOrigin(offset[0],offset[1]);
     	
-    fontman->selectFont(IFontMan::FontSpec(
-        "dungeon", 12, IFontMan::FontSpec::BOLD));
+    fontman->selectNamedFont("HUD_font_medium");
 
     fontman->setCursor(
         surf.getOrigin(),

@@ -36,7 +36,7 @@ LegacyFont::LegacyFont(JRenderer* renderer, Ptr<TextureManager> texman, std::str
         c.enabled = true;
         in >> c.dx >> c.dy >> c.tx1 >> c.ty1 >> c.tx2 >> c.ty2;
         c.dx = (c.tx2-c.tx1) * tex->getWidth();
-        c.dy = (c.ty2-c.ty1) * tex->getHeight();
+        c.dy = (c.ty1-c.ty2) * tex->getHeight();
     }
 }
 
@@ -50,7 +50,7 @@ float LegacyFont::getMaxCharWidth() {
 }
 
 float LegacyFont::getLineHeight() {
-    FontChar & c = chars['a'];
+    FontChar & c = chars[' '];
     return c.dy;
 }
 
@@ -201,7 +201,7 @@ void LegacyFont::drawStringSimple(const char *str,
                 renderer->vertex(cursor_pos + Vector2(0,fc.dy));
             }
             renderer->end();
-
+            
             cursor_pos += Vector2(fc.dx,0);
         }
     }

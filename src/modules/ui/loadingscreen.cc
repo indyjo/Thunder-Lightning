@@ -60,7 +60,7 @@ void LoadingScreen::update(Status * stat) {
     }
     r->end();
     
-    fontman->selectFont(IFontMan::FontSpec("dungeon", 12));
+    fontman->selectFont(thegame->getConfig()->query("Game_loading_screen_font", "default"));
     fontman->setColor(Vector(1,1,1));
     fontman->setAlpha(0.5);
     fontman->setCursor(

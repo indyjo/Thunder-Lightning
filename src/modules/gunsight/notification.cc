@@ -3,6 +3,7 @@
 #include <limits>
 
 #include <tnl.h>
+#include <interfaces/IConfig.h>
 #include <interfaces/IFontMan.h>
 #include <interfaces/IFont.h>
 #include <modules/actors/simpleactor.h>
@@ -21,7 +22,7 @@ struct MissileWarningModule : public UI::Component, public SigObject {
     SigC::Connection connection;
 	
 	MissileWarningModule(const char *name, Ptr<IGame> game, Ptr<SimpleActor> actor)
-	:	UI::Component(name, 200, 30),
+	:	UI::Component(name, 250, 50),
 		actor(actor),
         soundman(game->getSoundMan())
 	{
@@ -30,7 +31,7 @@ struct MissileWarningModule : public UI::Component, public SigObject {
         connection.block(true);
         sndsource = soundman->requestSource();
         sndsource->setLooping(true);
-        game->getFontMan()->selectFont(IFontMan::FontSpec("dungeon", 12, IFontMan::FontSpec::BOLD));
+        game->getFontMan()->selectNamedFont("HUD_font_big");
         font = game->getFontMan()->getFont();
     }
 
@@ -172,6 +173,7 @@ struct InfoMessageModule : public UI::Component, public SigObject {
     Ptr<Clock> clock;
 	Ptr<IFont> font;
     SigC::Connection connection;
+    bool realtime;
 	
 	InfoMessageModule(const char *name, Ptr<IGame> game)
         :	UI::Component(name, game->getScreenSurface().getWidth(), game->getScreenSurface().getHeight()*0.4f)
@@ -180,8 +182,9 @@ struct InfoMessageModule : public UI::Component, public SigObject {
             SigC::slot(*this, &InfoMessageModule::onMessage));
         connection.block(true);
         clock = game->getClock();
-        game->getFontMan()->selectFont(IFontMan::FontSpec("dungeon", 12, IFontMan::FontSpec::BOLD));
+        game->getFontMan()->selectNamedFont("Game_info_message_font");
         font = game->getFontMan()->getFont();
+        realtime = game->getConfig()->queryBool("InfoMessages_realtime", true);
     }
 
     void onMessage(const char *text, const Vector & color) {
@@ -197,7 +200,12 @@ struct InfoMessageModule : public UI::Component, public SigObject {
     }
 
 	void draw(UI::Panel & gunsight) {
-        update(clock->getRealFrameDelta());
+	    if (realtime) {
+            update(clock->getRealFrameDelta());
+        } else {
+            update(clock->getFrameDelta());
+        }
+        
         if (messages.empty())
             return;
 

@@ -43,7 +43,7 @@ Console::Console(IGame * game)
         SigC::slot(*this, & Console::enable));
 
     Ptr<IFontMan> fontman = game->getFontMan();
-    fontman->selectFont(IFontMan::FontSpec("dungeon", 12));
+    fontman->selectFont(game->getConfig()->query("Console_font", "default"));
 
 	IoState* state = game->getIoScriptingManager()->getMainState();
 	connectTo(state);
@@ -109,7 +109,7 @@ void Console::draw(JRenderer *renderer) {
         << Vector(0,surface.getHeight(),0);
     renderer->end();
 
-    fontman->selectFont(IFontMan::FontSpec("dungeon", 12));
+    fontman->selectFont(game->getConfig()->query("Console_font", "default"));
     fontman->setAlpha(1);
     fontman->setColor(Vector(0,1,0));
     fontman->setCursor(Vector(0,0,0), Vector(1,0,0), Vector(0,1,0));
