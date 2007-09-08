@@ -40,7 +40,9 @@ Intro := coro(mission,
         "A joystick can be used optionally." say
         sleep(8)
         Game setView(mission me, 0)
-        "Mouse movements control basic flight. You can also use the cursor keys." say
+        "Mouse movements control basic flight." say
+        sleep(2)
+        "You can also use the cursor keys." say
         sleep(8)
         "Press the (A) key now to switch to manual control." say
         while(mission me controlMode != Actor MANUAL, 
@@ -214,9 +216,13 @@ Intro := coro(mission,
             sleep(5)
             "Try to maintain about 170km/h and land smoothly" say
             sleep(5)
-            "Use the brakes (B) to reduce height and brake the aircraft when landed." say
+            "Use the brakes (B) to reduce height and" say
+            sleep(2)
+            "brake the aircraft when landed." say
             sleep(5)
-            "If you feel insecure, you may press (A) to let the autopilot do the work." say
+            "If you feel insecure, you may press (A)" say
+            sleep(2)
+            "to let the autopilot do the work." say
             
             while(mission carrier droneEatable(mission me) not,
                 sleep(1)
