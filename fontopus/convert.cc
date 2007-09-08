@@ -93,6 +93,13 @@ void getExactBoundingBox(FT_Face face, const Mapping & mapping, int *xmin, int *
 	}
 }
 
+std::string strip_dirs(const std::string & filename) {
+    std::string::size_type pos = filename.find_last_of("/\\");
+    if (pos == std::string::npos)
+        return filename;
+    else
+        return filename.substr(pos);
+}
 	
 void convert(const char *infile,
              const char *outfile,
@@ -107,7 +114,7 @@ void convert(const char *infile,
 	std::cout << "Converting font in file " << infile << " to files "
 	    << outfile_str << ", "
 	    << outfile_base << ".font and "
-	    << outfile_base << ".jft";
+	    << outfile_base << ".jft"
 	    << " at size " << size << std::endl;
 	
 	FT_Library library;
@@ -168,11 +175,12 @@ void convert(const char *infile,
 	font << "box_w " << box_w << std::endl;
 	font << "box_h " << box_h << std::endl;
 	
-	char glyph_buffer[64];
 	for (int y=0, c=0; y<n_y; y++) for (int x=0; x<n_x; x++, c++) {
 		if (c >= mapping.size())
 			break;
 		std::cout << "rendering glyph " << mapping[c].second << " (charcode "<<mapping[c].first<<")";
+		
+		char glyph_buffer[64];
 		int error = FT_Get_Glyph_Name(face, mapping[c].second, glyph_buffer, 64);
 		if (!error) {
 			std::cout << " ("<< glyph_buffer <<")";
@@ -200,10 +208,31 @@ void convert(const char *infile,
 	}
 	
 	ofstream jft((outfile_base+".jft").c_str());
-	
-	jft << outfile_str << std::endl;
+	jft << strip_dirs(outfile) << std::endl;
 	jft << mapping.size() << std::endl;
-	
+	for (int y=0, c=0; y<n_y; y++) for (int x=0; x<n_x; x++, c++) {
+		if (c >= mapping.size())
+			break;
+
+		int error = FT_Load_Glyph(face, mapping[c].second, FT_LOAD_RENDER);
+		if (error) {
+			std::cout << " [IGNORED]" << std::endl;
+			continue;
+		}
+
+	    jft << mapping[c].first << " " << 0 << " " << 0 << " ";
+	    
+	    float tx1 = x*box_w / (float) min_pow2_size;
+	    float ty1 = y*box_h / (float) min_pow2_size;
+	    float tx2 = tx1 + CEIL26DOT6(face->glyph->metrics.horiAdvance) / (float) min_pow2_size;
+	    float ty2 = (y+1)*box_h / (float) min_pow2_size;
+	    
+	    // origin of png-loaded textures is bottom left
+	    ty1 = 1 - ty1;
+	    ty2 = 1 - ty2;
+	    
+	    jft << tx1 << " " << ty1 << " " << tx2 << " " << ty2 << std::endl;
+	}
 	
 	exportPNG(outfile, pixels, min_pow2_size, min_pow2_size);
 	

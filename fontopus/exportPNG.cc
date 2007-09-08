@@ -41,15 +41,19 @@ void exportPNG(const char*filename, const unsigned char *pixels, int w, int h) {
 	png_init_io(png_ptr, fp);
 	
 	png_set_IHDR(png_ptr, info_ptr, w, h,
-       	8, PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
+       	8, PNG_COLOR_TYPE_GRAY_ALPHA, PNG_INTERLACE_NONE,
        	PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 	
 	png_write_info(png_ptr, info_ptr);
 	
+	unsigned short *row = new unsigned short[w];
 	for(int y=0; y<h; y++) {
-		png_bytep row = (png_bytep) &pixels[y*w];
-		png_write_row(png_ptr, row);
+	    for(int x=0; x<w; ++x) {
+	        row[x] = (pixels[y*w+x] << 8) | 0xff;
+	    }
+		png_write_row(png_ptr, (png_bytep)row);
 	}
+	delete [] row;
 	
 	png_write_end(png_ptr, info_ptr);
 	png_destroy_write_struct(&png_ptr, &info_ptr);
