@@ -42,6 +42,17 @@ Config do(
   Game_max_step_delta           := (1/30) asString
   Game_max_frame_delta          := (1/15) asString
   Game_max_ms_for_simulation    := (1000/30) floor asString
+  
+  // Fonts config
+  Console_font              := "dejavu-sans-mono-14"
+  Game_info_message_font    := "dejavu-sans-24"
+  Game_loading_screen_font  := "dejavu-sans-16-bold"
+  MFD_font_default          := "dejavu-sans-12"
+  MFD_font_title            := "dejavu-sans-12-bold"
+  MFD_font_small            := "dejavu-sans-10-bold"
+  HUD_font_small            := "dejavu-sans-10"
+  HUD_font_medium           := "dejavu-sans-16-bold"
+  HUD_font_big              := "dejavu-sans-20-bold"
 
   // Texman config
   TexMan_cache_size         := "256"
@@ -301,5 +312,8 @@ Config do(
   Lensflare_sparkle_thick_tex      := texture_dir .. "/sparkle-thick.png"
   Lensflare_rot_speed_thin         := "-0.5"
   Lensflare_rot_speed_thick        := "1.5"
+  
+  // Info messages
+  InfoMessages_realtime            := "false"
 
 ) // Config do
