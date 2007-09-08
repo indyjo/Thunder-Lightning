@@ -190,6 +190,13 @@ void EventRemapper::keyEvent(SDL_KeyboardEvent & ev)
     std::pair<Iter, Iter> range = keymap.equal_range(ks);
     for(KeyMap::iterator i=range.first; i!=range.second; ++i)
         triggerAction(i->second.c_str());
+    
+    if (pressed && range.first == range.second) {
+       ls_message("EventRemapper: Unmapped key pressed:\n");
+       ls_message("  Key name:   '%s'\n", SDL_GetKeyName(ev.keysym.sym));
+       ls_message("  SDL keysym: %d (%X)\n", key, key);
+       ls_message("  UNICODE:    %d (%X)\n", ev.keysym.unicode, ev.keysym.unicode);
+    }
 }
 
 void EventRemapper::mouseButtonEvent(SDL_MouseButtonEvent & ev)
