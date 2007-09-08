@@ -167,6 +167,7 @@ Config do(
 
   // FontMan configuration
   FontMan_dir                      := fonts_dir
+  FontMan_default_font             := "dejavu-sans-24-normal"
 
   // Io Scripting configuration
   Io_init_script                   := scripts_dir .. "/init.io"
