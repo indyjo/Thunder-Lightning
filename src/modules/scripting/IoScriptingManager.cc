@@ -19,7 +19,8 @@ struct IoStateEx {
 namespace {
 	typedef IoCallbackContext Ctx;
 	
-	void globalPrintCallback(Ctx *ctx, const UArray * uarray) {
+	void globalPrintCallback(void *ctx_void, const UArray * uarray) {
+	    Ctx* ctx = (Ctx*) ctx_void;
 		if (ctx) switch (uarray->encoding) {
 		case CENCODING_ASCII:
 		case CENCODING_UTF8:
@@ -31,7 +32,8 @@ namespace {
 	}
 	
 	bool global_inside_exception = false;
-	void globalExceptionCallback(Ctx *ctx, IoObject *e) {
+	void globalExceptionCallback(void *ctx_void, IoObject *e) {
+	    Ctx* ctx = (Ctx*) ctx_void;
 	    if (global_inside_exception) {
 	        ls_error("Error: exception occurred inside exception handler.\n");
 	        if(ctx) ctx->exceptionCallback(e);
@@ -42,7 +44,9 @@ namespace {
 		    global_inside_exception = false;
 		}
 	}
-	void globalExitCallback(Ctx *ctx) {
+	void globalExitCallback(void *ctx_void, int code) {
+	    Ctx* ctx = (Ctx*) ctx_void;
+	    ls_message("Exit with code %d requested\n", code);
 		if(ctx) ctx->exitCallback();
 	}
 	struct DefaultCallbackContext : public IoCallbackContext
@@ -104,12 +108,9 @@ namespace {
 
 void IoCallbackContext::connectTo(IoState *state) {
 	IoState_callbackContext_(state, this);
-	IoState_printCallback_(state,
-		(IoStatePrintCallback*) globalPrintCallback);
-	IoState_exceptionCallback_(state,
-		(IoStateExceptionCallback*) globalExceptionCallback);
-	IoState_exitCallback_(state,
-		(IoStateExitCallback*) globalExitCallback);
+	IoState_printCallback_(state, globalPrintCallback);
+	IoState_exceptionCallback_(state, globalExceptionCallback);
+	IoState_exitCallback_(state, globalExitCallback);
 }
 
 IoScriptingManager::IoScriptingManager(Ptr<IGame> game)
