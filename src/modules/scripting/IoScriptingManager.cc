@@ -125,6 +125,10 @@ IoState * IoScriptingManager::createIoStateEx() {
     IoState* io_state = reinterpret_cast<IoState*>(state);
     assert(io_state == &state->io_state);
     
+    // IoState initializing relies at some points on IoState having been
+    // zeroed on allocation.
+    memset(io_state, 0, sizeof(IoState));
+    
     IoState_new_atAddress(io_state);
     
     // now the initialization of our lifetime coupler
