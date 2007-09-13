@@ -5,6 +5,7 @@
 #include <tnl.h>
 #include <interfaces/IConfig.h>
 #include <interfaces/IGame.h>
+#include <UArray.h>
 
 #include "IoScriptingManager.h"
 #include "mappings.h"
@@ -18,11 +19,14 @@ struct IoStateEx {
 namespace {
 	typedef IoCallbackContext Ctx;
 	
-	void globalPrintCallback(Ctx *ctx, int length, const char *str) {
-		if (ctx) {
-		    char * s = new char[length+1];
-		    strcpy(s, str);
-		    ctx->printCallback(s);
+	void globalPrintCallback(Ctx *ctx, const UArray * uarray) {
+		if (ctx) switch (uarray->encoding) {
+		case CENCODING_ASCII:
+		case CENCODING_UTF8:
+		    ctx->printCallback((const char *) uarray->data);
+		    break;
+		default:
+		    ctx->printCallback("<binary data>");
 		}
 	}
 	
