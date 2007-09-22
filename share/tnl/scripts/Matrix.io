@@ -192,7 +192,7 @@ Matrix := Object clone do(
     S := crossproduct(axis)
     P := projection(axis)
     I := identity(3)
-    return P + angle cos * (I-P) + angle sin * S
+    return P + (I-P) scaledBy(angle cos) + S scaledBy(angle sin)
   )
   
   x := method( at(0) )
