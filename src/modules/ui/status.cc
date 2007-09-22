@@ -1,6 +1,27 @@
+#include <algorithm>
+#include <debug.h>
 #include "status.h"
 
 using namespace std;
+
+Status::StatusPrinter::StatusPrinter() {
+    last_desc = "<NO DESC>";
+    last_stat = 0;
+}
+        
+void Status::StatusPrinter::update(Status * stat) {
+    if (stat->getStatus() - last_stat > 0.01
+        || stat->getDescription() != last_desc)
+    {
+        last_desc = stat->getDescription();
+        last_stat = stat->getStatus();
+        ls_message("[%2.0f%%] %s\n", 100 * last_stat, last_desc.c_str());
+    }
+}
+
+Status::Status() {
+    status_changed.connect(SigC::slot(printer, &StatusPrinter::update));
+}
 
 void Status::beginJob(const string & desc, int steps) {
     Job job;
@@ -30,7 +51,7 @@ double Status::getStatus() {
     
     for(list<Job>::iterator i=jobs.begin(); i!=jobs.end(); i++) {
         step /= i->steps;
-        status += step * i->finished;
+        status += step * std::min(i->steps, i->finished);
     }
     
     return status;
