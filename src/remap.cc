@@ -72,6 +72,17 @@ EventRemapper::~EventRemapper()
 {
 }
 
+void EventRemapper::clear() {
+    event_sheets.clear();
+    event_sheets.push_back(new EventSheet());
+    keymap.clear();
+    mouse_button_map.clear();
+    joystick_button_map.clear();
+    joystick_axis_map.clear();
+    axismanips.clear();
+    event_filters.clear();
+}
+
 void EventRemapper::mapKey(int key, bool pressed, const char *action)
 {
     //keymap[KeyState(key, pressed)] = action;

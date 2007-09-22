@@ -109,6 +109,9 @@ class EventRemapper : public SigObject
 public:
     EventRemapper();
     ~EventRemapper();
+    
+    // resets every mapping to the initial state
+    void clear();
 
     inline void map(const char *action, const ActionSlot & slot) {
         event_sheets[0]->map(action,slot);
