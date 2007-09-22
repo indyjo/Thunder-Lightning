@@ -77,8 +77,8 @@ Carrier do(
     spawnTank := method(
         tank := Tank clone
         
-        tank setLocation( self location - 52* self getFrontVector )
-        tank setOrientation( self orientation * Matrix rotation3(vector(0,1,0), Number constants pi))
+        tank setLocation( self location - self getFrontVector scaledBy(52))
+        tank setOrientation( self orientation matMult( Matrix rotation3(vector(0,1,0), Number constants pi) ))
         tank setControlMode(Actor UNCONTROLLED)
         tank setFaction( self getFaction )
         
