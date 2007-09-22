@@ -3,7 +3,7 @@ addCarrier := method(
     corient := matrix( alpha cos,  0, -alpha sin
                                0,  1,          0
                        alpha sin,  0,  alpha cos)
-    cpos := 1.4*vector(6543,0,1416)
+    cpos := vector(6543,0,1416) scaledBy(1.4)
     
     carrier := Carrier clone
     
@@ -82,16 +82,6 @@ addDrone := method(carrier, path,
     me
 )
 
-addEnemyDrone := method(p,
-    drone := Drone clone
-    drone setLocation(p)
-    drone setFaction(Mission them)
-    Game addActor(drone)
-    drone name := "badguy"
-    drone setControlMode(Actor AUTOMATIC)
-    drone
-)
-
 startup := method(
     self carrier := addCarrier
     carrier setControlMode(Actor UNCONTROLLED)
@@ -102,9 +92,6 @@ startup := method(
     self drone3 := addDrone(carrier, path3(carrier location))
     drone3 setControlMode(Actor AUTOMATIC)
     Game setView(drone3, 0)
-    
-    self bad_drone := addEnemyDrone(carrier location + vector(50,400, 1800))
-    bad_drone command_queue appendCommand( Command Attack clone with(drone1) )
 )
 
 shutdown := method(
