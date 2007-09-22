@@ -81,48 +81,42 @@ Mission do(
     setDefaultAttitude(NEUTRAL)
     setAttitudeTowards(thisContext, FRIENDLY)
   )
+  
+  name := "<unnamed mission>"
+  description := "This mission does not have a description."
 )
 
 MissionManager := Object clone do(
   path := Config scripts_dir
-
-  simpleMission := Mission clone
-  simpleMission doFile(path .. "/mission_simple.io")
+  currentMission := nil
   
-  debugMission := Mission clone
-  debugMission doFile(path .. "/mission_debug.io")
-
-  debugMission2 := Mission clone
-  debugMission2 doFile(path .. "/mission_debug2.io")
-  
-  defaultMission := Mission clone
-  defaultMission doFile(path .. "/mission_default.io")
-  defaultMission init
-  
-  introMission := Mission clone
-  introMission doFile(path .. "/mission_intro.io")
-
-  carrierMission := Mission clone
-  carrierMission doFile(path .. "/mission_carrier.io")
-  
-  aitestMission := Mission clone
-  aitestMission doFile(path .. "/mission_aitest.io")
-  
-  missionEnded := method(mission, status,
-    ("Mission ended: " .. status) say
-    if (introMission == mission and status==Mission SUCCESS,
-      defaultMission me := introMission me
-      defaultMission start
+  init := method(
+    self missions := list
+    list(
+      "/mission_simple.io",
+      "/mission_debug.io",
+      "/mission_debug2.io",
+      "/mission_default.io",
+      "/mission_intro.io",
+      "/mission_carrier.io",
+      "/mission_aitest.io"
+    ) foreach(name,
+      mission := Mission clone
+      mission doFile(path .. name)
+      missions append(mission)
     )
   )
   
-  introMission addListener(thisContext)
-  defaultMission addListener(thisContext)
-
-
-  #debugMission2 addListener(thisContext)
-  #debugMission2 start
-  introMission start
+  // The following functions are called from C++. Their interface is fixed.
+  numMissions := method(missions size)
+  missionName := method(i, missions at(i) name)
+  missionDesc := method(i, missions at(i) description)
+  runMission  := method(i,
+    currentMission = missions at(i) clone
+    currentMission start
+  )
+  // End of interface.
 )
 
+MissionManager init
 

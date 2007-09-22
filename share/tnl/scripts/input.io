@@ -6,7 +6,7 @@ EventRemapper do(
   press := true
   release := nil
   
-  mapKey(SDLK_ESCAPE, press, "endgame")
+  mapKey(SDLK_ESCAPE, press, "mainmenu")
   mapKey(SDLK_TAB, press,  "switch-mfd")
 
   mapKey(SDLK_UP, press, "+forward")

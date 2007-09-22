@@ -42,7 +42,13 @@ Config do(
   Game_max_step_delta           := (1/30) asString
   Game_max_frame_delta          := (1/15) asString
   Game_max_ms_for_simulation    := (1000/30) floor asString
-  
+  Game_cegui_dir                := data_dir .. "/cegui/"
+  Game_cegui_schemes_dir        := Game_cegui_dir .. "schemes/"
+  Game_cegui_imagesets_dir      := Game_cegui_dir .. "imagesets/"
+  Game_cegui_fonts_dir          := Game_cegui_dir .. "fonts/"
+  Game_cegui_layouts_dir        := Game_cegui_dir .. "layouts/"
+  Game_cegui_looknfeels_dir     := Game_cegui_dir .. "looknfeel/"
+
   // Fonts config
   Console_font              := "dejavu-sans-mono-14"
   Game_info_message_font    := "dejavu-sans-24"

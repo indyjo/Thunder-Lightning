@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout >
+    <Window Type="DefaultWindow" Name="Root" >
+        <Property Name="InheritsAlpha" Value="False" />
+        <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+        <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Window Type="TaharezLook/FrameWindow" Name="mainDialog" >
+            <Property Name="Font" Value="Commonwealth-18" />
+            <Property Name="Text" Value="Thunder&amp;Lightning" />
+            <Property Name="Alpha" Value="0.5" />
+            <Property Name="TitlebarFont" Value="Commonwealth-16" />
+            <Property Name="SizingEnabled" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="TitlebarEnabled" Value="True" />
+            <Property Name="UnifiedAreaRect" Value="{{0.043125,0},{0.0597203,0},{0.339376,0},{0.941387,0}}" />
+            <Property Name="CloseButtonEnabled" Value="False" />
+            <Window Type="DefaultWindow" Name="mainDialog/content" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0400861,0},{0.111284,0},{0.952531,0},{0.969014,0}}" />
+                <Window Type="TaharezLook/Button" Name="mainDialog/content/loadMission" >
+                    <Property Name="Font" Value="Commonwealth-12" />
+                    <Property Name="Text" Value="Single Mission" />
+                    <Property Name="Alpha" Value="0.75" />
+                    <Property Name="Tooltip" Value="Starts a single mission" />
+                    <Property Name="InheritsAlpha" Value="False" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.0855494,0},{0.147492,0},{0.94133,0},{0.230823,0}}" />
+                </Window>
+                <Window Type="TaharezLook/Button" Name="mainDialog/content/resumeGame" >
+                    <Property Name="Font" Value="Commonwealth-12" />
+                    <Property Name="Text" Value="Resume Game" />
+                    <Property Name="Alpha" Value="0.75" />
+                    <Property Name="Tooltip" Value="Continue playing at the point where you left off" />
+                    <Property Name="InheritsAlpha" Value="False" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.089307,0},{0.011004,0},{0.945087,0},{0.0877226,0}}" />
+                </Window>
+                <Window Type="TaharezLook/Button" Name="mainDialog/content/startCampaign" >
+                    <Property Name="Font" Value="Commonwealth-12" />
+                    <Property Name="Text" Value="Start Campaign" />
+                    <Property Name="Alpha" Value="0.75" />
+                    <Property Name="Tooltip" Value="Starts a single mission" />
+                    <Property Name="InheritsAlpha" Value="False" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.083816,0},{0.253289,0},{0.939597,0},{0.334416,0}}" />
+                </Window>
+                <Window Type="TaharezLook/Button" Name="mainDialog/content/loadGame" >
+                    <Property Name="Font" Value="Commonwealth-12" />
+                    <Property Name="Text" Value="Load Game" />
+                    <Property Name="Alpha" Value="0.75" />
+                    <Property Name="Tooltip" Value="Ļoad a previously saved game." />
+                    <Property Name="InheritsAlpha" Value="False" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.0875723,0},{0.379025,0},{0.943354,0},{0.462356,0}}" />
+                </Window>
+                <Window Type="TaharezLook/Button" Name="mainDialog/content/saveGame" >
+                    <Property Name="Font" Value="Commonwealth-12" />
+                    <Property Name="Text" Value="Save Game" />
+                    <Property Name="Alpha" Value="0.75" />
+                    <Property Name="Tooltip" Value="Save the current game state." />
+                    <Property Name="InheritsAlpha" Value="False" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.0867053,0},{0.484926,0},{0.942487,0},{0.566053,0}}" />
+                </Window>
+                <Window Type="TaharezLook/Button" Name="mainDialog/content/settings" >
+                    <Property Name="Font" Value="Commonwealth-12" />
+                    <Property Name="Text" Value="Settings" />
+                    <Property Name="Alpha" Value="0.75" />
+                    <Property Name="Tooltip" Value="Edit audio, video and controls settings." />
+                    <Property Name="InheritsAlpha" Value="False" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.0812143,0},{0.63851,0},{0.936996,0},{0.719636,0}}" />
+                </Window>
+                <Window Type="TaharezLook/Button" Name="mainDialog/content/credits" >
+                    <Property Name="Font" Value="Commonwealth-12" />
+                    <Property Name="Text" Value="Credits" />
+                    <Property Name="Alpha" Value="0.75" />
+                    <Property Name="Tooltip" Value="Save the current game state." />
+                    <Property Name="InheritsAlpha" Value="False" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.0849713,0},{0.774461,0},{0.940753,0},{0.855588,0}}" />
+                </Window>
+                <Window Type="TaharezLook/Button" Name="mainDialog/content/exitGame" >
+                    <Property Name="Font" Value="Commonwealth-10" />
+                    <Property Name="Text" Value="Exit Game" />
+                    <Property Name="Alpha" Value="0.75" />
+                    <Property Name="Tooltip" Value="Exit Thunder&amp;Lightning." />
+                    <Property Name="InheritsAlpha" Value="False" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.07948,0},{0.906005,0},{0.935263,0},{0.987132,0}}" />
+                </Window>
+            </Window>
+        </Window>
+    </Window>
+</GUILayout>
