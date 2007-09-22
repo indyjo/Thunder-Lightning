@@ -5,6 +5,9 @@
 #include <algorithm>
 #include <sigc++/bind.h>
 #include <GL/glew.h>
+#include <CEGUIDefaultResourceProvider.h>
+#include <CEGUI.h>
+#include <RendererModules/OpenGLGUIRenderer/openglrenderer.h>
 #include <modules/math/Vector.h>
 #include <modules/camera/camera.h>
 #include <modules/camera/FollowingCamera.h>
@@ -18,6 +21,7 @@
 #include <modules/fontman/fontman.h>
 #include <modules/gunsight/gunsight.h>
 #include <modules/ui/loadingscreen.h>
+#include <modules/ui/MainGUI.h>
 #include <modules/collide/CollisionManager.h>
 #include <modules/ui/Console.h>
 #include <modules/ui/Surface.h>
@@ -288,6 +292,47 @@ Game::Game(int argc, const char **argv)
         ls_message("done\n");
         stat.endJob();
     }
+    
+    ls_message("Initializing CEGUI library.\n");
+    try {
+        using namespace CEGUI;
+        
+        CEGUI::DefaultResourceProvider * resource_provider = new CEGUI::DefaultResourceProvider;
+        resource_provider->setResourceGroupDirectory("", config->query("Game_cegui_dir","."));
+        
+        resource_provider->setResourceGroupDirectory("schemes", config->query("Game_cegui_schemes_dir","."));
+        Scheme::setDefaultResourceGroup("schemes");
+
+        resource_provider->setResourceGroupDirectory("imagesets", config->query("Game_cegui_imagesets_dir","."));
+        Imageset::setDefaultResourceGroup("imagesets");
+
+        resource_provider->setResourceGroupDirectory("fonts", config->query("Game_cegui_fonts_dir","."));
+        Font::setDefaultResourceGroup("fonts");
+
+        resource_provider->setResourceGroupDirectory("layouts", config->query("Game_cegui_layouts_dir","."));
+        WindowManager::setDefaultResourceGroup("layouts");
+
+        resource_provider->setResourceGroupDirectory("looknfeels", config->query("Game_cegui_looknfeels_dir","."));
+        WidgetLookManager::setDefaultResourceGroup("looknfeels");
+
+        CEGUI::OpenGLRenderer * opengl_renderer = new CEGUI::OpenGLRenderer(0);
+
+        new CEGUI::System(opengl_renderer, resource_provider);
+        
+        // load in the scheme file, which auto-loads the TaharezLook imageset
+        CEGUI::SchemeManager::getSingleton().loadScheme("TaharezLook.scheme");
+
+        // load in a font.  The first font loaded automatically becomes the default font.
+        CEGUI::FontManager::getSingleton().createFont("Commonwealth-10.font");
+        
+        CEGUI::System::getSingleton().setDefaultMouseCursor("TaharezLook", "MouseArrow");
+        
+        main_gui = new UI::MainGUI(this);
+    } catch (CEGUI::Exception & ex) {
+        ls_error("CEGUI error: %s\n", ex.getMessage().c_str());
+        throw;
+    }
+    ls_message("Done.\n");
 
     console = new UI::Console(this);
     addMappings(this, io_scripting_manager->getMainState());
@@ -700,9 +745,13 @@ void Game::doFrame()
     water->update();
 
     pre_draw.emit();
+    
+    // draw all layers: renderpass, optional texture mosaic, GUI, console
     renderpass_overlay->render();
     if (debug_mode) renderpass_overlay->drawMosaic();
+    CEGUI::System::getSingleton().renderGUI();
     console->draw(renderer);
+    
     post_draw.emit();
     
     SDL_GL_SwapBuffers();
@@ -728,6 +777,12 @@ void Game::togglePauseMode() {
 
 void Game::toggleDebugMode() {
     debug_mode = !debug_mode;
+}
+
+void Game::mainMenu() {
+    if (UI::MainGUI::OFF == main_gui->currentState()) {
+        main_gui->switchToMainMenu(true, true);
+    }
 }
 
 void Game::endGame() {

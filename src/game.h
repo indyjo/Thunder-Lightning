@@ -13,6 +13,7 @@ struct ISkyBox;
 class IoScriptingManager;
 namespace UI {
 	class Console;
+	class MainGUI;
 }
 class Water;
 struct RenderContext;
@@ -60,6 +61,7 @@ public:
     virtual void setCurrentlyControlledActor(Ptr<IActor>);
     
     virtual void clearScreen();
+    virtual void endGame();
 
 private:
     void initModules(Status &);
@@ -77,7 +79,7 @@ private:
     
     void doFrame();
 
-    void endGame();
+    void mainMenu();
 
     void actionTriggered(const char *);
 
@@ -131,5 +133,6 @@ private:
     Ptr<UI::Console> console;
     Ptr<RenderPass> renderpass_main;
     Ptr<RenderPass> renderpass_overlay;
+    Ptr<UI::MainGUI> main_gui;
 };
 

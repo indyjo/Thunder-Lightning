@@ -15,7 +15,7 @@ void Game::initControls()
     Ptr<EventRemapper> r = getEventRemapper();
     r->sig_action_triggered.connect(SigC::slot(*this, &Game::actionTriggered));
 
-    r->map("endgame", SigC::slot(*this, & Game::endGame));
+    r->map("mainmenu", SigC::slot(*this, & Game::mainMenu));
     r->map("debug", SigC::slot(*this, & Game::toggleDebugMode));
 
     r->setAxis("kbd_throttle",-1.0f);

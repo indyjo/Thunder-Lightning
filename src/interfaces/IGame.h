@@ -92,6 +92,7 @@ struct IGame : virtual public Object, virtual public IActorStage, virtual public
     virtual void setCurrentlyControlledActor(Ptr<IActor>)=0;
     
     virtual void clearScreen()=0;
+    virtual void endGame()=0;
 };
 
 
