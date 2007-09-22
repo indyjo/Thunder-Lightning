@@ -91,6 +91,10 @@ struct IGame : virtual public Object, virtual public IActorStage, virtual public
     virtual Ptr<IActor> getCurrentlyControlledActor()=0;
     virtual void setCurrentlyControlledActor(Ptr<IActor>)=0;
     
+    /// This will restart the simulation, reset the running simulation and
+    /// invalidate all simulation-specific variables.
+    virtual void restartSimulation()=0;
+    
     virtual void clearScreen()=0;
     virtual void endGame()=0;
 };

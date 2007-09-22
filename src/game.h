@@ -60,11 +60,17 @@ public:
     virtual Ptr<IActor> getCurrentlyControlledActor();
     virtual void setCurrentlyControlledActor(Ptr<IActor>);
     
+    virtual void restartSimulation();
+    
     virtual void clearScreen();
     virtual void endGame();
 
 private:
-    void initModules(Status &);
+    void startupSystem(Status &);
+    void teardownSystem(Status &);
+    
+    void startupSimulation(Status &);
+    void teardownSimulation(Status &);
 
     void initControls();
 

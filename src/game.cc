@@ -101,7 +101,7 @@ void setup_paths(Ptr<IConfig> config, const char **argv) {
     
     std::string data_dir = prefix + "/share/tnl";
     config->set("data_dir",(data_dir).c_str());
-    config->set("Io_init_script",(data_dir + "/scripts/init.io").c_str());
+    config->set("Io_system_init_script_1",(data_dir + "/scripts/system_init_1.io").c_str());
 }
 
 
@@ -112,6 +112,15 @@ Game::Game(int argc, const char **argv)
 , render_context(0)
 {
     the_game = this;
+}
+
+Game::~Game()
+{
+    the_game = 0;
+}
+
+void Game::startupSystem(Status & stat) {
+    stat.beginJob("System startup", 1);
 
     ls_message("Initializing configuration system:\n");
     config= new Config;
@@ -123,20 +132,19 @@ Game::Game(int argc, const char **argv)
     // The locations given above may be overridden here
     config->feedArguments(argc, argv);
     
-    ls_message("Creating IoScriptingManager\n");
-    io_scripting_manager = new IoScriptingManager(this);
+    ls_message("Creating IoScriptingManager (system)\n");
+    Ptr<IoScriptingManager> system_scripting_manager = new IoScriptingManager(this);
     ls_message("Adding basic mappings...");
-    addBasicMappings(this, io_scripting_manager->getMainState());
+    addBasicMappings(this, system_scripting_manager->getMainState());
     ls_message("done");
     {
         char buf[256];
-		strncpy(buf,config->query("Io_init_script", "<noinit>"),256);
+		strncpy(buf,config->query("Io_system_init_script_1", "<noinit>"),256);
         if (0==strcmp(buf,"<noinit>")) {
-            ls_error("Io_init_script not found.");
-            throw runtime_error("Io_init_script not found.");
+            throw runtime_error("Io_system_init_script_1 not found.");
         }
         ls_message("Executing Io script \"%s\"\n", buf);
-		IoState_doFile_(io_scripting_manager->getMainState(), buf);
+		IoState_doFile_(system_scripting_manager->getMainState(), buf);
     }
     ls_message("Back in C++.\n");
 
@@ -252,47 +260,8 @@ Game::Game(int argc, const char **argv)
     modelman = new ModelMan(texman);
     fontman = new FontMan(this);
     soundman = new SoundMan(config);
-    collisionman = new Collide::CollisionManager();
-    clock = new Clock;
     ls_message("Done initializing managers\n");
 
-   	ls_message("Initializing Environment...");
-    environment = new Environment(this);
-    ls_message("Water...");
-    water = new Water(this);
-   	ls_message(" done.\n");
-   	ls_message("Initializing Camera...");
-   	camera = new Camera(this);
-   	{
-        JCamera jcamera;
-        camera->getCamera(&jcamera);
-        renderer->setCamera(&jcamera.cam);
-    }
-   	ls_message(" done.\n");
-
-    ls_message("Preparing Main render pass...");
-    RenderContext ctx(camera);
-    renderpass_main = new SceneRenderPass(this, ctx);
-    ls_message("done.\n");
-
-    {
-    	ls_message("Querying from config %p:\n", ptr(config));
-        string background = config->query("Game_loading_screen");
-        ls_message("Initializing loading screen [%s]:\n", background.c_str());
-        LoadingScreen lscr(this, background);
-        ls_message("done.\n");
-        Status stat;
-        stat.getSignal().connect(SigC::slot(lscr, &LoadingScreen::update));
-
-        stat.beginJob("Initializing", 2);
-        initModules(stat);
-        stat.stepFinished();
-        ls_message("Initializing controls ...");
-        initControls();
-        ls_message("done\n");
-        stat.endJob();
-    }
-    
     ls_message("Initializing CEGUI library.\n");
     try {
         using namespace CEGUI;
@@ -334,34 +303,35 @@ Game::Game(int argc, const char **argv)
     }
     ls_message("Done.\n");
 
-    console = new UI::Console(this);
-    addMappings(this, io_scripting_manager->getMainState());
+    ls_message("Performing second stage of Io initialization.\n");
     {
 		char buf[256];
-		strncpy(buf,config->query("Io_init_script_2","<noinit>"),256);
+		strncpy(buf,config->query("Io_system_init_script_2","<noinit>"),256);
         if (0==strcmp(buf,"<noinit>")) {
-            throw runtime_error("Io_init_script_2 not found.");
+            throw runtime_error("Io_system_init_script_2 not found.");
         }
-		ls_message("Executing initial setup script: %s\n", buf);
-		IoState_doFile_(io_scripting_manager->getMainState(), buf);
-		ls_message("Done excuting initial setup script: %s\n", buf);
+		IoState_doFile_(system_scripting_manager->getMainState(), buf);
     }
+    ls_message("Done.\n");
     
-    Ptr<FlexibleGunsight> overlay = new FlexibleGunsight(this);
-    overlay->addStaticInfoMessage(this);
-    overlay->addStaticDebugInfo(this);
-    Ptr<UI::PanelRenderPass> overlay_pass = new UI::PanelRenderPass(renderer);
-    overlay_pass->setPanel(overlay);
-    this->renderpass_overlay = overlay_pass;
-    overlay_pass->stackedOn(renderpass_main);
+    stat.endJob();
 }
 
-Game::~Game()
-{
-    the_game = 0;
-
-    event_remapper = 0;
+void Game::teardownSystem(Status & stat) {
+    stat.beginJob("System teardown");
     
+    event_remapper = 0;
+
+    texman->shutdown();
+    texman = 0;
+
+    fontman = 0;
+	soundman->shutdown();
+    soundman = 0;
+    modelman = 0;
+    
+    SDL_WM_GrabInput(SDL_GRAB_OFF);
+    SDL_ShowCursor(SDL_ENABLE);
     
     if (config->queryBool("Game_restore_resolution", false)) {
         ls_message("Restoring screen resolution.\n");
@@ -374,12 +344,112 @@ Game::~Game()
     ls_message("Exiting SDL.\n");
     SDL_Quit();
     ls_message("Exiting game.\n");
+    
+    stat.endJob();
+}
+
+void Game::startupSimulation(Status & stat) {
+    stat.beginJob("Simulation startup", 11);
+    
+    stat.nextJob("Initializing CollisionManager");
+    collisionman = new Collide::CollisionManager();
+    stat.nextJob("Initializing clock");
+    clock = new Clock;
+   	stat.nextJob("Initializing Environment");
+    environment = new Environment(this);
+    stat.nextJob("Initializing Water");
+    water = new Water(this);
+   	stat.nextJob("Initializing Camera");
+   	camera = new Camera(this);
+   	{
+        JCamera jcamera;
+        camera->getCamera(&jcamera);
+        renderer->setCamera(&jcamera.cam);
+    }
+    stat.nextJob("Initialize LOD terrain",1);
+    quadman = new LoDQuadManager(this, stat);
+
+    stat.nextJob("Initializing SkyBox");
+    skybox = new SkyBox(this);
+    stat.nextJob("Initializing controls");
+    initControls();
+
+    // setup some default rendering until a script initializes something else
+    stat.nextJob("Initializing main render pass");
+    RenderContext ctx(camera);
+    renderpass_main = new SceneRenderPass(this, ctx);
+
+    // The usual overlay consists of info messages and debug info
+    stat.nextJob("Initializing overlay pass");
+    Ptr<FlexibleGunsight> overlay = new FlexibleGunsight(this);
+    overlay->addStaticInfoMessage(this);
+    overlay->addStaticDebugInfo(this);
+    Ptr<UI::PanelRenderPass> overlay_pass = new UI::PanelRenderPass(renderer);
+    overlay_pass->setPanel(overlay);
+    this->renderpass_overlay = overlay_pass;
+    overlay_pass->stackedOn(renderpass_main);
+    
+    // Create the Io scripting manager responsible for high-level manipulation
+    // and low-level AI during this simulation session.
+    stat.nextJob("Initializing Io scripting manager (simulation)");
+    io_scripting_manager = new IoScriptingManager(this);
+    addBasicMappings(this, io_scripting_manager->getMainState());
+    addMappings(this, io_scripting_manager->getMainState());
+    ls_message("Performing Io simulation initialization.\n");
+    {
+		char buf[256];
+		strncpy(buf,config->query("Io_simulation_init_script","<noinit>"),256);
+        if (0==strcmp(buf,"<noinit>")) {
+            throw runtime_error("Io_simulation_init_script not found.");
+        }
+		IoState_doFile_(io_scripting_manager->getMainState(), buf);
+    }
+    ls_message("Done.\n");
+
+    stat.beginJob("Initializing Console");
+    console = new UI::Console(this);
+    stat.endJob();
+
+    stat.endJob();
+}
+
+void Game::teardownSimulation(Status & stat) {
+    stat.beginJob("Simulation teardown",4);
+    stat.beginJob("Clearing control mappings");
+    event_remapper->clear();
+    stat.nextJob("Removing Io scripting manager (simulation)");
+    io_scripting_manager = 0;
+    stat.nextJob("Removing actors from scene");
+    current_actor = 0;
+    removeAllActors();
+    stat.nextJob("Cleaning up");
+    current_view = 0;
+    previous_view = 0;
+    clock = 0;
+    camera = 0;
+    quadman = 0;
+    skybox = 0;
+    environment = 0;
+    water = 0;
+    console = 0;
+    renderpass_main = 0;
+    renderpass_overlay = 0;
+    stat.nextJob("Removing collision manager");
+    collisionman = 0;
+    stat.endJob();
+    stat.endJob();
 }
 
 void Game::run()
 {
 	Ptr<IGame> guard = this;
     game_done=false;
+    
+    {
+        Status stat;
+        startupSystem(stat);
+        startupSimulation(stat);
+    }
 
     doEvents();
     while (!game_done) {
@@ -388,33 +458,11 @@ void Game::run()
         IoState_popRetainPool(io_scripting_manager->getMainState());
     }
     
-    removeAllActors();
-    current_view = 0;
-    previous_view = 0;
-    current_actor = 0;
-    texman->shutdown();
-    texman = 0;
-
-    event_remapper = 0;
-
-    camera = 0;
-    clock = 0;
-    fontman = 0;
-	soundman->shutdown();
-    soundman = 0;
-    modelman = 0;
-    collisionman = 0;
-    quadman = 0;
-    skybox = 0;
-    environment = 0;
-    water = 0;
-    io_scripting_manager = 0;
-    console = 0;
-    renderpass_main = 0;
-    renderpass_overlay = 0;
-    
-    SDL_WM_GrabInput(SDL_GRAB_OFF);
-    SDL_ShowCursor(SDL_ENABLE);
+    {
+        Status stat;
+        teardownSimulation(stat);
+        teardownSystem(stat);
+    }
 }
 
 
@@ -556,25 +604,6 @@ void Game::setCurrentlyControlledActor(Ptr<IActor> actor)
 
 bool Game::debugMode() {
     return debug_mode;
-}
-
-
-void Game::initModules(Status & stat)
-{
-    ls_message("initModules\n");
-    stat.beginJob("Initialize modules", 2);
-    
-    stat.beginJob("Initialize LOD terrain",1);
-    quadman = new LoDQuadManager(this, stat);
-    stat.endJob();
-
-    ls_message("SkyBox init\n");
-    skybox = new SkyBox(this);
-    ls_message("end SkyBox init\n");
-    stat.stepFinished();
-
-    stat.endJob();
-    ls_message("end LoDQuad::init\n");
 }
 
 
@@ -764,6 +793,15 @@ void Game::doFrame()
 const RenderContext *Game::getCurrentContext()
 {
     return render_context;
+}
+
+void Game::restartSimulation() {
+    Status stat;
+    stat.beginJob("Restarting simulation", 2);
+    teardownSimulation(stat);
+    stat.stepFinished();
+    startupSimulation(stat);
+    stat.endJob();
 }
 
 void Game::clearScreen() {
