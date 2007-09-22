@@ -11,17 +11,17 @@ varying float Fog;
 varying vec3 SunDir;
 
 
-const vec3  BaseColor = vec3(31, 38, 52)/255;
+const vec3  BaseColor = vec3(31.0, 38., 52.0)/255.0;
 const float MixRatio = 0.02;
 const float waves=.5;
 
 const int octaves = 2;
 const vec4 octave_scales = vec4(1.0, 4.0, 64.0, 512.0);
-const vec4 octave_factors = vec4(1.0, 1/2.0, 1/64.0, 1/8.0);
-const vec4 octave_dxdt = 1.0/240*vec4(8.0, -4, -0.5,  0.5);
-const vec4 octave_dydt = 1.0/240*vec4(0.0,  2,  1.0, -0.0625);
+const vec4 octave_factors = vec4(1.0, 1.0/2.0, 1.0/64.0, 1.0/8.0);
+const vec4 octave_dxdt = 1.0/240.0*vec4(8.0, -4.0, -0.5,  0.5);
+const vec4 octave_dydt = 1.0/240.0*vec4(0.0,  2.0,  1.0, -0.0625);
 
-const float FresnelExponent = 0.4f;
+const float FresnelExponent = 0.4;
 const float MinReflectivity = 0.062;
 const float MaxReflectivity = 0.6;
 
@@ -37,11 +37,11 @@ void main (void)
     }
     vec3 EyeDirNorm = normalize(EyeDir);
     
-    vec3 bumpColor = vec3(0,0,0);
+    vec3 bumpColor = vec3(0.0,0.0,0.0);
     for(int i=0; i<octaves; ++i) {
         vec2 texcoord = octave_scales[i]*gl_TexCoord[0].st;
         texcoord += Time * vec2(octave_dxdt[i], octave_dydt[i]);
-        vec4 color = texture2D(BumpMap, texcoord)-vec4(.5,.5,.5,0);
+        vec4 color = texture2D(BumpMap, texcoord)-vec4(.5,.5,.5,0.0);
         bumpColor += vec3(color) * octave_factors[i];
     }
     
@@ -66,7 +66,7 @@ void main (void)
     vec3 reflectionColor = vec3(texture2D(MirrorMap, mirrorTexCoords));
 
     float fresnel = max(0.0,-dot(EyeDirNorm, pxNormal));
-    fresnel = max(0.0, min(1.0, 1-pow(fresnel,FresnelExponent)));
+    fresnel = max(0.0, min(1.0, 1.0-pow(fresnel,FresnelExponent)));
     float reflection = mix(MinReflectivity, MaxReflectivity, fresnel);
     
     vec3 envColor = BaseColor + reflection*reflectionColor;

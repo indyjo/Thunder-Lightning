@@ -7,7 +7,7 @@ const float GroundFog_min = 0.0;
 const float GroundFog_max = 400.0;
 const float GroundFog_scale = 1.0/3500.0;
 
-const vec3 SunDirWCS = vec3(-0.91381, 0.40614, 0);
+const vec3 SunDirWCS = vec3(-0.91381, 0.40614, 0.0);
 
 uniform vec3  CamPos;
 
