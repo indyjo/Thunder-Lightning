@@ -91,7 +91,9 @@ namespace UI {
         if (!game) {
             throw std::runtime_error("MissionSelector::accept() called after lifetime of Game has ended.");
         }
-
+        
+        game->restartSimulation();
+        
         CEGUI::ListboxItem *item = list->getFirstSelectedItem();
         if (item) {
             IoState * state = game->getIoScriptingManager()->getMainState();
