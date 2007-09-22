@@ -37,7 +37,7 @@ Config do(
   
   // Try to restore graphics and keyboard after a program crash
   Game_enable_SDL_parachute     := "true"
-  Game_loading_screen           := texture_dir .. "/loading-screen.spr"
+  Game_loading_screen           := texture_dir .. "/loading-screen.png"
   //Game_max_step_delta           := (1/30) asString
   Game_max_step_delta           := (1/30) asString
   Game_max_frame_delta          := (1/15) asString
