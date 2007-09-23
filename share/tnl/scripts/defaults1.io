@@ -108,10 +108,10 @@ Config do(
 
   // SmokeTrail configuration
   SmokeTrail_smoke_tex             := texture_dir .. "/missile_smoke.spr"
-  SmokeTrail_puffy_tex             := texture_dir .. "/puffy_smoke.spr"
+  SmokeTrail_puffy_tex             := texture_dir .. "/puffy_smoke.png"
 
   // SmokeColumn configuration
-  SmokeColumn_puffy_tex            := texture_dir .. "/puffy_smoke.spr"
+  SmokeColumn_puffy_tex            := texture_dir .. "/puffy_smoke.png"
 
   // Explosion configuration
   Explosion_frames                 := "16"
