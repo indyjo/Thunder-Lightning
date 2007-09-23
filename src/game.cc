@@ -349,9 +349,9 @@ void Game::teardownSystem(Status & stat) {
 }
 
 void Game::startupSimulation(Status & stat) {
-    stat.beginJob("Simulation startup", 11);
+    stat.beginJob("Simulation startup", 12);
     
-    stat.nextJob("Initializing CollisionManager");
+    stat.beginJob("Initializing CollisionManager");
     collisionman = new Collide::CollisionManager();
     stat.nextJob("Initializing clock");
     clock = new Clock;
@@ -406,7 +406,7 @@ void Game::startupSimulation(Status & stat) {
     }
     ls_message("Done.\n");
 
-    stat.beginJob("Initializing Console");
+    stat.nextJob("Initializing Console");
     console = new UI::Console(this);
     stat.endJob();
 
@@ -414,7 +414,7 @@ void Game::startupSimulation(Status & stat) {
 }
 
 void Game::teardownSimulation(Status & stat) {
-    stat.beginJob("Simulation teardown",4);
+    stat.beginJob("Simulation teardown",5);
     stat.beginJob("Clearing control mappings");
     event_remapper->clear();
     stat.nextJob("Removing Io scripting manager (simulation)");
@@ -448,6 +448,8 @@ void Game::run()
     {
         Status stat;
         startupSystem(stat);
+        LoadingScreen lscr(this, config->query("Game_loading_screen"));
+        stat.getSignal().connect(SigC::slot(lscr, &LoadingScreen::update));
         startupSimulation(stat);
     }
 
@@ -460,7 +462,11 @@ void Game::run()
     
     {
         Status stat;
-        teardownSimulation(stat);
+        {
+            LoadingScreen lscr(this, config->query("Game_loading_screen"));
+            stat.getSignal().connect(SigC::slot(lscr, &LoadingScreen::update));
+            teardownSimulation(stat);
+        }
         teardownSystem(stat);
     }
 }
@@ -797,9 +803,10 @@ const RenderContext *Game::getCurrentContext()
 
 void Game::restartSimulation() {
     Status stat;
+    LoadingScreen lscr(this, config->query("Game_loading_screen"));
+    stat.getSignal().connect(SigC::slot(lscr, &LoadingScreen::update));
     stat.beginJob("Restarting simulation", 2);
     teardownSimulation(stat);
-    stat.stepFinished();
     startupSimulation(stat);
     stat.endJob();
 }

@@ -28,20 +28,34 @@ void Status::beginJob(const string & desc, int steps) {
     job.desc = desc;
     job.steps = steps;
     job.finished = 0;
+    if (!jobs.empty() && jobs.back().finished == jobs.back().steps) {
+        ls_warning("Status: job %s causes job %s to overflow.\n",
+            job.desc.c_str(), jobs.back().desc.c_str());
+    }
+    
     jobs.push_back(job);
     status_changed.emit(this);
 }
 
 void Status::endJob() {
     if (jobs.size() == 0) return;
+    Job & job = jobs.back();
+    if (job.finished + 1 < job.steps) {
+        ls_warning("Status: job %s ended after %d steps. Declared: %d\n",
+            job.desc.c_str(), job.finished+1, job.steps);
+    }
     jobs.pop_back();
-    if(jobs.size() > 0) jobs.back().finished++;
-    status_changed.emit(this);
+    stepFinished();
 }
 
 void Status::stepFinished() {
     if (jobs.size() == 0) return;
-    jobs.back().finished++;
+    Job & job = jobs.back();
+    job.finished++;
+    if (job.finished > job.steps) {
+        ls_warning("Status: job %s has overflown. (%d/%d)\n",
+            job.desc.c_str(), job.finished, job.steps);
+    }
     status_changed.emit(this);
 }
 
@@ -51,7 +65,7 @@ double Status::getStatus() {
     
     for(list<Job>::iterator i=jobs.begin(); i!=jobs.end(); i++) {
         step /= i->steps;
-        status += step * std::min(i->steps, i->finished);
+        status += step * i->finished;
     }
     
     return status;

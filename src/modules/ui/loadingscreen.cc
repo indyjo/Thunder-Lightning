@@ -35,7 +35,7 @@ void LoadingScreen::update(Status * stat) {
     r->setTexture(background->getTxtid());
     r->enableSmoothShading();
     r->enableAlphaBlending();
-    
+    r->disableFog();
     r->disableZBuffer();
     
     r->setColor(Vector(1,1,1));
@@ -87,13 +87,10 @@ void LoadingScreen::update(Status * stat) {
     r->end();
     
     r->enableZBuffer();
-    
+    r->enableFog();
     r->disableAlphaBlending();
     r->popMatrix();
     r->setCoordSystem(JR_CS_WORLD);
-    
-    Ptr<Environment> env = thegame->getEnvironment();
-    r->setClipRange(env->getClipMin(), env->getClipMax());
     
     thegame->clearScreen();
 }

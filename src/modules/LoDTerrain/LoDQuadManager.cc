@@ -52,6 +52,12 @@ LoDQuadManager::LoDQuadManager(IGame *the_game, Status & stat)
     stat.beginJob("Loading quads", width*height);
     for (v=0; v<height; v++) {
         for (u=0; u<width; u++) {
+            {
+                char buf[128];
+                snprintf(buf, 128, "Loading quad %d,%d", u,v);
+                stat.beginJob(buf,1);
+            }
+                
             if (v>0) {
                 neighbor[QN_NORTH]=&quad[(v-1)*width + u];
             } else {
@@ -98,7 +104,7 @@ LoDQuadManager::LoDQuadManager(IGame *the_game, Status & stat)
     		ls_message("Done initializing quad at %d:%d\n",u,v);
             in.close();
 
-            stat.stepFinished();
+            stat.endJob();
         }
     }
     stat.endJob();
