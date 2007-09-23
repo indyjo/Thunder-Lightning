@@ -1,3 +1,9 @@
+name="AI Demo"
+description=(
+    "This is a fully choreographed demonstration of Thunder&Lightning's " ..
+    "AI capabilities.\n\nThree Lightning aircraft take off from the carrier to " ..
+    "perform an air show including some dangerous stunts.")
+
 addCarrier := method(
     alpha := 0 * Number constants pi / 180
     corient := matrix( alpha cos,  0, -alpha sin

@@ -1,22 +1,12 @@
+name = "Simple Fight"
+description = "You against one drone and one tank. Easy, or is it?"
+
 startup := method(
     mypos := vector(11341,1518,-1008)
     myorient := matrix(-0.496, -0.181, -0.849
                        -0.101,  0.983, -0.151
                         0.862,  0.011, -0.506)
     myvelocity := vector(-98.71, -14.53, -57.98)
-
-
-    self us := Faction clone do (
-    	writeln("Context: ",thisContext identify)
-        setName("Green")
-        setDefaultAttitude(HOSTILE)
-        setAttitudeTowards(thisContext, FRIENDLY)
-    )
-    self them := Faction clone do (
-        setName("Red")
-        setDefaultAttitude(HOSTILE)
-        setAttitudeTowards(thisContext, FRIENDLY)
-    )
 
     ndrones := 1
     for(i,0,ndrones-1,

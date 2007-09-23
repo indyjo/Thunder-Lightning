@@ -1,3 +1,13 @@
+name="Triple Tank Takeout"
+description=(
+    "Our spy satellite has spotted tank movements on the island. " ..
+    "We have credible intelligence that a group of three tanks has " ..
+    "been equipped with new artificial intelligence software.\n\n" ..
+    "Find and destroy the tanks! " ..
+    "Your wingman knows where to find them. But beware, " ..
+    "the enemy carrier is close and the tanks will be heavily defended.\n\n" ..
+    "Good luck, Commander!")
+
 init := method(
     self briefing := Briefing clone
     self actors := List clone

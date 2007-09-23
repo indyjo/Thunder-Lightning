@@ -1,3 +1,11 @@
+name = "Tutorial 1"
+description = (
+    "This tutorial mission will take you on a complete flight as a " ..
+    "pilot of a Lightning aircraft. You will take off and land on the carrier " ..
+    "ACC Miyamoto.\n\n" ..
+    "Your autopilot has been programmed to perform all necessary steps for you, " ..
+    "in case you feel insecure with your new plane.")
+
 Sequence say := method(color,
     if (color isNil, color := vector(0.6,0.8,1))
     Game infoMessage(self, color)

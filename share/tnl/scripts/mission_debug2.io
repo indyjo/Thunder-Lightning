@@ -1,3 +1,9 @@
+name="Debug 2"
+description=(
+    "THIS IS A DEBUG MISSION\n\n" ..
+    "A simple test for TnL's collision detection. One tank shoots at another. " ..
+    "Not interesting at all. Really.")
+
 startup := method(
     x := vector(7790,0,1566)
     tank1 := Tank clone

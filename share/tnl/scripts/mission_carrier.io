@@ -1,3 +1,8 @@
+name="Tutorial 2 - Carrier landing"
+description=(
+    "In this training mission, you start with your Lightning aircraft in the air, " ..
+    "well-positioned for a carrier landing.")
+
 addCarrierOld := method(pos, orient,
     carrier := SimpleActor clone
     carrier makeRigid(1,1,1,1,vector(0,0.1,0))
