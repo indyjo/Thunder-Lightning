@@ -1,4 +1,9 @@
-"Io: Entering init2.io\n" print
+"Io: Entering simulation_init.io\n" print
+
+// Enable easy access to Config
+doFile(Config query("data_dir") .. "/scripts/convenience.io")
+
+AddonLoader appendSearchPath( (Config base_dir) .. "/lib/io/addons")
 
 path := Config scripts_dir
 Importer addSearchPath(path)
@@ -47,4 +52,5 @@ complete := method(str, context,
   return l
 )
 
-"Io: Exiting init2.io\n" print
+"Io: Exiting simulation_init.io\n" print
+
