@@ -750,16 +750,18 @@ void Game::setView(int n) {
 
 void Game::externalView() {
 	if (view_is_external) {
-        setCurrentView(previous_view);
-        view_is_external = false;
-        
-        // After switching back to a dead actor, immediately switch to the next.
-        // Otherwise, release control from whatever the previous actor was but
-        // don't take over control yet.
-        if ( ! current_view->getViewSubject()->isAlive()) {
-            nextTarget();
-        } else {
-            setCurrentlyControlledActor(0);
+	    if (previous_view) {
+            setCurrentView(previous_view);
+            view_is_external = false;
+            
+            // After switching back to a dead actor, immediately switch to the next.
+            // Otherwise, release control from whatever the previous actor was but
+            // don't take over control yet.
+            if ( ! current_view->getViewSubject()->isAlive()) {
+                nextTarget();
+            } else {
+                setCurrentlyControlledActor(0);
+            }
         }
     } else {
         previous_view = current_view;
