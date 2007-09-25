@@ -1,9 +1,8 @@
-// This configuration file defines global config values for the game. It does not,
-// however, include values intended for the user to edit (like screen resolution
-// etc). These entries are defined in config.io.
-
-// Some variables are dependent on values determined during system initialization
-// (e.g., screen resolution), these will be defined in defaults2.io
+// This configuration file defines global config values for the game.
+// Some variables will be overridden by values in config.io in the user settings
+// directory.
+// Yet some variables are dependent on values determined during system initialization
+// (e.g., aspect is dependent on screen resolution), these will be defined in defaults2.io
 
 Config do(
 
@@ -15,7 +14,57 @@ Config do(
   scripts_dir := data_dir .. "/scripts"
   shaders_dir := data_dir .. "/shaders"
   
+  ////////////////////////////////////////////////////////////////////////////
+  // BEGIN Settings which are saved into config.io
+  // DON'T EDIT THE VALUES HERE. BETTER EDIT config.io IN TNL'S SETTINGS
+  // DIRECTORY.
+  // ON UNIX-LIKE SYSTEMS THAT'S $HOME/.tnl
+  // ON WINDOWS IT'S IN TNL'S INSTALLATION FOLDER
+  ////////////////////////////////////////////////////////////////////////////
   
+  // Whether or not the game should run fullscreen ("true") or windowed ("false")
+  Game_fullscreen := "true"
+  
+  // Use automatically detected resolution (only if Game_fullscreen is "true")
+  Game_auto_resolution := "true"
+  
+  // Screen resolution (if Game_autodetect_resolution is "false")
+  Game_xres       := "800"
+  Game_yres       := "600"
+  
+  // Minimum bit numbers for color and depth channels
+  Game_red_bits     := "5"
+  Game_green_bits   := "5"
+  Game_blue_bits    := "5"
+  Game_zbuffer_bits := "1"
+  
+  // Full screen antialiasing.
+  Game_fsaa_enabled := "false"
+  Game_fsaa_samples := "2"
+  
+  // GLSL shader support
+  Game_use_shaders := "true"
+  
+  // Mirror created by ocean surface.
+  // Higher values result in a nicer water rendering, lower values improve
+  // performance. Only power-of-two values are allowed. Maximum is Game_yres
+  Water_mirror_texture_size := "512"
+  
+  // Use GLSL shaders for water. Only effective if Game_use_shaders is false
+  Water_use_shaders := "true"
+  
+  // Controls config
+  Controls_enable_joystick := "true"
+  Controls_enable_mouse    := "true"
+  // Joystick sensitivity. Higher values are actually _less_ sensitive.
+  // A value of 0 corresponds with a linear response. 1 is quadratic,
+  // 2 is cubic etc. Floating-point values are allowed.
+  Controls_joystick_sensitivity := "2"
+
+  ////////////////////////////////////////////////////////////////////////////
+  // END Settings which are saved into config.io
+  ////////////////////////////////////////////////////////////////////////////
+
   // Try to restore graphics and keyboard after a program crash
   Game_enable_SDL_parachute     := "true"
   Game_loading_screen           := texture_dir .. "/loading-screen.png"

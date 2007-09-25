@@ -17,9 +17,10 @@
 
 doFile(Config query("data_dir") .. "/scripts/convenience.io")
 doFile(Config query("data_dir") .. "/scripts/defaults1.io")
-doFile(Config query("data_dir") .. "/scripts/config.io")
 
-AddonLoader appendSearchPath( (Config base_dir) .. "/lib/io/addons")
+# now trigger loading of user settings
+doFile(Config query("data_dir") .. "/scripts/Settings.io")
+Settings load
 
 "Io: Exiting system_init_1.io\n" print
 
