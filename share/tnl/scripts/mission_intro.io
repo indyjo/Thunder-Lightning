@@ -447,13 +447,15 @@ addMe := method(
 evaluate := Objective UNDECIDED
 
 startup := method(
-    Game on("toggle-introduction",
-        if (MissionManager introMission isRunning,
-            MissionManager introMission intro interrupt
-        ,
+    handler := Game on("toggle-introduction",
+        if (mission isRunning) then (
+            mission intro interrupt
+        ) else (
             thisHandler remove
         )
     )
+
+    handler mission := self
 
     addCarrier
     
