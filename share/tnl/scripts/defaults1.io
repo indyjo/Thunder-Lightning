@@ -19,7 +19,8 @@ Config do(
   // Try to restore graphics and keyboard after a program crash
   Game_enable_SDL_parachute     := "true"
   Game_loading_screen           := texture_dir .. "/loading-screen.png"
-  //Game_max_step_delta           := (1/30) asString
+  Game_demo_script              := scripts_dir .. "/demo.io"
+  Game_demo_datafile            := scripts_dir .. "/demo_data.txt"
   Game_max_step_delta           := (1/30) asString
   Game_max_frame_delta          := (1/15) asString
   Game_max_ms_for_simulation    := (1000/30) floor asString
