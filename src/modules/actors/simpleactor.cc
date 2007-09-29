@@ -4,7 +4,7 @@
 #include <interfaces/IProjectile.h>
 #include <modules/actors/SimpleView.h>
 #include <modules/clock/clock.h>
-#include <modules/engines/newtonianengine.h>
+#include <modules/engines/rigidengine.h>
 #include <modules/gunsight/gunsight.h>
 #include <modules/scripting/IoScriptingManager.h>
 #include <modules/scripting/mappings.h>
@@ -17,7 +17,7 @@
 SimpleActor::SimpleActor( Ptr<IGame> game)
 :   thegame(game), self(0), state(ALIVE), control_mode(UNCONTROLLED), is_linked(false)
 {
-    engine = new NewtonianEngine(thegame);
+    engine = new RigidEngine(thegame);
     faction = Faction::basic_factions.none;
     target_info = new TargetInfo(
         "<unnamed SimpleActor>", 1.0f, TargetInfo::NONE);
