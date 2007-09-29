@@ -235,6 +235,8 @@ void Game::startupSystem(Status & stat) {
         renderer = new JOpenGLRenderer();
         renderer->resize(xres, yres);
         ls_message("Done initializing OpenGL renderer.\n");
+        
+        SDL_WM_SetCaption("Thunder&Lightning http://tnlgame.net/", "Thunder&Lightning");
     }
     ls_message("Done initializing video.\n");
 
