@@ -239,7 +239,18 @@ void Game::startupSystem(Status & stat) {
         SDL_WM_SetCaption("Thunder&Lightning http://tnlgame.net/", "Thunder&Lightning");
     }
     ls_message("Done initializing video.\n");
-
+    
+    ls_message("Performing second stage of Io initialization.\n");
+    {
+		char buf[256];
+		strncpy(buf,config->query("Io_system_init_script_2","<noinit>"),256);
+        if (0==strcmp(buf,"<noinit>")) {
+            throw runtime_error("Io_system_init_script_2 not found.");
+        }
+		IoState_doFile_(system_scripting_manager->getMainState(), buf);
+    }
+    ls_message("Done.\n");
+    
     ls_message("Initializing GLEW:\n");
     GLenum err = glewInit();
     if (GLEW_OK != err) {
@@ -305,17 +316,6 @@ void Game::startupSystem(Status & stat) {
     }
     ls_message("Done.\n");
 
-    ls_message("Performing second stage of Io initialization.\n");
-    {
-		char buf[256];
-		strncpy(buf,config->query("Io_system_init_script_2","<noinit>"),256);
-        if (0==strcmp(buf,"<noinit>")) {
-            throw runtime_error("Io_system_init_script_2 not found.");
-        }
-		IoState_doFile_(system_scripting_manager->getMainState(), buf);
-    }
-    ls_message("Done.\n");
-    
     stat.endJob();
 }
 
