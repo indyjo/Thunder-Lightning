@@ -457,6 +457,11 @@ void Game::run()
         stat.getSignal().connect(SigC::slot(lscr, &LoadingScreen::update));
         startupSimulation(stat);
     }
+    
+    // Start the demo script
+    IoState_doFile_(io_scripting_manager->getMainState(), config->query("Game_demo_script"));
+    // Show main menu
+    main_gui->switchToMainMenu(false, false);
 
     doEvents();
     while (!game_done) {
