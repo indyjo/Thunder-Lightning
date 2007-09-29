@@ -97,6 +97,13 @@ struct IGame : virtual public Object, virtual public IActorStage, virtual public
     
     virtual void clearScreen()=0;
     virtual void endGame()=0;
+    
+    /// Returns whether the simulation state is considered interactive
+    virtual bool isInteractive()=0;
+    /// Marks simulation as interactive (true) or non-interactive, with consequences
+    /// for GUI behavior. An interactive simulation will allow games to be saved and
+    /// will warn on exit. A non-interactive simulation could be a demo 
+    virtual void setInteractive(bool)=0;
 };
 
 

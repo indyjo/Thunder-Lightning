@@ -411,6 +411,9 @@ void Game::startupSimulation(Status & stat) {
     stat.nextJob("Initializing Console");
     console = new UI::Console(this);
     stat.endJob();
+    
+    // Every simulation session is marked non-interactive initially
+    setInteractive(false);
 
     stat.endJob();
 }
@@ -834,6 +837,14 @@ void Game::mainMenu() {
 
 void Game::endGame() {
     game_done=true;
+}
+
+bool Game::isInteractive() {
+    return is_interactive;
+}
+
+void Game::setInteractive(bool b) {
+    is_interactive = b;
 }
 
 void Game::accelerateSpeed() {

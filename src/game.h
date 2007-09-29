@@ -65,6 +65,9 @@ public:
     virtual void clearScreen();
     virtual void endGame();
 
+    virtual bool isInteractive();
+    virtual void setInteractive(bool);
+
 private:
     void startupSystem(Status &);
     void teardownSystem(Status &);
@@ -110,6 +113,7 @@ private:
     
     bool game_done;
     bool debug_mode;
+    bool is_interactive;
 
     SDL_Surface *surface;
     JOpenGLRenderer *renderer;
