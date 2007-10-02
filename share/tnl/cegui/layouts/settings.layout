@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout >
+    <Window Type="DefaultWindow" Name="Root" >
+        <Property Name="InheritsAlpha" Value="False" />
+        <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+        <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Window Type="TaharezLook/FrameWindow" Name="settingsWnd" >
+            <Property Name="Font" Value="Commonwealth-10" />
+            <Property Name="Text" Value="Settings" />
+            <Property Name="TitlebarFont" Value="Commonwealth-10" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="TitlebarEnabled" Value="True" />
+            <Property Name="UnifiedAreaRect" Value="{{0.2325,0},{0.0358334,0},{0.819373,0},{0.945003,0}}" />
+            <Window Type="TaharezLook/StaticText" Name="settingsWnd/videoLabel" >
+                <Property Name="Font" Value="Commonwealth-12" />
+                <Property Name="Text" Value="Video settings" />
+                <Property Name="FrameEnabled" Value="False" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0420634,0},{0.33868,0},{0.954472,0},{0.410861,0}}" />
+                <Property Name="BackgroundEnabled" Value="False" />
+            </Window>
+            <Window Type="TaharezLook/StaticText" Name="settingsWnd/audioLabel" >
+                <Property Name="Font" Value="Commonwealth-12" />
+                <Property Name="Text" Value="Audio settings" />
+                <Property Name="FrameEnabled" Value="False" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0441933,0},{0.687488,0},{0.483757,0},{0.75967,0}}" />
+                <Property Name="BackgroundEnabled" Value="False" />
+            </Window>
+            <Window Type="TaharezLook/StaticText" Name="settingsWnd/controlsLabel" >
+                <Property Name="Font" Value="Commonwealth-12" />
+                <Property Name="Text" Value="Controls" />
+                <Property Name="FrameEnabled" Value="False" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0441933,0},{0.0610475,0},{0.48376,0},{0.133228,0}}" />
+                <Property Name="BackgroundEnabled" Value="False" />
+            </Window>
+            <Window Type="TaharezLook/Checkbox" Name="settingsWnd/joystickCheckbox" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Enable Joystick" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0741201,0},{0.208526,0},{0.468954,0},{0.275528,0}}" />
+            </Window>
+            <Window Type="TaharezLook/Button" Name="settingsWnd/customizeJoystickBtn" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Customize axes..." />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.323215,0},{0.210359,0},{0.907614,0},{0.278873,0}}" />
+            </Window>
+            <Window Type="TaharezLook/Button" Name="settingsWnd/customizeEventsBtn" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Customize keys and buttons..." />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0740144,0},{0.132036,0},{0.907614,0},{0.20055,0}}" />
+            </Window>
+            <Window Type="TaharezLook/Button" Name="settingsWnd/backBtn" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Back" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0316278,0},{0.919615,0},{0.281626,0},{0.986298,0}}" />
+            </Window>
+            <Window Type="TaharezLook/RadioButton" Name="settingsWnd/fullscreenAutoRadio" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Fullscreen, using desktop resolution" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0740144,0},{0.405499,0},{0.874014,0},{0.474014,0}}" />
+            </Window>
+            <Window Type="TaharezLook/RadioButton" Name="settingsWnd/fullscreenManualRadio" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Fullscreen, using resolution..." />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0740144,0},{0.446333,0},{0.874015,0},{0.514848,0}}" />
+            </Window>
+            <Window Type="TaharezLook/RadioButton" Name="settingsWnd/windowedRadio" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="In a window of size..." />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0718841,0},{0.485334,0},{0.871885,0},{0.553849,0}}" />
+            </Window>
+            <Window Type="TaharezLook/Combobox" Name="settingsWnd/resolutions" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" >800x600
+1024x768
+1152x1024
+1280x1024
+1450x1280
+1600x1200</Property>
+                <Property Name="ReadOnly" Value="False" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.583067,0},{0.475985,0},{0.907614,0},{0.88914,0}}" />
+                <Property Name="MaxEditTextLength" Value="1073741823" />
+            </Window>
+            <Window Type="TaharezLook/Checkbox" Name="settingsWnd/shaderCheckbox" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Use GLSL shaders if available" />
+                <Property Name="Tooltip" Value="Enables the use of so-called GLSL shaders. If your graphics hardware supports this, Thunder&amp;Lightning can enable some nice graphical effects, such as a reflective ocean surface." />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0718841,0},{0.559487,0},{0.896963,0},{0.626169,0}}" />
+            </Window>
+            <Window Type="TaharezLook/Slider" Name="settingsWnd/effectsVolumeSlider" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Effects volume" />
+                <Property Name="CurrentValue" Value="0" />
+                <Property Name="MaximumValue" Value="1" />
+                <Property Name="ClickStepSize" Value="0.01" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0825334,0},{0.758478,0},{0.711663,0},{0.823327,0}}" />
+            </Window>
+            <Window Type="TaharezLook/StaticText" Name="settingsWnd/videoLabel1" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Video settings take effect the next time the game is started." />
+                <Property Name="TextColours" Value="tl:FFFFFF80 tr:FFFFFF80 bl:FFFFFF80 br:FFFFFF80" />
+                <Property Name="FrameEnabled" Value="False" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0718841,0},{0.623327,0},{0.939565,0},{0.695507,0}}" />
+                <Property Name="BackgroundEnabled" Value="False" />
+            </Window>
+        </Window>
+    </Window>
+</GUILayout>
