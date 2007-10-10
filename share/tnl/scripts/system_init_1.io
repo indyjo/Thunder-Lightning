@@ -20,7 +20,7 @@ doFile(Config query("data_dir") .. "/scripts/defaults1.io")
 
 # now trigger loading of user settings
 doFile(Config query("data_dir") .. "/scripts/Settings.io")
-Settings load
+Settings loadConfig
 
 "Io: Exiting system_init_1.io\n" print
 

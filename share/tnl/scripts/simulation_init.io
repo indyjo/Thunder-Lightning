@@ -52,5 +52,7 @@ complete := method(str, context,
   return l
 )
 
+Settings loadControls
+
 "Io: Exiting simulation_init.io\n" print
 

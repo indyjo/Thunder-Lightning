@@ -1,5 +1,6 @@
 Settings := Object clone do(
     filename := "config.io"
+    controls_filename := "controls.io"
     
     init := method(
         if (System platform asLowercase == "windows") then(
@@ -19,13 +20,14 @@ Settings := Object clone do(
         )
         
         self path := dir .. "/" .. filename
+        self controls_path := dir .. "/" .. controls_filename
     )
     
-    load := method(
+    loadConfig := method(
         file := File clone with(path)
         if (file exists not) then (
             ("Settings file " .. path .. " does not yet exist. Creating it.") println
-            save
+            saveConfig
         )
 
         if (file isRegularFile not) then(
@@ -37,8 +39,8 @@ Settings := Object clone do(
         
         self
     )
-    
-    save := method(
+
+    saveConfig := method(
         file := File clone with(path) open
         
         file write("# This is where Thunder&Lightning saves its user settings.\n")
@@ -66,7 +68,47 @@ Settings := Object clone do(
         )
         
         file close
+        self
+    )
+    
+    loadControls := method(
+        file := File clone with(controls_path)
+        if (file exists not) then (
+            ("Settings file " .. controls_path .. " does not yet exist. Creating it.") println
+            saveControls
+        )
+
+        if (file isRegularFile not) then(
+            ("Not a valid settings file: " .. controls_path) println
+        ) else (
+            ("Loading user settings from file: " .. controls_path) println
+            EventRemapper clearButtonMappings
+            EventRemapper doFile(controls_path)
+        )
         
+        self
+    )
+    
+    saveControls := method(
+        file := File clone with(controls_path) open
+        
+        file write("# This is where Thunder&Lightning saves its controls configuration.\n\n")
+        
+        EventRemapper actions foreach(action,
+            name := action name
+            action buttons foreach(button,
+                if (button type == "KEYBOARD_KEY") then(
+                    file write("mapKey(#{EventRemapper keySymOf(button button)}, \"#{name}\")\n" interpolate)
+                ) elseif (button type == "MOUSE_BUTTON") then(
+                    file write("mapMouseButton(#{button button}, \"#{name}\")\n" interpolate)
+                ) elseif (button type == "JOYSTICK_BUTTON") then(
+                    file write("mapJoystickButton(#{button device}, #{button button}, \"#{name}\")\n" interpolate)
+                )
+            )
+        )
+        
+        file write("\n")
+        file close
         self
     )
 )
