@@ -2,107 +2,102 @@ EventRemapper do(
   KeySyms := Object clone
   KeySyms doFile(Config scripts_dir .. "/keysyms.io")
   appendProto(KeySyms)
-
-  press := true
-  release := nil
   
-  mapKey(SDLK_ESCAPE, press, "mainmenu")
-  mapKey(SDLK_TAB, press,  "switch-mfd")
+  keySymOf := method(code,
+    KeySyms slotNames foreach(slotname,
+      if (KeySyms getSlot(slotname) == code,
+        return slotname
+      )
+    )
+    
+    code asString
+  )
+    
 
-  mapKey(SDLK_UP, press, "+forward")
-  mapKey(SDLK_UP, release, "-forward")
-  mapKey(SDLK_DOWN, press, "+backward")
-  mapKey(SDLK_DOWN, release, "-backward")
-  mapKey(SDLK_LEFT, press, "+left")
-  mapKey(SDLK_LEFT, release, "-left")
-  mapKey(SDLK_RIGHT, press, "+right")
-  mapKey(SDLK_RIGHT, release, "-right")
-  
-  mapKey(SDLK_COMMA, press, "+rudder_left")
-  mapKey(SDLK_COMMA, release, "-rudder_left")
-  mapKey(SDLK_PERIOD, press, "+rudder_right")
-  mapKey(SDLK_PERIOD, release, "-rudder_right")
+  mapKey(SDLK_ESCAPE, "mainmenu")
+  mapKey(SDLK_TAB,  "switch-mfd")
 
-  mapKey(SDLK_1, press, "throttle0")
-  mapKey(SDLK_2, press, "throttle1")
-  mapKey(SDLK_3, press, "throttle2")
-  mapKey(SDLK_4, press, "throttle3")
-  mapKey(SDLK_5, press, "throttle4")
-  mapKey(SDLK_6, press, "throttle5")
-  mapKey(SDLK_7, press, "throttle6")
-  mapKey(SDLK_8, press, "throttle7")
-  mapKey(SDLK_9, press, "throttle8")
-  mapKey(SDLK_0, press, "throttle9")
-  mapKey(SDLK_a, press, "autopilot")
-  mapKey(SDLK_PLUS,  press, "increase-throttle")
-  mapKey(SDLK_MINUS, press, "decrease-throttle")
+  mapKey(SDLK_UP, "+forward")
+  mapKey(SDLK_DOWN, "+backward")
+  mapKey(SDLK_LEFT, "+left")
+  mapKey(SDLK_RIGHT, "+right")
   
-  mapKey(SDLK_p, press, "pause")
-  mapKey(SDLK_F11, press, "toggle-console")
+  mapKey(SDLK_COMMA, "+rudder_left")
+  mapKey(SDLK_PERIOD, "+rudder_right")
 
-  mapKey(SDLK_F1, press, "view0")
-  mapKey(SDLK_F2, press, "view1")
-  mapKey(SDLK_F3, press, "view2")
-  mapKey(SDLK_F4, press, "view3")
-  mapKey(SDLK_F5, press, "view4")
-  mapKey(SDLK_F6, press, "view5")
+  mapKey(SDLK_1, "throttle0")
+  mapKey(SDLK_2, "throttle1")
+  mapKey(SDLK_3, "throttle2")
+  mapKey(SDLK_4, "throttle3")
+  mapKey(SDLK_5, "throttle4")
+  mapKey(SDLK_6, "throttle5")
+  mapKey(SDLK_7, "throttle6")
+  mapKey(SDLK_8, "throttle7")
+  mapKey(SDLK_9, "throttle8")
+  mapKey(SDLK_0, "throttle9")
+  mapKey(SDLK_a, "autopilot")
+  mapKey(SDLK_PLUS,  "increase-throttle")
+  mapKey(SDLK_MINUS, "decrease-throttle")
+  
+  mapKey(SDLK_p, "pause")
+  mapKey(SDLK_F11, "toggle-console")
 
-  mapKey(SDLK_F7, press, "zoom-out")
-  mapKey(SDLK_F8, press, "zoom-in")
+  mapKey(SDLK_F1, "view0")
+  mapKey(SDLK_F2, "view1")
+  mapKey(SDLK_F3, "view2")
+  mapKey(SDLK_F4, "view3")
+  mapKey(SDLK_F5, "view4")
+  mapKey(SDLK_F6, "view5")
 
-  mapKey(SDLK_n, press, "next-view-subject")
-  mapKey(SDLK_v, press, "external-view")
-  mapKey(SDLK_RETURN,  press, "cycle-primary")
-  mapKey(SDLK_LCTRL, press,  "+primary")
-  mapKey(SDLK_LCTRL, release, "-primary")
-  
-  mapKey(SDLK_F12, press, "debug")
+  mapKey(SDLK_F7, "zoom-out")
+  mapKey(SDLK_F8, "zoom-in")
 
-  mapKey(SDLK_r, press, "previous-target")
-  mapKey(SDLK_t, press, "next-target")
-  mapKey(SDLK_h, press, "next-hostile-target")
-  mapKey(SDLK_f, press, "next-friendly-target")
-  mapKey(SDLK_g, press, "gunsight-target")
-  mapKey(SDLK_z, press, "nearest-target")
-  mapKey(SDLK_y, press, "nearest-target")
+  mapKey(SDLK_n, "next-view-subject")
+  mapKey(SDLK_v, "external-view")
+  mapKey(SDLK_RETURN,  "cycle-primary")
+  mapKey(SDLK_LCTRL,  "+primary")
   
-  mapKey(SDLK_F9, press, "slower")
-  mapKey(SDLK_F10, press, "faster")
+  mapKey(SDLK_F12, "debug")
+
+  mapKey(SDLK_r, "previous-target")
+  mapKey(SDLK_t, "next-target")
+  mapKey(SDLK_h, "next-hostile-target")
+  mapKey(SDLK_f, "next-friendly-target")
+  mapKey(SDLK_g, "gunsight-target")
+  mapKey(SDLK_z, "nearest-target")
+  mapKey(SDLK_y, "nearest-target")
   
-  mapKey(SDLK_l, press, "landing-gear")
-  mapKey(SDLK_k, press, "landing-hook")
-  mapKey(SDLK_b, press, "+brake")
-  mapKey(SDLK_b, release, "-brake")
+  mapKey(SDLK_F9, "slower")
+  mapKey(SDLK_F10, "faster")
   
-  mapKey(SDLK_i, press, "toggle-introduction")
+  mapKey(SDLK_l, "landing-gear")
+  mapKey(SDLK_k, "landing-hook")
+  mapKey(SDLK_b, "+brake")
+  
+  mapKey(SDLK_i, "toggle-introduction")
   
   if (Config Controls_enable_mouse != "false",
-    mapMouseButton(1, press,  "+primary")
-    mapMouseButton(1, release, "-primary")
-    mapMouseButton(2, press,  "gunsight-target")
-    mapMouseButton(3, press,  "cycle-primary")
+    mapMouseButton(1,  "+primary")
+    mapMouseButton(2,  "gunsight-target")
+    mapMouseButton(3,  "cycle-primary")
     
-    mapMouseButton(1, press,   "+observer-dolly")
-    mapMouseButton(1, release, "-observer-dolly")
-    mapMouseButton(3, press,   "+observer-pan")
-    mapMouseButton(3, release, "-observer-pan")
-    mapMouseButton(2, press,   "observer-stop")
+    mapMouseButton(1,   "+observer-dolly")
+    mapMouseButton(3,   "+observer-pan")
+    mapMouseButton(2,   "observer-stop")
     
     mapRelativeMouseAxes("mouse_rel_x", "mouse_rel_y")
     mapAbsoluteMouseAxes("mouse_abs_x", "mouse_abs_y")
   )
   
   if (Config Controls_enable_joystick != "false",
-    mapJoystickButton(0, 0, press,  "+primary")
-    mapJoystickButton(0, 0, release, "-primary")
-    mapJoystickButton(0, 1, press,  "cycle-primary")
-    mapJoystickButton(0, 2, press,  "gunsight-target")
-    mapJoystickButton(0, 3, press,  "next-friendly-target")
-    mapJoystickButton(0, 4, press,  "next-hostile-target")
-    mapJoystickButton(0, 5, press,  "+brake")
-    mapJoystickButton(0, 5, release,"-brake")
-    mapJoystickButton(0, 7, press,  "landing-gear")
-    mapJoystickButton(0, 8, press,  "landing-hook")
+    mapJoystickButton(0, 0,  "+primary")
+    mapJoystickButton(0, 1,  "cycle-primary")
+    mapJoystickButton(0, 2,  "gunsight-target")
+    mapJoystickButton(0, 3,  "next-friendly-target")
+    mapJoystickButton(0, 4,  "next-hostile-target")
+    mapJoystickButton(0, 5,  "+brake")
+    mapJoystickButton(0, 7,  "landing-gear")
+    mapJoystickButton(0, 8,  "landing-hook")
   
     mapJoystickAxis(0,0,"js_aileron")
     mapJoystickAxis(0,1,"js_elevator")
@@ -110,3 +105,4 @@ EventRemapper do(
     mapJoystickAxis(0,2,"js_throttle")
   )
 )
+
