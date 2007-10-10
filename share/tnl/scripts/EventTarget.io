@@ -78,8 +78,6 @@ EventTarget := Object clone do(
     )
     
     handlers atPut(name, handler)
-    handlers keys println
-    handlers values println
     
     // return the handlerVars slot so we can set some variables accessible in
     // the handler.
