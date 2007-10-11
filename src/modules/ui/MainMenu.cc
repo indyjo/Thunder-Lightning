@@ -28,6 +28,13 @@ namespace UI {
         getChild("mainDialog/content/loadMission")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
             CEGUI::SubscriberSlot(&MainMenu::loadMission, this));
+
+        // edit settings
+        window->getChild("mainDialog")->
+        getChild("mainDialog/content")->
+        getChild("mainDialog/content/settings")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::SubscriberSlot(&MainMenu::editSettings, this));
     }
     void MainMenu::disable(MainGUI & main_gui) {
         CEGUI::Window *window = CEGUI::System::getSingleton().getGUISheet();
@@ -43,6 +50,10 @@ namespace UI {
     }
     bool MainMenu::loadMission(const CEGUI::EventArgs &) {
         main_gui.switchToMissionSelector();
+        return true;
+    }
+    bool MainMenu::editSettings(const CEGUI::EventArgs &) {
+        main_gui.switchToSettingsDlg();
         return true;
     }
 

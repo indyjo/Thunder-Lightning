@@ -18,6 +18,7 @@ namespace UI {
         bool resume(const CEGUI::EventArgs &);
         bool exitGame(const CEGUI::EventArgs &);
         bool loadMission(const CEGUI::EventArgs &);
+        bool editSettings(const CEGUI::EventArgs &);
     };
 } // namespace UI
 

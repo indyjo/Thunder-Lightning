@@ -3,6 +3,7 @@
 #include "Dialog.h"
 #include "MainMenu.h"
 #include "MissionSelector.h"
+#include "SettingsDlg.h"
 #include "MainGUI.h"
 
 namespace UI {
@@ -59,6 +60,12 @@ namespace UI {
     
     void MainGUI::switchToMissionSelector() {
         switchToState(MISSION_SELECTOR, new MissionSelector(*this));
+    }
+    
+    void MainGUI::switchToSettingsDlg() {
+        Ptr<IGame> thegame = game.lock();
+        if (!thegame) return;
+        switchToState(SETTINGS_DLG, new SettingsDlg(*this, thegame->getConfig(), thegame->getEventRemapper()));
     }
 
 } // namespace UI

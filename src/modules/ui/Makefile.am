@@ -13,6 +13,7 @@ libui_a_SOURCES =                               \
         MissionSelector.h MissionSelector.cc    \
         Panel.h Panel.cc                        \
         PanelRenderPass.h PanelRenderPass.cc    \
+        SettingsDlg.h SettingsDlg.cc            \
         status.h status.cc                      \
         Surface.h
 
