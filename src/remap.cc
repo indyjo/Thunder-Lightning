@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <sstream>
 #include <tnl.h>
 #include <remap.h>
 
@@ -61,6 +62,34 @@ bool EventSheet::triggerAction(const char * action)
     return false;
 }
 
+std::string EventRemapper::Button::getFriendlyName() const {
+    std::ostringstream out;
+    
+    switch(type) {
+    case KEYBOARD_KEY: if (device != 0 ) out << "keyboard "; break;
+    case MOUSE_BUTTON: out << "mouse "; break;
+    case JOYSTICK_BUTTON: out << "joystick "; break;
+    }
+
+    if (device != 0) {
+        out << "#" << (device+1) << " ";
+    }
+        
+    switch(type) {
+    case KEYBOARD_KEY: out << "key "; break;
+    case MOUSE_BUTTON: out << "button "; break;
+    case JOYSTICK_BUTTON: out << "button "; break;
+    }
+    
+    switch(type) {
+    case KEYBOARD_KEY: out << button << " (" << SDL_GetKeyName((SDLKey)button) << ")"; break;
+    case MOUSE_BUTTON: out << button; break;
+    case JOYSTICK_BUTTON: out << (button+1); break;
+    }
+    
+    return out.str();
+}
+
 EventRemapper::EventRemapper()
 {
     controls = new DataNode;
@@ -72,35 +101,57 @@ EventRemapper::~EventRemapper()
 {
 }
 
-void EventRemapper::clear() {
-    event_sheets.clear();
-    event_sheets.push_back(new EventSheet());
-    keymap.clear();
-    mouse_button_map.clear();
-    joystick_button_map.clear();
-    joystick_axis_map.clear();
-    axismanips.clear();
+void EventRemapper::clearButtonMappings() {
+    button_map.clear();
+}
+
+void EventRemapper::clearEventFilters() {
     event_filters.clear();
 }
 
-void EventRemapper::mapKey(int key, bool pressed, const char *action)
-{
-    //keymap[KeyState(key, pressed)] = action;
-    keymap.insert(std::make_pair(KeyState(key, pressed), action));
+std::vector<std::string> EventRemapper::getActions() {
+    typedef std::vector<std::string> Actions;
+    Actions actions;
+    
+    for(ButtonMap::iterator i=button_map.begin(); i!=button_map.end(); ++i) {
+        actions.push_back(i->second);
+    }
+    
+    std::sort(actions.begin(), actions.end());
+    Actions::iterator new_end = std::unique(actions.begin(), actions.end());
+    actions.resize(new_end - actions.begin());
+    
+    return actions;
 }
 
-void EventRemapper::mapMouseButton(int button, bool pressed, const char *action)
-{
-    //mouse_button_map[MouseButtonState(button, pressed)] = action;
-    mouse_button_map.insert(std::make_pair(MouseButtonState(button, pressed), action));
+std::vector<EventRemapper::Button> EventRemapper::getButtonsForAction(const char *action) {
+    std::vector<Button> buttons;
+    for(ButtonMap::iterator i=button_map.begin(); i!=button_map.end(); ++i) {
+        if (i->second == action) {
+            buttons.push_back(i->first);
+        }
+    }
+    
+    std::sort(buttons.begin(), buttons.end());
+    return buttons;
 }
 
-void EventRemapper::mapJoystickButton(int js, int button, bool pressed, const char *action)
-{
-    //joystick_button_map[JoystickButtonState(std::make_pair(js,button), pressed)]
-    //    = action;
-    joystick_button_map.insert(std::make_pair(
-        JoystickButtonState(std::make_pair(js, button), pressed), action));
+void EventRemapper::mapButton(const EventRemapper::Button& btn, const char *action) {
+    button_map.insert(std::make_pair(btn, action));
+}
+
+void EventRemapper::unmapButtonsOfType(EventRemapper::ButtonType type, const char *action) {
+    ButtonMap::iterator i=button_map.begin();
+    while (i!=button_map.end()) {
+        if (i->first.type == type && i->second == action) {
+            // found a mapped button of the sought after type.
+            // increment and erase
+            button_map.erase( i++ );
+        } else {
+            // just increment
+            ++i;
+        }
+    }
 }
 
 void EventRemapper::pushEventFilter(Ptr<IEventFilter> filter) {
@@ -195,31 +246,16 @@ void EventRemapper::keyEvent(SDL_KeyboardEvent & ev)
 {
     int key = ev.keysym.sym;
     bool pressed = (ev.state == SDL_PRESSED);
-    KeyState ks(key, pressed);
     
-    typedef KeyMap::iterator Iter;
-    std::pair<Iter, Iter> range = keymap.equal_range(ks);
-    for(KeyMap::iterator i=range.first; i!=range.second; ++i)
-        triggerAction(i->second.c_str());
-    
-    if (pressed && range.first == range.second) {
-       ls_message("EventRemapper: Unmapped key pressed:\n");
-       ls_message("  Key name:   '%s'\n", SDL_GetKeyName(ev.keysym.sym));
-       ls_message("  SDL keysym: %d (%X)\n", key, key);
-       ls_message("  UNICODE:    %d (%X)\n", ev.keysym.unicode, ev.keysym.unicode);
-    }
+    buttonEvent(Button(KEYBOARD_KEY, 0, key), pressed);
 }
 
 void EventRemapper::mouseButtonEvent(SDL_MouseButtonEvent & ev)
 {
     int button = ev.button;
     bool pressed = (ev.state == SDL_PRESSED);
-    MouseButtonState bs(button, pressed);
-
-    typedef MouseButtonMap::iterator Iter;
-    std::pair<Iter, Iter> range = mouse_button_map.equal_range(bs);
-    for(Iter i=range.first; i!=range.second; ++i)
-        triggerAction(i->second.c_str());
+    
+    buttonEvent(Button(MOUSE_BUTTON, 0, button), pressed);
 }
 
 void EventRemapper::mouseMotionEvent(SDL_MouseMotionEvent & ev)
@@ -236,12 +272,8 @@ void EventRemapper::joyButtonEvent(SDL_JoyButtonEvent & ev)
     int joy = ev.which;
     int button = ev.button;
     bool pressed = (ev.state == SDL_PRESSED);
-    JoystickButtonState js(std::make_pair(joy, button), pressed);
-
-    typedef JoystickButtonMap::iterator Iter;
-    std::pair<Iter, Iter> range = joystick_button_map.equal_range(js);
-    for(Iter i=range.first; i!=range.second; ++i)
-        triggerAction(i->second.c_str());
+    
+    buttonEvent(Button(JOYSTICK_BUTTON, joy, button), pressed);
 }
 
 void EventRemapper::joyAxisEvent(SDL_JoyAxisEvent & ev)
@@ -262,6 +294,30 @@ void EventRemapper::joyAxisEvent(SDL_JoyAxisEvent & ev)
     }
 }
 
+void EventRemapper::buttonEvent(const Button & btn, bool pressed) {
+    typedef ButtonMap::iterator Iter;
+    std::pair<Iter, Iter> range = button_map.equal_range(btn);
+    if (pressed) {
+        // For button press events, trigger all actions mapped to the button
+        for(Iter i=range.first; i!=range.second; ++i) {
+            triggerAction(i->second.c_str());
+        }
+    } else {
+        // For button release events, trigger only those mapped actions which
+        // begin with a '+' character, substituting the '+' with a '-' (minus).
+        for(Iter i=range.first; i!=range.second; ++i) {
+            if (i->second[0] == '+') {
+                std::string action = i->second;
+                action[0] = '-';
+                triggerAction(action.c_str());
+            }
+        }
+    }
+    
+    if (pressed && range.first == range.second) {
+        ls_message("EventRemapper: Unmapped %s pressed.\n", btn.getFriendlyName().c_str());
+    }
+}
 
 void EventRemapper::mapJoystickAxis(int js, int joyaxis,
         const char * axis)

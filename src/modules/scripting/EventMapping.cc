@@ -27,6 +27,8 @@ namespace {
 				{"mapAbsoluteMouseAxes", mapAbsoluteMouseAxes},
                 {"controls", controls},
                 {"trigger", triggerAction},
+                {"actions", actions},
+                {"clearButtonMappings", clearButtonMappings},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
@@ -42,34 +44,37 @@ namespace {
 		static IoObject * mapKey
 		(IoObject *self, IoObject *locals, IoMessage *m) {
 			BEGIN_FUNC("EventRemapper.mapKey")
-			IOASSERT(IoMessage_argCount(m) == 3,"Expected 3 arguments")
+			IOASSERT(IoMessage_argCount(m) == 2,"Expected 2 arguments")
 			int key = IoMessage_locals_intArgAt_(m, locals, 0);
-			bool pressed = !ISNIL(IoMessage_locals_valueArgAt_(m, locals, 1));
-			char * action = IoMessage_locals_cStringArgAt_(m, locals, 2);
-			getObject(self)->mapKey(key,pressed,action);
+			char * action = IoMessage_locals_cStringArgAt_(m, locals, 1);
+			getObject(self)->mapButton(
+			    EventRemapper::Button(EventRemapper::KEYBOARD_KEY, 0, key),
+			    action);
 			return self;
 		}
 
 		static IoObject * mapMouseButton
 		(IoObject *self, IoObject *locals, IoMessage *m) {
 			BEGIN_FUNC("EventRemapper.mapMouseButton")
-			IOASSERT(IoMessage_argCount(m) == 3,"Expected 3 arguments")
+			IOASSERT(IoMessage_argCount(m) == 2,"Expected 2 arguments")
 			int button = IoMessage_locals_intArgAt_(m, locals, 0);
-			bool pressed = !ISNIL(IoMessage_locals_valueArgAt_(m, locals, 1));
-			char * action = IoMessage_locals_cStringArgAt_(m, locals, 2);
-			getObject(self)->mapMouseButton(button,pressed,action);
+			char * action = IoMessage_locals_cStringArgAt_(m, locals, 1);
+			getObject(self)->mapButton(
+			    EventRemapper::Button(EventRemapper::MOUSE_BUTTON, 0, button),
+			    action);
 			return self;
 		}
 		
 		static IoObject * mapJoystickButton
 		(IoObject *self, IoObject *locals, IoMessage *m) {
 			BEGIN_FUNC("EventRemapper.mapJoystickButton")
-			IOASSERT(IoMessage_argCount(m) == 4,"Expected 4 arguments")
+			IOASSERT(IoMessage_argCount(m) == 3,"Expected 3 arguments")
 			int js = IoMessage_locals_intArgAt_(m, locals, 0);
 			int button = IoMessage_locals_intArgAt_(m, locals, 1);
-			bool pressed = !ISNIL(IoMessage_locals_valueArgAt_(m, locals, 2));
-			char * action = IoMessage_locals_cStringArgAt_(m, locals, 3);
-			getObject(self)->mapJoystickButton(js,button,pressed,action);
+			char * action = IoMessage_locals_cStringArgAt_(m, locals, 2);
+			getObject(self)->mapButton(
+			    EventRemapper::Button(EventRemapper::JOYSTICK_BUTTON, js, button),
+			    action);
 			return self;
 		}
 		
@@ -120,6 +125,52 @@ namespace {
 			    getObject(self)->triggerAction(action),
 			    IOSTATE);
 		}
+		
+        /// Returns a list of objects with slots "name" and "buttons". A buttons
+        /// slot is an object with symbol slot "type" and number slots
+        /// "device" and "button"
+        static IoObject *actions(IoObject *self, IoObject*locals, IoObject*m) {
+            BEGIN_FUNC("EventRemapper.actions")
+            typedef std::vector<std::string> Actions;
+            Actions actions = getObject(self)->getActions();
+            IoObject* actions_list = IoList_new(IOSTATE);
+            for (Actions::iterator i = actions.begin(); i!= actions.end(); ++i) {
+                IoObject* action_obj = IoObject_new(IOSTATE);
+                IoObject_setSlot_to_(action_obj, IOSYMBOL("name"), IOSYMBOL(i->c_str()));
+                
+                typedef std::vector<EventRemapper::Button> Buttons;
+                Buttons buttons = getObject(self)->getButtonsForAction(i->c_str());
+                
+                IoObject* buttons_list = IoList_new(IOSTATE);
+                IoObject_setSlot_to_(action_obj, IOSYMBOL("buttons"), buttons_list);
+                
+                for(Buttons::iterator j=buttons.begin(); j!= buttons.end(); ++j) {
+                    IoObject* button_obj = IoObject_new(IOSTATE);
+                    
+                    switch(j->type) {
+                    case EventRemapper::KEYBOARD_KEY:
+                        IoObject_setSlot_to_(button_obj, IOSYMBOL("type"), IOSYMBOL("KEYBOARD_KEY"));
+                        break;
+                    case EventRemapper::MOUSE_BUTTON:
+                        IoObject_setSlot_to_(button_obj, IOSYMBOL("type"), IOSYMBOL("MOUSE_BUTTON"));
+                        break;
+                    case EventRemapper::JOYSTICK_BUTTON:
+                        IoObject_setSlot_to_(button_obj, IOSYMBOL("type"), IOSYMBOL("JOYSTICK_BUTTON"));
+                        break;
+                    }
+                    
+                    IoObject_setSlot_to_(button_obj, IOSYMBOL("device"), IONUMBER(j->device));
+                    IoObject_setSlot_to_(button_obj, IOSYMBOL("button"), IONUMBER(j->button));
+                    
+                    IoList_rawAppend_(buttons_list, button_obj);
+                }
+                
+                IoList_rawAppend_(actions_list, action_obj);
+            }
+            return actions_list;
+        }
+        
+        VOID_FUNC(clearButtonMappings)
 	};
 }
 

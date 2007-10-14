@@ -107,22 +107,84 @@ public:
 class EventRemapper : public SigObject
 {
 public:
+    enum ButtonType { KEYBOARD_KEY, MOUSE_BUTTON, JOYSTICK_BUTTON };
+    
+    /// A Structure that defines a control on a specific device of a specific
+    /// type. The hierarchy is type->device->button
+    struct Button {
+        inline Button( ButtonType type, int device, int button )
+        : type(type)
+        , device(device)
+        , button(button)
+        { }
+        
+        ButtonType type;
+        int device;
+        int button;
+        
+        inline bool operator< (const Button& other) const {
+            return type < other.type ||
+                   type == other.type && (
+                   device < other.device ||
+                   device == other.device &&
+                   button < other.button);
+        }
+        
+        std::string getFriendlyName() const;
+    };
+
+    ///////////////////////////////////////////////////////////////////////
+
     EventRemapper();
     ~EventRemapper();
     
-    // resets every mapping to the initial state
-    void clear();
+    /// Resets every button mapping to the initial state
+    void clearButtonMappings();
+    /// Removes all registered event filters
+    void clearEventFilters();
+    
+    ///////////////////////////////////////////////////////////////////////
+    // Meta-information about actions and axes
+    ///////////////////////////////////////////////////////////////////////
+    
+    typedef std::string Name;
+    typedef std::string FriendlyName;
+    typedef std::string Description;
+    typedef std::pair<FriendlyName, Description> DictionaryEntry;
+    /// Dictionary associates a (human-readable) friendly name and a
+    /// longer description with an action or axis name.
+    typedef std::map<Name, DictionaryEntry> Dictionary;
+    
+    /// Public Dictionary containing friendly names and descriptions for actions
+    Dictionary action_dict;
+    /// Public Dictionary containing friendly names and descriptions for axes
+    Dictionary axis_dict;
+
+    ///////////////////////////////////////////////////////////////////////
+    // Querying functions
+    ///////////////////////////////////////////////////////////////////////
+
+    /// Returns the list of all known actions
+    std::vector<std::string> getActions();
+    
+    /// Queries which buttons are mapped to a specific action
+    std::vector<Button> getButtonsForAction(const char *action);
+
+    ///////////////////////////////////////////////////////////////////////
+    // Mapping functions
+    ///////////////////////////////////////////////////////////////////////
 
     inline void map(const char *action, const ActionSlot & slot) {
         event_sheets[0]->map(action,slot);
     }
     
-    void mapKey(int key, bool pressed, const char *action);
-    void mapMouseButton(int button, bool pressed, const char *action);
-    void mapJoystickButton(int js, int button, bool pressed, const char *action);
-
-    void mapJoystickAxis(int js, int joyaxis,
-        const char * axis);
+    /// Maps a button to an action name. If action begins with a '+', a
+    /// corresponding '-' action is triggered on button release.
+    void mapButton(const Button &, const char *action);
+    /// Removes the mapping of all buttons of a given type to the specified action
+    void unmapButtonsOfType(ButtonType, const char *action);
+    
+    void mapJoystickAxis(int js, int joyaxis, const char * axis);
     void mapRelativeMouseAxes(const char* x_axis, const char *y_axis);
     void mapAbsoluteMouseAxes(const char* x_axis, const char *y_axis);
     void addAxisManipulator(AxisManipulator & manip);
@@ -153,22 +215,14 @@ private:
     void mouseMotionEvent(SDL_MouseMotionEvent & ev);
     void joyButtonEvent(SDL_JoyButtonEvent & ev);
     void joyAxisEvent(SDL_JoyAxisEvent & ev);
+    void buttonEvent(const Button & btn, bool pressed);
 
     //using namespace std;
 
-    typedef int KeyCode;
-    typedef int ButtonNumber;
+    typedef std::multimap<Button, std::string>           ButtonMap;
+ 
     typedef int JoystickIndex;
     typedef int AxisIndex;
-    typedef std::pair<KeyCode,                            bool> KeyState;
-    typedef std::pair<ButtonNumber,                       bool> MouseButtonState;
-    typedef std::pair<std::pair<JoystickIndex, ButtonNumber>, bool> 
-        JoystickButtonState;
-
-    typedef std::multimap<KeyState,              std::string> KeyMap;
-    typedef std::multimap<MouseButtonState,      std::string> MouseButtonMap;
-    typedef std::multimap<JoystickButtonState,   std::string> JoystickButtonMap;
- 
     typedef std::pair<JoystickIndex, AxisIndex>          JoystickAxis;
     typedef std::map<JoystickAxis, std::string>          JoystickAxisMap;
 
@@ -179,9 +233,7 @@ private:
 
     std::string         abs_mouse_x, abs_mouse_y, rel_mouse_x, rel_mouse_y;
     float               x_accum, y_accum;
-    KeyMap              keymap;
-    MouseButtonMap      mouse_button_map;
-    JoystickButtonMap   joystick_button_map;
+    ButtonMap           button_map;
     JoystickAxisMap     joystick_axis_map;
     Ptr<DataNode>       controls;
     AxisManips axismanips;

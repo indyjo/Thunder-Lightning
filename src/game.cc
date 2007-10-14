@@ -420,8 +420,9 @@ void Game::startupSimulation(Status & stat) {
 
 void Game::teardownSimulation(Status & stat) {
     stat.beginJob("Simulation teardown",5);
-    stat.beginJob("Clearing control mappings");
-    event_remapper->clear();
+    stat.beginJob("Clearing event remapper");
+    event_remapper->clearButtonMappings();
+    event_remapper->clearEventFilters();
     stat.nextJob("Removing Io scripting manager (simulation)");
     io_scripting_manager = 0;
     stat.nextJob("Removing actors from scene");
