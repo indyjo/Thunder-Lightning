@@ -12,8 +12,67 @@ EventRemapper do(
     
     code asString
   )
-    
+  
+  registerAction("mainmenu", "Main menu", "Enter main menu while playing.")
+  registerAction("switch-mfd", "Switch MFD mode", "Cycle between the available modes of the multi function display (MFD).")
+  registerAction("+forward", "Forward/down", "Accelerate ground-based vehicle. For aircraft, push elevator (nose down).")
+  registerAction("+backward", "Backward/brake/up", "Brake and reverse vehicle. For aircraft, pull elevator (nose up).")
+  registerAction("+left", "Left", "Steer vehicle left. For aircraft, aileron left (roll counter-clockwise).")
+  registerAction("+right", "Right", "Steer vehicle right. For aircraft, aileron right (roll clockwise).")
+  
+  registerAction("+rudder_left", "Rudder left (aircraft)", "Rudder sharp left in aircraft. Causes nose to yaw left. Also steers front wheel.")
+  registerAction("+rudder_right", "Rudder right (aircraft)", "Rudder sharp right in aircraft. Causes nose to yaw right. Also steers front wheel.")
 
+  registerAction("throttle0", "Throttle 0%", "Sets throttle to 0%")
+  registerAction("throttle1", "Throttle 11%", "Sets throttle to 11%")
+  registerAction("throttle2", "Throttle 22%", "Sets throttle to 22%")
+  registerAction("throttle3", "Throttle 33%", "Sets throttle to 33%")
+  registerAction("throttle4", "Throttle 44%", "Sets throttle to 44%")
+  registerAction("throttle5", "Throttle 55%", "Sets throttle to 55%")
+  registerAction("throttle6", "Throttle 66%", "Sets throttle to 66%")
+  registerAction("throttle7", "Throttle 77%", "Sets throttle to 77%")
+  registerAction("throttle8", "Throttle 88%", "Sets throttle to 88%")
+  registerAction("throttle9", "Throttle 100%", "Sets throttle to 100%")
+  registerAction("increase-throttle", "Throttle: increase by 5%", "")
+  registerAction("decrease-throttle", "Throttle: decrease by 5%", "")
+
+  registerAction("autopilot", "Automatic/manual control", "Toggle the current unit's control mode between automatic and manual.")
+  
+  registerAction("pause", "Pause", "Toggle game state between paused and unpaused.")
+  registerAction("toggle-console", "Console", "Switch console on/off.")
+
+  registerAction("view0", "View 1", "Switch to view 1 (main view) of current unit.")
+  registerAction("view1", "View 2", "Switch to view 2 (if available) of current unit.")
+  registerAction("view2", "View 3", "Switch to view 3 (if available) of current unit.")
+  registerAction("view3", "View 4", "Switch to view 4 (if available) of current unit.")
+  registerAction("view4", "View 5", "Switch to view 5 (if available) of current unit.")
+  registerAction("view5", "View 6", "Switch to view 6 (if available) of current unit.")
+
+  registerAction("next-view-subject", "Next unit", "Switch to next unit from same faction. Previous unit is set to automatic control.")
+  registerAction("external-view", "Observer view", "Switch to/from external observer view.")
+  registerAction("cycle-primary", "Weapon", "Cycle between weapons.")
+  registerAction("+primary", "Fire", "Fire currently selected weapon.")
+  
+  registerAction("debug", "Debug mode", "Toggle debug mode on/off.")
+
+  registerAction("previous-target", "Target previous", "Target previous radar contact.")
+  registerAction("next-target", "Target next", "Target next radar contact.")
+  registerAction("next-hostile-target", "Target next hostile", "Target next hostile radar contact.")
+  registerAction("next-friendly-target", "Target next friendly", "Target next friendly radar contact.")
+  registerAction("gunsight-target", "Target object in gunsight", "Target object closest to center of gunsight.")
+  registerAction("nearest-target", "Target nearest", "Target nearest radar contact")
+  
+  registerAction("slower", "Time warp: slower", "Decelerate time, causing slow-motion.")
+  registerAction("faster", "Time warp: faster", "Accelerate time, causing fast-forward.")
+  
+  registerAction("landing-gear", "Landing gear", "Lower/raise landing gear.")
+  registerAction("landing-hook", "Landing hook", "Lower/raise landing hook for carrier landings.")
+  registerAction("+brake", "Air brake", "Deploy air brake while held.")
+  
+  registerAction("+observer-dolly", "Observer: dolly", "While pressed, mouse movements affect observer forward/backward motion.")
+  registerAction("+observer-pan", "Observer: pan", "While pressed, mouse movements cause observer left/right and up/down motion.")
+  registerAction("observer-stop", "Observer: stop", "Stop the observer immediately")
+    
   mapKey(SDLK_ESCAPE, "mainmenu")
   mapKey(SDLK_TAB,  "switch-mfd")
 
@@ -21,7 +80,6 @@ EventRemapper do(
   mapKey(SDLK_DOWN, "+backward")
   mapKey(SDLK_LEFT, "+left")
   mapKey(SDLK_RIGHT, "+right")
-  
   mapKey(SDLK_COMMA, "+rudder_left")
   mapKey(SDLK_PERIOD, "+rudder_right")
 
