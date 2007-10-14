@@ -140,6 +140,8 @@ namespace UI {
             buttons_wnd->getChild("eventsWnd/mouseButton");
         mouse_clear_button = (CEGUI::PushButton *)
             buttons_wnd->getChild("eventsWnd/clearMouse");
+        
+        event_description_label = buttons_wnd->getChild("eventsWnd/descriptionLabel");
             
         // react on "clear" buttons
         keyboard_clear_button->subscribeEvent(
@@ -351,16 +353,35 @@ namespace UI {
     
     void SettingsDlg::loadEvents() {
         events_list->resetList();
-        events_list->addColumn("Name", 0, CEGUI::UDim(1.0,0));
+        events_list->addColumn("id", 0, CEGUI::UDim(0.4,0));
+        events_list->addColumn("Name", 1, CEGUI::UDim(0.6,0));
         
         typedef std::vector<std::string> Events;
         Events events = remapper->getActions();
         for (Events::iterator i= events.begin(); i!=events.end(); ++i) {
-            events_list->addRow();
-            CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(*i);
+            unsigned int row_idx = events_list->addRow();
+            
+            typedef EventRemapper::Dictionary Dict;
+            
+            std::string friendly_name = *i;
+            Dict::iterator j = remapper->action_dict.find(*i);
+            if (j != remapper->action_dict.end()) {
+                friendly_name = j->second.first;
+            }
+            
+            CEGUI::ListboxTextItem* item;
+            
+            item = new CEGUI::ListboxTextItem(*i);
             item->setSelectionBrushImage("TaharezLook", "MultiListSelectionBrush"); 
-            events_list->setItem(item, 0, events_list->getRowCount()-1);
+            events_list->setItem(item, 0, row_idx);
+
+            item = new CEGUI::ListboxTextItem(friendly_name);
+            item->setSelectionBrushImage("TaharezLook", "MultiListSelectionBrush"); 
+            events_list->setItem(item, 1, row_idx);
         }
+
+        events_list->setSortColumnByID(1);
+        events_list->setSortDirection(CEGUI::ListHeaderSegment::Descending);
     }
     
     void SettingsDlg::saveEvents() {
@@ -370,6 +391,7 @@ namespace UI {
         keyboard_key_button->setText("click to configure");
         mouse_button_button->setText("click to configure");
         joystick_button_button->setText("click to configure");
+        event_description_label->setText("");
 
         // If no event selected, we're done
         if (0 == events_list->getSelectedCount()) {
@@ -394,6 +416,13 @@ namespace UI {
                 joystick_button_button->setText(i->getFriendlyName().c_str());
                 break;
             }
+        }
+        
+        // Load the event's description from the remapper's dictionary
+        typedef EventRemapper::Dictionary::iterator Iter;
+        Iter dict_entry = remapper->action_dict.find(item->getText().c_str());
+        if (dict_entry != remapper->action_dict.end()) {
+            event_description_label->setText(dict_entry->second.second);
         }
     }
     

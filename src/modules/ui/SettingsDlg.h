@@ -62,6 +62,7 @@ namespace UI {
         CEGUI::PushButton *mouse_clear_button;
         CEGUI::PushButton *joystick_button_button;
         CEGUI::PushButton *joystick_clear_button;
+        CEGUI::Window *event_description_label;
     };
 
 } // namespace
