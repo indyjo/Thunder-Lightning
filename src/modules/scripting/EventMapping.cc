@@ -29,6 +29,8 @@ namespace {
                 {"trigger", triggerAction},
                 {"actions", actions},
                 {"clearButtonMappings", clearButtonMappings},
+                {"registerAction", registerAction},
+                {"registerAxis", registerAxis},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
@@ -171,6 +173,30 @@ namespace {
         }
         
         VOID_FUNC(clearButtonMappings)
+
+        static IoObject * registerAction
+		(IoObject *self, IoObject *locals, IoMessage *m) {
+			BEGIN_FUNC("EventRemapper.registerAction")
+			IOASSERT(IoMessage_argCount(m) == 3,"Expected 3 arguments")
+			std::string name = IoMessage_locals_cStringArgAt_(m, locals, 0),
+			            friendly_name = IoMessage_locals_cStringArgAt_(m, locals, 1),
+			            description = IoMessage_locals_cStringArgAt_(m, locals, 2);
+			getObject(self)->action_dict[name] = EventRemapper::DictionaryEntry(
+			    friendly_name, description);
+			return self;
+		}
+
+        static IoObject * registerAxis
+		(IoObject *self, IoObject *locals, IoMessage *m) {
+			BEGIN_FUNC("EventRemapper.registerAxis")
+			IOASSERT(IoMessage_argCount(m) == 3,"Expected 3 arguments")
+			std::string name = IoMessage_locals_cStringArgAt_(m, locals, 0),
+			            friendly_name = IoMessage_locals_cStringArgAt_(m, locals, 1),
+			            description = IoMessage_locals_cStringArgAt_(m, locals, 2);
+			getObject(self)->axis_dict[name] = EventRemapper::DictionaryEntry(
+			    friendly_name, description);
+			return self;
+		}
 	};
 }
 
