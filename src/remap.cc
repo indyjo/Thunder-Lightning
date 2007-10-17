@@ -109,6 +109,10 @@ void EventRemapper::clearEventFilters() {
     event_filters.clear();
 }
 
+void EventRemapper::clearAxisManipulators() {
+    axismanips.clear();
+}
+
 std::vector<std::string> EventRemapper::getActions() {
     typedef std::vector<std::string> Actions;
     Actions actions;

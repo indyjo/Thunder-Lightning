@@ -142,6 +142,8 @@ public:
     void clearButtonMappings();
     /// Removes all registered event filters
     void clearEventFilters();
+    /// Removes all axis manipulators
+    void clearAxisManipulators();
     
     ///////////////////////////////////////////////////////////////////////
     // Meta-information about actions and axes
