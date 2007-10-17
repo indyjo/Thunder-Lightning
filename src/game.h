@@ -4,6 +4,7 @@
 #include <modules/jogi/JOpenGLRenderer.h>
 #include <remap.h>
 #include <ActorStage.h>
+#include <DataNode.h>
 #include <RenderPass.h>
 #include <Weak.h>
 
@@ -52,7 +53,7 @@ public:
     
     virtual double  getTimeDelta();
     virtual bool debugMode();
-
+    virtual Ptr<DataNode> getDebugData();
     
     virtual Ptr<IView> getCurrentView();
     virtual void setCurrentView(Ptr<IView>);
@@ -114,6 +115,7 @@ private:
     bool game_done;
     bool debug_mode;
     bool is_interactive;
+    Ptr<DataNode> debug_data;
 
     SDL_Surface *surface;
     JOpenGLRenderer *renderer;

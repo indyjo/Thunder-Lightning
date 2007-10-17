@@ -108,6 +108,7 @@ void setup_paths(Ptr<IConfig> config, const char **argv) {
 Game::Game(int argc, const char **argv)
 : argc(argc), argv(argv)
 , debug_mode(false)
+, debug_data(new DataNode)
 , view_is_external(false)
 , render_context(0)
 {
@@ -621,6 +622,10 @@ void Game::setCurrentlyControlledActor(Ptr<IActor> actor)
 
 bool Game::debugMode() {
     return debug_mode;
+}
+
+Ptr<DataNode> Game::getDebugData() {
+    return debug_data;
 }
 
 

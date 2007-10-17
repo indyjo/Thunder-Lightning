@@ -4,6 +4,7 @@
 
 #include <interfaces/IActor.h>
 #include <interfaces/IView.h>
+#include <DataNode.h>
 #include "mappings.h"
 
 
@@ -34,6 +35,7 @@ namespace {
 				{"setView", setView},
 				{"viewSubject", getViewSubject},
 				{"infoMessage", infoMessage},
+				{"debugData", getDebugData},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
@@ -94,6 +96,8 @@ namespace {
     			unwrapObject<Vector>(color));
     		return self;
     	}
+    	
+    	GETTER(Ptr<DataNode>, getDebugData)
 		
 	};
 }

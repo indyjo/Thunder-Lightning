@@ -10,6 +10,7 @@ class TextureManager;
 class JRenderer;
 class EventRemapper;
 class Clock;
+class DataNode;
 class Environment;
 class SoundMan;
 class IoScriptingManager;
@@ -84,6 +85,8 @@ struct IGame : virtual public Object, virtual public IActorStage, virtual public
     
     /// true if program-wide debug mode is enabled
     virtual bool debugMode()=0;
+    /// A flexible interface for passing profiling info, statistics and debug data to the Io side
+    virtual Ptr<DataNode> getDebugData()=0;
     
     virtual Ptr<IView> getCurrentView()=0;
     virtual void setCurrentView(Ptr<IView>)=0;
