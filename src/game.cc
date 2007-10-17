@@ -375,6 +375,8 @@ void Game::startupSimulation(Status & stat) {
     stat.nextJob("Initializing SkyBox");
     skybox = new SkyBox(this);
     stat.nextJob("Initializing controls");
+    event_sheet = new EventSheet();
+    event_remapper->addEventSheet(event_sheet);
     initControls();
 
     // setup some default rendering until a script initializes something else
@@ -422,6 +424,8 @@ void Game::startupSimulation(Status & stat) {
 void Game::teardownSimulation(Status & stat) {
     stat.beginJob("Simulation teardown",5);
     stat.beginJob("Clearing event remapper");
+    event_remapper->removeEventSheet(event_sheet);
+    event_sheet = 0;
     event_remapper->clearButtonMappings();
     event_remapper->clearEventFilters();
     stat.nextJob("Removing Io scripting manager (simulation)");

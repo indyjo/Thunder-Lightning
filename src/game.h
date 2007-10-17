@@ -124,6 +124,7 @@ private:
     Ptr<TextureManager> texman;
 
     Ptr<EventRemapper> event_remapper;
+    Ptr<EventSheet> event_sheet;
 
     Ptr<IView> current_view;
     Ptr<IView> previous_view;
