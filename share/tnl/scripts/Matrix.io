@@ -307,3 +307,32 @@ matrix := method(
   mat
 )
 
+Matrix benchmark := method(
+  ntests := 10000
+  "Benchmarking Matrix" println
+  a := list
+  b := list
+  ntests repeat(
+    a append(vector(Random value, Random value, Random value))
+    b append(vector(Random value, Random value, Random value))
+  )
+  t0 := Date now asNumber
+  a foreach(i,v, v dot(b at(i)))
+  t1 := Date now asNumber
+  avg := (t1-t0)/ntests
+  "  dot() performance in #{ntests} tests: #{(1/avg) asString(0,2)}/s (#{avg*1000}ms avg)" interpolate println
+  
+  a := list
+  b := list
+  ntests repeat(
+    a append(Sequence clone setItemType("float64") set(Random value, Random value, Random value))
+    b append(Sequence clone setItemType("float64") set(Random value, Random value, Random value))
+  )
+  t0 := Date now asNumber
+  a foreach(i,v, v dotProduct(b at(i)))
+  t1 := Date now asNumber
+  avg := (t1-t0)/ntests
+  "  dot() performance in #{ntests} tests: #{(1/avg) asString(0,2)}/s (#{avg*1000}ms avg)" interpolate println
+
+)
+
