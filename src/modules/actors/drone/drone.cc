@@ -339,6 +339,7 @@ void Drone::action() {
 
 void Drone::kill() {
 	targeter->clearCurrentTarget();
+    setCollidingEnabled(false);
     SimpleActor::kill();
 }
 
