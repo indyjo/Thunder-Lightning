@@ -787,18 +787,24 @@ void Game::renderScene(SceneRenderPass * pass)
 
 void Game::doFrame()
 {
-    BEGIN_PROFILE("mainloop.txt")
+    Uint32 t[16];
+    int n=0;
+    t[n++] = SDL_GetTicks();
     doEvents();
-    FINISH_PROFILE_STEP("doEvents()")
+    t[n++] = SDL_GetTicks();
     updateSimulation();
-    FINISH_PROFILE_STEP("updateSimulation()")
+    t[n++] = SDL_GetTicks();
     updateView();
+    t[n++] = SDL_GetTicks();
     updateSound();
-    FINISH_PROFILE_STEP("updateView() and updateSound()")
+    t[n++] = SDL_GetTicks();
 
     setupRenderer();
+    t[n++] = SDL_GetTicks();
     setupMainRender();
+    t[n++] = SDL_GetTicks();
     water->update();
+    t[n++] = SDL_GetTicks();
 
     pre_draw.emit();
     
@@ -810,11 +816,19 @@ void Game::doFrame()
     
     post_draw.emit();
     
+    t[n++] = SDL_GetTicks();
     SDL_GL_SwapBuffers();
-    FINISH_PROFILE_STEP("render passes")
+    t[n++] = SDL_GetTicks();
 
     updateIoScripting();
-    FINISH_PROFILE_STEP("updateIoScripting()")
+    t[n++] = SDL_GetTicks();
+    
+    // Put the measured times into the debug data interface
+    while (--n>0) {
+        char buf[32];
+        sprintf(buf, "mainloop_%d", n-1 );
+        getDebugData()->setInt(buf, (int) (t[n]-t[n-1]));
+    }
 }
 
 const RenderContext *Game::getCurrentContext()
