@@ -7,6 +7,8 @@ assert := method(v,
   )
 )
 
+assert := nil
+
 Matrix := Object clone do(
   rows := 0
   columns := 0
