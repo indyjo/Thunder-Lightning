@@ -372,6 +372,40 @@ void EventRemapper::addAxisManipulator(AxisManipulator & manip) {
     axismanips.push_back(manip);
 }
 
+void EventRemapper::addAxisWithDefaultHandling(const char *axis, bool nonnegative) {
+    std::string v_axis = std::string("v_") + axis;
+    std::string mouse_axis = std::string("mouse_") + axis;
+    std::string mouse2_axis = std::string("mouse2_") + axis;
+    std::string js_axis = std::string("js_") + axis;
+    std::string js2_axis = std::string("js2_") + axis;
+    
+    // Set all input axis values to 0
+    setAxis(v_axis.c_str(), 0);
+    setAxis(mouse_axis.c_str(), 0);
+    setAxis(js_axis.c_str(), 0);
+    
+    // Apply usual transformations on joystick and mouse values
+    //FIXME: Make these values user-defined
+    addAxisManipulator(
+        AxisManipulator(new LinearAxisTransform(1.0f/5, 0.0f), mouse2_axis)
+        .input(mouse_axis));
+    addAxisManipulator(
+        AxisManipulator(new JoystickAxisTransform(nonnegative, false, 0.01f, 0.04f), js2_axis)
+        .input(js_axis));
+    
+    // Copy value from axis with most recent activity
+    addAxisManipulator(
+        AxisManipulator(new SelectAxisByActivityTransform(0.025f), axis)
+        .input(v_axis)
+        .input(mouse2_axis)
+        .input(js2_axis));
+        
+    // Clamp the result to the value domain
+    addAxisManipulator(
+        AxisManipulator(new ClampAxisTransform(nonnegative?0.0f:-1.0f, 1.0f), axis)
+        .input(axis));
+}
+
 float EventRemapper::getAxis(const char * axis)
 {
     return controls->getFloat(axis, 0.0f);

@@ -142,6 +142,28 @@ public:
     void mapRelativeMouseAxes(const char* x_axis, const char *y_axis);
     void mapAbsoluteMouseAxes(const char* x_axis, const char *y_axis);
     void addAxisManipulator(AxisManipulator & manip);
+    
+    /// Adds a sequence of manipulators for a given axis that will perform
+    /// the following: For an axis A, it will
+    ///  - register an axis "v_A" where button-controlled axis value will be taken from
+    ///  - register an axis "mouse_A" where mouse-controlled axis values will be taken from
+    ///  - add a transform that will map the mouse values (which are assumed to be relative)
+    ///    onto the correct value range taking mouse sensitivity into account
+    ///  - register an axis "js_A" where joystick-controlled axis values will be taken from
+    ///  - add a transform that will map the joystick values to the correct
+    ///    domain (-1..1 or 0..1 for positive axes), taking joystick sensitivity
+    ///    and threshold values into account
+    ///  - add a transform that will select between those inputs based on most
+    ///    recent activity (SelectAxisByActivityTransform)
+    ///  - add a clamping transform which will clamp the final result to the
+    ///    correct value range
+    ///
+    /// @param axis         The name of the axis to register
+    /// @param nonnegative  true for axes with domain (0..1), false for (-1,1)
+    ///
+    /// @note It is not strictly necessary to call this for every axis, but otherwise
+    ///       you have to manually register all needed axis manipulators.
+    void addAxisWithDefaultHandling(const char *axis, bool nonnegative=false);
 
     float getAxis(const char * axis);
     void setAxis(const char * axis, float val);
