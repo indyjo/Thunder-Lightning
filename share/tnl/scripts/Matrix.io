@@ -58,6 +58,16 @@ Matrix := Object clone do(
     M
   )
   
+  transposeInPlace := method(
+    assert( rows == columns )
+    
+    for (c,1,columns-1, for(r,c,rows-1,
+      dummy := at(c,r)
+      atSet(c,r, at(r,c))
+      atSet(r,c, dummy)
+    ))
+  )
+  
   dot := method(other,
     assert(columns == 1)
     assert(other rows == rows and other columns == 1)
