@@ -150,6 +150,7 @@ void Game::startupSystem(Status & stat) {
     ls_message("Back in C++.\n");
 
     event_remapper = new EventRemapper();
+    event_remapper->sig_action_triggered.connect(SigC::slot(*this, &Game::actionTriggered));
 
     ls_message("Initializing SDL: ");
     if (-1 == SDL_Init( SDL_INIT_VIDEO |

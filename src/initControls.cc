@@ -15,8 +15,6 @@ void Game::initControls()
 {
     Ptr<EventRemapper> r = getEventRemapper();
     
-    r->sig_action_triggered.connect(SigC::slot(*this, &Game::actionTriggered));
-
     event_sheet->map("mainmenu", SigC::slot(*this, & Game::mainMenu));
     event_sheet->map("debug", SigC::slot(*this, & Game::toggleDebugMode));
 
