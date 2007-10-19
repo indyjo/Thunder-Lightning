@@ -78,13 +78,36 @@ std::string EventRemapper::Button::getFriendlyName() const {
     switch(type) {
     case KEYBOARD_KEY: out << "key "; break;
     case MOUSE_BUTTON: out << "button "; break;
-    case JOYSTICK_BUTTON: out << "button "; break;
+    case JOYSTICK_BUTTON: {
+            if (button < 256) {
+                out << "button ";
+            } else {
+                out << "hat ";
+                if (button >= 260) {
+                    // coolie hat number > 1
+                    out << ((button-256)/4)+1 << " ";
+                }
+            }
+            break;
+        }
     }
     
     switch(type) {
     case KEYBOARD_KEY: out << button << " (" << SDL_GetKeyName((SDLKey)button) << ")"; break;
     case MOUSE_BUTTON: out << button; break;
-    case JOYSTICK_BUTTON: out << (button+1); break;
+    case JOYSTICK_BUTTON: {
+            if (button < 256) {
+                out << (button+1);
+            } else {
+                int direction = (button-256) % 4;
+                switch (direction) {
+                    case 0: out << "up"; break;
+                    case 1: out << "right"; break;
+                    case 2: out << "down"; break;
+                    case 3: out << "left"; break;
+                }
+            }
+        }
     }
     
     return out.str();
@@ -224,6 +247,9 @@ void EventRemapper::feedEvent(SDL_Event & ev)
     case SDL_JOYAXISMOTION:
         joyAxisEvent(ev.jaxis);
         break;
+    case SDL_JOYHATMOTION:
+        joyHatEvent(ev.jhat);
+        break;
     default:
         break;
     }
@@ -296,6 +322,26 @@ void EventRemapper::joyAxisEvent(SDL_JoyAxisEvent & ev)
     if (i != joystick_axis_map.end()) {
         controls->setFloat(i->second, value);
     }
+}
+
+void EventRemapper::joyHatEvent(SDL_JoyHatEvent & ev)
+{
+    int joy = ev.which;
+    int hat = ev.hat;
+    
+    Uint8 old_state = hat_positions[JoystickHat(joy,hat)];
+    for (int i=0; i<4; ++i) {
+        // Iterate through the four bits of the hat position, comparing
+        // every bit with the corresponding bit of the saved state.
+        Uint8 mask = 1<<i;
+        if ((ev.value&mask) != (old_state&mask)) {
+            // There was a change in this bit.
+            // Generate a press or release event.
+            buttonEvent(Button(JOYSTICK_BUTTON, joy, 256+4*hat+i), ev.value&mask);
+        }
+    }
+    // save the hat position
+    hat_positions[JoystickHat(joy,hat)] = ev.value;
 }
 
 void EventRemapper::buttonEvent(const Button & btn, bool pressed) {

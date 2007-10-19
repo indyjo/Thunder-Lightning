@@ -217,6 +217,7 @@ private:
     void mouseMotionEvent(SDL_MouseMotionEvent & ev);
     void joyButtonEvent(SDL_JoyButtonEvent & ev);
     void joyAxisEvent(SDL_JoyAxisEvent & ev);
+    void joyHatEvent(SDL_JoyHatEvent & ev);
     void buttonEvent(const Button & btn, bool pressed);
 
     //using namespace std;
@@ -224,9 +225,12 @@ private:
     typedef std::multimap<Button, std::string>           ButtonMap;
  
     typedef int JoystickIndex;
-    typedef int AxisIndex;
+    typedef int AxisIndex, HatIndex;
     typedef std::pair<JoystickIndex, AxisIndex>          JoystickAxis;
     typedef std::map<JoystickAxis, std::string>          JoystickAxisMap;
+    
+    typedef std::pair<JoystickIndex, HatIndex>           JoystickHat;
+    typedef std::map<JoystickHat, Uint8>                 HatPositions;
 
     typedef std::vector<AxisManipulator>                 AxisManips;
 
@@ -237,6 +241,7 @@ private:
     float               x_accum, y_accum;
     ButtonMap           button_map;
     JoystickAxisMap     joystick_axis_map;
+    HatPositions        hat_positions;
     Ptr<DataNode>       controls;
     AxisManips axismanips;
     EventFilters event_filters;
