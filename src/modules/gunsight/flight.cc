@@ -41,6 +41,27 @@ void FlexibleGunsight::addFlightModules(Ptr<IGame> game, FlightInfo &fi, Ptr<Dat
         new GearHookIndicator( game, controls),
         "screen", RIGHT | BOTTOM, RIGHT | BOTTOM,
         Vector(-5,-5,0));
+        
+    Ptr<ControlIndicator> ci;
+    ci = new ControlIndicator("stick", controls);
+    ci->axis_x = ControlIndicator::Axis("aileron", false, false);
+    ci->axis_y = ControlIndicator::Axis("elevator", true, false);
+    add(ci, "gear-hook", LEFT | TOP, LEFT | BOTTOM, 0, Vector2(6, -28));
+    
+    ci = new ControlIndicator("rudder", controls);
+    ci->axis_x = ControlIndicator::Axis("rudder", false, false);
+    ci->setHeight(16);
+    add(ci, "stick", LEFT | BOTTOM, LEFT | TOP, 0, Vector2(0, 6));
+    
+    ci = new ControlIndicator("throttle", controls);
+    ci->axis_y = ControlIndicator::Axis("throttle", true, true);
+    ci->setWidth(16);
+    add(ci, "stick", LEFT | TOP, RIGHT | TOP, 0, Vector2(-6, 0));
+
+    ci = new ControlIndicator("brake", controls);
+    ci->axis_y = ControlIndicator::Axis("brake", true, true);
+    ci->setWidth(16);
+    add(ci, "stick", RIGHT | TOP, LEFT | TOP, 0, Vector2(6, 0));
 }
 
 
@@ -352,7 +373,7 @@ void HorizonIndicator::drawIndicator(
 GearHookIndicator::GearHookIndicator(
 	Ptr<IGame> game,
 	Ptr<DataNode> controls)
-:	UI::Component("horizon-indicator",150,40),
+:	UI::Component("gear-hook",150,40),
     controls(controls),
 	fontman(game->getFontMan())
 {
@@ -387,5 +408,98 @@ void GearHookIndicator::draw(UI::Panel & gunsight) {
         fontman->setColor(Vector(0,0,1));
         fontman->print("Hook is UP");
     }
+}
+
+void ControlIndicator::draw(UI::Panel & gunsight) {
+    float x = 0, y = 0;
+    if (axis_x.enabled) {
+        x = controls->getFloat(axis_x.name);
+        if (!axis_x.nonnegative) {
+            x = 0.5*x + 0.5;
+        }
+        if (axis_x.invert) x = 1-x;
+        x = 1.5 + x*(getWidth()-3);
+    }
+    if (axis_y.enabled) {
+        y = controls->getFloat(axis_y.name);
+        if (!axis_y.nonnegative) {
+            y = 0.5*y + 0.5;
+        }
+        if (axis_y.invert) y = 1-y;
+        y = 1.5 + y*(getHeight()-3);
+    }
+    
+    UI::Surface surf = gunsight.getSurface();
+    surf.translateOrigin(offset[0],offset[1]);
+    
+    JRenderer *r = gunsight.getRenderer();
+    r->enableAlphaBlending();
+    r->pushMatrix();
+    r->multMatrix(surf.getMatrix());
+	
+    // draw the background
+    r->setColor(Vector(0,0,0));
+    r->setAlpha(0.5);
+    r->begin(JR_DRAWMODE_QUADS);
+    *r  << Vector(0,0,0)
+        << Vector(getWidth(),0,0)
+        << Vector(getWidth(),getHeight(),0)
+        << Vector(0, getHeight(),0);
+    r->end();
+	
+    // from now on, paint only in white with varying opacity
+    r->setColor(Vector(1,1,1));
+    
+    if (axis_x.enabled && axis_x.nonnegative) {
+        // Fill left half if nonnegative
+        r->setAlpha(0.25);
+        r->begin(JR_DRAWMODE_QUADS);
+        *r  << Vector(0,0,0)
+            << Vector(x,0,0)
+            << Vector(x, getHeight(),0)
+            << Vector(0, getHeight(),0);
+        r->end();
+    }
+        
+    if (axis_y.enabled && axis_y.nonnegative) {
+        // Fill bottom half if nonnegative
+        r->setAlpha(0.25);
+        r->begin(JR_DRAWMODE_QUADS);
+        *r  << Vector(0,y,0)
+            << Vector(getWidth(),y,0)
+            << Vector(getWidth(),getHeight(),0)
+            << Vector(0, getHeight(),0);
+        r->end();
+    }
+    
+    if (axis_x.enabled) {
+        // draw marker line
+        r->setAlpha(0.5);
+        r->begin(JR_DRAWMODE_LINES);
+        *r  << Vector(x,0,0) << Vector(x, getHeight()-1, 0);
+        r->end();
+    }
+
+    if (axis_y.enabled) {
+        // draw marker line
+        r->setAlpha(0.5);
+        r->begin(JR_DRAWMODE_LINES);
+        *r  << Vector(0,y,0) << Vector(getWidth()-1, y, 0);
+        r->end();
+    }
+    
+    // draw the frame.
+    r->setAlpha(1);
+    r->setColor(Vector(.4,.4,.4));
+    r->begin(JR_DRAWMODE_CONNECTED_LINES);
+    *r  << Vector(0.5,0.5,0)
+        << Vector(getWidth()-0.5,0.5,0)
+        << Vector(getWidth()-0.5,getHeight()-0.5,0)
+        << Vector(0.5, getHeight()-0.5,0)
+        << Vector(0.5,0.5,0);
+    r->end();
+    
+    r->popMatrix();
+    r->disableAlphaBlending();
 }
 

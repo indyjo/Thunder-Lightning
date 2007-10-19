@@ -69,5 +69,27 @@ public:
 	void draw(UI::Panel &);
 };
 
+class ControlIndicator : public UI::Component {
+    Ptr<DataNode> controls;
+public:
+    struct Axis {
+        std::string name;
+        bool enabled;
+        bool invert;
+        bool nonnegative;
+        
+        inline Axis() : enabled(false), invert(false), nonnegative(false) { }
+        inline Axis(const char *name, bool invert, bool nonneg)
+        : name(name), enabled(true), invert(invert), nonnegative(nonneg)
+        { }
+    } axis_x, axis_y;
+    
+    inline ControlIndicator(const char *name, Ptr<DataNode> controls)
+    : UI::Component(name, 100, 100)
+    ,controls(controls)
+    { }
+    
+    void draw(UI::Panel&);
+};
 
 #endif
