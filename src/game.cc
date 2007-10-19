@@ -169,6 +169,7 @@ void Game::startupSystem(Status & stat) {
     SDL_JoystickEventState(SDL_ENABLE);
     for(int i=0; i<SDL_NumJoysticks(); i++) {
         SDL_JoystickOpen(i);
+        ls_message("  Joystick %d: '%s'\n", i, SDL_JoystickName(i));
     }
     ls_message("done.\n");
 
