@@ -241,8 +241,7 @@ Matrix := Object clone do(
 vector := block(
   M := Matrix clone dim(call argCount, 1)
   values := call evalArgs
-  Lobby vals := values
-  //writeln("values: ", values)
+  
   M setList( values )
 ) setIsActivatable(true)
 
