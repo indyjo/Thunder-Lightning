@@ -1,34 +1,17 @@
 #include <algorithm>
 #include <sstream>
 #include <tnl.h>
+#include <AxisTransform.h>
 #include <remap.h>
 
-SelectAxisByActivityTransform::SelectAxisByActivityTransform(
-	float threshold, float init_value)
-:	threshold(threshold), value(init_value), init(true)
+AxisManipulator::AxisManipulator(Ptr<AxisTransform> transform, std::string out)
+:   output(out), transform(transform)
 { }
-	
-float SelectAxisByActivityTransform::operator() (std::vector<float> & inputs) {
-    if (inputs.size() != old_values.size()) {
-        init = true;
-    }
-    
-    if (init) {
-	    old_values = inputs;
-	    init = false;
-    } else {
-		for (int i=0; i<inputs.size(); ++i) {
-			if (std::abs(inputs[i]-old_values[i]) > threshold) {
-			    value = inputs[i];
-			    break;
-			}
-		}
-		old_values=inputs;
-	}
-    
-    return value;
-}
 
+AxisManipulator & AxisManipulator::input(std::string in) {
+    inputs.push_back(in);
+    return *this;
+}
 
 EventSheet::~EventSheet() {
     // Delete every ActionSignal instance from the out map

@@ -5,9 +5,11 @@ bin_PROGRAMS = tnl-bin
 tnl_bin_SOURCES = game.cc game.h tnl.h \
                         CEGUIEventFilter.cc CEGUIEventFilter.h \
                         Factory.h \
-                        initControls.cc \
                         object.cc object.h \
-                        util.h signals.h remap.h remap.cc \
+                        util.h \
+                        signals.h \
+                        initControls.cc \
+                        remap.h remap.cc \
                         sound.cc sound.h \
                         TargetInfo.h TargetInfo.cc \
                         voidptr.h \
@@ -20,7 +22,8 @@ tnl_bin_SOURCES = game.cc game.h tnl.h \
                         profile.h \
                         RenderContext.cc RenderContext.h \
                         RenderPass.cc RenderPass.h \
-                        SceneRenderPass.cc SceneRenderPass.h
+                        SceneRenderPass.cc SceneRenderPass.h \
+                        AxisTransform.cc AxisTransform.h
 tnl_libs = \
     modules/scripting/libscripting.a \
     modules/LoDTerrain/libLoDTerrain.a \

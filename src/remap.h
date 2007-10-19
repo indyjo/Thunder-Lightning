@@ -11,64 +11,16 @@
 #include <map>
 #include <string>
 
-struct AxisTransform : public Object {
-    virtual float operator() (std::vector<float> & inputs) = 0;
-};
+struct AxisTransform;
 
-class LinearAxisTransform : public AxisTransform {
-    float a,b;
-public:
-    LinearAxisTransform(float a=1.0f, float b=0.0f) : a(a), b(b) { }
-    virtual float operator() (std::vector<float> & inputs) { return a*inputs[0]+b; }
-};
-
-struct SumAxesTransform : public AxisTransform {
-    virtual float operator() (std::vector<float> & inputs) {
-        float out = 0.0f;
-        for(int i=0; i<inputs.size(); i++) out += inputs[i];
-        return out;
-    }
-};
-
-class ClampAxisTransform : public AxisTransform {
-    float a, b;
-public:
-    ClampAxisTransform(float a=-1.0f, float b=1.0f) : a(a), b(b) { }
-    virtual float operator() (std::vector<float> & inputs) {
-        return (inputs[0]<a)?a:((inputs[0]>b)?b:inputs[0]);
-    }
-};
-
-class SelectAxisByActivityTransform : public AxisTransform {
-	std::vector<float> old_values;
-	float threshold, value;
-	bool init;
-public:
-	SelectAxisByActivityTransform(float threshold = 0.0f, float init_value=0.0f);
-	virtual float operator() (std::vector<float> & inputs);
-};
-
-class SensitivityAxisTransform : public AxisTransform {
-    float s;
-public:
-    SensitivityAxisTransform(float s) : s(s) { }
-    virtual float operator() (std::vector<float> & inputs)
-    { return inputs[0] * pow(std::abs(inputs[0]), s); }
-};
-
+/// Connects an AxisTransform with named input axes and an output axis
 struct AxisManipulator {
     std::vector<std::string> inputs;
     std::string output;
     Ptr<AxisTransform> transform;
 
-    inline AxisManipulator(Ptr<AxisTransform> transform, std::string out)
-    :   output(out), transform(transform)
-    { }
-
-    inline AxisManipulator & input(std::string in) {
-        inputs.push_back(in);
-        return *this;
-    }
+    AxisManipulator(Ptr<AxisTransform> transform, std::string out);
+    AxisManipulator & input(std::string in);
 };
 
 /// A means for stacked event filtering.

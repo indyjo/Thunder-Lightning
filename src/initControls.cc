@@ -1,4 +1,5 @@
 #include <interfaces/IConfig.h>
+#include "AxisTransform.h"
 #include "game.h"
 
 namespace {
