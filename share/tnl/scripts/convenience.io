@@ -10,7 +10,6 @@ Config do(
     // to call the set(key, value) method.
     // This is very tricky, don't modify if you don't have to!
     configSetSlot := method(key, value,
-        "In setSlot!" println
         if (hasSlot(key), old_setSlot(key,value), set(key,value))
         write("Config: " .. key .. "=" .. value .. "\n")
         value
