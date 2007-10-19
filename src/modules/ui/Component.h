@@ -22,6 +22,9 @@ public:
     virtual float getWidth();
     virtual float getHeight();
     
+    inline void setWidth(float f) { width = f; }
+    inline void setHeight(float f) { height = f; }
+    
     inline const std::string & getName() const { return name; }
     
     /// Do the actual drawing. The default implementation draws nothing.
