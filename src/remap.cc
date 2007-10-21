@@ -301,8 +301,10 @@ void EventRemapper::joyAxisEvent(SDL_JoyAxisEvent & ev)
         value);
     */
 
-    JoystickAxisMap::iterator i = joystick_axis_map.find(jaxis);
-    if (i != joystick_axis_map.end()) {
+    typedef JoystickAxisMap::iterator Iter;
+    typedef std::pair<Iter,Iter> IterPair;
+    IterPair iters=joystick_axis_map.equal_range(jaxis);
+    for(Iter i=iters.first; i!= iters.second; ++i) {
         controls->setFloat(i->second, value);
     }
 }
@@ -355,7 +357,7 @@ void EventRemapper::buttonEvent(const Button & btn, bool pressed) {
 void EventRemapper::mapJoystickAxis(int js, int joyaxis,
         const char * axis)
 {
-    joystick_axis_map[ JoystickAxis(js, joyaxis) ] = axis;
+    joystick_axis_map.insert( std::make_pair(JoystickAxis(js, joyaxis), axis) );
 }
 
 void EventRemapper::mapRelativeMouseAxes(const char* x_axis, const char *y_axis) {

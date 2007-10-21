@@ -201,7 +201,7 @@ private:
     typedef int JoystickIndex;
     typedef int AxisIndex, HatIndex;
     typedef std::pair<JoystickIndex, AxisIndex>          JoystickAxis;
-    typedef std::map<JoystickAxis, std::string>          JoystickAxisMap;
+    typedef std::multimap<JoystickAxis, std::string>     JoystickAxisMap;
     
     typedef std::pair<JoystickIndex, HatIndex>           JoystickHat;
     typedef std::map<JoystickHat, Uint8>                 HatPositions;
