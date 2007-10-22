@@ -23,16 +23,16 @@ EventRemapper do(
   registerAction("+rudder_left", "Rudder left (aircraft)", "Rudder sharp left in aircraft. Causes nose to yaw left. Also steers front wheel.")
   registerAction("+rudder_right", "Rudder right (aircraft)", "Rudder sharp right in aircraft. Causes nose to yaw right. Also steers front wheel.")
 
-  registerAction("throttle0", "Throttle 0%", "Sets throttle to 0%")
-  registerAction("throttle1", "Throttle 11%", "Sets throttle to 11%")
-  registerAction("throttle2", "Throttle 22%", "Sets throttle to 22%")
-  registerAction("throttle3", "Throttle 33%", "Sets throttle to 33%")
-  registerAction("throttle4", "Throttle 44%", "Sets throttle to 44%")
-  registerAction("throttle5", "Throttle 55%", "Sets throttle to 55%")
-  registerAction("throttle6", "Throttle 66%", "Sets throttle to 66%")
-  registerAction("throttle7", "Throttle 77%", "Sets throttle to 77%")
-  registerAction("throttle8", "Throttle 88%", "Sets throttle to 88%")
-  registerAction("throttle9", "Throttle 100%", "Sets throttle to 100%")
+  registerAction("throttle0", "Throttle 0%", "Sets throttle to 0%.")
+  registerAction("throttle1", "Throttle 11%", "Sets throttle to 11%.")
+  registerAction("throttle2", "Throttle 22%", "Sets throttle to 22%.")
+  registerAction("throttle3", "Throttle 33%", "Sets throttle to 33%.")
+  registerAction("throttle4", "Throttle 44%", "Sets throttle to 44%.")
+  registerAction("throttle5", "Throttle 55%", "Sets throttle to 55%.")
+  registerAction("throttle6", "Throttle 66%", "Sets throttle to 66%.")
+  registerAction("throttle7", "Throttle 77%", "Sets throttle to 77%.")
+  registerAction("throttle8", "Throttle 88%", "Sets throttle to 88%.")
+  registerAction("throttle9", "Throttle 100%", "Sets throttle to 100%.")
   registerAction("increase-throttle", "Throttle: increase by 5%", "")
   registerAction("decrease-throttle", "Throttle: decrease by 5%", "")
 
@@ -60,7 +60,7 @@ EventRemapper do(
   registerAction("next-hostile-target", "Target next hostile", "Target next hostile radar contact.")
   registerAction("next-friendly-target", "Target next friendly", "Target next friendly radar contact.")
   registerAction("gunsight-target", "Target object in gunsight", "Target object closest to center of gunsight.")
-  registerAction("nearest-target", "Target nearest", "Target nearest radar contact")
+  registerAction("nearest-target", "Target nearest", "Target nearest radar contact.")
   
   registerAction("slower", "Time warp: slower", "Decelerate time, causing slow-motion.")
   registerAction("faster", "Time warp: faster", "Accelerate time, causing fast-forward.")
@@ -71,8 +71,19 @@ EventRemapper do(
   
   registerAction("+observer-dolly", "Observer: dolly", "While pressed, mouse movements affect observer forward/backward motion.")
   registerAction("+observer-pan", "Observer: pan", "While pressed, mouse movements cause observer left/right and up/down motion.")
-  registerAction("observer-stop", "Observer: stop", "Stop the observer immediately")
-    
+  registerAction("observer-stop", "Observer: stop", "Stop the observer immediately.")
+  
+  registerAxis("throttle", "Throttle", "Throttle for aircraft and the carrier.")
+  registerAxis("aileron", "Aileron", "Aircraft aileron. Controls the aircraft's roll speed.")
+  registerAxis("elevator", "Elevator", "Aircraft elevator. Controls the aircraft's pitch speed.")
+  registerAxis("rudder", "Rudder", "Aircraft rudder. Controls the aircraft's yaw speed.")
+  registerAxis("brake", "Brakes", "Aircraft brakes. Air brakes control speed of descent. Wheel brakes decelerate the aircraft on the ground.")
+  registerAxis("car_throttle", "Throttle (vehicle)", "Throttle for land-based vehicles.")
+  registerAxis("car_brake", "Brake (vehicle)", "Brake for land-based vehicles.")
+  registerAxis("car_steer", "Steering wheel (vehicle)", "Steering for land-based vehicles.")
+  registerAxis("turret_steer", "Azimuth (turret)", "Horizontal turret control on tanks and carrier.")
+  registerAxis("cannon_steer", "Elevation (turret)", "Vertical turret control on tanks and carrier.")
+
   mapKey(SDLK_ESCAPE, "mainmenu")
   mapKey(SDLK_TAB,  "switch-mfd")
 
