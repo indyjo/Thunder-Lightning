@@ -14,14 +14,35 @@
 #include "SettingsDlg.h"
 
 namespace {
-    class ButtonDetector : public IEventFilter, public SigC::Object
+    class Detector : public IEventFilter, public SigC::Object
     {
+    protected:
         float time_left;
+    public:
+        Detector()
+            : time_left(8)
+        { }
+
+        virtual bool feedEvent(SDL_Event & ev)=0;
+
+        void tick(float delta_t) {
+            if (time_left > 0) {
+                time_left -= delta_t;
+                if (time_left <= 0) {
+                    cancelled.emit();
+                }
+            }
+        }
+        
+        SigC::Signal0<void> cancelled;
+    };
+    
+    class ButtonDetector : public Detector
+    {
         EventRemapper::ButtonType type;
     public:
         ButtonDetector(EventRemapper::ButtonType t)
-            : time_left(8)
-            , type(t)
+            : type(t)
         { }
         
         virtual bool feedEvent(SDL_Event & ev) {
@@ -47,24 +68,51 @@ namespace {
             return false;
         }
         
-        void tick(float delta_t) {
-            if (time_left > 0) {
-                time_left -= delta_t;
-                if (time_left <= 0) {
-                    cancelled.emit();
-                }
-            }
-        }
-        
         SigC::Signal1<void, EventRemapper::Button> button_detected;
-        SigC::Signal0<void> cancelled;
-        
+
     private:
         void detect(EventRemapper::Button btn) {
             if ( btn.type == type ) {
                 button_detected.emit(btn);
             }
         }
+    };
+
+    class JoystickAxisDetector : public Detector
+    {
+        typedef EventRemapper::JoystickAxis     Axis;
+        typedef std::map<Axis, int>             Values;
+        typedef std::map<Axis, unsigned int>    Motions;
+        Values  last_values;
+        Motions motions;
+        
+    public:
+        virtual bool feedEvent(SDL_Event & ev) {
+            if (time_left <= 0) {
+                return false;
+            }
+            
+            if (ev.type == SDL_JOYAXISMOTION) {
+                Axis axis(ev.jaxis.which, ev.jaxis.axis);
+                int value = ev.jaxis.value;
+                if (last_values.find(axis) == last_values.end()) {
+                    // first time we hear from this axis
+                    last_values[axis] = value;
+                } else {
+                    // we already have a sample from last time, lets sum up the motion
+                    int motion = std::abs(value - last_values[axis]);
+                    if (motion + motions[axis] > 50000) {
+                        axis_detected.emit(axis);
+                    } else {
+                        motions[axis] += motion;
+                    }
+                }
+            }
+            
+            return false;
+        }
+        
+        SigC::Signal1<void, EventRemapper::JoystickAxis> axis_detected;
     };
 } // namespace
 
