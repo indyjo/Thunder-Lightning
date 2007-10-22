@@ -1,3 +1,13 @@
+File hasSlot("openForWriting") ifFalse(
+    File openForWriting := method(optPath,
+        optPath ifNonNil( setPath(optPath) )
+        if (exists,
+            truncateToSize(0)
+        )
+        openForAppending
+    )
+)
+
 Settings := Object clone do(
     filename := "config.io"
     controls_filename := "controls.io"
