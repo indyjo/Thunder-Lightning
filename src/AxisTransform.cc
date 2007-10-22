@@ -53,7 +53,6 @@ float JoystickAxisTransform::operator() (std::vector<float> & inputs) {
         } else {
             result = 1;
         }
-        ls_message("Joystick axis value %f converted to %f\n", in, result);
     }
     
     return result;
