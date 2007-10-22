@@ -51,7 +51,7 @@ Settings := Object clone do(
     )
 
     saveConfig := method(
-        file := File clone with(path) open
+        file := File clone openForWriting(path)
         
         file write("# This is where Thunder&Lightning saves its user settings.\n")
         file write("\n")
@@ -93,6 +93,7 @@ Settings := Object clone do(
         ) else (
             ("Loading user settings from file: " .. controls_path) println
             EventRemapper clearButtonMappings
+            EventRemapper clearJoystickAxisMappings
             EventRemapper doFile(controls_path)
         )
         
@@ -100,7 +101,7 @@ Settings := Object clone do(
     )
     
     saveControls := method(
-        file := File clone with(controls_path) open
+        file := File clone openForWriting(controls_path)
         
         file write("# This is where Thunder&Lightning saves its controls configuration.\n\n")
         
@@ -114,6 +115,16 @@ Settings := Object clone do(
                 ) elseif (button type == "JOYSTICK_BUTTON") then(
                     file write("mapJoystickButton(#{button device}, #{button button}, \"#{name}\")\n" interpolate)
                 )
+            )
+        )
+        
+        EventRemapper registeredAxes foreach(axis,
+            // We have to query for "+js_axis" and "-js_axis"
+            EventRemapper joystickAxesForAxis("+js_" .. axis) foreach(joyaxis,
+                file write("mapJoystickAxis(#{joyaxis joystick}, #{joyaxis axis}, \"+js_#{axis}\")\n" interpolate)
+            )
+            EventRemapper joystickAxesForAxis("-js_" .. axis) foreach(joyaxis,
+                file write("mapJoystickAxis(#{joyaxis joystick}, #{joyaxis axis}, \"-js_#{axis}\")\n" interpolate)
             )
         )
         
