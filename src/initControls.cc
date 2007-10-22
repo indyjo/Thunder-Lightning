@@ -153,8 +153,5 @@ void Game::initControls()
     r->addAxisWithDefaultHandling("car_steer", false);
     r->addAxisWithDefaultHandling("turret_steer", false);
     r->addAxisWithDefaultHandling("cannon_steer", false);
-    r->addAxisWithDefaultHandling("tank_turret_steer", false);
-    r->addAxisWithDefaultHandling("tank_cannon_steer", false);
-
 }
 

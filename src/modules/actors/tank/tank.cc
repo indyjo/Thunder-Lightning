@@ -168,8 +168,8 @@ void Tank::action() {
     	tank_controls->setSteer(remap->getAxis("car_steer"));
     	tank_controls->setThrottle(remap->getAxis("car_throttle"));
     	tank_controls->setBrake(remap->getAxis("car_brake"));
-    	tank_controls->setTurretSteer(remap->getAxis("tank_turret_steer"));
-    	tank_controls->setCannonSteer(remap->getAxis("tank_cannon_steer"));
+    	tank_controls->setTurretSteer(remap->getAxis("turret_steer"));
+    	tank_controls->setCannonSteer(remap->getAxis("cannon_steer"));
     }
 
     SimpleActor::action();

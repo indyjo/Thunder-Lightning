@@ -116,8 +116,8 @@ void Carrier::action() {
         case CARRIER:
             break;
         case MAIN_TURRET:
-            controls->setFloat("main_turret_steer_x", remap->getAxis("tank_turret_steer"));
-            controls->setFloat("main_turret_steer_y", remap->getAxis("tank_cannon_steer"));
+            controls->setFloat("main_turret_steer_x", remap->getAxis("turret_steer"));
+            controls->setFloat("main_turret_steer_y", remap->getAxis("cannon_steer"));
             break;
         }
     }
