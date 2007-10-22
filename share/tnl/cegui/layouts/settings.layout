@@ -93,7 +93,7 @@
             <Window Type="TaharezLook/StaticText" Name="settingsWnd/videoLabel1" >
                 <Property Name="Font" Value="Commonwealth-10" />
                 <Property Name="Text" Value="Video settings take effect the next time the game is started." />
-                <Property Name="TextColours" Value="tl:FFFFFF80 tr:FFFFFF80 bl:FFFFFF80 br:FFFFFF80" />
+                <Property Name="TextColours" Value="tl:FFFFFFA0 tr:FFFFFFA0 bl:FFFFFFA0 br:FFFFFFA0" />
                 <Property Name="FrameEnabled" Value="False" />
                 <Property Name="InheritsAlpha" Value="False" />
                 <Property Name="HorzFormatting" Value="WordWrapCentred" />
@@ -230,6 +230,86 @@
             <Property Name="UnifiedAreaRect" Value="{{0.343236,0},{0.401667,0},{0.65924,0},{0.610001,0}}" />
         </Window>
         <Window Type="TaharezLook/StaticText" Name="waitForJoystick" >
+            <Property Name="Font" Value="Commonwealth-10" />
+            <Property Name="Text" Value="Press joystick button to configure or wait 8 seconds to cancel." />
+            <Property Name="Visible" Value="False" />
+            <Property Name="TextColours" Value="tl:FF00FF00 tr:FF00FF00 bl:FF00FF00 br:FF00FF00" />
+            <Property Name="HorzFormatting" Value="WordWrapCentred" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.343236,0},{0.401667,0},{0.65924,0},{0.610001,0}}" />
+        </Window>
+        <Window Type="TaharezLook/FrameWindow" Name="axesWnd" >
+            <Property Name="Font" Value="Commonwealth-10" />
+            <Property Name="Text" Value="Customize Joystick Axes" />
+            <Property Name="Visible" Value="False" />
+            <Property Name="TitlebarFont" Value="Commonwealth-10" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="TitlebarEnabled" Value="True" />
+            <Property Name="UnifiedAreaRect" Value="{{0.4975,-220},{0.498333,-220},{0.4975,220},{0.498333,220}}" />
+            <Window Type="TaharezLook/Button" Name="axesWnd/okButton" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="OK" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.426257,0},{0.906028,0},{0.592744,0},{0.987078,0}}" />
+            </Window>
+            <Window Type="TaharezLook/MultiColumnList" Name="axesWnd/axesList" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0425,0},{0.173333,0},{0.957501,0},{0.586667,0}}" />
+            </Window>
+            <Window Type="TaharezLook/StaticText" Name="axesWnd/label" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Control axes:" />
+                <Property Name="FrameEnabled" Value="False" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0425,0},{0.0933336,0},{0.57375,0},{0.168334,0}}" />
+                <Property Name="BackgroundEnabled" Value="False" />
+            </Window>
+            <Window Type="TaharezLook/Button" Name="axesWnd/resetBtn" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Reset to defaults" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.566248,0},{0.076667,0},{0.957501,0},{0.155,0}}" />
+            </Window>
+            <Window Type="TaharezLook/StaticText" Name="axesWnd/label2" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Joystick axis:" />
+                <Property Name="FrameEnabled" Value="False" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0425,0},{0.726667,0},{0.258749,0},{0.801667,0}}" />
+                <Property Name="BackgroundEnabled" Value="False" />
+            </Window>
+            <Window Type="TaharezLook/StaticText" Name="axesWnd/descriptionLabel" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="This is were a description text for the selected control is displayed. The text may span up to two lines." />
+                <Property Name="TextColours" Value="tl:FFFFFFA0 tr:FFFFFFA0 bl:FFFFFFA0 br:FFFFFFA0" />
+                <Property Name="FrameEnabled" Value="False" />
+                <Property Name="HorzFormatting" Value="WordWrapLeftAligned" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="VertFormatting" Value="TopAligned" />
+                <Property Name="UnifiedAreaRect" Value="{{0.0425,0},{0.60411,0},{0.956142,0},{0.714841,0}}" />
+                <Property Name="BackgroundEnabled" Value="False" />
+            </Window>
+            <Window Type="TaharezLook/Button" Name="axesWnd/joystickAxis" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="&lt;none&gt;" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.255,0},{0.726667,0},{0.763752,0},{0.806667,0}}" />
+            </Window>
+            <Window Type="TaharezLook/Button" Name="axesWnd/clearJoystickAxis" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Clear" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.772498,0},{0.726667,0},{0.955001,0},{0.806667,0}}" />
+            </Window>
+            <Window Type="TaharezLook/Checkbox" Name="axesWnd/invertAxisCheckbox" >
+                <Property Name="Font" Value="Commonwealth-10" />
+                <Property Name="Text" Value="Invert this axis" />
+                <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                <Property Name="UnifiedAreaRect" Value="{{0.25375,0},{0.811666,0},{0.953749,0},{0.88,0}}" />
+            </Window>
+        </Window>
+        <Window Type="TaharezLook/StaticText" Name="waitForJoystickAxis" >
             <Property Name="Font" Value="Commonwealth-10" />
             <Property Name="Text" Value="Press joystick button to configure or wait 8 seconds to cancel." />
             <Property Name="Visible" Value="False" />
