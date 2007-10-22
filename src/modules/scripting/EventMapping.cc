@@ -29,8 +29,11 @@ namespace {
                 {"trigger", triggerAction},
                 {"actions", actions},
                 {"clearButtonMappings", clearButtonMappings},
+                {"clearJoystickAxisMappings", clearJoystickAxisMappings},
                 {"registerAction", registerAction},
                 {"registerAxis", registerAxis},
+                {"registeredAxes", getRegisteredAxes},
+                {"joystickAxesForAxis", getJoystickAxesForAxis},
 				{NULL, NULL}
 			};
 			IoObject *self = IoObject_new(state);
@@ -173,6 +176,7 @@ namespace {
         }
         
         VOID_FUNC(clearButtonMappings)
+        VOID_FUNC(clearJoystickAxisMappings)
 
         static IoObject * registerAction
 		(IoObject *self, IoObject *locals, IoMessage *m) {
@@ -196,6 +200,42 @@ namespace {
 			getObject(self)->axis_dict[name] = EventRemapper::DictionaryEntry(
 			    friendly_name, description);
 			return self;
+		}
+		
+        static IoObject *getRegisteredAxes(IoObject *self, IoObject*locals, IoObject*m) {
+            BEGIN_FUNC("EventRemapper.registeredAxes")
+            
+            IoList* axes_list = IoList_new(IOSTATE);
+            
+            typedef EventRemapper::Dictionary Dict;
+            Dict & dict = getObject(self)->axis_dict;
+            
+            for(Dict::iterator i=dict.begin(); i!= dict.end(); ++i) {
+                IoList_rawAppend_(axes_list, IOSYMBOL(i->first.c_str()));
+            }
+            
+            return axes_list;
+        }
+
+		static IoObject * getJoystickAxesForAxis
+		(IoObject *self, IoObject *locals, IoMessage *m) {
+			BEGIN_FUNC("EventRemapper.joystickAxesForAxis")
+			IOASSERT(IoMessage_argCount(m) == 1,"Expected 1 argument")
+			std::string name = IoMessage_locals_cStringArgAt_(m, locals, 0);
+			
+			typedef std::vector<EventRemapper::JoystickAxis> Axes;
+			Axes axes = getObject(self)->getJoystickAxesForAxis(name.c_str());
+			
+			IoList* axes_list = IoList_new(IOSTATE);
+			
+			for(Axes::iterator i = axes.begin(); i!=axes.end(); ++i) {
+			    IoObject * joyaxis = IoObject_new(IOSTATE);
+			    IoObject_setSlot_to_(joyaxis, IOSYMBOL("joystick"), IONUMBER(i->first));
+			    IoObject_setSlot_to_(joyaxis, IOSYMBOL("axis"), IONUMBER(i->second));
+			    IoList_rawAppend_(axes_list, joyaxis);
+			}
+			
+			return axes_list;
 		}
 	};
 }
