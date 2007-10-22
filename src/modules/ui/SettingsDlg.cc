@@ -156,17 +156,26 @@ namespace UI {
             modes++;
         }
         
-        // back button handler
+        // back button and close handler
         settings_wnd->getChild("settingsWnd/backBtn")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
+            CEGUI::SubscriberSlot(&SettingsDlg::back, this));
+        settings_wnd->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
             CEGUI::SubscriberSlot(&SettingsDlg::back, this));
         
         // configure buttons and keys handler
         settings_wnd->getChild("settingsWnd/customizeEventsBtn")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
             CEGUI::SubscriberSlot(&SettingsDlg::customizeButtons, this));
+        settings_wnd->getChild("settingsWnd/customizeJoystickBtn")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::SubscriberSlot(&SettingsDlg::customizeAxes, this));
 
 
+        ////////////////////////////////////////////////////////////////////
+        // Buttons configuration window
+        ////////////////////////////////////////////////////////////////////
         buttons_wnd = root->getChild("eventsWnd");
         events_list = (CEGUI::MultiColumnList *)
             buttons_wnd->getChild("eventsWnd/eventsList");
@@ -213,14 +222,63 @@ namespace UI {
             CEGUI::PushButton::EventClicked,
             CEGUI::SubscriberSlot(&SettingsDlg::configureButton, this));
             
-        // react on "OK" button
+        // react on "OK" and close button
         buttons_wnd->getChild("eventsWnd/okButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
             CEGUI::SubscriberSlot(&SettingsDlg::buttonsCustomized, this));
+        buttons_wnd->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::SubscriberSlot(&SettingsDlg::buttonsCustomized, this));
 
+        ////////////////////////////////////////////////////////////////////
+        // Joystick axis window
+        ////////////////////////////////////////////////////////////////////
+        axes_wnd = root->getChild("axesWnd");
+        axes_list = (CEGUI::MultiColumnList *)
+            axes_wnd->getChild("axesWnd/axesList");
+        axes_list->setShowHorzScrollbar(false);
+        axes_list->setSelectionMode(CEGUI::MultiColumnList::RowSingle);
+        axes_list->subscribeEvent(
+            CEGUI::MultiColumnList::EventSelectionChanged,
+            CEGUI::SubscriberSlot(&SettingsDlg::axisSelected, this));
+
+        axis_description_label =
+            axes_wnd->getChild("axesWnd/descriptionLabel");
+        
+        joystick_axis_button = (CEGUI::PushButton *)
+            axes_wnd->getChild("axesWnd/joystickAxis");
+        joystick_axis_clear_button = (CEGUI::PushButton *)
+            axes_wnd->getChild("axesWnd/clearJoystickAxis");
+        joystick_axis_inverted_checkbox = (CEGUI::Checkbox *)
+            axes_wnd->getChild("axesWnd/invertAxisCheckbox");
+
+        // react on "clear" button
+        joystick_axis_clear_button->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::SubscriberSlot(&SettingsDlg::clearAxis, this));
+        // react on "configure" button
+        joystick_axis_button->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::SubscriberSlot(&SettingsDlg::configureAxis, this));
+        // react on "invert this axis" toggle
+        joystick_axis_inverted_checkbox->subscribeEvent(
+            CEGUI::Checkbox::EventCheckStateChanged,
+            CEGUI::SubscriberSlot(&SettingsDlg::toggleInvertAxis, this));
+        // react on "OK" and close button
+        axes_wnd->getChild("axesWnd/okButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::SubscriberSlot(&SettingsDlg::axesCustomized, this));
+        axes_wnd->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::SubscriberSlot(&SettingsDlg::axesCustomized, this));
+
+        ////////////////////////////////////////////////////////////////////
+        // Wait for ... windows
+        ////////////////////////////////////////////////////////////////////
         wait_for_keyboard_key_wnd = root->getChild("waitForKeyboard");
         wait_for_mouse_button_wnd = root->getChild("waitForMouse");
         wait_for_joystick_button_wnd = root->getChild("waitForJoystick");
+        wait_for_joystick_axis_wnd = root->getChild("waitForJoystickAxis");
         
         CEGUI::System::getSingleton().setGUISheet(root);
 
@@ -327,12 +385,116 @@ namespace UI {
         detector->button_detected.connect( SigC::slot(
             *this, &SettingsDlg::buttonDetected));
         detector->cancelled.connect( SigC::slot(
-            *this, &SettingsDlg::buttonDetectionCancelled));
+            *this, &SettingsDlg::detectionCancelled));
         remapper->pushEventFilter(detector);
         
         return true;
     }
     
+    bool SettingsDlg::customizeAxes(const CEGUI::EventArgs &) {
+        axes_wnd->setVisible(true);
+        axes_wnd->setModalState(true);
+        loadAxes();
+        // Select the first item just to be sure
+        if (axes_list->getRowCount() > 0) {
+            axes_list->setItemSelectState(
+                axes_list->getItemAtGridReference(CEGUI::MCLGridRef(0,0)),
+                true);
+        }
+        return true;
+    }
+
+    bool SettingsDlg::axesCustomized(const CEGUI::EventArgs &) {
+        axes_wnd->setVisible(false);
+        axes_wnd->setModalState(false);
+        return true;
+    }
+
+    bool SettingsDlg::axisSelected(const CEGUI::EventArgs &) {
+        loadJoystickAxis();
+        return true;
+    }
+
+    bool SettingsDlg::clearAxis(const CEGUI::EventArgs & args) {
+        // If no axis selected, we're done
+        if (0 == axes_list->getSelectedCount()) {
+            return true;
+        }
+        
+        // Get name of selected axis
+        CEGUI::ListboxItem * item = axes_list->getFirstSelectedItem();
+        const char *axis = item->getText().c_str();
+
+        // Unmap all joystick axes mapped to that axis
+        remapper->unmapJoystickAxes((std::string("+js_")+axis).c_str());
+        remapper->unmapJoystickAxes((std::string("-js_")+axis).c_str());
+        
+        // Update
+        loadJoystickAxis();
+        
+        return true;
+    }
+
+    bool SettingsDlg::configureAxis(const CEGUI::EventArgs & args) {
+        wait_for_joystick_axis_wnd->setVisible(true);
+        wait_for_joystick_axis_wnd->activate();
+
+        Ptr<JoystickAxisDetector> detector = new JoystickAxisDetector;
+        
+        tick.connect(SigC::slot(
+            *detector, &JoystickAxisDetector::tick));
+        detector->axis_detected.connect( SigC::slot(
+            *this, &SettingsDlg::axisDetected));
+        detector->cancelled.connect( SigC::slot(
+            *this, &SettingsDlg::detectionCancelled));
+        remapper->pushEventFilter(detector);
+        
+        return true;
+    }
+
+    bool SettingsDlg::toggleInvertAxis(const CEGUI::EventArgs & args) {
+        // If no axis selected, we're done
+        if (0 == axes_list->getSelectedCount()) {
+            return true;
+        }
+        
+        // Get name of selected axis
+        CEGUI::ListboxItem * item = axes_list->getFirstSelectedItem();
+        std::string axis = item->getText().c_str();
+
+        // Save axis mapping
+        std::vector<EventRemapper::JoystickAxis> joystick_axes =
+            remapper->getJoystickAxesForAxis(("+js_"+axis).c_str());
+        if (joystick_axes.empty()) {
+            joystick_axes = remapper->getJoystickAxesForAxis(("-js_"+axis).c_str());
+        }
+        
+        if (joystick_axes.empty()) {
+            // shouldn't happen, but let's play safe
+            ls_warning("SettingsDlg: No joystick axis mapped to axis '%s'\n", axis.c_str());
+            return true;
+        }
+        EventRemapper::JoystickAxis joyaxis = joystick_axes.front();
+        
+        // Unmap all joystick axes mapped to that axis
+        remapper->unmapJoystickAxes(("+js_"+axis).c_str());
+        remapper->unmapJoystickAxes(("-js_"+axis).c_str());
+        
+        // Remap, depending on checked state of "invert this axis" checkbox
+        if (joystick_axis_inverted_checkbox->isSelected()) {
+            remapper->mapJoystickAxis(joyaxis.first, joyaxis.second,
+                                      ("-js_"+axis).c_str());
+        } else {
+            remapper->mapJoystickAxis(joyaxis.first, joyaxis.second,
+                                      ("+js_"+axis).c_str());
+        }
+        
+        // Update
+        loadJoystickAxis();
+        
+        return true;
+    }
+
     void SettingsDlg::onFrame() {
         float delta_t = 0;
         Ptr<IGame> thegame = main_gui.getGame();
@@ -429,6 +591,7 @@ namespace UI {
         }
 
         events_list->setSortColumnByID(1);
+        events_list->setSortDirection(CEGUI::ListHeaderSegment::None);
         events_list->setSortDirection(CEGUI::ListHeaderSegment::Descending);
     }
     
@@ -474,6 +637,94 @@ namespace UI {
         }
     }
     
+    void SettingsDlg::loadAxes() {
+        axes_list->resetList();
+        axes_list->addColumn("id", 0, CEGUI::UDim(0.4,0));
+        axes_list->addColumn("Name", 1, CEGUI::UDim(0.6,0));
+        
+        typedef EventRemapper::Dictionary Dict;
+        Dict dict = remapper->axis_dict;
+        
+        for (Dict::iterator i=dict.begin(); i!=dict.end(); ++i) {
+            std::string id = i->first;
+            std::string name = i->second.first;
+            
+            unsigned int row_idx = axes_list->addRow();
+            
+            CEGUI::ListboxTextItem* item;
+            
+            item = new CEGUI::ListboxTextItem(id);
+            item->setSelectionBrushImage("TaharezLook", "MultiListSelectionBrush"); 
+            axes_list->setItem(item, 0, row_idx);
+
+            item = new CEGUI::ListboxTextItem(name);
+            item->setSelectionBrushImage("TaharezLook", "MultiListSelectionBrush"); 
+            axes_list->setItem(item, 1, row_idx);
+        }
+        
+        axes_list->setSortColumnByID(1);
+        axes_list->setSortDirection(CEGUI::ListHeaderSegment::None);
+        axes_list->setSortDirection(CEGUI::ListHeaderSegment::Descending);
+    }
+    
+    void SettingsDlg::loadJoystickAxis() {
+        joystick_axis_button->setText("click to configure");
+        event_description_label->setText("");
+        joystick_axis_inverted_checkbox->setEnabled(false);
+
+        // If no event selected, we're done
+        if (0 == axes_list->getSelectedCount()) {
+            return;
+        }
+        
+        // Load joystick axes mapped to selected axis
+        CEGUI::ListboxItem * item = axes_list->getFirstSelectedItem();
+        
+        // First look for non-inverted ("+") axes
+        typedef std::vector<EventRemapper::JoystickAxis> JoystickAxes;
+        JoystickAxes joystick_axes = remapper->getJoystickAxesForAxis(
+            (std::string("+js_") + item->getText()).c_str());
+        
+        bool axis_configured = false;
+        EventRemapper::JoystickAxis configured_axis;
+        
+        if (!joystick_axes.empty()) {
+            joystick_axis_inverted_checkbox->setEnabled(true);
+            joystick_axis_inverted_checkbox->setSelected(false);
+            configured_axis = joystick_axes.front();
+            axis_configured = true;
+        }
+        
+        /// now check for inverted axes
+        joystick_axes = remapper->getJoystickAxesForAxis(
+            (std::string("-js_") + item->getText()).c_str());
+
+        if (!joystick_axes.empty()) {
+            joystick_axis_inverted_checkbox->setEnabled(true);
+            joystick_axis_inverted_checkbox->setSelected(true);
+            configured_axis = joystick_axes.front();
+            axis_configured = true;
+        }
+        
+        if (axis_configured) {
+            char buf[128];
+            // pretty-print the joystick axis
+            if (configured_axis.first == 0) {
+                sprintf(buf, "Axis %d", configured_axis.second+1);
+            } else {
+                sprintf(buf, "Joystick %d axis %d", configured_axis.first+1, configured_axis.second+1);
+            }
+            joystick_axis_button->setText(buf);
+        }
+        
+        // Load the axe's description from the remapper's dictionary
+        typedef EventRemapper::Dictionary::iterator Iter;
+        Iter dict_entry = remapper->axis_dict.find(item->getText().c_str());
+        if (dict_entry != remapper->axis_dict.end()) {
+            axis_description_label->setText(dict_entry->second.second);
+        }
+    }
+    
     void SettingsDlg::buttonDetected(EventRemapper::Button btn) {
         wait_for_keyboard_key_wnd->setVisible(false);
         wait_for_mouse_button_wnd->setVisible(false);
@@ -496,10 +747,34 @@ namespace UI {
         loadButtons();
     }
     
-    void SettingsDlg::buttonDetectionCancelled() {
+    void SettingsDlg::axisDetected(EventRemapper::JoystickAxis joyaxis) {
+        wait_for_joystick_axis_wnd->setVisible(false);
+        
+        remapper->popEventFilter();
+        
+        // If no axis selected, we're done
+        if (0 == axes_list->getSelectedCount()) {
+            return;
+        }
+        
+        // Get name of selected axis
+        CEGUI::ListboxItem * item = axes_list->getFirstSelectedItem();
+        const char *axis = item->getText().c_str();
+        ls_message("SettingsDlg: detected for '%s': stick %d axis %d\n", 
+            axis, joyaxis.first, joyaxis.second);
+        
+        remapper->unmapJoystickAxes((std::string("+js_")+axis).c_str());
+        remapper->unmapJoystickAxes((std::string("-js_")+axis).c_str());
+        remapper->mapJoystickAxis(joyaxis.first, joyaxis.second, (std::string("+js_")+axis).c_str());
+        
+        loadJoystickAxis();
+    }
+    
+    void SettingsDlg::detectionCancelled() {
         wait_for_keyboard_key_wnd->setVisible(false);
         wait_for_mouse_button_wnd->setVisible(false);
         wait_for_joystick_button_wnd->setVisible(false);
+        wait_for_joystick_axis_wnd->setVisible(false);
         remapper->popEventFilter();
     }
     
