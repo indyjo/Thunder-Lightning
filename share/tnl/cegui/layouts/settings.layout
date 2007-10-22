@@ -311,7 +311,7 @@
         </Window>
         <Window Type="TaharezLook/StaticText" Name="waitForJoystickAxis" >
             <Property Name="Font" Value="Commonwealth-10" />
-            <Property Name="Text" Value="Press joystick button to configure or wait 8 seconds to cancel." />
+            <Property Name="Text" Value="Move joystick axis to configure or wait 8 seconds to cancel." />
             <Property Name="Visible" Value="False" />
             <Property Name="TextColours" Value="tl:FF00FF00 tr:FF00FF00 bl:FF00FF00 br:FF00FF00" />
             <Property Name="HorzFormatting" Value="WordWrapCentred" />
