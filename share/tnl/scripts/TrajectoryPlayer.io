@@ -1,4 +1,3 @@
-"Again" println
 TrajectoryPlayer := Object clone do(
     file := nil
     is_running := false
