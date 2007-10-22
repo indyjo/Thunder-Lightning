@@ -428,9 +428,6 @@ void Game::teardownSimulation(Status & stat) {
     stat.beginJob("Clearing event remapper");
     event_remapper->removeEventSheet(event_sheet);
     event_sheet = 0;
-    event_remapper->clearButtonMappings();
-    event_remapper->clearEventFilters();
-    event_remapper->clearAxisManipulators();
     stat.nextJob("Removing Io scripting manager (simulation)");
     io_scripting_manager = 0;
     stat.nextJob("Removing actors from scene");

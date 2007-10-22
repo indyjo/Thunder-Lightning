@@ -15,6 +15,11 @@ void Game::initControls()
 {
     Ptr<EventRemapper> r = getEventRemapper();
     
+    r->clearButtonMappings();
+    r->clearJoystickAxisMappings();
+    r->clearEventFilters();
+    r->clearAxisManipulators();
+
     event_sheet->map("mainmenu", SigC::slot(*this, & Game::mainMenu));
     event_sheet->map("debug", SigC::slot(*this, & Game::toggleDebugMode));
 
