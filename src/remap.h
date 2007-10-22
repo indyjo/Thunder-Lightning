@@ -85,6 +85,10 @@ public:
         std::string getFriendlyName() const;
     };
 
+    typedef int JoystickIndex;
+    typedef int AxisIndex, HatIndex;
+    typedef std::pair<JoystickIndex, AxisIndex>          JoystickAxis;
+
     ///////////////////////////////////////////////////////////////////////
 
     EventRemapper();
@@ -92,6 +96,8 @@ public:
     
     /// Resets every button mapping to the initial state
     void clearButtonMappings();
+    /// Resets all joystick axis mappings
+    void clearJoystickAxisMappings();
     /// Removes all registered event filters
     void clearEventFilters();
     /// Removes all axis manipulators
@@ -123,6 +129,9 @@ public:
     
     /// Queries which buttons are mapped to a specific action
     std::vector<Button> getButtonsForAction(const char *action);
+    
+    /// Queries which joystick axes are mapped to a specific named axis
+    std::vector<JoystickAxis> getJoystickAxesForAxis(const char *axis);
 
     ///////////////////////////////////////////////////////////////////////
     // Mapping functions
@@ -139,6 +148,7 @@ public:
     void unmapButtonsOfType(ButtonType, const char *action);
     
     void mapJoystickAxis(int js, int joyaxis, const char * axis);
+    void unmapJoystickAxes(const char * axis);
     void mapRelativeMouseAxes(const char* x_axis, const char *y_axis);
     void mapAbsoluteMouseAxes(const char* x_axis, const char *y_axis);
     void addAxisManipulator(AxisManipulator & manip);
@@ -198,9 +208,6 @@ private:
 
     typedef std::multimap<Button, std::string>           ButtonMap;
  
-    typedef int JoystickIndex;
-    typedef int AxisIndex, HatIndex;
-    typedef std::pair<JoystickIndex, AxisIndex>          JoystickAxis;
     typedef std::multimap<JoystickAxis, std::string>     JoystickAxisMap;
     
     typedef std::pair<JoystickIndex, HatIndex>           JoystickHat;

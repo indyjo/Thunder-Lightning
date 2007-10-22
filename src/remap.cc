@@ -119,6 +119,10 @@ void EventRemapper::clearAxisManipulators() {
     axismanips.clear();
 }
 
+void EventRemapper::clearJoystickAxisMappings() {
+    joystick_axis_map.clear();
+}
+
 std::vector<std::string> EventRemapper::getActions() {
     typedef std::vector<std::string> Actions;
     Actions actions;
@@ -144,6 +148,18 @@ std::vector<EventRemapper::Button> EventRemapper::getButtonsForAction(const char
     
     std::sort(buttons.begin(), buttons.end());
     return buttons;
+}
+
+std::vector<EventRemapper::JoystickAxis> EventRemapper::getJoystickAxesForAxis(const char *axis) {
+    std::vector<JoystickAxis> axes;
+    
+    for(JoystickAxisMap::iterator i=joystick_axis_map.begin(); i!=joystick_axis_map.end(); ++i) {
+        if (i->second == axis) {
+            axes.push_back(i->first);
+        }
+    }
+    
+    return axes;
 }
 
 void EventRemapper::mapButton(const EventRemapper::Button& btn, const char *action) {
@@ -305,7 +321,11 @@ void EventRemapper::joyAxisEvent(SDL_JoyAxisEvent & ev)
     typedef std::pair<Iter,Iter> IterPair;
     IterPair iters=joystick_axis_map.equal_range(jaxis);
     for(Iter i=iters.first; i!= iters.second; ++i) {
-        controls->setFloat(i->second, value);
+        float val = value;
+        if (i->second[0] == '-') {
+            val = -val;
+        }
+        controls->setFloat(i->second.substr(1), val);
     }
 }
 
@@ -357,7 +377,26 @@ void EventRemapper::buttonEvent(const Button & btn, bool pressed) {
 void EventRemapper::mapJoystickAxis(int js, int joyaxis,
         const char * axis)
 {
-    joystick_axis_map.insert( std::make_pair(JoystickAxis(js, joyaxis), axis) );
+    ls_message("EventRemapper: Joystick %d axis %d mapped to %s.\n", js, joyaxis, axis);
+    if (axis[0] != '+' && axis[0] != '-') {
+        std::string plus_axis = std::string("+") + axis;
+        joystick_axis_map.insert( std::make_pair(JoystickAxis(js, joyaxis), plus_axis) );
+    } else {
+        joystick_axis_map.insert( std::make_pair(JoystickAxis(js, joyaxis), axis) );    
+    }
+}
+
+void EventRemapper::unmapJoystickAxes(const char *axis) {
+    JoystickAxisMap::iterator i=joystick_axis_map.begin();
+    while (i!=joystick_axis_map.end()) {
+        if (i->second == axis) {
+            // increment and erase
+            joystick_axis_map.erase( i++ );
+        } else {
+            // just increment
+            ++i;
+        }
+    }
 }
 
 void EventRemapper::mapRelativeMouseAxes(const char* x_axis, const char *y_axis) {
