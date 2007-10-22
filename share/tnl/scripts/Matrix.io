@@ -317,7 +317,7 @@ matrix := method(
 )
 
 Matrix benchmark := method(
-  ntests := 10000
+  ntests := 2500
   "Benchmarking Matrix" println
   a := list
   b := list
@@ -341,7 +341,39 @@ Matrix benchmark := method(
   a foreach(i,v, v dotProduct(b at(i)))
   t1 := Date now asNumber
   avg := (t1-t0)/ntests
-  "  dot() performance in #{ntests} tests: #{(1/avg) asString(0,2)}/s (#{avg*1000}ms avg)" interpolate println
+  "  Sequence dotProduct performance in #{ntests} tests: #{(1/avg) asString(0,2)}/s (#{avg*1000}ms avg)" interpolate println
+  
+  a := list
+  ntests repeat(
+    a append(matrix(Random value, Random value, Random value; Random value, Random value, Random value; Random value, Random value, Random value))
+  )
+  t0 := Date now asNumber
+  a foreach(transpose)
+  t1 := Date now asNumber
+  avg := (t1-t0)/ntests
+  "  transpose() performance in #{ntests} tests: #{(1/avg) asString(0,2)}/s (#{avg*1000}ms avg)" interpolate println
+
+  a := list
+  ntests repeat(
+    a append(matrix(Random value, Random value, Random value; Random value, Random value, Random value; Random value, Random value, Random value))
+  )
+  t0 := Date now asNumber
+  a foreach(transposeInPlace)
+  t1 := Date now asNumber
+  avg := (t1-t0)/ntests
+  "  transposeInPlace() performance in #{ntests} tests: #{(1/avg) asString(0,2)}/s (#{avg*1000}ms avg)" interpolate println
+
+  a := list
+  b := list
+  ntests repeat(
+    a append(matrix(Random value, Random value, Random value; Random value, Random value, Random value; Random value, Random value, Random value))
+    b append(matrix(Random value, Random value, Random value; Random value, Random value, Random value; Random value, Random value, Random value))
+  )
+  t0 := Date now asNumber
+  a foreach(i,v, v matMult(b at(i)))
+  t1 := Date now asNumber
+  avg := (t1-t0)/ntests
+  "  matMult() performance in #{ntests} tests: #{(1/avg) asString(0,2)}/s (#{avg*1000}ms avg)" interpolate println
 
 )
 
