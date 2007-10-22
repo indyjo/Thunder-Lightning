@@ -24,12 +24,14 @@ namespace UI {
         bool eventSelected(const CEGUI::EventArgs &);
         bool clearButton(const CEGUI::EventArgs &);
         bool configureButton(const CEGUI::EventArgs &);
+        bool restoreDefaultButtons(const CEGUI::EventArgs &);
         bool customizeAxes(const CEGUI::EventArgs &);
         bool axesCustomized(const CEGUI::EventArgs &);
         bool axisSelected(const CEGUI::EventArgs &);
         bool clearAxis(const CEGUI::EventArgs &);
         bool configureAxis(const CEGUI::EventArgs &);
         bool toggleInvertAxis(const CEGUI::EventArgs &);
+        bool restoreDefaultAxes(const CEGUI::EventArgs &);
         
         // called by game's post_frame signal
         void onFrame();
@@ -69,6 +71,7 @@ namespace UI {
         CEGUI::Combobox *resolutions_combo;
         CEGUI::Checkbox *shaders_enabled_checkbox;
         CEGUI::MultiColumnList *events_list;
+        CEGUI::PushButton *reset_buttons_to_defaults_button;
         CEGUI::PushButton *keyboard_key_button;
         CEGUI::PushButton *keyboard_clear_button;
         CEGUI::PushButton *mouse_button_button;
@@ -78,6 +81,7 @@ namespace UI {
         CEGUI::Window *event_description_label;
         CEGUI::MultiColumnList *axes_list;
         CEGUI::Window *axis_description_label;
+        CEGUI::PushButton *reset_axes_to_defaults_button;
         CEGUI::PushButton *joystick_axis_button;
         CEGUI::PushButton *joystick_axis_clear_button;
         CEGUI::Checkbox *joystick_axis_inverted_checkbox;

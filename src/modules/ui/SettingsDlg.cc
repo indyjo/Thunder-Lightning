@@ -185,6 +185,8 @@ namespace UI {
             CEGUI::MultiColumnList::EventSelectionChanged,
             CEGUI::SubscriberSlot(&SettingsDlg::eventSelected, this));
 
+        reset_buttons_to_defaults_button = (CEGUI::PushButton *)
+            buttons_wnd->getChild("eventsWnd/resetButton");
         keyboard_key_button = (CEGUI::PushButton *)
             buttons_wnd->getChild("eventsWnd/keyboardButton");
         keyboard_clear_button = (CEGUI::PushButton *)
@@ -199,6 +201,11 @@ namespace UI {
             buttons_wnd->getChild("eventsWnd/clearMouse");
         
         event_description_label = buttons_wnd->getChild("eventsWnd/descriptionLabel");
+            
+        // react on "restore defaults" button
+        reset_buttons_to_defaults_button->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::SubscriberSlot(&SettingsDlg::restoreDefaultButtons, this));
             
         // react on "clear" buttons
         keyboard_clear_button->subscribeEvent(
@@ -245,6 +252,8 @@ namespace UI {
         axis_description_label =
             axes_wnd->getChild("axesWnd/descriptionLabel");
         
+        reset_axes_to_defaults_button = (CEGUI::PushButton *)
+            axes_wnd->getChild("axesWnd/resetBtn");
         joystick_axis_button = (CEGUI::PushButton *)
             axes_wnd->getChild("axesWnd/joystickAxis");
         joystick_axis_clear_button = (CEGUI::PushButton *)
@@ -252,6 +261,10 @@ namespace UI {
         joystick_axis_inverted_checkbox = (CEGUI::Checkbox *)
             axes_wnd->getChild("axesWnd/invertAxisCheckbox");
 
+        // react on "restore defaults" button
+        reset_axes_to_defaults_button->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::SubscriberSlot(&SettingsDlg::restoreDefaultAxes, this));
         // react on "clear" button
         joystick_axis_clear_button->subscribeEvent(
             CEGUI::PushButton::EventClicked,
@@ -391,6 +404,18 @@ namespace UI {
         return true;
     }
     
+    bool SettingsDlg::restoreDefaultButtons(const CEGUI::EventArgs &) {
+        Ptr<IGame> thegame = main_gui.getGame();
+        if (thegame) {
+            remapper->clearButtonMappings();
+            
+            IoState *state=thegame->getIoScriptingManager()->getMainState();
+            IoState_doCString_(state, "EventRemapper loadDefaultButtons");
+            
+            loadEvents();
+        }
+    }
+    
     bool SettingsDlg::customizeAxes(const CEGUI::EventArgs &) {
         axes_wnd->setVisible(true);
         axes_wnd->setModalState(true);
@@ -495,6 +520,18 @@ namespace UI {
         return true;
     }
 
+    bool SettingsDlg::restoreDefaultAxes(const CEGUI::EventArgs &) {
+        Ptr<IGame> thegame = main_gui.getGame();
+        if (thegame) {
+            remapper->clearJoystickAxisMappings();
+            
+            IoState *state=thegame->getIoScriptingManager()->getMainState();
+            IoState_doCString_(state, "EventRemapper loadDefaultAxes");
+            
+            loadAxes();
+        }
+    }
+    
     void SettingsDlg::onFrame() {
         float delta_t = 0;
         Ptr<IGame> thegame = main_gui.getGame();
