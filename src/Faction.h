@@ -6,6 +6,8 @@
 #include <tnl.h>
 #include "Weak.h"
 
+class RadarNet;
+
 class Faction : public Object, public Weak {
 public:
     static const struct BasicFactions {
@@ -16,8 +18,7 @@ public:
     } basic_factions;
     enum Attitude { FRIENDLY, NEUTRAL, HOSTILE };
 
-    inline Faction(const char * name="<unnamed faction>")
-    : default_attitude(NEUTRAL), name(name), color(1,1,1) { }
+    Faction(const char * name="<unnamed faction>");
     ~Faction();
 
     inline void setName(const std::string & name) { this->name = name; }
@@ -31,12 +32,17 @@ public:
     
     void setColor(const Vector &);
     const Vector& getColor();
+    
+    Ptr<RadarNet> getRadarNet();
+    
+    Faction & operator=(const Faction &);
 
 private:
     std::string name;
     Attitude default_attitude;
     std::map<WeakPtr<Faction>, Attitude> attitudes;
     Vector color;
+    Ptr<RadarNet> radarnet;
 };
 
 

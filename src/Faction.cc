@@ -1,3 +1,4 @@
+#include <modules/weaponsys/RadarNet.h>
 #include "Faction.h"
 
 Faction::BasicFactions::BasicFactions() {
@@ -32,6 +33,14 @@ Faction::BasicFactions::BasicFactions() {
 
 const Faction::BasicFactions Faction::basic_factions;
 
+Faction::Faction(const char * name)
+    : default_attitude(NEUTRAL)
+    , name(name)
+    , color(1,1,1)
+    , radarnet( new RadarNet )
+{
+}
+
 Faction::~Faction() {
 }
 
@@ -61,3 +70,15 @@ Faction::Attitude Faction::getAttitudeTowards(WeakPtr<Faction> f) {
 
 void Faction::setColor(const Vector & c) { color = c; }
 const Vector& Faction::getColor() { return color; }
+
+Ptr<RadarNet> Faction::getRadarNet() { return radarnet; }
+
+Faction & Faction::operator=(const Faction & other) {
+    name = other.name;
+    default_attitude = other.default_attitude;
+    attitudes = other.attitudes;
+    color = other.color;
+    radarnet = new RadarNet;
+    return *this;
+}
+
