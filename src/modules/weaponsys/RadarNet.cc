@@ -12,13 +12,16 @@ std::set<RadarNet*> RadarNet::radar_nets;
 
 RadarNet::Enumerator::Enumerator(Ptr<RadarNet> rn) {
     radarnet = rn;
-    iter = radarnet->all_contacts.begin();
+    iter = radarnet->all_contacts.end();
+    toBegin();
+}
+
+RadarNet::Enumerator::Enumerator(Ptr<RadarNet> rn, RadarNet::ContactsIter i) {
+    radarnet = rn;
+    iter = i;
     if (!atEnd()) {
         actor = (*iter)->actor.lock();
         ++(*iter)->usecount;
-        if (!actor || isZombie()) {
-            next();
-        }
     }
 }
 
@@ -33,26 +36,29 @@ RadarNet::Enumerator::~Enumerator() {
     if (!atEnd()) --(*iter)->usecount;
 }
 
-void RadarNet::Enumerator::next() {
+void RadarNet::Enumerator::next(bool backward) {
     do {
-        advance();
+        advance(backward);
     } while ( (!actor || isZombie()) && !atEnd() );
 }
 
-void RadarNet::Enumerator::cycle() {
+void RadarNet::Enumerator::cycle(bool backward) {
     Enumerator old = *this;
-    next();
+    next(backward);
     if (atEnd()) {
-        toBegin();
+        toBegin(backward);
     }
     while ( !atEnd() && !(actor = (*iter)->actor.lock()) ) {
-        advance();
+        advance(backward);
     }
 }
 
 bool RadarNet::Enumerator::atEnd() const { return iter == radarnet->all_contacts.end(); }
-Ptr<IActor> RadarNet::Enumerator::getActor() const { return actor; }
+Ptr<IActor> RadarNet::Enumerator::getActor() const { return (isValid() && actor->isAlive())?actor:Ptr<IActor>(); }
+Ptr<IActor> RadarNet::Enumerator::getActorRaw() const { return actor; }
+bool RadarNet::Enumerator::isValid() const { return !atEnd() && !isZombie() && actor; }
 bool RadarNet::Enumerator::isVerified() const { return (*iter)->state == Contact::VERIFIED; }
+bool RadarNet::Enumerator::isLost() const { return (*iter)->state == Contact::LOST; }
 bool RadarNet::Enumerator::isZombie() const { return (*iter)->state == Contact::ZOMBIE; }
 float RadarNet::Enumerator::ageOfInformation() const { return (*iter)->age; }
 Vector RadarNet::Enumerator::lastKnownPosition() const { return (*iter)->position; }
@@ -62,13 +68,27 @@ bool RadarNet::Enumerator::operator ==(const RadarNet::Enumerator & other) {
 bool RadarNet::Enumerator::operator !=(const RadarNet::Enumerator & other) {
     return other.iter != iter;
 }
-//const Enumerator & operator =(const Enumerator &);
+const RadarNet::Enumerator & RadarNet::Enumerator::operator =(const RadarNet::Enumerator & other) {
+    radarnet = other.radarnet;
+    iter = other.iter;
+    actor = other.actor;
+    if (!atEnd()) ++(*iter)->usecount;
+    return *this;
+}
 
-void RadarNet::Enumerator::advance() {
+void RadarNet::Enumerator::advance(bool backward) {
     if (atEnd()) return;
     
     --(*iter)->usecount;
-    ++iter;
+    if (backward) {
+        if (iter == radarnet->all_contacts.begin()) {
+            iter = radarnet->all_contacts.end();
+        } else {
+            --iter;
+        }
+    } else {
+        ++iter;
+    }
     if (atEnd()) {
         actor = 0;
     } else {
@@ -77,19 +97,31 @@ void RadarNet::Enumerator::advance() {
     }
 }
 
-void RadarNet::Enumerator::toBegin() {
+void RadarNet::Enumerator::toBegin(bool backward) {
     if (!atEnd()) --(*iter)->usecount;
-    iter = radarnet->all_contacts.begin();
-    if (atEnd()) {
+    if ( radarnet->all_contacts.empty() ) {
+        iter = radarnet->all_contacts.end();
         actor = 0;
+        return;
+    }
+    if (backward) {
+        iter = --radarnet->all_contacts.end();
     } else {
-        actor = (*iter)->actor.lock();
-        ++(*iter)->usecount;
-        if (!actor || isZombie()) {
-            next();
-        }
+        iter = radarnet->all_contacts.begin();
+    }
+    
+    actor = (*iter)->actor.lock();
+    ++(*iter)->usecount;
+    if (!actor || isZombie()) {
+        next(backward);
     }
 }
+
+void RadarNet::Enumerator::toEnd() {
+    if (!atEnd()) --(*iter)->usecount;
+    actor = 0;
+    iter = radarnet->all_contacts.end();
+}   
 
 RadarNet::RadarNet() {
     all_iter = all_contacts.begin();
@@ -105,6 +137,15 @@ void RadarNet::updateAllRadarNets(float delta_t) {
     typedef std::set<RadarNet*>::iterator Iter;
     for(Iter i= radar_nets.begin(); i!= radar_nets.end(); ++i) {
         (*i)->update(delta_t);
+    }
+}
+
+RadarNet::Enumerator RadarNet::getEnumeratorForActor(Ptr<IActor> actor) {
+    ContactsByActor::iterator i = contacts_by_actor.find(actor);
+    if (i == contacts_by_actor.end()) {
+        return Enumerator(this, all_contacts.end());
+    } else {
+        return Enumerator(this, i->second->all_iter);
     }
 }
 

@@ -40,6 +40,13 @@ private:
         enum State {ZOMBIE,VERIFIED,LOST} state;
     };
 public:
+    /// Represents an iterator into the contacts list. While iterating, Enumerator
+    /// will always skip over zombie contacts (long-lost contacts not yet erased
+    /// from the list). However, the currently pointed-to contact may become
+    /// zombie during the lifetime of the enumerator. It is therefore advised
+    /// to check for contact validity using isValid() before acessing contacts
+    /// from long-lived enumerators.
+    /// Enumerator supports stepping through the list in both directions.
     class Enumerator {
         Ptr<RadarNet> radarnet;
         Ptr<IActor>   actor;
@@ -48,33 +55,50 @@ public:
     public:
         /// Called by RadarNet::getEnumerator()
         Enumerator(Ptr<RadarNet> rn);
+        Enumerator(Ptr<RadarNet> rn, ContactsIter);
         Enumerator(const Enumerator&);
         ~Enumerator();
     
-        /// Advances the iterator to the next valid position or to the end
-        void next();
+        /// Advances the iterator to the next or previous valid position or to the end
+        void next(bool backward=false);
         
         /// Like next(), but will wrap around the end, repeating endlessly.
         /// Will stop at the end if the list is empty.
-        void cycle();
+        void cycle(bool backward=false);
         
         bool atEnd() const;
+        
+        /// Returns the contact's actor if valid and 0 otherwise
         Ptr<IActor> getActor() const;
+        /// Returns the contact's actor regardless of validity.
+        Ptr<IActor> getActorRaw() const;
+        
+        /// Returns whether the enumerator points to a valid position (not end)
+        /// and asserts that the target is not zombie.
+        bool isValid() const;
         bool isVerified() const;
+        bool isLost() const;
+        bool isZombie() const;
         float ageOfInformation() const;
         Vector lastKnownPosition() const;
+        
         bool operator ==(const Enumerator & other);
         bool operator !=(const Enumerator & other);
         const Enumerator & operator =(const Enumerator &);
+
+        void toBegin(bool backward=false);
+        void toEnd();
     private:
-        bool isZombie() const;
-        void advance();
-        void toBegin();
+        void advance(bool backward);
     };
     friend class Enumerator;
     
     /// Returns an enumerator to the beginning of the all_contacts list
     inline Enumerator getEnumerator() { return Enumerator(this); }
+    /// Returns an enumerator for the given actor. It has to be checked afterwards
+    /// whether the returned Enumerator is valid.
+    /// @see Enumerator::isValid
+    Enumerator getEnumeratorForActor(Ptr<IActor>);
     
     /// Accepts a possible contact. The RadarNet will then decide whether the
     /// contact needs a LOS test and, if yes, call the witnesses
