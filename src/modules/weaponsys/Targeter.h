@@ -21,7 +21,7 @@ public:
 	inline void setRadarNet(Ptr<RadarNet> rn) { radarnet = rn; }
 	
 	Ptr<IActor> getCurrentTarget();
-	inline void setCurrentTarget(Ptr<IActor> target) { current = target; }
+	void setCurrentTarget(Ptr<IActor> target);
 	
 	void selectNextTarget();
 	void selectPreviousTarget();
@@ -56,10 +56,10 @@ protected:
 
 	IActor & self;
 	IActorStage & stage;
-	Ptr<IActor> current;
 	float max_range;
 	Ptr<ITerrain> terrain;
 	Ptr<RadarNet> radarnet;
+	RadarNet::Enumerator current;
 	float time_since_scan;
 };
 

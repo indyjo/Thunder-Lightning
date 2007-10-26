@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <Faction.h>
 #include <TargetInfo.h>
+#include "RadarNet.h"
 #include "Targeter.h"
 
 using namespace std;
@@ -11,29 +12,29 @@ Targeter::Targeter(Ptr<ITerrain> terrain, IActorStage &stage, IActor &self)
 	max_range(10000),
 	terrain(terrain),
 	radarnet(new RadarNet),
-	time_since_scan(0)
+	time_since_scan(0),
+	current(radarnet->getEnumerator())
 {
+    current.toEnd();
 }
 
 void Targeter::setMaxRange(float r) {
 	max_range=r;
 }
 
+void Targeter::setCurrentTarget(Ptr<IActor> target) {
+    current = radarnet->getEnumeratorForActor(target);
+}
+
 Ptr<IActor> Targeter::getCurrentTarget() {
-	if (current&& !current->isAlive())
-		current=0;
-	return current;
+	return current.getActor();
 }
 
 void Targeter::selectNextTarget() {
-	vector<Ptr<IActor> > actors;
-	listTargets(actors);
-	selectNextFrom(actors);
+	current.cycle();
 }
 void Targeter::selectPreviousTarget() {
-	vector<Ptr<IActor> > actors;
-	listTargets(actors);
-	selectPreviousFrom(actors);
+    current.cycle(true);
 }
 
 void Targeter::selectNextHostileTarget() {
@@ -89,7 +90,7 @@ void Targeter::selectTargetNearVector(const Vector & pos, const Vector & dir) {
 }
 
 void Targeter::clearCurrentTarget() {
-	current = 0;
+	current.toEnd();
 }
 
 namespace {
@@ -190,21 +191,31 @@ bool Targeter::hasLineOfSightTo(Ptr<IActor> target) {
 }
 
 void Targeter::selectNextFrom(vector<Ptr<IActor> > & actors) {
+	Ptr<IActor> target = current.getActor();
 	vector<Ptr<IActor> >::iterator i=
-		current?find(actors.begin(), actors.end(), current)
+		target?find(actors.begin(), actors.end(), target)
 		       :actors.end();
 	if (i==actors.end()) i=actors.begin();
 	else ++i;
-	current = (i==actors.end())?Ptr<IActor>():*i;
+	if (i == actors.end()) {
+	    current.toEnd();
+	} else {
+	    current = radarnet->getEnumeratorForActor(*i);
+	}
 }
 
 void Targeter::selectPreviousFrom(vector<Ptr<IActor> > & actors) {
+	Ptr<IActor> target = current.getActor();
 	vector<Ptr<IActor> >::iterator i=
-		current?find(actors.begin(), actors.end(), current)
+		target?find(actors.begin(), actors.end(), target)
 		       :actors.end();
 	if (i!=actors.begin()) --i;
 	else if (i!=actors.end()) i=actors.end()-1;
-	current = (i==actors.end())?Ptr<IActor>():*i;
+	if (i == actors.end()) {
+	    current.toEnd();
+	} else {
+	    current = radarnet->getEnumeratorForActor(*i);
+	}
 }
 
 namespace {
@@ -219,12 +230,12 @@ namespace {
 }
 void Targeter::selectNearestFrom(vector<Ptr<IActor> > & actors) {
 	if(actors.empty()) {
-		current=0;
+		current.toEnd();
 		return;
 	}
-	current=*min_element(
-		actors.begin(),actors.end(),
-		NearerTo(self.getLocation()));
+	current= radarnet->getEnumeratorForActor(
+	    *min_element( actors.begin(),actors.end(),
+                      NearerTo(self.getLocation())));
 }
 
 
@@ -240,11 +251,11 @@ namespace {
 }
 void Targeter::selectTargetNearVectorFrom(const Vector& pos, const Vector& dir, vector<Ptr<IActor> > & actors) {
 	if(actors.empty()) {
-		current=0;
+		current.toEnd();
 		return;
 	}
-	current=*max_element(
-		actors.begin(),actors.end(),
-		MoreInFrontOf(pos,dir));
+	current= radarnet->getEnumeratorForActor(
+	    *max_element( actors.begin(),actors.end(),
+                      MoreInFrontOf(pos,dir)));
 }
 
