@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <tnl.h>
-#include <Weak.h>
 #include <TargetInfo.h>
 #include <Faction.h>
 #include <modules/engines/engine.h>
@@ -20,7 +19,7 @@ class Targeter;
 class EventSheet;
 class SimpleView;
 
-class SimpleActor : virtual public IActor, virtual public Weak, virtual public SigObject
+class SimpleActor : virtual public IActor, virtual public SigObject
 {
 protected:
     Ptr<IGame> thegame;

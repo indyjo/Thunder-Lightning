@@ -6,6 +6,7 @@
 #include <interfaces/IDrawable.h>
 #include <interfaces/IMovementProvider.h>
 #include <interfaces/IMovementReceiver.h>
+#include <Weak.h>
 
 class Faction;
 class TargetInfo;
@@ -14,7 +15,8 @@ struct IProjectile;
 
 struct IActor:   virtual public IDrawable,
               	 virtual public IMovementProvider,
-              	 virtual public IMovementReceiver
+              	 virtual public IMovementReceiver,
+                 virtual public Weak
 {
 public:
     typedef enum {ALIVE, DEAD} State;
