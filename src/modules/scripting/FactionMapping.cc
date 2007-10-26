@@ -46,9 +46,12 @@ namespace {
 	
 		static IoObject * create(Ptr<Faction> faction, IoState *state) 
 		{
-			IoObject *child = IOCLONE(
+            IoState_pushCollectorPause(state);
+			IoObject *child = IoObject_rawClone(
 				IoState_protoWithInitFunction_(state, proto));
 			retarget(child, ptr(faction));
+            IoState_addValueIfNecessary_(state, child);
+            IoState_popCollectorPause(state);
 			return child;
 		}
 			
