@@ -9,7 +9,9 @@ Targeter::Targeter(Ptr<ITerrain> terrain, IActorStage &stage, IActor &self)
 :	self(self),
 	stage(stage),
 	max_range(10000),
-	terrain(terrain)
+	terrain(terrain),
+	radarnet(new RadarNet),
+	time_since_scan(0)
 {
 }
 
@@ -120,10 +122,10 @@ struct not_hostile {
 } // namespace
 	
 void Targeter::listTargets(vector<Ptr<IActor> > & actors) {
-	stage.queryActorsInCylinder(
-		actors,
-		self.getLocation(),
-		max_range<0?1e15:max_range);
+    typedef RadarNet::Enumerator Enum;
+    for( Enum e = radarnet->getEnumerator(); !e.atEnd(); e.next()) {
+        if (e.getActor()) actors.push_back(e.getActor());
+    }
     vector<Ptr<IActor> >::iterator i = 
     	find(actors.begin(), actors.end(), Ptr<IActor>(&self));
 	if (i!=actors.end()) actors.erase(i);
@@ -132,10 +134,10 @@ void Targeter::listTargets(vector<Ptr<IActor> > & actors) {
 }
 
 void Targeter::listHostileTargets(vector<Ptr<IActor> > & actors) {
-	stage.queryActorsInCylinder(
-		actors,
-		self.getLocation(),
-		max_range<0?1e15:max_range);
+    typedef RadarNet::Enumerator Enum;
+    for( Enum e = radarnet->getEnumerator(); !e.atEnd(); e.next()) {
+        if (e.getActor()) actors.push_back(e.getActor());
+    }
     vector<Ptr<IActor> >::iterator i = 
     	find(actors.begin(), actors.end(), Ptr<IActor>(&self));
 	if (i!=actors.end()) actors.erase(i);
@@ -147,10 +149,10 @@ void Targeter::listHostileTargets(vector<Ptr<IActor> > & actors) {
 }
 
 void Targeter::listFriendlyTargets(vector<Ptr<IActor> > & actors) {
-	stage.queryActorsInCylinder(
-		actors,
-		self.getLocation(),
-		max_range<0?1e15:max_range);
+    typedef RadarNet::Enumerator Enum;
+    for( Enum e = radarnet->getEnumerator(); !e.atEnd(); e.next()) {
+        if (e.getActor()) actors.push_back(e.getActor());
+    }
     vector<Ptr<IActor> >::iterator i = 
     	find(actors.begin(), actors.end(), Ptr<IActor>(&self));
 	if (i!=actors.end()) actors.erase(i);
@@ -161,9 +163,30 @@ void Targeter::listFriendlyTargets(vector<Ptr<IActor> > & actors) {
 	              - actors.begin());
 }
 
+void Targeter::update(float delta_t) {
+    radarnet->reportSelf(this);
+    
+    time_since_scan += delta_t;
+    const float TIME_TO_SCAN = 2.0f;
+    if (time_since_scan > TIME_TO_SCAN) {
+        typedef std::vector<Ptr<IActor> > Actors;
+        Actors actors;
+	    stage.queryActorsInSphere(
+		    actors,
+		    self.getLocation(),
+		    max_range<0?1e15:max_range);
+		for(Actors::iterator i=actors.begin(); i!= actors.end(); ++i) {
+		    if (invalid(*i)) continue;
+		    radarnet->reportPossibleContact(*i, this);
+		}
+		    
+        time_since_scan -= TIME_TO_SCAN;
+    }
+}
+
 bool Targeter::hasLineOfSightTo(Ptr<IActor> target) {
     Vector x;
-    return terrain->lineCollides(self.getLocation(), target->getLocation(), &x);
+    return !terrain->lineCollides(self.getLocation(), target->getLocation(), &x);
 }
 
 void Targeter::selectNextFrom(vector<Ptr<IActor> > & actors) {

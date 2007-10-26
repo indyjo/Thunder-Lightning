@@ -5,8 +5,9 @@
 #include <interfaces/IActor.h>
 #include <interfaces/IActorStage.h>
 #include <interfaces/ITerrain.h>
+#include "RadarNet.h"
 
-class Targeter : public SigObject {
+class Targeter : public SigObject, public Weak {
 public:
 	Targeter(Ptr<ITerrain>, IActorStage &, IActor &);
 	
@@ -15,6 +16,9 @@ public:
 	//void setTargetFilter(TargetFilter
 	
 	inline IActor & getSubjectActor() { return self; }
+	
+	inline Ptr<RadarNet> getRadarNet() { return radarnet; }
+	inline void setRadarNet(Ptr<RadarNet> rn) { radarnet = rn; }
 	
 	Ptr<IActor> getCurrentTarget();
 	inline void setCurrentTarget(Ptr<IActor> target) { current = target; }
@@ -41,6 +45,8 @@ public:
 	void listHostileTargets(std::vector<Ptr<IActor> > & actors);
 	void listFriendlyTargets(std::vector<Ptr<IActor> > & actors);
 	
+	void update(float delta_t);
+	
 	bool hasLineOfSightTo(Ptr<IActor>);
 protected:
 	void selectNextFrom(std::vector<Ptr<IActor> > & actors);
@@ -53,6 +59,8 @@ protected:
 	Ptr<IActor> current;
 	float max_range;
 	Ptr<ITerrain> terrain;
+	Ptr<RadarNet> radarnet;
+	float time_since_scan;
 };
 
 #endif
