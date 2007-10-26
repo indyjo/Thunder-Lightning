@@ -70,6 +70,7 @@ Ptr<Armament> SimpleActor::getArmament() { return armament; }
 
 void SimpleActor::setTargeter(Ptr<Targeter> targeter) {
     this->targeter = targeter;
+    targeter->setRadarNet(getFaction()->getRadarNet());
 }
 
 Ptr<Targeter> SimpleActor::getTargeter() { return targeter; }
@@ -118,7 +119,12 @@ void SimpleActor::onSelectTargetInView(IView * view) {
 // IActor
 Ptr<TargetInfo> SimpleActor::getTargetInfo() { return target_info; }
 Ptr<Faction> SimpleActor::getFaction() { return faction; }
-void SimpleActor::setFaction(Ptr<Faction> fac) { faction = fac; }
+void SimpleActor::setFaction(Ptr<Faction> fac) {
+    faction = fac;
+    if (targeter) {
+        targeter->setRadarNet(fac->getRadarNet());
+    }
+}
 
 void SimpleActor::action() {
     engine->run();
@@ -128,6 +134,10 @@ void SimpleActor::action() {
     
     if (armament) {
         armament->action(thegame->getClock()->getFrameDelta());
+    }
+    
+    if (targeter) {
+        targeter->update(thegame->getClock()->getStepDelta());
     }
 }
 void SimpleActor::kill() {
