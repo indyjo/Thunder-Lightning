@@ -28,6 +28,7 @@
 #include <modules/ui/PanelRenderPass.h>
 #include <modules/scripting/IoScriptingManager.h>
 #include <modules/scripting/mappings.h>
+#include <modules/weaponsys/RadarNet.h>
 #include <modules/actors/Observer.h>
 #include <modules/config/config.h>
 #include <SceneRenderPass.h>
@@ -671,6 +672,7 @@ void Game::updateSimulation()
         collisionman->run(this, clock->getStepDelta());
         cleanupActors();
         setupActors();
+        RadarNet::updateAllRadarNets(clock->getStepDelta());
         
         if (SDL_GetTicks() - t0 >= MAX_MS_FOR_SIMULATION) {
             break;
