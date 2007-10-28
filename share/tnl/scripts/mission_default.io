@@ -184,6 +184,8 @@ startup := method(
     wingman1 command_queue appendCommand(
         Command Takeoff clone with(carrier))
     wingman1 command_queue appendCommand(
+        Command Goto clone with(tank1 location2, 1000))
+    wingman1 command_queue appendCommand(
         Command Attack clone with(tank1))
     wingman1 command_queue appendCommand(
         Command Attack clone with(tank2))
@@ -213,11 +215,7 @@ startup := method(
     drone1 command_queue appendCommand(
         Command Takeoff clone with(evil_carrier))
     drone1 command_queue appendCommand(
-        Command Attack clone with(wingman1))
-    drone1 command_queue appendCommand(
-        Command Attack clone with(wingman2))
-    drone1 command_queue appendCommand(
-        Command Goto clone with(evil_carrier location2, 2000))
+        Command Patrol clone with(tank1 location2, 5000))
     drone1 command_queue appendCommand(
         Command Land clone with(evil_carrier))
 
