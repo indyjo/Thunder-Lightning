@@ -33,7 +33,7 @@ void SmokeColumn::SmokePuff::action(IGame *game,
         const PuffParams & params)
 {
     p += v * time_passed;
-    v += (params.wind_vector - v) * params.wind_influence * time_passed;
+    v += (params.gravity + (params.wind_vector - v) * params.wind_influence) * time_passed;
     age += time_passed;
 }
 

@@ -114,6 +114,30 @@ void aircraftFinalExplosion(Ptr<IGame> game, Ptr<IActor> aircraft) {
         }
     }
 
+    /// Some debris
+    {
+        SmokeColumn::Params params;
+        params.interval=0.001;
+        params.ttl=0.1;
+        SmokeColumn::PuffParams puffparams;
+        puffparams.start_size=0.4f;
+        puffparams.end_size=0.4f;
+        puffparams.color = Interpolator<float, Vector>()
+            .node(0,Vector(0,0,0));
+        puffparams.ttl=Interval(2,5);
+        puffparams.pos_deviation=2.5;
+        puffparams.direction_vector= aircraft->getMovementVector();
+        puffparams.direction_deviation=20;
+        puffparams.fadein= 0.05;
+        puffparams.fadeout= 2;
+        puffparams.wind_influence = 1;
+        puffparams.wind_vector = Vector(0,0,0);
+        puffparams.gravity = Vector(0,-9.81,0);
+
+        Ptr<SmokeColumn> smoke =
+               new SmokeColumn(game, aircraft->getLocation(), params, puffparams);
+        game->addActor(smoke);
+    }
 }
 
 
@@ -124,4 +148,58 @@ void tankFirstExplosion(Ptr<IGame> game, Ptr<IActor> tank) {
 void tankFinalExplosion(Ptr<IGame> game, Ptr<IActor> tank) {
     aircraftFinalExplosion(game, tank);
 }
+
+void tankCannonFire(Ptr<IGame> game, Vector pos, Vector dir) {
+    SmokeColumn::Params params;
+    params.interval=0.005;
+    params.ttl=0.2;
+    SmokeColumn::PuffParams puffparams;
+    puffparams.start_size=1.0f;
+    puffparams.end_size=2.0f;
+    puffparams.color = Interpolator<float, Vector>()
+        .node(0,   Vector(255,249,184)/255)
+        .node(0.5,Vector(212,104, 80)/255)
+        .node(0.6,Vector(0.2,0.2,0.3))
+        .node(1.00,Vector(.7,.7,.7));
+    puffparams.ttl=Interval(0.5,1.2);
+    puffparams.pos_deviation=0.4;
+    puffparams.direction_vector= Vector(dir).normalize() * 40;
+    puffparams.direction_deviation=20;
+    puffparams.fadein= 0.05;
+    puffparams.fadeout= 0.4;
+    puffparams.wind_influence = 10;
+    puffparams.wind_vector = Vector(0,2,0);
+
+    Ptr<SmokeColumn> smoke =
+           new SmokeColumn(game, pos, params, puffparams);
+    game->addActor(smoke);
+}
+
+void tankMachineGunFire(Ptr<IGame> game, Vector pos, Vector dir) {
+    SmokeColumn::Params params;
+    params.interval=0.01;
+    params.ttl=0.1;
+    SmokeColumn::PuffParams puffparams;
+    puffparams.start_size=0.3f;
+    puffparams.end_size=0.8f;
+    puffparams.color = Interpolator<float, Vector>()
+        .node(0,   Vector(.7,.7,.7));
+    puffparams.ttl=Interval(0.5,1.2);
+    puffparams.pos_deviation=0.2;
+    puffparams.direction_vector= Vector(dir).normalize() * 20;
+    puffparams.direction_deviation=5;
+    puffparams.fadein= 0.05;
+    puffparams.fadeout= 0.4;
+    puffparams.wind_influence = 10;
+    puffparams.wind_vector = Vector(0,2,0);
+
+    Ptr<SmokeColumn> smoke =
+           new SmokeColumn(game, pos, params, puffparams);
+    game->addActor(smoke);
+}
+
+void carrierMachineGunFire(Ptr<IGame> game, Vector pos, Vector dir) {
+    tankMachineGunFire(game, pos, dir);
+}
+
 

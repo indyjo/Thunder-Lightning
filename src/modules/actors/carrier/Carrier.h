@@ -8,6 +8,7 @@
 
 class Turret;
 class Armament;
+struct IWeapon;
 
 class Carrier : public SimpleActor, virtual public Collide::Collidable, virtual public SigObject {
 public:
@@ -28,6 +29,7 @@ public:
     // Collidable implementation
     virtual void integrate(float delta_t, Transform * transforms);
     virtual void update(float delta_t, const Transform * new_transforms);
+    
 private:
     void updateDerivedObjects();
 
@@ -38,6 +40,7 @@ private:
         MAIN_TURRET
     } control_target;
     void setControlTarget(ControlTarget c);
+    void carrierGunFired(Ptr<IWeapon>);
     
     Ptr<Armament> main_turret_armament;
 };

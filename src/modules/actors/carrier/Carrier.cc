@@ -1,6 +1,7 @@
 #include <string>
 #include <interfaces/IConfig.h>
 #include <interfaces/IModelMan.h>
+#include <modules/actors/fx/SpecialEffects.h>
 #include <modules/actors/SimpleView.h>
 #include <modules/camera/FollowingCamera.h>
 #include <modules/collide/CollisionManager.h>
@@ -88,6 +89,7 @@ Carrier::Carrier(Ptr<IGame> thegame, IoObject * io_peer_init)
     machinegun->factor = thegame->getConfig()->queryFloat("Carrier_Vulcan_factor", 1);
     machinegun->addBarrel(new SkeletonProvider(skeleton, "main_turret_nozzle_left", "main_turret_pivot", "main_turret_pivot_dir"));
     machinegun->addBarrel(new SkeletonProvider(skeleton, "main_turret_nozzle_right", "main_turret_pivot", "main_turret_pivot_dir"));
+    machinegun->onFireSig().connect( SigC::slot(*this, &Carrier::carrierGunFired));
     armament->addWeapon(0, machinegun);
     
     mapArmamentEvents();
@@ -259,4 +261,12 @@ void Carrier::setControlTarget(ControlTarget c) {
 void Carrier::updateDerivedObjects() {
 }
 
+void Carrier::carrierGunFired(Ptr<IWeapon> weapon) {
+    Ptr<IActor> last_round = weapon->lastFiredRound().lock();
+    if (!last_round) return;
+    
+    carrierMachineGunFire(thegame,
+        last_round->getLocation(),
+        last_round->getMovementVector());
+}
 

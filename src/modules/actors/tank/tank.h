@@ -46,8 +46,11 @@ public:
     
     /// Updates skeleton and sound objects to current position
     void updateDerivedObjects();
-
+    
 private:
+    void cannonFired(Ptr<IWeapon>);
+    void machineGunFired(Ptr<IWeapon>);
+
     JRenderer * renderer;
     Ptr<ITerrain> terrain;
 

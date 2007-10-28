@@ -29,7 +29,8 @@ public:
                 direction_vector(0,10,0),
                 wind_vector(10,4,0), wind_influence(0.1),
                 color(Vector(200./255, 200./255, 200./255)),
-                fadein(0.3), fadeout(0.3)
+                fadein(0.3), fadeout(0.3),
+                gravity(0)
         { }
         Interval ttl;
         float pos_deviation;
@@ -41,6 +42,7 @@ public:
         float wind_influence;
         Interpolator<float, Vector> color;
         float fadein, fadeout;
+        Vector gravity;
     };
     
     class SmokePuff {

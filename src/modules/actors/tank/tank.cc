@@ -105,11 +105,13 @@ Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
     machinegun->addBarrel(new SkeletonProvider(skeleton, "MGBottomRight", "CannonTip", "CannonTipFront"));
     machinegun->setLoadTime(
         thegame->getConfig()->queryFloat("Tank_vulcan_loadtime", machinegun->getLoadTime()));
+    machinegun->onFireSig().connect( SigC::slot(*this, &Tank::machineGunFired));
     armament->addWeapon(0, machinegun);
 
     Ptr<Cannon> cannon=new Cannon(thegame, "Cannon", cfg->queryInt("Tank_cannon_rounds", 25));
     cannon->addBarrel(new SkeletonProvider(skeleton, "CannonTip", "CannonTip", "CannonTipFront"));
     cannon->factor = thegame->getConfig()->queryFloat("Tank_cannon_factor", 10);
+    cannon->onFireSig().connect( SigC::slot(*this, &Tank::cannonFired));
     armament->addWeapon(0,cannon);
     
     sound_low = thegame->getSoundMan()->requestSource();
@@ -314,5 +316,20 @@ void Tank::updateDerivedObjects() {
     float gain = std::min(v, 2.0f)/2.0f;
     sound_high->setGain(gain);
     sound_low->setGain(1-gain);
+}
+
+void Tank::cannonFired(Ptr<IWeapon>) {
+    tankCannonFire(thegame,
+        skeleton->getPoint("CannonTip"),
+        skeleton->getPoint("CannonTipFront")-skeleton->getPoint("CannonTip"));
+}
+
+void Tank::machineGunFired(Ptr<IWeapon> weapon) {
+    Ptr<IActor> last_round = weapon->lastFiredRound().lock();
+    if (!last_round) return;
+    
+    tankMachineGunFire(thegame,
+        last_round->getLocation(),
+        last_round->getMovementVector());
 }
 
