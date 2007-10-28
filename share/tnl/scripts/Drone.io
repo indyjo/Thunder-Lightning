@@ -136,14 +136,14 @@ Drone do(
             dt = pass
             new_error = target_accel - me state accel_lcs at(2)
             #derivative = (new_error - error) / dt
-            integral = (integral + new_error * dt) clip(0,20)
+            integral = (integral + new_error * dt) clip(-5,100)
             error = new_error
             #if (me == Game viewSubject,
             #    "accel: #{me state accel at(2) asString(2)} error: #{error asString(2)} int: #{integral asString(2)}" interpolate say
             #)
             
             me controls setFloat("throttle",
-                (0.05*error + 0.05*integral) clip(0,1))
+                (0.05*error + 0.01*integral) clip(0,1))
         )
     )
     
