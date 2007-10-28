@@ -268,12 +268,14 @@ Drone do(
         if((self ?b) isNil, self b := arg_b)
         if((self ?v) isNil, self v := arg_v)
         
+        self segment_velocity := vector(0,0,0)
+        
         
         mp := Drone MaintainPosition clone start(me)
         manage(mp)
         loop(
             ab_norm := (b-a) normInPlace
-            mp target_vector := ab_norm scaledBy(v)
+            mp target_vector := ab_norm scaledBy(v) + segment_velocity
             mp target_position := a + ab_norm scaledBy(ab_norm dot(me state p - a))
             if (?debug,
                 "Target pos: #{mp target_position} err: #{(mp target_position - me state p) len}" interpolate say
@@ -323,35 +325,35 @@ Drone do(
     )
     
     FinalApproach := coro(me, rwy, dangle,
-        //"Beginning final approach" say
-        a := rwy runwayBegin + Drone safety_height
-        b := rwy runwayEnd + Drone safety_height
-        p0 := a + (a-b) atSet(1,0) norm scaledBy(dangle cos) + vector(0,dangle sin, 0)
-        #"p0: #{p0} a:#{a}" interpolate println
-        
-        dspeed := Drone descent_speed
-        
-        fs :=  Drone FollowSegment clone start(me, p0,a, dspeed)
+        fs :=  me FollowSegment clone start(me)
+        fs v := me descent_speed
         manage(fs)
         #fs debug:= true
         
-        while ( ((me state p) - a) len > 100,
+        loop (
+            a := rwy runwayBegin + Drone safety_height
+            b := rwy runwayEnd + Drone safety_height
+            p0 := a + (a-b) atSet(1,0) norm scaledBy(dangle cos) + vector(0,dangle sin, 0)
+            if( ((me state p) - a) len <= 100, break)
+            fs a := p0
+            fs b := a
+            fs segment_velocity := rwy velocity
             pass
         )
         
         # safety checks
-        if (me state v len between(dspeed - 8/3.6,dspeed + 4/3.6) not,
-            //"Your speed doesn't look good" say
+        if ((me state v - rwy velocity) len between(me descent_speed - 8/3.6, me descent_speed + 4/3.6) not,
+            "Your speed doesn't look good" say
             return
         )
         if (rwy isRunwayFree not,
-            //"Runway isn't free" say
+            "Runway isn't free" say
             return
         )
         d := p0 - a
         p_proj := a + (me state p - a) projectedOn(d)
         if ((p_proj - me state p) len > 2.5,
-            //"You are to far away from glide slope" say
+            "You are to far away from glide slope" say
             return
         )
         
@@ -366,9 +368,10 @@ Drone do(
         me controls setFloat("rudder", 0)
         me controls setFloat("throttle", 0)
         
-        while( me state v len > 0.5,
+        while( (me state v - rwy velocity) len > 2,
             pass
         )
+        sleep(1)
         
         self status := "LANDED"
     )
@@ -382,12 +385,6 @@ Drone do(
         height := rwy requestHoldingLevel(me)
         "Holding at level #{height}" interpolate println
         
-        a := rwy runwayBegin + Drone safety_height
-        b := rwy runwayEnd + Drone safety_height
-        d := (b-a) atSet(1,0) norm
-        up := vector(0,1,0)
-        left := (up % d) neg
-        
         self fp := Drone FollowPath clone
         manage(fp)
         loop (
@@ -397,6 +394,12 @@ Drone do(
                     rwy lockRunway(me)
                     return
                 )
+                a := rwy runwayBegin + Drone safety_height
+                b := rwy runwayEnd + Drone safety_height
+                d := (b-a) atSet(1,0) norm
+                up := vector(0,1,0)
+                left := (up % d) neg
+                
                 waypoints := list
                 n := 64
                 n repeat(i,
@@ -413,6 +416,10 @@ Drone do(
         
     
     PerformLanding := coro(me, rwy, get_eaten,
+        self hold := Drone WaitForLandingClearance clone start(me, rwy)
+        manage(hold)
+        while (hold running, pass)
+        
         # descent angle used to calculate begin of final
         dangle := Drone descent_angle
         final := Drone final_length
@@ -422,11 +429,6 @@ Drone do(
         d := (b-a) atSet(1,0) norm
         up := vector(0,1,0)
         right := up % d
-        
-        
-        self hold := Drone WaitForLandingClearance clone start(me, rwy)
-        manage(hold)
-        while (hold running, pass)
         
         final_begin := a - d scaledBy(final) + up scaledBy(height)
         
@@ -453,7 +455,10 @@ Drone do(
             
             if ((fa ?status) == "LANDED",
                 me setControlMode(Actor UNCONTROLLED)
-                if (get_eaten and rwy droneEatable(me),
+                if (get_eaten,
+                    while (rwy droneEatable(me) not,
+                        pause(1)
+                    )
                     rwy eatDrone(me)
                 )
                 break
@@ -479,7 +484,8 @@ Drone do(
         )
         
         if(rwy isRunwayLockedTo(me), rwy unlockRunway)
-        ex ifNonNil(ex raise)
+        
+        ex pass
     )
             
                 
