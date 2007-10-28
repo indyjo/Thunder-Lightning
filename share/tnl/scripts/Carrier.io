@@ -37,6 +37,7 @@ Carrier do(
         drone controls setBool("landing_gear", true)
         drone setControlMode(Actor UNCONTROLLED)
         drone setFaction( self getFaction )
+        drone started_from := self
         
         Game addActor(drone)
         drone
@@ -81,6 +82,7 @@ Carrier do(
         tank setOrientation( self orientation matMult( Matrix rotation3(vector(0,1,0), Number constants pi) ))
         tank setControlMode(Actor UNCONTROLLED)
         tank setFaction( self getFaction )
+        tank started_from := self
         
         Game addActor(tank)
         tank
