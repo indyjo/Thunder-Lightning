@@ -128,5 +128,39 @@ CommonAI := EventTarget clone do(
         
         ex pass
     )
+    
+    
+    ///////////////////////////////////////////////////////////////////////////
+    // Ammunition management
+    ///////////////////////////////////////////////////////////////////////////
+    
+    hasSidewindersLeft := method(
+        armament weapon("Sidewinder") roundsLeft > 0
+    )
+    hasVulcanRoundsLeft := method(
+        armament weapon("Vulcan") roundsLeft > 0
+        false
+    )
+    hasEffectiveAntiAirAmmo := method(
+        hasSidewindersLeft
+    )
+    hasAntiAirAmmo := method(
+        hasSidewindersLeft //or hasVulcanRoundsLeft
+    )
+    hasEffectiveAntiGroundAmmo := method(
+        hasSidewindersLeft
+    )
+    hasAntiGroundAmmo := method(
+        hasSidewindersLeft //or hasVulcanRoundsLeft
+    )
+    hasEffectiveAmmo := method(
+        hasEffectiveAntiAirAmmo and hasEffectiveAntiGroundAmmo
+    )
+    hasAmmoAgainst := method(target,
+        target isAirborneTarget and hasAntiAirAmmo or target isGroundTarget and hasAntiGroundAmmo
+    )
+    hasEffectiveAmmoAgainst := method(target,
+        target isAirborneTarget and hasEffectiveAntiAirAmmo or target isGroundTarget and hasEffectiveAntiGroundAmmo
+    )
 )
 
