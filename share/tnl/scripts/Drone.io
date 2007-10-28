@@ -529,13 +529,14 @@ Drone do(
     )
     
     TravelTo := coro(me, target,
+        if((self ?travel_height) isNil, self travel_height := me TRAVEL_HEIGHT)
         steps_per_frame := 5
 
         segment_length := 300
         
         p := me location2
         path := list
-        path append( vector(p at(0), Terrain heightAt(p x, p y) + me TRAVEL_HEIGHT, p at(1) ) )
+        path append( vector(p at(0), Terrain heightAt(p x, p y) + travel_height, p at(1) ) )
         
         i := 0
         loop(
@@ -547,12 +548,12 @@ Drone do(
             if ( (p - target) length <= segment_length,
                 p = target
                 height := Terrain heightAt(p x, p y)
-                path append( vector(p at(0), height + me TRAVEL_HEIGHT, p at(1) ) )
+                path append( vector(p at(0), height + travel_height, p at(1) ) )
                 break
             ,
                 p = p + (d+normal xz) norm scaledBy( segment_length )
                 height := Terrain heightAt(p x, p y)
-                path append( vector(p at(0), height + me TRAVEL_HEIGHT, p at(1) ) )
+                path append( vector(p at(0), height + travel_height, p at(1) ) )
             )
             
             
@@ -569,10 +570,13 @@ Drone do(
         navpath := NavPath clone with(path)
         #writeln("Navpath: ", navpath size, " points: ", navpath path)
         manage ( me FollowPath clone start(me, navpath, me TRAVEL_SPEED) )
-        loop(pass)
+        while( navpath done not,
+            pass
+        )
     )
     
     TravelTo2 := coro(me, target,
+        if((self ?travel_height) isNil, self travel_height := me TRAVEL_HEIGHT)
         self fv := manage( me FlyVector clone start(me) )
         
         slopemax := 35 * Number constants pi / 180
@@ -599,34 +603,51 @@ Drone do(
                 d := d norm
             )
             d = d scaledBy(me TRAVEL_SPEED)
-            fv target_vector := vector( d x, (me TRAVEL_HEIGHT - me state height) * 0.1, d y )
+            fv target_vector := vector( d x, (travel_height - me state height) * 0.1, d y )
             pass
         )
     )
     
-    AdHocCommand := method(
-        actorsInArea := Game queryActorsInSphere(location, 2000)
-        enemy := nil
-        distToEnemy := nil
-        actorsInArea foreach(actor,
-            if (actor isAlive and self dislikes(actor),
-                dist := (actor location - self location) len
-                if ( (enemy isNil or dist < distToEnemy) and hasAmmoAgainst(actor),
-                    enemy = actor
-                    distToEnemy = dist
+    Patrol := coro(me, arg_pos, arg_radius,
+        "Beginning Patrol" say
+        ex := try(
+            if((self ?pos) isNil, self pos := arg_pos)
+            if((self ?radius) isNil, self radius := arg_radius)
+            
+            travel := manage ( me TravelTo clone )
+            travel travel_height := 1500
+            loop(
+                if (travel running not,
+                    if (Game viewSubject == me, "Initiating travel" say)
+                    azimuth := 2*Number constants pi * Random value
+                    dist := Random value * radius
+                    target_pos := pos + vector(azimuth cos, azimuth sin) scaledBy(dist)
+                    travel start(me, target_pos, radius/10)
+                )
+                
+                sleep(2 + 3*Random value)
+                
+                me targeter selectNearestHostileTarget
+                me targeter currentTarget ifNonNil(
+                    me command_queue prependCommand(
+                        Command Attack clone with(me targeter currentTarget))
                 )
             )
         )
         
-        enemy ifNonNil(
-            return Command Attack clone with(enemy)
+        "Ending Patrol" say
+        
+        ex pass
+    )
+    
+    AdHocCommand := method(
+        if (hasEffectiveAmmo) then(
+            return Command Patrol clone with(self location2, 4000)
+        ) elseif ( self hasSlot("started_from") ) then(
+            return Command Land clone with(self started_from)
+        ) else (
+            return Command Patrol clone with(self location2, 4000)
         )
-        
-        azimuth := 2 * Number constants pi * Random value
-        dist := 2000 + 2000 * Random value
-        
-        p := location2 + vector( azimuth sin, azimuth cos ) scaledBy(dist)
-        Command Goto clone with (p, 500)
     )
     
     ExecuteCommand := coro(me, command,
@@ -676,6 +697,11 @@ Drone do(
                     "The runway doesn't exist anymore." say
                 )
                 
+            ),
+            Command PATROL, do(
+                me callSubordinates
+                task := manage( me Patrol clone start(me, command argVec2, command argFloat) )
+                while(task running, pass)
             ),
             Command JOIN, do(
                 me callSubordinates

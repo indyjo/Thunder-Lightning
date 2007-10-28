@@ -90,7 +90,7 @@ Command do(
         )
         
         workLeft := method(subject_actor,
-            true
+            subject_actor hasEffectiveAmmo
         )
     )
     

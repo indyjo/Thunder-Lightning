@@ -3,19 +3,7 @@ CommonAI := EventTarget clone do(
     formationPosition := method(i, formation_positions at(i))
 
     on("kill",
-        if(self hasSlot("subordinates"),
-            // first subordinate becomes new leader
-            new_leader := self subordinates first
-            self subordinates removeFirst
-            new_leader hasSlot("subordinates") ifFalse(
-                new_leader subordinates := List clone
-            )
-            new_leader subordinates appendSeq(self subordinates)
-            self subordinates empty
-            
-            // pass commands to new leader
-            new_leader command_queue := self command_queue
-        )
+        passCommand
     )
     
     addSubordinate := method(subord,
@@ -42,6 +30,22 @@ CommonAI := EventTarget clone do(
             s command_queue appendCommand(command)
         )
         self
+    )
+    
+    passCommand := method(
+        if(self hasSlot("subordinates"),
+            // first subordinate becomes new leader
+            new_leader := self subordinates first
+            self subordinates removeFirst
+            new_leader hasSlot("subordinates") ifFalse(
+                new_leader subordinates := List clone
+            )
+            new_leader subordinates appendSeq(self subordinates)
+            self subordinates empty
+            
+            // pass commands to new leader
+            new_leader command_queue := self command_queue
+        )
     )
     
     callSubordinates := method(
