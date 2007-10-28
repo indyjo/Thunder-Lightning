@@ -15,6 +15,8 @@ Carrier do(
         
         self reservedHoldingLevels := list
         self runwayLocked := nil
+
+        targeter setMaxRange(18000)
     )
     
     droneSpawnPos := method(n,

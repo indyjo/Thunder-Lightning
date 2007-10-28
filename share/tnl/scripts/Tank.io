@@ -15,6 +15,7 @@ Tank do (
     )
     turret weapon := armament weapon("Vulcan")
     self command_queue := CommandQueue clone
+    targeter setMaxRange(14000)
   )
   
   isGroundTarget := true
