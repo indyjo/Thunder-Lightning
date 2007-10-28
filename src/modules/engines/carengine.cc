@@ -95,5 +95,5 @@ void CarEngine::update() {
     front = right % up;
     front.normalize();
 
-    p[1] = std::max(-1.0f, terrain->getHeightAt(p[0], p[2]));
+    p[1] = std::max(-1.0f, terrain->getHeightAt(p[0], p[2])+0.1f);
 }
