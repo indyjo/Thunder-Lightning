@@ -28,6 +28,6 @@ Actor do(
   isGroundTarget := false
   
   hasLineOfSightTo := method(actor,
-    Terrain lineIntersection(self location, actor location) isNil not
+    Terrain lineIntersection(self location, actor location mixedWith(self location, 0.01)) isNil
   )
 )

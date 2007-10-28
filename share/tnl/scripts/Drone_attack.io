@@ -1,34 +1,16 @@
 Drone do(
-    hasSidewindersLeft := method(
-        armament weapon("Sidewinder") roundsLeft > 0
-    )
-    hasVulcanRoundsLeft := method(
-        armament weapon("Vulcan") roundsLeft > 0
-        false
-    )
-    hasAntiAirAmmo := method(
-        hasSidewindersLeft or hasVulcanRoundsLeft
-    )
-    hasAntiGroundAmmo := method(
-        hasSidewindersLeft or hasVulcanRoundsLeft
-    )
-    hasAmmoAgainst := method(target,
-        target isAirborneTarget and hasAntiAirAmmo or target isGroundTarget and hasAntiGroundAmmo
-    )
-    
-    AttackWithMissileSalvo := coro(me, target,
-        me dispatchSubordinates(me command_queue currentCommand)
+    EstablishLineOfSight := coro(me, target,
         dirToTarget := block(
             (target location - me location) norm
         )
         
         self fv := me FlyVector clone start(me)
         fv target_vector := dirToTarget call * (300 / 3.6)
-        fv tag := "AttackWithMissileSalvo"
+        fv tag := "Establish LOS"
         manage(fv)
         
         // while we don't have line of sight (LOS)
-        while ( (x := Terrain lineIntersection(me location, target location mixedWith(me location, 0.01)) ) isNil not,
+        while ( (x := Terrain lineIntersection(me location, target location mixedWith(me location, 0.001)) ) isNil not,
             normal := Terrain normalAt(x x, x z)
             to_x := x - me location
             dist := to_x len
@@ -46,6 +28,18 @@ Drone do(
             
             sleep(2)
         )
+    )
+        
+    AttackWithSidewinderSalvo := coro(me, target,
+        me dispatchSubordinates(me command_queue currentCommand)
+        dirToTarget := block(
+            (target location - me location) norm
+        )
+        
+        self fv := me FlyVector clone start(me)
+        fv target_vector := dirToTarget call * (300 / 3.6)
+        fv tag := "Attack with Sidewinder"
+        manage(fv)
         
         // now point to target
         while( me state dir dot( dirToTarget call ) < 0.9,
@@ -55,7 +49,7 @@ Drone do(
         
         me armament weapon("Sidewinder") trigger
         sleep(1)
-        if (Random value > 0.5, me armament weapon("Sidewinder") trigger)
+        if (Random value > 0.7, me armament weapon("Sidewinder") trigger)
         
         sleep(4)
     )
@@ -128,7 +122,7 @@ Drone do(
     )
     
     ChooseAttackTask := method(target,
-        dist := (target location - self location) len
+        dist := (target location2 - self location2) len
         if (dist > 7000) then (
             if (Game viewSubject == self, "Travel to target" say)
             return TravelToTarget clone
@@ -136,8 +130,13 @@ Drone do(
             if (Game viewSubject == self, "Approach high" say)
             return ApproachHigh clone
         ) elseif (dist > 1000) then(
-            if (Game viewSubject == self, "Missile salvo" say)
-            return AttackWithMissileSalvo clone
+            if (self hasLineOfSightTo(target),
+                if (Game viewSubject == self, "Sidewinder salvo" say)
+                return AttackWithSidewinderSalvo clone
+            ,
+                if (Game viewSubject == self, "Establish line-of-sight" say)
+                return EstablishLineOfSight clone
+            )
         ) else (
             if (Game viewSubject == self, "Gain distance" say)
             return GainDistance clone
