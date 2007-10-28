@@ -52,6 +52,17 @@ complete := method(str, context,
   return l
 )
 
+// force a garbage collection more or less every minute
+memoryWatchdog := Object
+memoryWatchdog run := method(
+    loop(
+        (60*25) repeat(yield)
+        n := Collector collect
+        "Memory watchdog collected #{n} objects." interpolate println
+    )
+)
+memoryWatchdog @@run
+
 Settings loadControls
 
 "Io: Exiting simulation_init.io\n" print
