@@ -43,6 +43,9 @@ void SimpleActor::setIoObject(IoObject *newself) {
 
 void SimpleActor::onLinked() {
     if (!is_linked) {
+        if (self) {
+            message("linked", IONIL(self));
+        }
         if (self && AUTOMATIC == getControlMode()) {
             message("start_ai", IONIL(self));
         }
@@ -57,6 +60,9 @@ void SimpleActor::onUnlinked()
     if (is_linked) {
         if (self && AUTOMATIC == getControlMode()) {
             message("stop_ai", IONIL(self));
+        }
+        if (self) {
+            message("unlinked", IONIL(self));
         }
         is_linked = false;
     }
