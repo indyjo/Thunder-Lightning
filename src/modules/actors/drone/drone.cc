@@ -415,6 +415,10 @@ Ptr<IView> Drone::getView(int n) {
     }
     
     Ptr<SimpleView> view = new SimpleView(this, chaser, hud_pass);
+    view->onEnable().connect(
+        SigC::slot(*gunsight, &UI::Panel::enable));
+    view->onDisable().connect(
+        SigC::slot(*gunsight, &UI::Panel::disable));
     mapViewEvents(view);
     
     
