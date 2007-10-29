@@ -210,9 +210,25 @@ void RadarNet::reportSelf(Ptr<Targeter> witness) {
     }
 }
 
+#include <typeinfo>
 void RadarNet::update(float delta_t) {
     for(ContactsIter i= all_contacts.begin(); i!= all_contacts.end(); ++i) {
         (*i)->age += delta_t;
+        Ptr<IActor> actor = (*i)->actor.lock();
+        Ptr<Targeter> witness = (*i)->witness.lock();
+        IActor *witness_actor = 0;
+        if (witness) witness_actor = & witness->getSubjectActor();
+        ls_message("%sContact %p (%s, %s) witnessed by %p (%s,%s), age %.2f, state %s, usecount %d\n",
+            (++ContactsIter(i) == all_iter)?" ->":"   ",
+            ptr(actor),
+            actor?typeid(*actor).name():"<null>",
+            actor?(actor->isAlive()?"alive":"dead"):"<N/A>",
+            witness_actor,
+            witness_actor?typeid(*witness_actor).name():"<null>",
+            witness_actor?(witness_actor->isAlive()?"alive":"dead"):"<N/A>",
+            (*i)->age,
+            (*i)->state == Contact::ZOMBIE?"ZOMBIE":(((*i)->state==Contact::VERIFIED)?"VERIFIED":"LOST"),
+            (*i)->usecount);
     }
     
     size_t num_ops = (size_t) (0.9999f + OPERATIONS_PER_SECOND*delta_t);
