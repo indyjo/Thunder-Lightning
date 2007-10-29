@@ -734,20 +734,24 @@ Drone do(
         )
     )
     
+    on("linked",
+        self dispenseDecoys := DispenseDecoys clone start(self)
+    )
+    on("unlinked",
+        dispenseDecoys interrupt
+    )
+    
     on("start_ai",
         # ai depends on flightState. Io will run coros in LIFO order, so it seems
         # to be ok this way.
         self _ai := ai clone start(self)
         self state := FlightState clone start(self)
         
-        self dispenseDecoys := DispenseDecoys clone start(self)
-        
         ("AI of Drone ".. self uniqueHexId .. " started") println
     )
     on("stop_ai",
         _ai interrupt
         state interrupt
-        dispenseDecoys interrupt
         
         ("AI of Drone ".. self uniqueHexId .. " interrupted") println
     )
