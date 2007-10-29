@@ -69,6 +69,7 @@ bool RadarNet::Enumerator::operator !=(const RadarNet::Enumerator & other) {
     return other.iter != iter;
 }
 const RadarNet::Enumerator & RadarNet::Enumerator::operator =(const RadarNet::Enumerator & other) {
+    if (!atEnd()) --(*iter)->usecount;
     radarnet = other.radarnet;
     iter = other.iter;
     actor = other.actor;
@@ -263,7 +264,7 @@ void RadarNet::verifyContact() {
     
     if (!actor) return;
     
-    if (witness && witness->hasLineOfSightTo(actor)) {
+    if (witness && witness->getSubjectActor().isAlive() && witness->hasLineOfSightTo(actor)) {
         contact->age = 0;
     } else {
         // this is now a lost contact
