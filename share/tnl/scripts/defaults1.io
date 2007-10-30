@@ -353,5 +353,13 @@ Config do(
   
   // Info messages
   InfoMessages_realtime            := "false"
+  
+  // Radar map configuration
+  Map_compass_tex                  := texture_dir .. "/map-compass.png"
+  Map_lines_tex                    := texture_dir .. "/map-lines.png"
+  Map_z                            := "-6"
+  Map_y                            := "3"
+  Map_f                            := "6.8"
+  Map_py                           := "-0.05"
 
 ) // Config do
