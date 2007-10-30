@@ -10,6 +10,7 @@ Targeter::Targeter(Ptr<ITerrain> terrain, IActorStage &stage, IActor &self)
 :	self(self),
 	stage(stage),
 	max_range(10000),
+	display_range(20000),
 	terrain(terrain),
 	radarnet(new RadarNet),
 	time_since_scan(0),
@@ -20,6 +21,14 @@ Targeter::Targeter(Ptr<ITerrain> terrain, IActorStage &stage, IActor &self)
 
 void Targeter::setMaxRange(float r) {
 	max_range=r;
+}
+
+void Targeter::selectNextDisplayRange() {
+    if (display_range <= 2000) display_range = 60000;
+    else if (display_range <= 5000) display_range = 2000;
+    else if (display_range <= 10000) display_range = 5000;
+    else if (display_range <= 20000) display_range = 10000;
+    else display_range = 20000;
 }
 
 void Targeter::setCurrentTarget(Ptr<IActor> target) {

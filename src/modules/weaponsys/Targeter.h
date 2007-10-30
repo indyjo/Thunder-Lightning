@@ -13,7 +13,8 @@ public:
 	
 	void setMaxRange(float);
     inline float getMaxRange() { return max_range; }
-	//void setTargetFilter(TargetFilter
+	float getDisplayRange() { return display_range; }
+	void selectNextDisplayRange();
 	
 	inline IActor & getSubjectActor() { return self; }
 	
@@ -56,7 +57,7 @@ protected:
 
 	IActor & self;
 	IActorStage & stage;
-	float max_range;
+	float max_range, display_range;
 	Ptr<ITerrain> terrain;
 	Ptr<RadarNet> radarnet;
 	RadarNet::Enumerator current;

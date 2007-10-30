@@ -108,6 +108,7 @@ void SimpleActor::mapTargeterEvents() {
     sheet->map("nearest-target", SigC::slot(*targeter, &Targeter::selectNearestTarget));
     sheet->map("nearest-hostile-target", SigC::slot(*targeter, &Targeter::selectNearestHostileTarget));
     sheet->map("nearest-friendly-target", SigC::slot(*targeter, &Targeter::selectNearestFriendlyTarget));
+    sheet->map("radar-range", SigC::slot(*targeter, &Targeter::selectNextDisplayRange));
     //sheet->map("gunsight-target", SigC::slot(*targeter, &Targeter::selectTargetInGunsight));
 }
 
