@@ -15,6 +15,26 @@ AutopackageTarget: 1.2
 #Repository: http://tnlgame.net/autopackage/repository.xml
 
 [BuildPrepare]
+# Check for CEGUI directory
+if [[ -z "$cegui_dir" ]]; then
+  cegui_dir=/home/jonas/src/CEGUI-0.5.0
+  green; echo "You didn't specify a CEGUI directory. Defaulting to $cegui_dir."; normal
+fi
+if [[ ! -d "$cegui_dir" ]]; then
+  red; echo "Can't find CEGUI directory. Please pass with environment variable cegui_dir!"; normal
+  exit 1
+fi
+
+# Check for PCRE directory
+if [[ -z "$pcre_dir" ]]; then
+  pcre_dir=/home/jonas/src/pcre-7.4
+  green; echo "You didn't specify a PCRE directory. Defaulting to $pcre_dir."; normal
+fi
+if [[ ! -d "$pcre_dir" ]]; then
+  red; echo "Can't find PCRE directory. Please pass with environment variable pcre_dir!"; normal
+  exit 1
+fi
+
 # Check for Io directory
 if [[ -z "$io_dir" ]]; then
   io_dir=/home/jonas/src/git/Io
@@ -54,6 +74,19 @@ else
   yellow; echo "Darcs not found. Unable to check whether the data repository is clean."
   normal; echo "Continuing..."
 fi
+
+green; echo "Compiling PCRE and installing into $build_root/usr/local."; normal
+(cd $pcre_dir && CC=apgcc ./configure --prefix=$build_root/usr/local --enable-shared=false && make install) || exit 1
+
+green; echo "Compiling CEGUI and installing into $build_root/usr/local."; normal
+(cd $cegui_dir && \
+    CXX=apg++ CC=apgcc ./configure \
+    pcre_CFLAGS="" pcre_LIBS=$build_root/lib/libpcre.a \
+    --prefix=$build_root/usr/local \
+    --disable-xerces-c --disable-libxml --disable-expat --disable-corona \
+    --disable-devil --disable-freeimage --disable-silly \
+    && make install) || exit 1
+
 
 green; echo "Installing Io into $build_root/usr/local."; normal
 (cd $io_dir && make clean && INSTALL_PREFIX="$PREFIX" CC=apgcc make && INSTALL_PREFIX="$build_root/usr/local" make install) || exit 1
