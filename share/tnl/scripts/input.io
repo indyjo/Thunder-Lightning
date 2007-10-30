@@ -61,6 +61,7 @@ EventRemapper do(
   registerAction("next-friendly-target", "Target next friendly", "Target next friendly radar contact.")
   registerAction("gunsight-target", "Target object in gunsight", "Target object closest to center of gunsight.")
   registerAction("nearest-target", "Target nearest", "Target nearest radar contact.")
+  registerAction("radar-range", "Radar range", "Cycle through available radar display ranges. This does not affect the actual radar range.")
   
   registerAction("slower", "Time warp: slower", "Decelerate time, causing slow-motion.")
   registerAction("faster", "Time warp: faster", "Accelerate time, causing fast-forward.")
@@ -130,12 +131,13 @@ EventRemapper do(
 
     mapKey(SDLK_F12, "debug")
 
-    mapKey(SDLK_r, "previous-target")
+    mapKey(SDLK_b, "previous-target")
     mapKey(SDLK_t, "next-target")
     mapKey(SDLK_h, "next-hostile-target")
     mapKey(SDLK_f, "next-friendly-target")
     mapKey(SDLK_g, "gunsight-target")
     mapKey(SDLK_y, "nearest-target")
+    mapKey(SDLK_r, "radar-range")
 
     mapKey(SDLK_F9, "slower")
     mapKey(SDLK_F10, "faster")
