@@ -196,4 +196,11 @@ void SimpleCamera::alignWith(IMovementProvider *provider)
 	setOrientation(up,right,front);
 }
 
+void SimpleCamera::pointTo(Vector target) {
+    Vector sky(0,1,0);
+    Vector front = (target - location).normalize();
+    Vector right = (sky % front).normalize();
+    Vector up = front % right;
+    setOrientation(up,right,front);
+}
 

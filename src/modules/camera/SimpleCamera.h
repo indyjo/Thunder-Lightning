@@ -52,6 +52,7 @@ public:
     SimpleCamera(Ptr<ICamera> other);
 
     void alignWith(IMovementProvider *provider);
+    void pointTo(Vector p);
     
     SimpleCamera & operator= (ICamera & other);
     
