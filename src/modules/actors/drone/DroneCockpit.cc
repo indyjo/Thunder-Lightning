@@ -1,3 +1,4 @@
+#include <cmath>
 #include <sigc++/sigc++.h>
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
@@ -6,15 +7,18 @@
 #include <modules/camera/FollowingCamera.h>
 #include <modules/camera/SimpleCamera.h>
 #include <modules/environment/environment.h>
+#include <modules/math/SpecialMatrices.h>
 #include <modules/math/Transform.h>
 #include <modules/model/model.h>
 #include <modules/texman/Texture.h>
+#include <modules/texman/TextureManager.h>
 #include <modules/ui/Label.h>
 #include <modules/ui/PanelRenderPass.h>
 #include <modules/weaponsys/Armament.h>
 #include <modules/weaponsys/Targeter.h>
 #include <modules/weaponsys/Weapon.h>
 #include <SceneRenderPass.h>
+#include <TargetInfo.h>
 
 #include "drone.h"
 
@@ -379,6 +383,168 @@ public:
 };
 
 
+class RadarModule : public MfdModule, public SigC::Object {
+    WeakPtr<IGame> game;
+    Ptr<Targeter> targeter;
+    Ptr<IPositionProvider> subject, view;
+    Ptr<Texture> map_compass, map_lines;
+    jcamera_t cam;
+    float display_range;
+public:
+    RadarModule(WeakPtr<IGame> game,
+                Ptr<Targeter> targeter,
+                Ptr<IPositionProvider> subject,
+                Ptr<IPositionProvider> view)
+        : game(game)
+        , targeter(targeter)
+        , subject(subject)
+        , view(view)
+        , display_range(targeter->getDisplayRange())
+    {
+        Ptr<IGame> thegame = game.lock();
+        if (!thegame) {
+            return;
+        }
+        Ptr<IConfig> cfg = thegame->getConfig();
+        map_compass = thegame->getTexMan()->query(cfg->query("Map_compass_tex"));
+        map_lines = thegame->getTexMan()->query(cfg->query("Map_lines_tex"));
+        
+        Ptr<SimpleCamera> cam = new SimpleCamera;
+        cam->setLocation(Vector(0,cfg->queryFloat("Map_y",0.5f),cfg->queryFloat("Map_z",-1.5)));
+        cam->pointTo(Vector(0,cfg->queryFloat("Map_py",0),0));
+        cam->setNearDistance(0.01);
+        cam->setFarDistance(100);
+        cam->setAspect(1);
+        cam->setFocus(cfg->queryFloat("Map_f",1.5f));
+        
+        JCamera jcam;
+        cam->getCamera(&jcam);
+        this->cam = jcam.cam;
+    }
+    
+    virtual Ptr<RenderPass> createRenderPass(JRenderer * renderer) {
+        Ptr<IGame> thegame = game.lock();
+        if (!thegame) return new RenderPass(renderer);
+        
+        Ptr<RenderPass> result = new RenderPass(renderer);
+        result->enableClearColor(true);
+        result->preDraw().connect(SigC::slot(*this, &RadarModule::draw));
+        return result;
+    }
+    
+private:
+    void draw(Ptr<RenderPass> pass) {
+        JRenderer * renderer = pass->getRenderer();
+        
+        float view_azimuth = getAzimuth(view->getFrontVector());
+        float subject_azimuth = getAzimuth(subject->getFrontVector());
+        
+        Matrix3 world_to_view = RotateYMatrix(-(3.141593f/2-view_azimuth));
+        Matrix3 subject_to_view = RotateYMatrix(-(subject_azimuth-view_azimuth));
+        
+        renderer->setCamera(&cam);
+        
+        renderer->setCullMode(JR_CULLMODE_NO_CULLING);
+        renderer->disableZBuffer();
+        renderer->enableAlphaBlending();
+        renderer->disableFog();
+        renderer->setAlpha(1);
+        renderer->setColor(Vector(1,1,1));
+        
+	    // Draw the compass
+	    renderer->pushMatrix();
+	    renderer->multMatrix(Matrix4::Hom(world_to_view));
+	    renderer->enableTexturing();
+	    renderer->setTexture(map_compass->getTxtid());
+	    drawCenteredQuad(renderer, 1);
+	    renderer->disableTexturing();
+        renderer->popMatrix();
+
+	    // Draw the lines
+	    renderer->pushMatrix();
+	    renderer->multMatrix(Matrix4::Hom(subject_to_view));
+	    renderer->enableTexturing();
+	    renderer->setTexture(map_lines->getTxtid());
+	    drawCenteredQuad(renderer, 1);
+	    renderer->disableTexturing();
+        renderer->popMatrix();
+	    
+	    // Draw the targets
+	    renderer->setBlendMode(JR_BLENDMODE_ADDITIVE);
+	    renderer->pushMatrix();
+	    renderer->multMatrix(Matrix4::Hom(world_to_view));
+	    display_range = 0.5*display_range + 0.5*targeter->getDisplayRange();
+	    drawTargets(renderer, display_range, 1.0f/32);
+        renderer->popMatrix();
+	    renderer->setBlendMode(JR_BLENDMODE_BLEND);
+        
+        renderer->enableFog();
+        renderer->disableAlphaBlending();
+        renderer->enableZBuffer();
+    }
+    
+    static float getAzimuth(const Vector & v) { return atan2(v[2],v[0]); }
+    static void drawCenteredQuad(JRenderer *r, float s) {
+        r->begin(JR_DRAWMODE_QUADS);
+        r->setUVW(Vector(0,0,0));
+        (*r) << Vector(-s,0,-s);
+        r->setUVW(Vector(1,0,0));
+        (*r) << Vector(s,0,-s);
+        r->setUVW(Vector(1,1,0));
+        (*r) << Vector(s,0,s);
+        r->setUVW(Vector(0,1,0));
+        (*r) << Vector(-s,0,s);
+        r->end();
+    }
+    
+    void drawTargets(JRenderer *r, float range, float icon_size) {
+        typedef std::vector<Ptr<IActor> > Targets;
+        Targets targets;
+        targeter->listTargets(targets);
+        targets.push_back(&targeter->getSubjectActor());
+        for(Targets::iterator i=targets.begin(); i!= targets.end(); ++i) {
+            Ptr<IActor> target = *i;
+            
+            Ptr<TargetInfo> target_info = target->getTargetInfo();
+            if (!target_info || !target_info->isA(TargetInfo::DETECTABLE)) {
+                continue;
+            }
+            
+            float dist = (target->getLocation() - subject->getLocation()).length();
+            if (dist > 0.95*range) {
+                continue;
+            }
+            
+            float s = icon_size * log(target_info->getTargetSize() + 10) / log(10);
+            r->setColor(target->getFaction()->getColor() + Vector(.2,.2,.2));
+            if (target_info->isA(TargetInfo::GUIDED_MISSILE)) {
+                r->setColor(Vector(1,1,0));
+            }
+            
+            Vector p = (target->getLocation() - subject->getLocation()) / range;
+            p[1] = 0;
+            
+            r->begin(JR_DRAWMODE_QUADS);
+            (*r) << (p+Vector(-s,0,0));
+            (*r) << (p+Vector(0,0,-s));
+            (*r) << (p+Vector(s,0,0));
+            (*r) << (p+Vector(0,0,s));
+            r->end();
+            
+            if (target == targeter->getCurrentTarget()) {
+                s *= 2;
+                r->begin(JR_DRAWMODE_CONNECTED_LINES);
+                (*r) << (p+Vector(-s,0,0));
+                (*r) << (p+Vector(0,0,-s));
+                (*r) << (p+Vector(s,0,0));
+                (*r) << (p+Vector(0,0,s));
+                (*r) << (p+Vector(-s,0,0));
+                r->end();
+            }
+        }
+    }
+};
+
 DroneCockpit::DroneCockpit( WeakPtr<IGame> game,
                             JRenderer *renderer,
                             Ptr<Drone> drone,
@@ -397,6 +563,7 @@ DroneCockpit::DroneCockpit( WeakPtr<IGame> game,
     missile_view->addWeapon(drone->getArmament()->getWeapon("Sidewinder"));
     missile_view->addWeapon(drone->getArmament()->getWeapon("Hydra"));
     
+    mfd_modules.push_back(new RadarModule(thegame, drone->getTargeter(), drone, drone));
     mfd_modules.push_back(new TargetViewModule(thegame, drone));
     //mfd_modules.push_back(new MagViewModule(thegame, drone));
     mfd_modules.push_back(missile_view);
