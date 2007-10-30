@@ -17,8 +17,8 @@ AutopackageTarget: 1.2
 [BuildPrepare]
 # Check for Io directory
 if [[ -z "$io_dir" ]]; then
-  io_dir=/home/jonas/src/git/Io-work
-  green; echo "You fidn't specify an Io directory. Defaulting to $io_dir."; normal
+  io_dir=/home/jonas/src/git/Io
+  green; echo "You didn't specify an Io directory. Defaulting to $io_dir."; normal
 fi
 if [[ ! -d "$io_dir" ]]; then
   red; echo "Can't find Io directory. Please pass with environment variable io_dir!"; normal
@@ -28,17 +28,17 @@ fi
 # Check for TnL data directory
 if [[ -z "$data_dir" ]]; then
   data_dir=/home/jonas/src/TnL-data
-  green; echo "You fidn't specify a TnL data directory. Defaulting to $data_dir."; normal
+  green; echo "You didn't specify a TnL data directory. Defaulting to $data_dir."; normal
 fi
 if [[ ! -d "$data_dir" ]]; then
-  red; echo "Can't find TnL data directory. Please pass with environment variable data_dir!"; normal
+  red; echo "Can't dind TnL data directory. Please pass with environment variable data_dir!"; normal
   exit 1
 fi
 
 # Set compiler flags
 if [[ -z "$CXXFLAGS" ]]; then
   CXXFLAGS="-O3 -march=i686"
-  green; echo "You fidn't specify any C++ compiler flags. Defaulting to CXXFLAGS=$CXXFLAGS."; normal
+  green; echo "You didn't specify any C++ compiler flags. Defaulting to CXXFLAGS=$CXXFLAGS."; normal
 fi
 
 # Check whether darcs reports any untracked or modified files in the data repository
