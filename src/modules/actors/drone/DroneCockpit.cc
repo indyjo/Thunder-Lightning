@@ -104,10 +104,11 @@ public:
     }
 };
 
-class MissileViewModule : public MfdModule {
+class MissileViewModule : public MfdModule, public SigC::Object {
     typedef std::vector<Ptr<Weapon> > Weapons;
     Weapons weapons;
     WeakPtr<IGame> game;
+    Ptr<IWeapon> last_fired_weapon;
     
     class MissilePass : public RenderPass {
         WeakPtr<IGame> game;
@@ -159,6 +160,7 @@ public:
     
     void addWeapon(Ptr<Weapon> w) {
         weapons.push_back(w);
+        w->onFireSig().connect( SigC::slot(*this, &MissileViewModule::onFire) );
     }
     
     virtual Ptr<RenderPass> createRenderPass(JRenderer * renderer) {
@@ -168,6 +170,10 @@ public:
         Ptr<MissilePass> pass = new MissilePass(game, renderer);
         for(Weapons::iterator i=weapons.begin(); i!= weapons.end(); ++i) {
             (*i)->onFireSig().connect( SigC::slot(*pass, &MissilePass::onFire));
+        }
+        
+        if (last_fired_weapon) {
+            pass->onFire(last_fired_weapon);
         }
 
         Ptr<IFontMan> fontman = thegame->getFontMan();
@@ -188,7 +194,93 @@ public:
         return result;
 
     }
+    
+    void onFire(Ptr<IWeapon> weapon) {
+        last_fired_weapon = weapon;
+    }
 };
+
+class DistanceLabel : public UI::Label {
+    Ptr<Targeter> targeter;
+public:
+    std::string format;
+    
+    DistanceLabel(const char *name, Ptr<Targeter> targeter)
+    : UI::Label(name), targeter(targeter), format("%.1f km")
+    { }
+    
+    virtual std::string getText() {
+        Ptr<IActor> target = targeter->getCurrentTarget();
+        if (!target) return "";
+        
+        char buf[32];
+        float dist = (target->getLocation()-targeter->getSubjectActor().getLocation()).length();
+        sprintf(buf, format.c_str(), dist/1000);
+        return buf;
+    }
+};
+
+class AttitudeLabel : public UI::Label {
+    Ptr<Targeter> targeter;
+public:
+    AttitudeLabel(const char *name, Ptr<Targeter> targeter)
+    : UI::Label(name), targeter(targeter)
+    { }
+    
+    virtual std::string getText() {
+        Ptr<IActor> target = targeter->getCurrentTarget();
+        if (!target) return "";
+        if (!target->getFaction()) return "";
+        
+        setColor(target->getFaction()->getColor());
+        
+        switch(targeter->getSubjectActor().getFaction()->getAttitudeTowards(target->getFaction())) {
+        case Faction::FRIENDLY:
+            return "Friendly";
+        case Faction::NEUTRAL:
+            return "Neutral";
+        case Faction::HOSTILE:
+            return "Hostile";
+        }
+        
+        // should never be reached
+        return "attitude?";
+    }
+};
+
+class NameLabel : public UI::Label {
+    Ptr<Targeter> targeter;
+public:
+    NameLabel(const char *name, Ptr<Targeter> targeter)
+    : UI::Label(name), targeter(targeter)
+    { }
+    
+    virtual std::string getText() {
+        Ptr<IActor> target = targeter->getCurrentTarget();
+        if (!target) return "";
+        Ptr<TargetInfo> ti = target->getTargetInfo();
+        if (!ti) return "";
+        
+        return ti->getTargetName();
+    }
+};
+
+class DisplayRangeLabel : public UI::Label {
+    Ptr<Targeter> targeter;
+public:
+    std::string format;
+
+    DisplayRangeLabel(const char *name, Ptr<Targeter> targeter)
+    : UI::Label(name), targeter(targeter), format("%.0f")
+    { }
+    
+    virtual std::string getText() {
+        char buf[32];
+        sprintf(buf, format.c_str(), targeter->getDisplayRange()/1000);
+        return buf;
+    }
+};
+
     
 class TargetViewModule : public MfdModule {
     WeakPtr<IGame> game;
@@ -256,74 +348,6 @@ class TargetViewModule : public MfdModule {
         }
     };
     
-    class RangeLabel : public UI::Label {
-        WeakPtr<Drone> drone;
-    public:
-        RangeLabel(const char *name, Ptr<Drone> drone)
-        : UI::Label(name), drone(drone)
-        { }
-        
-        virtual std::string getText() {
-            Ptr<Drone> drone = this->drone.lock();
-            if (!drone) return "<no drone>";
-            Ptr<IActor> target = drone->getTargeter()->getCurrentTarget();
-            if (!target) return "";
-            
-            char buf[32];
-            sprintf(buf, "%.1f km", (target->getLocation()-drone->getLocation()).length()/1000);
-            return buf;
-        }
-    };
-    
-    class AttitudeLabel : public UI::Label {
-        WeakPtr<SimpleActor> subject;
-    public:
-        AttitudeLabel(const char *name, Ptr<SimpleActor> subject)
-        : UI::Label(name), subject(subject)
-        { }
-        
-        virtual std::string getText() {
-            Ptr<SimpleActor> subject = this->subject.lock();
-            if (!subject) return "<no subject>";
-            Ptr<IActor> target = subject->getTargeter()->getCurrentTarget();
-            if (!target) return "";
-            if (!target->getFaction()) return "";
-            
-            setColor(target->getFaction()->getColor());
-            
-            switch(subject->getFaction()->getAttitudeTowards(target->getFaction())) {
-            case Faction::FRIENDLY:
-                return "Friendly";
-            case Faction::NEUTRAL:
-                return "Neutral";
-            case Faction::HOSTILE:
-                return "Hostile";
-            }
-            
-            // should never be reached
-            return "attitude?";
-        }
-    };
-
-    class NameLabel : public UI::Label {
-        WeakPtr<SimpleActor> subject;
-    public:
-        NameLabel(const char *name, Ptr<SimpleActor> subject)
-        : UI::Label(name), subject(subject)
-        { }
-        
-        virtual std::string getText() {
-            Ptr<SimpleActor> subject = this->subject.lock();
-            if (!subject) return "<no subject>";
-            Ptr<IActor> target = subject->getTargeter()->getCurrentTarget();
-            if (!target) return "";
-            Ptr<TargetInfo> ti = target->getTargetInfo();
-            if (!ti) return "";
-            
-            return ti->getTargetName();
-        }
-    };
-    
 public:
     TargetViewModule(WeakPtr<IGame> game, Ptr<Drone> drone) : game(game), drone(drone) { }
     
@@ -348,7 +372,7 @@ public:
         
         fontman->selectFont(thegame->getConfig()->query("MFD_font_default", "default"));
 
-        Ptr<NameLabel> name = new NameLabel("name", drone);
+        Ptr<NameLabel> name = new NameLabel("name", drone->getTargeter());
         name->setColor(Vector(0,1,0));
         name->setFont(fontman->getFont());
         name->setAlpha(1);
@@ -358,7 +382,7 @@ public:
         
         fontman->selectFont(thegame->getConfig()->query("MFD_font_small", "default"));
 
-        Ptr<RangeLabel> range = new RangeLabel("range", drone);
+        Ptr<DistanceLabel> range = new DistanceLabel("range", drone->getTargeter());
         range->setFont(fontman->getFont());
         range->setColor(Vector(1,0,0));
         range->setAlpha(1);
@@ -367,7 +391,7 @@ public:
             UI::Panel::HCENTER|UI::Panel::VCENTER,
             Vector2(0,0.2));
         
-        Ptr<AttitudeLabel> attitude = new AttitudeLabel("attitude", drone);
+        Ptr<AttitudeLabel> attitude = new AttitudeLabel("attitude", drone->getTargeter());
         attitude->setFont(fontman->getFont());
         attitude->setAlpha(1);
         panel->add(attitude, "range",
@@ -426,9 +450,45 @@ public:
         Ptr<IGame> thegame = game.lock();
         if (!thegame) return new RenderPass(renderer);
         
-        Ptr<RenderPass> result = new RenderPass(renderer);
-        result->enableClearColor(true);
-        result->preDraw().connect(SigC::slot(*this, &RadarModule::draw));
+        Ptr<RenderPass> radar = new RenderPass(renderer);
+        radar->enableClearColor(true);
+        radar->preDraw().connect(SigC::slot(*this, &RadarModule::draw));
+        
+        Ptr<UI::Panel> panel = new UI::Panel(renderer);
+        Ptr<IFontMan> fontman = thegame->getFontMan();
+        fontman->selectFont(thegame->getConfig()->query("MFD_font_small", "default"));
+
+        Ptr<DistanceLabel> dist = new DistanceLabel("distance", targeter);
+        dist->setFont(fontman->getFont());
+        dist->setColor(Vector(1,0,0));
+        dist->setAlpha(1);
+        dist->format = "%.1f";
+        panel->add(dist, "root",
+            UI::Panel::RIGHT|UI::Panel::VCENTER,
+            UI::Panel::RIGHT|UI::Panel::VCENTER,
+            Vector2(-0.02,0.17));
+
+        Ptr<DisplayRangeLabel> range = new DisplayRangeLabel("display-range", targeter);
+        range->setFont(fontman->getFont());
+        range->setColor(Vector(1,0,0));
+        range->setAlpha(1);
+        panel->add(range, "root",
+            UI::Panel::RIGHT|UI::Panel::VCENTER,
+            UI::Panel::RIGHT|UI::Panel::VCENTER,
+            Vector2(-0.02,-0.14));
+
+        Ptr<NameLabel> name = new NameLabel("name", targeter);
+        name->setFont(fontman->getFont());
+        name->setColor(Vector(1,0,0));
+        name->setAlpha(1);
+        panel->add(name, "root",
+            UI::Panel::LEFT|UI::Panel::VCENTER,
+            UI::Panel::LEFT|UI::Panel::VCENTER,
+            Vector2(0.02,0.17));
+        
+        Ptr<UI::PanelRenderPass> result = new UI::PanelRenderPass(renderer);
+        result->setPanel(panel);
+        result->stackedOn(radar);
         return result;
     }
     
