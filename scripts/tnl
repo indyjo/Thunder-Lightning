@@ -25,7 +25,7 @@ function on_error() {
 
 exec_dir=`dirname $0`
 base_dir=`cd $exec_dir/..;pwd`
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$base_dir/lib"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$base_dir/lib:$base_dir/lib/tnl"
 
 command="$exec_dir/tnl-bin"
 
