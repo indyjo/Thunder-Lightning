@@ -1,0 +1,76 @@
+# -*-shell-script-*-
+
+[Meta]
+RootName: @tnlgame.net/cegui:$SOFTWAREVERSION
+DisplayName: CEGUI
+ShortName: cegui
+Maintainer: Jonas Eschenburg <indyjo@gmx.de>
+Packager: Jonas Eschenburg <indyjo@gmx.de>
+Summary: Crazy Eddie\'s GUI, a graphical user interface for games and multimedia applications
+URL: http://www.cegui.org.uk/
+License: MIT License
+SoftwareVersion: 0.5.0
+AutopackageTarget: 1.2
+InterfaceVersion: 1.0.0
+
+[BuildPrepare]
+green; echo "Beginning prepare from directory" `pwd`; normal
+srcdir=`pwd`
+basedir=`cd ..; pwd`
+
+# Set compiler flags
+if [[ -z "$CXXFLAGS" ]]; then
+  CXXFLAGS="-g -O3 -march=i686"
+  green; echo "You didn't specify any C++ compiler flags. Defaulting to CXXFLAGS=$CXXFLAGS."; normal
+fi
+
+# Check for PCRE directory
+if [[ -z "$pcre_dir" ]]; then
+  pcre_dir="$basedir/pcre-7.4"
+  green; echo "You didn't specify a PCRE directory. Defaulting to $pcre_dir."; normal
+fi
+if [[ ! -d "$pcre_dir" ]]; then
+  red; echo "Can't find PCRE directory. Please pass with environment variable pcre_dir!"; normal
+  exit 1
+fi
+
+export PKG_CONFIG_PATH="$build_root/usr/local/lib/pkgconfig"
+export LDFLAGS="$LDFLAGS -L$build_root/usr/local/lib"
+export CXXFLAGS="$CXXFLAGS -I$build_root/usr/local/include"
+export CXX=apg++
+export CC=apgcc 
+
+green; echo "Compiling PCRE and installing into $build_root/usr/local."; normal
+(cd $pcre_dir && prepareBuild --prefix=$build_root/usr/local --enable-shared=false && make install) || exit 1
+
+green; echo "Compiling CEGUI and installing into $build_root/usr/local."; normal
+prepareBuild \
+    --disable-xerces-c --disable-libxml --disable-expat --disable-corona \
+    --disable-devil --disable-freeimage --disable-silly --disable-samples
+
+[BuildUnprepare]
+unprepareBuild
+
+[Imports]
+echo "going to: $build_root"; cd $build_root; echo "Imports: "
+ls -l
+echo lib/libCEGUI*.so.*.*.* | import
+
+[Prepare]
+# Dependency checking
+require @opengl.org/opengl 1.1
+require @freetype.org/freetype 6
+
+removeOwningPackage $PREFIX/lib/libCEGUIBase.so
+removeOwningPackage $PREFIX/lib/libCEGUIFalagardWRBase.so
+removeOwningPackage $PREFIX/lib/libCEGUIOpenGLRenderer.so
+removeOwningPackage $PREFIX/lib/libCEGUITGAImageCodec.so
+removeOwningPackage $PREFIX/lib/libCEGUITinyXMLParser.so
+
+[Install]
+installLib libCEGUI*.so.*.*.*
+
+[Uninstall]
+# Usually just the following line is enough to uninstall everything
+uninstallFromLog
+

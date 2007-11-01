@@ -1,0 +1,14 @@
+[Meta]
+RootName: @tnlgame.net/cegui
+DisplayName: CEGUI
+ShortName: cegui
+Skeleton-Author: Jonas Eschenburg <indyjo@gmx.de>
+Skeleton-Version: 1
+Repository: http://tnlgame.net/downloads/autopackage/cegui.xml
+
+[Notes]
+The interface version is the first and second numbers of the CEGUI base library's soname.
+
+[Test]
+INTERFACE_VERSIONS=`testForLib -i libCEGUIBase.so`
+

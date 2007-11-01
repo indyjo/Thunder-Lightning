@@ -10,34 +10,28 @@ Packager: Jonas Eschenburg <indyjo@gmx.de>
 Summary: An Open Source Futuristic Action Flight Simulator
 URL: http://tnlgame.net/
 License: GNU General Public License, Version 2
-SoftwareVersion: 070827
+SoftwareVersion: 071031
 AutopackageTarget: 1.2
 #Repository: http://tnlgame.net/autopackage/repository.xml
 
 [BuildPrepare]
-# Check for CEGUI directory
-if [[ -z "$cegui_dir" ]]; then
-  cegui_dir=/home/jonas/src/CEGUI-0.5.0
-  green; echo "You didn't specify a CEGUI directory. Defaulting to $cegui_dir."; normal
-fi
-if [[ ! -d "$cegui_dir" ]]; then
-  red; echo "Can't find CEGUI directory. Please pass with environment variable cegui_dir!"; normal
-  exit 1
-fi
+green; echo "Beginning prepare from directory" `pwd`; normal
+srcdir=`pwd`
+basedir=`cd ..; pwd`
 
-# Check for PCRE directory
-if [[ -z "$pcre_dir" ]]; then
-  pcre_dir=/home/jonas/src/pcre-7.4
-  green; echo "You didn't specify a PCRE directory. Defaulting to $pcre_dir."; normal
+# Check for GLEW directory
+if [[ -z "$glew_dir" ]]; then
+  glew_dir="$basedir/glew"
+  green; echo "You didn't specify a GLEW directory. Defaulting to $cegui_dir."; normal
 fi
-if [[ ! -d "$pcre_dir" ]]; then
-  red; echo "Can't find PCRE directory. Please pass with environment variable pcre_dir!"; normal
+if [[ ! -d "$glew_dir" ]]; then
+  red; echo "Can't find GLEW directory. Please pass with environment variable glew_dir!"; normal
   exit 1
 fi
 
 # Check for Io directory
 if [[ -z "$io_dir" ]]; then
-  io_dir=/home/jonas/src/git/Io
+  io_dir="$basedir/git/Io"
   green; echo "You didn't specify an Io directory. Defaulting to $io_dir."; normal
 fi
 if [[ ! -d "$io_dir" ]]; then
@@ -47,7 +41,7 @@ fi
 
 # Check for TnL data directory
 if [[ -z "$data_dir" ]]; then
-  data_dir=/home/jonas/src/TnL-data
+  data_dir="$basedir/TnL-data"
   green; echo "You didn't specify a TnL data directory. Defaulting to $data_dir."; normal
 fi
 if [[ ! -d "$data_dir" ]]; then
@@ -60,6 +54,12 @@ if [[ -z "$CXXFLAGS" ]]; then
   CXXFLAGS="-O3 -march=i686"
   green; echo "You didn't specify any C++ compiler flags. Defaulting to CXXFLAGS=$CXXFLAGS."; normal
 fi
+
+export PKG_CONFIG_PATH="$build_root/usr/local/lib/pkgconfig"
+export LDFLAGS="$LDFLAGS -L$build_root/usr/local/lib"
+export CXXFLAGS="$CXXFLAGS -I$build_root/usr/local/include"
+export CXX=apg++
+export CC=apgcc 
 
 # Check whether darcs reports any untracked or modified files in the data repository
 if which darcs >/dev/null; then
@@ -75,18 +75,8 @@ else
   normal; echo "Continuing..."
 fi
 
-green; echo "Compiling PCRE and installing into $build_root/usr/local."; normal
-(cd $pcre_dir && CC=apgcc ./configure --prefix=$build_root/usr/local --enable-shared=false && make install) || exit 1
-
-green; echo "Compiling CEGUI and installing into $build_root/usr/local."; normal
-(cd $cegui_dir && \
-    CXX=apg++ CC=apgcc ./configure \
-    pcre_CFLAGS="" pcre_LIBS=$build_root/lib/libpcre.a \
-    --prefix=$build_root/usr/local \
-    --disable-xerces-c --disable-libxml --disable-expat --disable-corona \
-    --disable-devil --disable-freeimage --disable-silly \
-    && make install) || exit 1
-
+green; echo "Compiling GLEW"; normal
+(cd $glew_dir && CC=apgcc GLEW_DEST=$build_root/usr/local make clean install) || exit 1
 
 green; echo "Installing Io into $build_root/usr/local."; normal
 (cd $io_dir && make clean && INSTALL_PREFIX="$PREFIX" CC=apgcc make && INSTALL_PREFIX="$build_root/usr/local" make install) || exit 1
@@ -100,32 +90,41 @@ green; echo "Installing Io into $build_root/usr/local."; normal
     rm -r x-*/
 )
     
-    
 green; echo "Installing TnL data into $build_root/usr/local."; normal
 (cd $data_dir && cp -r share/ "$build_root/usr/local") || exit 1
 
 prepareBuild \
   CXXFLAGS="$CXXFLAGS" \
   '--enable-release' \
-  "--with-io-dir=$io_dir" \
-  '--with-libpng-libs=/usr/lib/libpng.a /usr/lib/libz.a' \
-  '--with-sigc-libs=/usr/lib/libsigc-1.2.a' \
-  '--with-glew-libs=/usr/lib/libGLEW.a'
+  "--with-io-dir=$io_dir"
 
 [BuildUnprepare]
 unprepareBuild
 
 [Imports]
-echo "going to: $build_root"; cd $build_root; echo "Imports: " `pwd`
+echo "going to: $build_root"; cd $build_root; echo "Imports: "
 ls -l
-echo '*' | import
+echo    bin/tnl* | import bin
+
+echo    lib/libGLEW.so* \
+        lib/libiovmall.so \
+        lib/io \
+    | import lib
+    
+echo    share/applications \
+        share/icons \
+        share/tnl \
+    | import share
 
 [Prepare]
 # Dependency checking
 require @libsdl.org/sdl 1.2
 require @opengl.org/opengl 1.1
-# Use static linking for openal
-#require @openal.org/openal 0.0
+require @openal.org/openal 0.0
+require @libsigc.sourceforge.net/libsigc 2.5
+require @zlib.org/zlib 1.2
+require @libpng.org/libpng 3.0
+require @tnlgame.net/cegui 1.0
 
 removeOwningPackage $PREFIX/bin/tnl
 removeOwningPackage $PREFIX/share/tnl/scripts/init.io
@@ -138,8 +137,9 @@ installIcon share/icons/hicolor
 installMenuItem Game share/applications/tnlgame.desktop
 (cd share; installData tnl)
 installLib lib/libiovmall.so
-mkdirs lib/io
+mkdirs lib/io lib/tnl
 copyFiles lib/io/* "$PREFIX/lib/io"
+copyFiles lib/libGLEW.* lib/tnl
 
 [Uninstall]
 # Usually just the following line is enough to uninstall everything
