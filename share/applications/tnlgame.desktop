@@ -1,11 +1,12 @@
 [Desktop Entry]
-Type=Application
 Encoding=UTF-8
 Name=Thunder and Lightning
 Comment=Thunder and Lightning - a futuristic action flight simulator game
 Comment[de]=Thunder and Lightning - ein futuristischer Flugsimulator
 Exec=tnl
 Icon=tnlgame
-Categories=Game
 Terminal=true
+StartupNotify=false
+Type=Application
+Categories=Game;Simulation;
 
