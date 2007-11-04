@@ -47,10 +47,11 @@ TrajectoryPlayer := Object clone do(
             up := Matrix clone dim(3,1) setList(current slice(6,9)) norm
             right := (up % front) norm
             up := (front % right) norm
-            entries := right entries clone appendSeq(up entries) appendSeq(front entries)
+            orient := matrix(right x, up x, front x
+                             right y, up y, front y
+                             right z, up z, front z)
             
             location := Matrix clone dim(3,1) setList(current slice(0,3))
-            orient   := Matrix clone dim(3,3) setList(entries)
             actor setLocation(location)
             actor setOrientation(orient)
             
