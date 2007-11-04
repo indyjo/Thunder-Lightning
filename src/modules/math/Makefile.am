@@ -11,6 +11,7 @@ libmath_a_SOURCES =                     \
         Interval.cc Interval.h          \
         Line.cc Line.h                  \
 	    Matrix.h SpecialMatrices.h MatrixVector.h \
+	    NMatrix.h                       \
 		PIDController.h PIDController.cc \
         Plane.h                         \
         Polynomial.cc Polynomial.h      \

@@ -19,6 +19,7 @@ libscripting_a_SOURCES = \
 	FactionMapping.cc \
 	GameMapping.cc \
 	LinalgMapping.cc \
+	NMatrixMapping.cc \
 	ModelMapping.cc \
 	ModelManMapping.cc \
 	ProviderMapping.cc \

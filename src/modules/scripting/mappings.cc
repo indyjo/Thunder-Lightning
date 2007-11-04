@@ -2,6 +2,7 @@
 
 class DataNode;
 class Clock;
+template<class T> class NMatrix;
 struct IConfig;
 struct IActorStage;
 struct IPositionProvider;
@@ -29,6 +30,7 @@ void addBasicMappings(Ptr<IGame> game, IoState * state) {
 
 void addMappings(Ptr<IGame> game, IoState * state) {
 	addMapping<Clock>(game,state);
+	addMapping<NMatrix<float> >(game, state);
 	
     addMapping<IPositionProvider>(game,state);
 	addMapping<IMovementProvider>(game,state);

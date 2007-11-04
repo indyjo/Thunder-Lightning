@@ -1,6 +1,8 @@
+#include <cassert>
 #include <tnl.h>
 #include <modules/math/SpecialMatrices.h>
 #include <modules/math/MatrixVector.h>
+#include <modules/math/NMatrix.h>
 
 #include <List.h>
 
@@ -13,43 +15,22 @@
 		IoState_error_(IOSTATE, NULL, "Io Assertion '%s'", message);
 
 namespace {
+
 template<class T>
 IoObject * wrap_raw(const T *v, int rows, int cols, IoState * state) {
-    IoState_pushRetainPool(state);
-    IoObject *self = IOCLONE(
-        IoObject_getSlot_(state->lobby,
-            IoState_symbolWithCString_(state, "Matrix")));
-
-    IoObject_initClone_(state->lobby, state->lobby, NULL, self);
+    NMatrix<T> mat(rows, cols, v);
     
-    IoList *entries = IoObject_rawGetSlot_(self, IOSYMBOL("entries"));
-    List_preallocateToSize_(LISTIVAR(entries), rows*cols);
-    
-    for(int i=0; i<rows*cols; ++i) 
-        IoList_rawAt_put_(entries, i, IONUMBER(v[i]));
-    
-    IoObject_setSlot_to_(self, IOSYMBOL("rows"), IONUMBER(rows));
-    IoObject_setSlot_to_(self, IOSYMBOL("columns"), IONUMBER(cols));
-    
-    IoState_popRetainPoolExceptFor_(state,self);
-    return self;
+    return wrapObject<NMatrix<T>&>(mat, state);
 }
 
 template<class T>
 void unwrap_raw(IoObject *self, T *out, int rows, int cols) {
-    IoState_pushRetainPool(IOSTATE);
-    IoObject *matrix = IoObject_getSlot_(IOSTATE->lobby, IOSYMBOL("Matrix"));
-    //ls_message("Got matrix? Object: %p\n", matrix);
-    IOASS(matrix, "Could not find Matrix proto.")
-    IOASS(IoObject_rawHasProto_(self, matrix), "Not a Matrix object")
-    IOASS(IoNumber_asInt(IoObject_getSlot_(self,IOSYMBOL("rows"))) == rows
-        && IoNumber_asInt(IoObject_getSlot_(self,IOSYMBOL("columns"))) == cols,
-        "Wrong dimension")
-    IoObject *entries = IoObject_getSlot_(self, IOSYMBOL("entries"));
-    IOASS(entries && ISLIST(entries), "entries not found or invalid")
-    for (int i=0; i<rows*cols; ++i)
-	    out[i] = IoNumber_asDouble(IoList_rawAt_(entries,i));
-    IoState_popRetainPool(IOSTATE);
+    NMatrix<T> mat = unwrapObject<NMatrix<T>&>(self);
+    
+    assert(mat.nrows() == rows && mat.ncols() == cols);
+    
+    const T *in = mat.rawData();
+    for(int i=0; i<mat.nrows()*mat.ncols(); ++i) out[i] = in[i];
 }
 
 } // namespace
