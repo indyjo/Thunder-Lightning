@@ -41,6 +41,7 @@ public:
     // be enabled by default inside class Game.
     void addStaticDebugInfo(Ptr<IGame> game);
     void addStaticInfoMessage(Ptr<IGame> game);
+    void addProfilingGraph(Ptr<IGame> game);
 };
 
 #endif
