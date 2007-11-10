@@ -10,7 +10,7 @@ Packager: Jonas Eschenburg <indyjo@gmx.de>
 Summary: An Open Source Futuristic Action Flight Simulator
 URL: http://tnlgame.net/
 License: GNU General Public License, Version 2
-SoftwareVersion: 071110
+SoftwareVersion: 071111
 AutopackageTarget: 1.2
 #Repository: http://tnlgame.net/autopackage/repository.xml
 
