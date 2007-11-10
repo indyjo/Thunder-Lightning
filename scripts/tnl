@@ -23,7 +23,8 @@ function on_error() {
 }
 
 
-exec_dir=`dirname $0`
+exec_dir_relative=`dirname $0`
+exec_dir=`cd $exec_dir_relative; pwd`
 base_dir=`cd $exec_dir/..;pwd`
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$base_dir/lib:$base_dir/lib/tnl"
 
@@ -62,13 +63,42 @@ if [[ $debug_enabled == yes ]]; then
   esac
 fi
 
+# CEGUI will write its log file (CEGUI.log) into the current directory.
+# Unfortunately, it will crash if that directory is not writable.
+# Workaround: start from /tmp, which usually is writable (which we test)
+if [[ -z "$TNL_WORKING_DIR" ]]; then
+  TNL_WORKING_DIR=/tmp
+fi
+
+if [[ ! -d "$TNL_WORKING_DIR" ]]; then
+  echo "Working directory '$TNL_WORKING_DIR' is not a directory."
+  echo "Please pass a different directory in \$TNL_WORKING_DIR."
+  exit 1
+fi
+if [[ ! -w "$TNL_WORKING_DIR" ]]; then
+  echo "Working directory '$TNL_WORKING_DIR' is not writable."
+  echo "Please pass a different directory in \$TNL_WORKING_DIR"
+  echo "or make '$TNL_WORKING_DIR' a writable directory."
+  exit 1
+fi
+if [[ ! -x "$TNL_WORKING_DIR" ]]; then
+  echo "Working directory '$TNL_WORKING_DIR' is not executable."
+  echo "Please pass a different directory in \$TNL_WORKING_DIR"
+  echo "or make '$TNL_WORKING_DIR' an executable directory."
+  exit 1
+fi
+
+cd $TNL_WORKING_DIR || exit 1
+
+echo "Logging to directory '$TNL_WORKING_DIR'"
+
 echo $command $@
 if [[ $debug_enabled == yes ]]; then
   $command $@
 elif [[ $verbose_enabled == yes ]]; then
   $command $@
 else
-  $command $@ >/tmp/stdout.txt 2>/tmp/stderr.txt
+  $command $@ >stdout.txt 2>stderr.txt
 fi
 if [[ $? != 0 ]]; then
   on_error
