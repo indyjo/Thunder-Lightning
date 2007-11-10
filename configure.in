@@ -28,8 +28,8 @@ AC_ARG_WITH(
     OPENGL_CFLAGS="$withval", OPENGL_CFLAGS="")
 AC_ARG_WITH(
     opengl-libs,
-    [  --with-opengl-libs=PATH      Specify OpenGL libs],
-    OPENGL_LIBS="$withval", OPENGL_LIBS="-lGL -lpthread")
+    [  --with-opengl-libs=PATH      Specify OpenGL libs (default is -lGL -lGLU -lpthread)],
+    OPENGL_LIBS="$withval", OPENGL_LIBS="-lGL -lGLU -lpthread")
 AC_SUBST(OPENGL_CFLAGS)
 AC_SUBST(OPENGL_LIBS)
 
@@ -117,7 +117,7 @@ PKG_CHECK_MODULES(
     SIGC,
     sigc++-1.2,
     [],
-    AC_MSG_WARN([Warning: could not find SigC++ via pkg-config.]))
+    AC_MSG_WARN([Warning: could not find SigC++ version 1.2 via pkg-config.]))
 AC_ARG_WITH(
     sigc-cflags,
     [  --with-sigc-cflags=PATH      Specify SigC++ cflags],
@@ -128,18 +128,7 @@ AC_ARG_WITH(
     SIGC_LIBS="$withval")
 CXXFLAGS="$CXXFLAGS $SIGC_CFLAGS"
 
-AC_ARG_WITH(
-    glew-cflags,
-    [  --with-glew-cflags=PATH      Specify GLEW cflags],
-    GLEW_CFLAGS="$withval", GLEW_CFLAGS="")
-AC_ARG_WITH(
-    glew-libs,
-    [  --with-glew-libs=PATH        Specify GLEW libs],
-    GLEW_LIBS="$withval", GLEW_LIBS="-lGLEW")
-CXXFLAGS="$CXXFLAGS $GLEW_CFLAGS"
-AC_SUBST(GLEW_LIBS)
-
-AM_PATH_SDL(1.2.10, , AC_MSG_ERROR([SDL verion 1.2.10+ needed]))
+AM_PATH_SDL(1.2.10, , AC_MSG_ERROR([SDL version 1.2.10+ needed]))
 CXXFLAGS="$CXXFLAGS $SDL_CFLAGS"
 LDFLAGS="$LDFLAGS $SDL_LDFLAGS"
 

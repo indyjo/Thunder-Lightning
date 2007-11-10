@@ -3,6 +3,7 @@ SUBDIRS = modules boost interfaces
 bin_PROGRAMS = tnl-bin
 
 tnl_bin_SOURCES = game.cc game.h tnl.h \
+                        glew.c glew.h \
                         CEGUIEventFilter.cc CEGUIEventFilter.h \
                         Factory.h \
                         object.cc object.h \
@@ -54,6 +55,10 @@ tnl_libs = \
     modules/drawing/libdrawing.a
 
 tnl_bin_LDADD = $(tnl_libs) @SDL_LIBS@ @SIGC_LIBS@ @OPENGL_LIBS@  \
-    @OPENAL_LIBS@ @ALUT_LIBS@ @LIBPNG_LIBS@ @IO_LIBS@ @GLEW_LIBS@
+    @OPENAL_LIBS@ @ALUT_LIBS@ @LIBPNG_LIBS@ @IO_LIBS@
 
 INCLUDES = @SDL_CFLAGS@ @SIGC_CFLAGS@ @OPENGL_CFLAGS@ @OPENAL_CFLAGS@
+
+# Compile the lonely .c file (glew.c) like the .cc files
+AM_CFLAGS=$(CXXFLAGS)
+

@@ -4,7 +4,7 @@
 #include <list>
 #include <algorithm>
 #include <sigc++/bind.h>
-#include <GL/glew.h>
+#include <glew.h>
 #include <CEGUIDefaultResourceProvider.h>
 #include <CEGUI.h>
 #include <RendererModules/OpenGLGUIRenderer/openglrenderer.h>

@@ -1,7 +1,7 @@
 #include <fstream>
 #include <string>
 #include <cstring>
-#include <GL/glew.h>
+#include <glew.h>
 #include <GL/gl.h>
 
 #include <interfaces/ICamera.h>
@@ -46,7 +46,7 @@ public:
 
         use_shaders = cfg->queryBool("Game_use_shaders", true) && cfg->queryBool("Water_use_shaders", true);
         
-        const char *extensions = "GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader";
+        const char *extensions = "GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_ARB_multitexture";
         if (use_shaders && glewIsSupported(extensions)) {
             ls_message("Compiling vertex shader.\n");
             vertex_shader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
