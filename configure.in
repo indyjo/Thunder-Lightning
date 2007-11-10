@@ -1,4 +1,4 @@
-AC_INIT([tnl],[071031],[bugs@tnlgame.net],[TnL-source])
+AC_INIT([tnl],[071110],[bugs@tnlgame.net],[TnL-source])
 AC_CONFIG_SRCDIR(src/game.cc)
 AC_CONFIG_HEADERS(config.h)
 AC_CANONICAL_TARGET
