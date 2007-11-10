@@ -5,6 +5,7 @@
 #include <windows.h>
 #endif
 #include <GL/gl.h>
+#include <GL/glu.h>
 #include "jogi.h"
 #include "JOpenGLRenderer.h"
 
@@ -18,6 +19,15 @@ JOpenGLRenderer::JOpenGLRenderer()
 : clip_planes(0)
 {
     ls_message("<JOpenGLRenderer::JOpenGLRenderer)>\n");
+
+    // This is an ugly hack to force linking to GLU.
+    // Why would we want to do that? Because CEGUIOpenGLRenderer depends on a
+    // (one!) symbol of libGLU and doesn't link in libGLU by itself.
+    // If we don't depend on some symbol of libGLU, it won't be linked in
+    // and CEGUIOpenGLRender won't be able to satisfy its dependencies.
+    // So we perform some random NOP call to GLU.
+    gluErrorString(GLU_OUT_OF_MEMORY);
+
     coord_sys=JR_CS_WORLD;
 
     camera.init();
