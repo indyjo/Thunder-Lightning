@@ -132,9 +132,9 @@ NMatrix do(
   asString := method(
     if (columns == 1,
       res := "vector("
-      entries foreach(i,v,
+      rows repeat(i,
         if (i != 0 , res = res .. ", ")
-        res = res .. v asString(2)
+        res = res .. self at(i) asString(2)
       )
       res .. ")"
     ,
