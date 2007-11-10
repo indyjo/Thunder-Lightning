@@ -392,6 +392,7 @@ void Game::startupSimulation(Status & stat) {
     Ptr<FlexibleGunsight> overlay = new FlexibleGunsight(this);
     overlay->addStaticInfoMessage(this);
     overlay->addStaticDebugInfo(this);
+    overlay->addProfilingGraph(this);
     Ptr<UI::PanelRenderPass> overlay_pass = new UI::PanelRenderPass(renderer);
     overlay_pass->setPanel(overlay);
     this->renderpass_overlay = overlay_pass;
