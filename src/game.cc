@@ -742,6 +742,8 @@ Ptr<SceneRenderPass> Game::createRenderPass(Ptr<IMovementProvider> view) {
 
 void Game::renderScene(SceneRenderPass * pass)
 {
+    Uint32 t0,t1;
+    
     RenderContext* ctx = &pass->context;
     this->render_context = ctx;
     
@@ -763,23 +765,32 @@ void Game::renderScene(SceneRenderPass * pass)
     
     if (ctx->draw_skybox) skybox->draw();
 
+    t0 = SDL_GetTicks();
     if (ctx->clip_above_water) renderer->pushClipPlane(Vector(0,-1,0), 0);
     if (ctx->clip_below_water) renderer->pushClipPlane(Vector(0,1,0), 0);
     if (ctx->draw_terrain) quadman->draw();
     if (ctx->clip_above_water) renderer->popClipPlanes(1);
     if (ctx->clip_below_water) renderer->popClipPlanes(1);
+    t1 = SDL_GetTicks();
+    getDebugData()->setInt("render_terrain", (int) (t1-t0));
 
+    t0 = SDL_GetTicks();
     if (ctx->draw_water) {
         renderer->setZBufferFunc(JR_ZBFUNC_LESS);
         water->draw(pass);
         renderer->setZBufferFunc(JR_ZBFUNC_LEQUAL);
     }
+    t1 = SDL_GetTicks();
+    getDebugData()->setInt("render_water", (int) (t1-t0));
 
+    t0 = SDL_GetTicks();
     if (ctx->clip_above_water) renderer->pushClipPlane(Vector(0,-1,0), 0);
     if (ctx->clip_below_water) renderer->pushClipPlane(Vector(0,1,0), 0);
     if (ctx->draw_actors) drawActors();
     if (ctx->clip_above_water) renderer->popClipPlanes(1);
     if (ctx->clip_below_water) renderer->popClipPlanes(1);
+    t1 = SDL_GetTicks();
+    getDebugData()->setInt("render_actors", (int) (t1-t0));
 
     this->camera = old_camera;
     
@@ -790,22 +801,22 @@ void Game::doFrame()
 {
     Uint32 t[16];
     int n=0;
-    t[n++] = SDL_GetTicks();
+    t[n++] = SDL_GetTicks(); // mainloop_0:
     doEvents();
-    t[n++] = SDL_GetTicks();
+    t[n++] = SDL_GetTicks(); // mainloop_1:
     updateSimulation();
-    t[n++] = SDL_GetTicks();
+    t[n++] = SDL_GetTicks(); // mainloop_2:
     updateView();
-    t[n++] = SDL_GetTicks();
+    t[n++] = SDL_GetTicks(); // mainloop_3:
     updateSound();
-    t[n++] = SDL_GetTicks();
+    t[n++] = SDL_GetTicks(); // mainloop_4:
 
     setupRenderer();
-    t[n++] = SDL_GetTicks();
+    t[n++] = SDL_GetTicks(); // mainloop_5:
     setupMainRender();
-    t[n++] = SDL_GetTicks();
+    t[n++] = SDL_GetTicks(); // mainloop_6:
     water->update();
-    t[n++] = SDL_GetTicks();
+    t[n++] = SDL_GetTicks(); // mainloop_7:
 
     pre_draw.emit();
     
@@ -817,19 +828,22 @@ void Game::doFrame()
     
     post_draw.emit();
     
-    t[n++] = SDL_GetTicks();
+    t[n++] = SDL_GetTicks(); // mainloop_8:
     SDL_GL_SwapBuffers();
-    t[n++] = SDL_GetTicks();
+    t[n++] = SDL_GetTicks(); // mainloop_9:
 
     updateIoScripting();
     t[n++] = SDL_GetTicks();
     
     // Put the measured times into the debug data interface
+    Uint32 sum=0;
     while (--n>0) {
         char buf[32];
         sprintf(buf, "mainloop_%d", n-1 );
         getDebugData()->setInt(buf, (int) (t[n]-t[n-1]));
+        sum += t[n]-t[n-1];
     }
+    getDebugData()->setInt("mainloop_sum", (int) sum);
 }
 
 const RenderContext *Game::getCurrentContext()
