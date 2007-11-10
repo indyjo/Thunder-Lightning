@@ -615,7 +615,6 @@ Drone do(
     )
     
     Patrol := coro(me, arg_pos, arg_radius,
-        "Beginning Patrol" say
         ex := try(
             if((self ?pos) isNil, self pos := arg_pos)
             if((self ?radius) isNil, self radius := arg_radius)
@@ -624,7 +623,6 @@ Drone do(
             travel travel_height := 1500
             loop(
                 if (travel running not,
-                    if (Game viewSubject == me, "Initiating travel" say)
                     azimuth := 2*Number constants pi * Random value
                     dist := Random value * radius
                     target_pos := pos + vector(azimuth cos, azimuth sin) scaledBy(dist)
@@ -640,8 +638,6 @@ Drone do(
                 )
             )
         )
-        
-        "Ending Patrol" say
         
         ex pass
     )
