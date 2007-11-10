@@ -41,9 +41,21 @@ Ptr<IActor> Targeter::getCurrentTarget() {
 
 void Targeter::selectNextTarget() {
 	current.cycle();
+	if (ptr(current.getActor()) == &self) {
+	    current.cycle();
+	    if (ptr(current.getActor()) == &self) {
+	        current.toEnd();
+	    }
+	}
 }
 void Targeter::selectPreviousTarget() {
     current.cycle(true);
+	if (ptr(current.getActor()) == &self) {
+	    current.cycle(true);
+	    if (ptr(current.getActor()) == &self) {
+	        current.toEnd();
+	    }
+	}
 }
 
 void Targeter::selectNextHostileTarget() {
