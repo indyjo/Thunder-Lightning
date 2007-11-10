@@ -111,19 +111,9 @@ green; echo "Installing TnL data into $build_root/usr/local."; normal
 (cd $data_dir && cp -r share/ "$build_root/usr/local") || exit 1
 
 # Configure Thunder&Lightning sources.
-# The -Wl,--unresolved-symbols param tells the linker to ignore unresolved
-# symbols coming from external libraries, as these may still be resolved at
-# runtime. The reason behind this is a nasty problem that occurs in correlation
-# with GLEW and CEGUI's OpenGL renderer, where the symbol gluOrtho2D needed by
-# libCEGUIOpenGLRenderer.so could not be found in libGLU.so, although it is
-# clearly defined in that library. This only happened when compiling with apg++.
-
-# Any help in fixing this problem and making the workaround unnecessary is
-# very welcomed.
 ./configure --prefix=$build_root/usr/local \
             --enable-release \
-            --with-io-dir="$io_dir" \
-            LDFLAGS="$LDFLAGS -Wl,--unresolved-symbols=ignore-in-shared-libs"
+            --with-io-dir="$io_dir"
             
 make
 make install
