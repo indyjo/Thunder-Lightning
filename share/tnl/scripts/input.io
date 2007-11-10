@@ -131,7 +131,7 @@ EventRemapper do(
 
     mapKey(SDLK_F12, "debug")
 
-    mapKey(SDLK_b, "previous-target")
+    mapKey(SDLK_z, "previous-target")
     mapKey(SDLK_t, "next-target")
     mapKey(SDLK_h, "next-hostile-target")
     mapKey(SDLK_f, "next-friendly-target")
