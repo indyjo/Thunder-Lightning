@@ -121,18 +121,15 @@ void RenderPass::drawMosaic() {
     passes.push(this);
     while ( ! passes.empty() ) {
         Ptr<RenderPass> pass = passes.top();
-        ls_message("Popping pass %p\n", ptr(pass));
         passes.pop();
         
         if (pass->stack_parent) {
             passes.push(pass->stack_parent);
-            ls_message("Pushing stack parent %p\n", ptr(pass->stack_parent));
         }
         
         for(Dependencies::iterator i = pass->dependencies.begin(); i!= pass->dependencies.end(); ++i) {
             textures.push_back(i->second);
             passes.push(i->first);
-            ls_message("Pushing dependency %p\n", ptr(i->first));
         }
     }
     
