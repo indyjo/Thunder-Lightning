@@ -19,13 +19,13 @@ green; echo "Beginning prepare from directory" `pwd`; normal
 srcdir=`pwd`
 basedir=`cd ..; pwd`
 
-# Check for GLEW directory
-if [[ -z "$glew_dir" ]]; then
-  glew_dir="$basedir/glew"
-  green; echo "You didn't specify a GLEW directory. Defaulting to $cegui_dir."; normal
+# Check for SigC directory
+if [[ -z "$sigc_dir" ]]; then
+  sigc_dir="$basedir/libsigc++-1.2.7"
+  green; echo "You didn't specify a SigC 1.2 directory. Defaulting to $sigc_dir."; normal
 fi
-if [[ ! -d "$glew_dir" ]]; then
-  red; echo "Can't find GLEW directory. Please pass with environment variable glew_dir!"; normal
+if [[ ! -d "$sigc_dir" ]]; then
+  red; echo "Can't find SigC 1.2 directory. Please pass with environment variable sigc_dir!"; normal
   exit 1
 fi
 
@@ -75,11 +75,16 @@ else
   normal; echo "Continuing..."
 fi
 
-green; echo "Compiling GLEW"; normal
-(cd $glew_dir && CC=apgcc GLEW_DEST=$build_root/usr/local make clean install) || exit 1
+green; echo "Compiling SigC"; normal
+(cd $sigc_dir \
+    && ./configure \
+        CXX=apg++ --disable-shared --prefix=$build_root/usr/local \
+    && make clean \
+    && make \
+    && make install) || exit 1
 
 green; echo "Installing Io into $build_root/usr/local."; normal
-(cd $io_dir && make clean && INSTALL_PREFIX="$PREFIX" CC=apgcc make && INSTALL_PREFIX="$build_root/usr/local" make install) || exit 1
+(cd $io_dir && make clean && INSTALL_PREFIX="$PREFIX" CC=apgcc make -s && INSTALL_PREFIX="$build_root/usr/local" make install) || exit 1
 (cd $build_root/usr/local/lib
     rm libiovmall.a
     cd io/addons
@@ -89,25 +94,49 @@ green; echo "Installing Io into $build_root/usr/local."; normal
     mv x-Random Random
     rm -r x-*/
 )
-    
+
+green; echo -n "Checking whether Io depends on funky libraries: "
+if ldd $build_root/usr/local/lib/libiovmall.so | grep -q libedit; then
+  red
+  echo "Error"
+  echo "libedit detected. Please modify Io's makefile to no longer link with libedit."
+  normal
+  exit 1
+fi
+echo "OK"
+echo "Io seems to be clean, no unwanted libraries detected."
+normal
+
 green; echo "Installing TnL data into $build_root/usr/local."; normal
 (cd $data_dir && cp -r share/ "$build_root/usr/local") || exit 1
 
-prepareBuild \
-  CXXFLAGS="$CXXFLAGS" \
-  '--enable-release' \
-  "--with-io-dir=$io_dir"
+# Configure Thunder&Lightning sources.
+# The -Wl,--unresolved-symbols param tells the linker to ignore unresolved
+# symbols coming from external libraries, as these may still be resolved at
+# runtime. The reason behind this is a nasty problem that occurs in correlation
+# with GLEW and CEGUI's OpenGL renderer, where the symbol gluOrtho2D needed by
+# libCEGUIOpenGLRenderer.so could not be found in libGLU.so, although it is
+# clearly defined in that library. This only happened when compiling with apg++.
+
+# Any help in fixing this problem and making the workaround unnecessary is
+# very welcomed.
+./configure --prefix=$build_root/usr/local \
+            --enable-release \
+            --with-io-dir="$io_dir" \
+            LDFLAGS="$LDFLAGS -Wl,--unresolved-symbols=ignore-in-shared-libs"
+            
+make
+make install
 
 [BuildUnprepare]
-unprepareBuild
+#unprepareBuild
 
 [Imports]
-echo "going to: $build_root"; cd $build_root; echo "Imports: "
+echo "going to: $build_root/usr/local"; cd $build_root/usr/local; echo "Imports: "
 ls -l
 echo    bin/tnl* | import bin
 
-echo    lib/libGLEW.so* \
-        lib/libiovmall.so \
+echo    lib/libiovmall.so \
         lib/io \
     | import lib
     
@@ -121,13 +150,13 @@ echo    share/applications \
 require @libsdl.org/sdl 1.2
 require @opengl.org/opengl 1.1
 require @openal.org/openal 0.0
-require @libsigc.sourceforge.net/libsigc 2.5
 require @zlib.org/zlib 1.2
 require @libpng.org/libpng 3.0
 require @tnlgame.net/cegui 1.0
 
 removeOwningPackage $PREFIX/bin/tnl
 removeOwningPackage $PREFIX/share/tnl/scripts/init.io
+removeOwningPackage $PREFIX/share/tnl/scripts/simulation_init.io
 removeOwningPackage $PREFIX/lib/libiovmall.so
 
 [Install]
@@ -139,7 +168,6 @@ installMenuItem Game share/applications/tnlgame.desktop
 installLib lib/libiovmall.so
 mkdirs lib/io lib/tnl
 copyFiles lib/io/* "$PREFIX/lib/io"
-copyFiles lib/libGLEW.* lib/tnl
 
 [Uninstall]
 # Usually just the following line is enough to uninstall everything
