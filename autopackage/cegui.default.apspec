@@ -9,7 +9,7 @@ Packager: Jonas Eschenburg <indyjo@gmx.de>
 Summary: Crazy Eddie\'s GUI, a graphical user interface for games and multimedia applications
 URL: http://www.cegui.org.uk/
 License: MIT License
-SoftwareVersion: 0.5.0
+SoftwareVersion: 0.5.0-1
 AutopackageTarget: 1.2
 InterfaceVersion: 1.0.0
 
@@ -24,6 +24,11 @@ if [[ -z "$CXXFLAGS" ]]; then
   green; echo "You didn't specify any C++ compiler flags. Defaulting to CXXFLAGS=$CXXFLAGS."; normal
 fi
 
+if [[ -z "$CFLAGS" ]]; then
+  CFLAGS="$CXXFLAGS"
+  green; echo "You didn't specify any C compiler flags. Defaulting to CFLAGS=$CFLAGS."; normal
+fi
+
 # Check for PCRE directory
 if [[ -z "$pcre_dir" ]]; then
   pcre_dir="$basedir/pcre-7.4"
@@ -34,14 +39,29 @@ if [[ ! -d "$pcre_dir" ]]; then
   exit 1
 fi
 
+# Check for FreeType directory
+if [[ -z "$ft_dir" ]]; then
+  ft_dir="$basedir/freetype-2.3.5"
+  green; echo "You didn't specify a FreeType directory. Defaulting to $ft_dir."; normal
+fi
+if [[ ! -d "$ft_dir" ]]; then
+  red; echo "Can't find FreeType directory. Please pass with environment variable ft_dir!"; normal
+  exit 1
+fi
+
 export PKG_CONFIG_PATH="$build_root/usr/local/lib/pkgconfig"
 export LDFLAGS="$LDFLAGS -L$build_root/usr/local/lib"
 export CXXFLAGS="$CXXFLAGS -I$build_root/usr/local/include"
+export CFLAGS="$CFLAGS -I$build_root/usr/local/include"
 export CXX=apg++
 export CC=apgcc 
 
 green; echo "Compiling PCRE and installing into $build_root/usr/local."; normal
-(cd $pcre_dir && prepareBuild --prefix=$build_root/usr/local --enable-shared=false && make install) || exit 1
+(cd $pcre_dir && ./configure --prefix=$build_root/usr/local --with-pic --disable-cpp --disable-shared && make clean && make install) || exit 1
+
+green; echo "Compiling FreeType and installing into $build_root/usr/local."; normal
+(cd $ft_dir && ./configure --prefix=$build_root/usr/local --with-pic --disable-shared && make clean && make install) || exit 1
+
 
 green; echo "Compiling CEGUI and installing into $build_root/usr/local."; normal
 prepareBuild \
@@ -59,7 +79,7 @@ echo lib/libCEGUI*.so.*.*.* | import
 [Prepare]
 # Dependency checking
 require @opengl.org/opengl 1.1
-require @freetype.org/freetype 6
+#require @freetype.org/freetype 6
 
 removeOwningPackage $PREFIX/lib/libCEGUIBase.so
 removeOwningPackage $PREFIX/lib/libCEGUIFalagardWRBase.so
