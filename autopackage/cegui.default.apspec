@@ -9,7 +9,7 @@ Packager: Jonas Eschenburg <indyjo@gmx.de>
 Summary: Crazy Eddie\'s GUI, a graphical user interface for games and multimedia applications
 URL: http://www.cegui.org.uk/
 License: MIT License
-SoftwareVersion: 0.5.0-2
+SoftwareVersion: 0.5.0-3
 AutopackageTarget: 1.2
 InterfaceVersion: 1.0.0
 
@@ -57,7 +57,7 @@ export CXX=apg++
 export CC=apgcc 
 
 green; echo "Compiling PCRE and installing into $build_root/usr/local."; normal
-(cd $pcre_dir && ./configure --prefix=$build_root/usr/local --with-pic --disable-cpp --disable-shared && make clean && make install) || exit 1
+(cd $pcre_dir && ./configure --prefix=$build_root/usr/local --with-pic --enable-utf8 --disable-cpp --disable-shared && make clean && make install) || exit 1
 
 green; echo "Compiling FreeType and installing into $build_root/usr/local."; normal
 (cd $ft_dir && ./configure --prefix=$build_root/usr/local --with-pic --disable-shared && make clean && make install) || exit 1
