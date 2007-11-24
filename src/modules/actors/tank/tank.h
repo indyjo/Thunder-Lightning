@@ -15,6 +15,9 @@
 class SoundSource;
 class EventSheet;
 class Targeter;
+namespace Effectors {
+    class SpinningWheel;
+}
 
 class Tank : public SimpleActor, virtual public Collide::Collidable, virtual public SigObject {
 public:
@@ -60,6 +63,7 @@ private:
     // Tank state
     Ptr<TankControls> tank_controls;
     Ptr<TankEngine> tank_engine;
+    Ptr<Effectors::SpinningWheel> wheels[6];
     //Ptr<TankBrain> brain;
     float damage;
     double age;

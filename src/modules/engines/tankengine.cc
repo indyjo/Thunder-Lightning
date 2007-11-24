@@ -7,22 +7,21 @@
 
 
 TankEngine::TankEngine(Ptr<IGame> game,
-    const CarParams & cparams,
     const TankParams & params)
-:   CarEngine(game, cparams),
-    TankParams(params)
+:   RigidEngine(game)
+,   TankParams(params)
 {
     turret_angle = 0.0f;
     cannon_angle = 0.0f;
 }
 
 void TankEngine::setControls(Ptr<DataNode> controls) {
-    CarEngine::setControls(controls);
+    RigidEngine::setControls(controls);
     tank_controls = new TankControls(controls);
 }
 
 void TankEngine::run() {
-    CarEngine::run();
+    RigidEngine::run();
     
     float delta_t = thegame->getClock()->getStepDelta();
     turret_angle += delta_t

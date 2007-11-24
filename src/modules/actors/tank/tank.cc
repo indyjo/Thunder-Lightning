@@ -19,6 +19,7 @@
 #include <modules/weaponsys/Cannon.h>
 #include <modules/weaponsys/ProjectileLauncher.h>
 #include <modules/engines/ChasingEngine.h>
+#include <modules/engines/effectors.h>
 
 
 #define PI 3.14159265358979323846
@@ -69,6 +70,31 @@ Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
 
     tank_engine = new TankEngine(thegame);
     setEngine(tank_engine);
+    tank_engine->construct(40000, 2000000, 1600000, 1000000);
+    tank_engine->addEffector( Effectors::Gravity::getInstance() );
+
+    Ptr<Model> buoyant_hull = thegame->getModelMan()->query(thegame->getConfig()->query("Tank_buoyant_hull"));
+    Effectors::Buoyancy::addBuoyancyFromMesh(
+        tank_engine,
+        buoyant_hull->getDefaultObject(),
+        Vector(0,0,0));
+
+    for (int i=0; i<6; ++i) {
+        Vector pos(0,-0.2,0);
+        if ((i % 2) == 0) pos[0] = -2.5f;
+        else pos[0] = 2.5f;
+        if ((i / 2) == 0) pos[2] = 3;
+        else if ((i / 2) == 2) pos[2] = -3;
+        Effectors::SpinningWheel::Params params = {
+            pos, Vector(0,1,0), Vector(1,0,0),
+            0,
+            1.0, 2000000, 450000, 20000, 2000};
+        wheels[i] =
+            new Effectors::SpinningWheel(terrain, thegame->getCollisionMan(), this);
+        wheels[i]->params = params;
+        tank_engine->addEffector(wheels[i]);
+    }
+    wheels[2]->setDebug(true);
     
     setTargeter(new Targeter(thegame->getTerrain(), *thegame, *this));
 
@@ -85,13 +111,14 @@ Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
     
     std::string skeletonfile = thegame->getConfig()->query("Tank_skeleton");
     setSkeleton(new Skeleton(thegame, skeletonfile));
-    
+
     // Prepare collidable
     setBoundingGeometry(
         thegame->getCollisionMan()->queryGeometry(
             thegame->getConfig()->query("Tank_model_bounds")));
-    // Don't set a rigid body, this is a static collidable!
+    setRigidBody(&*tank_engine);
     setActor(this);
+    //setCollidingEnabled(false);
     
     setArmament(new Armament(this, this));
     
@@ -174,6 +201,20 @@ void Tank::action() {
     	tank_controls->setCannonSteer(remap->getAxis("cannon_steer"));
     }
 
+    Quaternion q = getOrientationAsQuaternion();
+    Quaternion q_inv = q.inv();
+    for (int i=0; i<6; ++i) {
+        Vector friction_vector = q_inv.rot(wheels[i]->getCurrentFriction());
+        float friction = friction_vector[2];
+        
+        float force = -friction + 80000.0f*(tank_controls->getThrottle() - wheels[i]->params.spin/16.666f);
+        // If we want to turn right, the right wheels have to turn slower and
+        // the left wheels have to turn faster.
+        force += 80000.0 * tank_controls->getSteer() * (((i % 2) == 0)?1:-1);
+        
+        wheels[i]->params.spin += delta_t*0.0001f*force;
+    }
+    
     SimpleActor::action();
     
     updateDerivedObjects();
@@ -245,7 +286,7 @@ Ptr<IView> Tank::getView(int n) {
     
     switch(n) {
     case 0:
-        chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.1f,
+        chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.5f,
             Transform::identity(),
             Transform(Quaternion(1,0,0,0), Vector(0,4,-8))));
         break;
@@ -282,15 +323,14 @@ void Tank::explode() {
 }
 
 void Tank::integrate(float delta_t, Transform * transforms) {
-    // as this is a "static" actor, we only encode the current state
-    transforms[0] = skeleton->getRootBoneTransform();
+    tank_engine->integrate(delta_t, transforms);
     transforms[1] = skeleton->getEffectiveBoneTransform("Turret");
     transforms[2] = skeleton->getEffectiveBoneTransform("Cannon");
     transforms[3] = skeleton->getEffectiveBoneTransform("MachineGun");
 }
 
 void Tank::update(float delta_t, const Transform * new_transforms) {
-    // as this is a "static" actor, we can ignore this
+    tank_engine->update(delta_t, new_transforms);
 }
 
 void Tank::updateDerivedObjects() {
@@ -306,7 +346,9 @@ void Tank::updateDerivedObjects() {
     sound_low->setPosition(getLocation());
     sound_low->setVelocity(getMovementVector());
 
-    float v = getMovementVector().length();
+    float v = 0;
+    for (int i=0; i<6; ++i) v += std::abs(wheels[i]->params.spin);
+    v /= 6;
     //float gain = 1.0f - std::min(1.0f, v/20.0f);
     //float gain = 1.0f;
     //gain *= gain;
