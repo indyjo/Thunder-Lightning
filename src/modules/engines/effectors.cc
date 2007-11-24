@@ -505,11 +505,13 @@ void Buoyancy::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
         
         // drag
         const float C_d_normal = 1.2f;
+        const float C_d_normal_viscous = 1.0f;
         const float C_d_tangential = 0.02f;
         Vector v = rigid.getVelocityAt(p_wcs);
         Vector v_normal = n_wcs * (v * n_wcs);
         Vector v_tangential = v - v_normal;
         Vector drag_normal = -0.5f*rho*C_d_normal * area * v_normal.length() * v_normal;
+        Vector drag_normal_viscous = -rho*C_d_normal_viscous * area * v_normal;
         Vector drag_tangential = -0.5f*rho*C_d_tangential * area * v_tangential.length() * v_tangential;
         
         //ls_message("Applying normal drag: "); drag_normal.dump();
@@ -517,6 +519,7 @@ void Buoyancy::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
         //ls_message("           against v: "); v.dump();
         
         rigid.applyForceAt(drag_normal, p_wcs);
+        rigid.applyForceAt(drag_normal_viscous, p_wcs);
         rigid.applyForceAt(drag_tangential, p_wcs);
     }
 
