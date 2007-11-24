@@ -2,8 +2,7 @@
 #define TANKENGINE_H
 
 #include <vector>
-#include "rigidengine.h"
-#include "controls.h"
+#include "carengine.h"
 
 struct TankParams {
     float turret_rot_speed;
@@ -24,10 +23,11 @@ struct TankParams {
     { }
 };
 
-class TankEngine: virtual public RigidEngine,
+class TankEngine: virtual public CarEngine,
                   protected TankParams {
 public:
     TankEngine(Ptr<IGame> game,
+               const CarParams & cparams = CarParams(),
                const TankParams & params = TankParams());
 
     // IEngine
