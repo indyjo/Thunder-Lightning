@@ -259,6 +259,121 @@ void Wheel::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
     }
 }
 
+
+SpinningWheel::SpinningWheel(
+    Ptr<ITerrain> terrain,
+    Ptr<Collide::CollisionManager> cm,
+    WeakPtr<Collide::Collidable> nocollide)
+    : terrain(terrain)
+    , collision_manager(cm)
+    , nocollide(nocollide)
+    , debug(false)
+{
+    current_load = 0;
+    contact = false;
+}
+
+void SpinningWheel::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
+    
+    // the rigid body's orientation
+    Quaternion q = rigid.getState().q;
+    // wheel position (relaxed state) in WCS
+    Vector w = rigid.getState().x + q.rot(params.pos);
+    // direction of spring compression in WCS
+    Vector spring_wcs = q.rot(params.spring);
+    // direction of wheel axle in WCS
+    Vector axle_wcs = q.rot(params.axle);
+    
+    // point of contact and respective normal vector
+    Vector x, normal;
+    
+    // do the actual intersection test
+    contact = terrain->lineCollides(w+params.length*spring_wcs, w, &x, &normal);
+    
+    // Rigid body (if any) and velocity of collision partner
+    Ptr<RigidBody> rigid_partner;
+    Vector v_partner(0,0,0);
+    
+    {
+        Vector x_alt, normal_alt;
+        Ptr<Collide::Collidable> collidable =
+            collision_manager->lineQuery(w+params.length*spring_wcs, w, &x_alt, &normal_alt, nocollide.lock());
+        if (collidable) {
+            bool use_this_contact = false;
+            
+            if (contact == true) {
+                // if we already have a previous contact, we have to check which one
+                // compresses the spring more
+                use_this_contact = ((x_alt - x) * spring_wcs) > 0;
+            } else {
+                // if we don't have a contact already, i.e. the terrain test did not
+                // result in a contact, we can safely take this contact.
+                contact = true;
+                use_this_contact = true;
+            }
+            
+            if (use_this_contact) {
+                x = x_alt;
+                normal = normal_alt;
+                rigid_partner = collidable->getRigid();
+                if (rigid_partner) {
+                    v_partner = rigid_partner->getVelocityAt(x);
+                }
+            }
+        }
+    }
+    
+    if (w[1]<0) {
+        // under water friction;
+        Vector v = rigid.getVelocityAt(contact?x:w) + (spring_wcs%axle_wcs)*params.spin;
+        
+        rigid.applyForceAt(-params.friction_under_water * v, contact?x:w);
+    }
+    
+    if (contact) {
+        this->current_pos = x;
+
+        // velocity of the wheel in WCS
+        Vector v = rigid.getVelocityAt(x) + (spring_wcs%axle_wcs)*params.spin;
+        
+        // velocity of wheel in respect to collision partner
+        Vector delta_v = v - v_partner;
+
+        // relative load in interval [0..1]
+        current_load = (x-w).length() / params.length;
+        
+        // Accumulated force to apply on rigid and (negatively) on partner rigid
+        Vector force(0,0,0);
+        
+        // spring force along normal of contact
+        force += params.force * current_load * normal;
+        // spring damping along spring column
+        force += -params.damping  * spring_wcs * (spring_wcs*delta_v);
+        // friction as a function of delta_v and load
+        float traction = (current_load>0.03)?1.0f:current_load/0.03f;
+        current_friction = -params.friction * delta_v * traction;
+        force += current_friction;
+        
+        if (debug) {
+            ls_message("Wheel has contact: load %.3f force: ", current_load); force.dump();
+            ls_message("  delta_v: "); delta_v.dump();
+        }
+
+        rigid.applyForceAt(force, x);
+        if (rigid_partner) {
+            // Apply the force to the collision partner
+            // FIXME: Beause of the integration scheme (every collidable
+            //        for himself), these forces are currently ignored. :-(
+            // rigid_partner->applyForceAt(-force, x);
+        }
+    } else {
+        current_pos = w;
+        current_friction = Vector(0);
+        current_load = 0;
+    }
+}
+
+
 Thrust::Thrust()
     : max_force(Vector(0,0,0))
     , throttle(0)

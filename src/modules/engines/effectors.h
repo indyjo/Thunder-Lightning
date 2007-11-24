@@ -84,6 +84,51 @@ private:
     bool contact;
 };    
 
+/// An effector simulating a wheel spun with constant velocity,
+/// without taking forces into account that act on the wheels rotational speed.
+class SpinningWheel : public IEffector {
+public:
+    struct Params {
+        /// Position of wheel in relaxed state in LCS
+    	Vector pos;
+    	/// Spring column direction (the direction in which the spring is compressed) in LCS.
+    	/// Must be unit-sized
+    	Vector spring;
+    	/// The axis which is aligned with the wheel's axle. Should be orthogonal to spring.
+    	Vector axle;
+    	/// Speed of wheel rotation, measured at its point of contact with the ground.
+    	/// Positive values rotate counter-clockwise around the axle vector.
+        float spin;
+    	/// Length, maximum force and damping of the wheel's spring
+    	float length, force, damping;
+    	/// Friction F/delta_v between wheel and terrain in N / (m/s)
+    	float friction;
+    	/// Friction under water.
+    	float friction_under_water;
+    } params;
+    
+    SpinningWheel(Ptr<ITerrain> terrain, Ptr<Collide::CollisionManager> cm, WeakPtr<Collide::Collidable> nocollide);
+    virtual void applyEffect(RigidBody &rigid, Ptr<DataNode> controls);
+
+    const Vector & getCurrentPos() { return current_pos; }
+    const Vector & getCurrentFriction() { return current_friction; }
+    const float  getCurrentLoad() { return current_load; }
+    const bool hasContact() { return contact; }
+    
+    inline void setDebug(bool b) { debug = b; }
+    
+private:
+    Ptr<ITerrain> terrain;
+    Ptr<Collide::CollisionManager> collision_manager;
+    WeakPtr<Collide::Collidable> nocollide;
+    
+    // dynamic state
+    Vector current_pos;
+    Vector current_friction;
+    float current_load;
+    bool contact;
+    bool debug;
+};
 
 class Thrust : public IEffector {
     Vector max_force;
