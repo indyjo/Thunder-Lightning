@@ -4,19 +4,15 @@ MissionManager := Object clone do(
   
   init := method(
     self missions := list
-    list(
-      "/mission_intro.io",
-      "/mission_carrier.io",
-      "/mission_default.io",
-      "/mission_simple.io",
-      "/mission_aitest.io",
-      "/mission_debug.io",
-      "/mission_debug2.io"
-    ) foreach(name,
+    
+    mission_scripts := Directory clone with(path) fileNames select(name,
+        name beginsWithSeq("mission_") and name endsWithSeq(".io"))
+    mission_scripts foreach(name,
       mission := Mission clone
-      mission doFile(path .. name)
+      mission doFile(path .. "/" .. name)
       missions append(mission)
     )
+    missions sortByKey(name)
   )
   
   // The following functions are called from C++. Their interface is fixed.
