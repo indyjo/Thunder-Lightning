@@ -58,6 +58,25 @@ bool intersectTriangleTriangle(const Vector * triangle1,
                                const Vector * triangle2,
                                const ITransform & T2,
                                Hints & hints);
+
+bool isPointInPrism(const Vector &p3d, const Vector *tri, const Vector & normal);
+
+bool intersectLineTriangle(const Vector &a, const Vector &b,
+                           Vector * tri_lcs,
+                           const Transform & xform,
+                           Vector *out_x=0, Vector *out_normal=0);
+
+bool earliestIntersectionLineTriangle(bool previous_result,
+                                      const Vector &a, const Vector &b,
+                                      Vector * tri_lcs,
+                                      const Transform & xform,
+                                      Vector *inout_x, Vector *out_normal=0);
+
+bool intersectLineBox(bool solid_box,
+                      const Vector &a, const Vector &b,
+                      const BoundingBox & box,
+                      const Transform & xform,
+                      Vector *out_x=0, Vector *out_normal=0);
                                
 bool intersectLineNode(const Vector &a, const Vector &b,
                        int xform_id,

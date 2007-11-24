@@ -385,11 +385,89 @@ Transform get_transform(int xform_id, const Collide::GeometryInstance * geom_ins
     return xform;
 }
 
+bool isPointInPrism(const Vector &p3d, const Vector *tri, const Vector & normal) {
+    Vector dx = (tri[1]-tri[0]).normalize();
+    Vector dy = ((tri[1]-tri[0]) % normal).normalize();
+    
+    // Now transform everything into a 2d coordinate system where the triangle's
+    // point 0 is at the origin
+    Vector2 a( dx*(tri[1]-tri[0]), dy*(tri[1]-tri[0]));
+    Vector2 b( dx*(tri[2]-tri[0]), dy*(tri[2]-tri[0]));
+    Vector2 p( dx*(p3d-tri[0]), dy*(p3d-tri[0]));
+    
+    // Solve for Vector x so that:
+    // [a b] x = p
+    // i.e. x = [a b]^(-1) p
+    
+    // Use closed forum solution of [a b]^-1
+    Matrix2 inv(b[1],-b[0],
+                a[1], a[0]);
+    
+    // Divide by determinant
+    inv /= a[0]*b[1]-a[1]*b[0];
+
+    Vector2 x = inv*p;
+    
+    // We have a triangle when the components of x are all non-negative and their
+    // sum is <= 1
+    
+    return x[0] >= 0 && x[1] >= 0 && x[0]+x[1] <= 1;
+}
+
+bool intersectLineTriangle(const Vector &a, const Vector &b,
+                           Vector * tri_lcs,
+                           const Transform & xform,
+                           Vector *out_x, Vector *out_normal)
+{
+    Vector tri[3] = { xform(tri_lcs[0]), xform(tri_lcs[1]), xform(tri_lcs[2])};
+    Vector normal = (tri[1]-tri[0]) % (tri[2]-tri[1]);
+    normal.normalize();
+    
+    float d_a = normal * (a-tri[0]);
+    float d_b = normal * (b-tri[0]);
+    
+    // Both a and b lie on the same side of the triangle -> no intersection
+    if (d_a < 0 && d_b < 0 || d_a > 0 && d_b > 0) {
+        return false;
+    }
+    
+    // Calculate point of intersection with plane
+    Vector x = a + (b-a) * (d_a/(d_a-d_b));
+    
+    if (isPointInPrism(x, tri, normal)) {
+        if (out_x) *out_x = x;
+        if (out_normal) *out_normal = normal;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool earliestIntersectionLineTriangle(bool previous_result,
+                                      const Vector &a, const Vector &b,
+                                      Vector * tri_lcs,
+                                      const Transform & xform,
+                                      Vector *inout_x, Vector *out_normal)
+{
+    if (previous_result) {
+        Vector x, normal;
+        if (intersectLineTriangle(a,b,tri_lcs,xform,&x,&normal)) {
+            if ((*inout_x - x) * (b-a) > 0) {
+                *inout_x = x;
+                if (out_normal) *out_normal = normal;
+            }
+        }
+        return true;
+    } else {
+        return intersectLineTriangle(a,b,tri_lcs,xform,inout_x,out_normal);
+    }
+}
+
 bool intersectLineBox(bool solid_box,
                       const Vector &a, const Vector &b,
                       const BoundingBox & box,
                       const Transform & xform,
-                      Vector *out_x=0, Vector *out_normal=0)
+                      Vector *out_x, Vector *out_normal)
 {
     Transform inv = xform.inv();
     Vector a_local = inv(a) - box.pos;
@@ -537,13 +615,35 @@ bool intersectLineNode(const Vector &a, const Vector &b,
     
     switch(node->type) {
     case BoundingNode::NONE:
+        return false;
     case BoundingNode::LEAF:
         {
-            bool intersect = intersectLineBox(true, // no solid box, this is an exact test
-                                              a,b,
-                                              node->box,
-                                              xform,
-                                              out_x, out_normal);
+            bool intersectBox = intersectLineBox(true, // solid box
+                                                 a,b,
+                                                 node->box,
+                                                 xform);
+            debug_msg(" -> %s\n", intersectBox?"INTERSECT (box pre-test)":"nothing");
+            if (!intersectBox) {
+                end_func
+                return false;
+            }
+            
+            // We have to test against each triangle an return the earliest 
+            // intersection.
+            bool intersect=false;
+            Vector x,normal;
+            for(int i=0; i<node->data.leaf.n_triangles; ++i) {
+                intersect = earliestIntersectionLineTriangle(
+                    intersect,
+                    a,b,
+                    node->data.leaf.vertices+3*i,
+                    xform,
+                    &x, &normal);
+            }
+            if (intersect) {
+                if (out_x) *out_x = x;
+                if (out_normal) *out_normal = normal;
+            }
             debug_msg(" -> %s\n", intersect?"INTERSECT":"nothing");
             end_func
             return intersect;
