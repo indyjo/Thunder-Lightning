@@ -204,6 +204,7 @@ Config do(
   Tank_model_path                  := model_dir .. "/newtank"
   Tank_skeleton                    := Tank_model_path .. "/Tank.spec"
   Tank_model_bounds                := Tank_model_path .. "/Tank.bounds"
+  Tank_buoyant_hull                := Tank_model_path .. "/buoyant_hull.obj"
   Tank_cannon_sound                := "cannon-shoot-1.wav"
   Tank_engine_sound_low            := "car-engine-1-loop.wav"
   Tank_engine_sound_high           := "car-engine-2-loop.wav"
