@@ -658,7 +658,12 @@ void Game::doEvents()
     
     event_remapper->beginEvents();
     while(SDL_PollEvent(&event)) { // Loop while there are events on the queue
-        event_remapper->feedEvent(event);
+        // special-case handling for SDL quit events
+        if (event.type == SDL_QUIT) {
+            endGame();
+        } else {
+            event_remapper->feedEvent(event);
+        }
     }
     event_remapper->endEvents();
 }
