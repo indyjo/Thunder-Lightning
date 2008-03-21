@@ -131,7 +131,7 @@ public:
     }
 
     inline XVector& operator/= (T lambda) {
-        T oolambda = 1/lambda;
+        T oolambda = (T)1/lambda;
         for (int i=0; i<N; i++) v[i]*=oolambda;
         return *this;
     }
