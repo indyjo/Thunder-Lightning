@@ -8,7 +8,15 @@
 #define OPERATIONS_PER_SECOND       20
 
 /// Global set of radar networks definition
-std::set<RadarNet*> RadarNet::radar_nets;
+std::set<RadarNet*> &RadarNet::getRadarNets() {
+    static std::set<RadarNet*> *_radar_nets=0;
+    
+    if (!_radar_nets) {
+        _radar_nets = new std::set<RadarNet*>;
+    }
+    
+    return *_radar_nets;
+}
 
 RadarNet::Enumerator::Enumerator(Ptr<RadarNet> rn) {
     radarnet = rn;
@@ -127,16 +135,16 @@ void RadarNet::Enumerator::toEnd() {
 RadarNet::RadarNet() {
     all_iter = all_contacts.begin();
     
-    radar_nets.insert(this);
+    getRadarNets().insert(this);
 }
 
 RadarNet::~RadarNet() {
-    radar_nets.erase(this);
+    getRadarNets().erase(this);
 }
 
 void RadarNet::updateAllRadarNets(float delta_t) {
     typedef std::set<RadarNet*>::iterator Iter;
-    for(Iter i= radar_nets.begin(); i!= radar_nets.end(); ++i) {
+    for(Iter i= getRadarNets().begin(); i!= getRadarNets().end(); ++i) {
         (*i)->update(delta_t);
     }
 }

@@ -126,8 +126,8 @@ private:
     /// Rotating maintenance iterator
     ContactsIter    all_iter;
     
-    /// Static house-keeping container of all radar networks
-    static std::set<RadarNet*> radar_nets;
+    /// Singleton container of all radar networks
+    static std::set<RadarNet*> &getRadarNets();
 };
 
 #endif
