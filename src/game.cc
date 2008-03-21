@@ -228,6 +228,12 @@ void Game::startupSystem(Status & stat) {
             SDL_GL_SetAttribute (SDL_GL_MULTISAMPLESAMPLES,
                 config->queryInt("Game_fsaa_samples", 4));
         }
+#ifndef NDEBUG
+        if (fullscreen) {
+            fullscreen = false;
+            ls_message("Fullscreen mode disabled: This is a debug build.\n");
+        }
+#endif
         if(fullscreen) {
             surface = SDL_SetVideoMode(xres, yres, 32,
                     SDL_OPENGL | SDL_FULLSCREEN);
