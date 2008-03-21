@@ -414,6 +414,7 @@ namespace UI {
             
             loadEvents();
         }
+        return true;
     }
     
     bool SettingsDlg::customizeAxes(const CEGUI::EventArgs &) {
