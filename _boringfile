@@ -47,3 +47,7 @@
 (^|/)configure$
 (^|/)Makefile.in$
 (^|/)Makefile
+# Don't include xcode-generated files
+^build(/|$)
+\.pbxuser$
+\.mode1v3$
