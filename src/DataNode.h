@@ -54,7 +54,7 @@ public:
     typedef std::vector<Key> Keys;
     
     inline const DataNode& operator= (const DataNode &o)
-    { DataNodeBase::operator=(o); }
+    { DataNodeBase::operator=(o); return *this; }
     
     void setBool(const Key& key, bool value);
     void setInt(const Key& key, int value);
