@@ -2,7 +2,7 @@
 #include <string>
 #include <cstring>
 #include <glew.h>
-#include <GL/gl.h>
+#include <gl.h>
 
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>

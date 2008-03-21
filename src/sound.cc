@@ -8,7 +8,7 @@
 #include "sound.h"
 
 //#include <AL/alu.h>
-#include <AL/alut.h>
+#include <FreeAlut/alut.h>
 
 using namespace std;
 
@@ -31,7 +31,7 @@ static void alCheck() {
     ALenum error = alGetError();
     if (error != AL_NO_ERROR) {
         ls_error("OpenAL Error %d", error);
-        const ALbyte * errtxt = alGetString(error);
+        const ALchar * errtxt = alGetString(error);
         error = alGetError();
         if (error == AL_NO_ERROR) {
             ls_error(": %s \n", errtxt);

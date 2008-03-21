@@ -35,6 +35,7 @@
 #include <sound.h>
 #include <Faction.h>
 
+#include <SDL/SDL_Main.h>
 #include "game.h"
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
@@ -43,6 +44,9 @@
 #elif defined(__linux)
     #define NEEDS_UNISTD
     #define READ_PATH_FROM_PROC_SELF_EXE
+#elif defined(__APPLE__)
+    #define READ_PATH_FROM_ARGV0
+    #define HAS_RESOURCES_PREFIX
 #else
     #define READ_PATH_FROM_ARGV0
 #endif
@@ -100,7 +104,14 @@ void setup_paths(Ptr<IConfig> config, const char **argv) {
     config->set("base_dir",prefix.c_str());
     config->set("bin_dir",bin_dir.c_str());
     
-    std::string data_dir = prefix + "/share/tnl";
+#ifdef HAS_RESOURCES_PREFIX
+    std::string resources_dir = prefix + "/Resources";
+#else
+    std::string resources_dir = prefix;
+#endif
+    config->set("resources_dir", resources_dir.c_str());
+    
+    std::string data_dir = resources_dir + "/share/tnl";
     config->set("data_dir",(data_dir).c_str());
     config->set("Io_system_init_script_1",(data_dir + "/scripts/system_init_1.io").c_str());
 }

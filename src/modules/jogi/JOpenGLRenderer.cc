@@ -4,8 +4,8 @@
 #if defined(__MINGW32__) || defined(_MSC_VER)
 #include <windows.h>
 #endif
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include <gl.h>
+#include <glu.h>
 #include "jogi.h"
 #include "JOpenGLRenderer.h"
 

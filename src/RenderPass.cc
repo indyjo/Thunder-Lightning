@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <stack>
 
-#include <GL/gl.h>
+#include <gl.h>
 
 #include <modules/math/MatrixVector.h>
 #include <modules/jogi/JRenderer.h>

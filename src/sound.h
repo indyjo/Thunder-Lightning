@@ -3,8 +3,8 @@
 
 #include <map>
 #include <vector>
-#include <AL/al.h>
-#include <AL/alc.h>
+#include <al.h>
+#include <alc.h>
 #include <Weak.h>
 #include <modules/math/Vector.h>
 

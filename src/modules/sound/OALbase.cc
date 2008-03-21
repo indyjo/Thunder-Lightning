@@ -1,4 +1,4 @@
-#include <AL/al.h>
+#include <al.h>
 #include <debug.h>
 
 bool alCheck(const char *where) {
