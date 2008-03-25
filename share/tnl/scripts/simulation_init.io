@@ -3,7 +3,7 @@
 // Enable easy access to Config
 doFile(Config query("data_dir") .. "/scripts/convenience.io")
 
-AddonLoader appendSearchPath( (Config base_dir) .. "/lib/io/addons")
+AddonLoader appendSearchPath(Config io_addons_dir)
 
 path := Config scripts_dir
 Importer addSearchPath(path)

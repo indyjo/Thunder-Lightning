@@ -13,6 +13,7 @@ Config do(
   sounds_dir  := data_dir .. "/sounds"
   scripts_dir := data_dir .. "/scripts"
   shaders_dir := data_dir .. "/shaders"
+  io_addons_dir := resources_dir .. "/io/addons"
   
   ////////////////////////////////////////////////////////////////////////////
   // BEGIN Settings which are saved into config.io
