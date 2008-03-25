@@ -17,93 +17,118 @@ struct IoStateEx {
 };
 
 namespace {
-	typedef IoCallbackContext Ctx;
-	
-	void globalPrintCallback(void *ctx_void, const UArray * uarray) {
-	    Ctx* ctx = (Ctx*) ctx_void;
-		if (ctx) switch (uarray->encoding) {
-		case CENCODING_ASCII:
-		case CENCODING_UTF8:
-		    ctx->printCallback((const char *) uarray->data);
-		    break;
-		default:
-		    ctx->printCallback("<binary data>");
-		}
-	}
-	
-	bool global_inside_exception = false;
-	void globalExceptionCallback(void *ctx_void, IoObject *e) {
-	    Ctx* ctx = (Ctx*) ctx_void;
-	    if (global_inside_exception) {
-	        ls_error("Error: exception occurred inside exception handler.\n");
-	        if(ctx) ctx->exceptionCallback(e);
-	        //exit(-1);
-	    } else {
-	        global_inside_exception = true;
-		    if(ctx) ctx->exceptionCallback(e);
-		    global_inside_exception = false;
-		}
-	}
-	void globalExitCallback(void *ctx_void, int code) {
-	    Ctx* ctx = (Ctx*) ctx_void;
-	    ls_message("Exit with code %d requested\n", code);
-		if(ctx) ctx->exitCallback();
-	}
-	struct DefaultCallbackContext : public IoCallbackContext
-	{
-		virtual void printCallback(const char *str) {
-			ls_message("%s",str);
-		}
-		virtual void exceptionCallback(IoObject * e) {
-			ls_error("Io Exception has occurred.\n");
-			IoCoroutine_rawPrintBackTrace(e);
-		}
-		virtual void exitCallback() {
-			ls_warning("Io has called exit.\n");
-			exit(-1);
-		}
-	} default_context;
-	
-	// Callback for the lifetime coupler Io object in every IoStateEx.
-	// Called during garbage collection's mark phase.
-	void lifetime_coupler_mark(IoObject *self) {
-	    typedef std::vector<std::pair<Object*,IoObject*> >::iterator Iter;
-	    IoStateEx *state = reinterpret_cast<IoStateEx*>(IOSTATE);
-	    
-	    // We iterate through all pairs and mark the IoObject, if the C++
-	    // object has at least 2 references, i.e. not only the one caused by
-	    // the IoObject.
-	    // In other words: if the C++ object's refcount sinks down to 1, we
-	    // can be sure that the only reference left stems from the IoObject,
-	    // so we don't need to artificially keep the IoObject alive anymore.
-	    for(Iter i=state->coupled_objects.begin(); i!=state->coupled_objects.end(); ++i) {
-	        if (i->first->getRefs() >= 2) {
-	            IoObject_shouldMark(i->second);	        
+    typedef IoCallbackContext Ctx;
+    
+    void globalPrintCallback(void *ctx_void, const UArray * uarray) {
+        Ctx* ctx = (Ctx*) ctx_void;
+        if (ctx) switch (uarray->encoding) {
+            case CENCODING_ASCII:
+            case CENCODING_UTF8:
+                ctx->printCallback((const char *) uarray->data);
+                break;
+            default:
+                ctx->printCallback("<binary data>");
+        }
+    }
+    
+    bool global_inside_exception = false;
+    void globalExceptionCallback(void *ctx_void, IoObject *e) {
+        Ctx* ctx = (Ctx*) ctx_void;
+        if (global_inside_exception) {
+            ls_error("Error: exception occurred inside exception handler.\n");
+            if(ctx) ctx->exceptionCallback(e);
+            //exit(-1);
+        } else {
+            global_inside_exception = true;
+            if(ctx) ctx->exceptionCallback(e);
+            global_inside_exception = false;
+        }
+    }
+    void globalExitCallback(void *ctx_void, int code) {
+        Ctx* ctx = (Ctx*) ctx_void;
+        ls_message("Exit with code %d requested\n", code);
+        if(ctx) ctx->exitCallback();
+    }
+    struct DefaultCallbackContext : public IoCallbackContext
+    {
+        virtual void printCallback(const char *str) {
+            ls_message("%s",str);
+        }
+        virtual void exceptionCallback(IoObject * e) {
+            ls_error("Io Exception has occurred.\n");
+            IoCoroutine_rawPrintBackTrace(e);
+        }
+        virtual void exitCallback() {
+            ls_warning("Io has called exit.\n");
+            exit(-1);
+        }
+    } default_context;
+    
+    // Callback for the lifetime coupler Io object in every IoStateEx.
+    // Called during garbage collection's mark phase.
+    void lifetime_coupler_mark(void *_self) {
+        IoObject *self = (IoObject *) _self;
+        
+        typedef std::vector<std::pair<Object*,IoObject*> >::iterator Iter;
+        IoStateEx *state = reinterpret_cast<IoStateEx*>(IOSTATE);
+        
+        // We iterate through all pairs and mark the IoObject, if the C++
+        // object has at least 2 references, i.e. not only the one caused by
+        // the IoObject.
+        // In other words: if the C++ object's refcount sinks down to 1, we
+        // can be sure that the only reference left stems from the IoObject,
+        // so we don't need to artificially keep the IoObject alive anymore.
+        for(Iter i=state->coupled_objects.begin(); i!=state->coupled_objects.end(); ++i) {
+            if (i->first->getRefs() >= 2) {
+                IoObject_shouldMark(i->second);	        
                 //ls_message("C++ object @%p has %d refs so IoObject @%p->%p gets marked\n",
                 //    i->first, i->first->getRefs(), i->second, i->second->object);
-	        } else {
+            } else {
                 //ls_message("C++ object @%p has %d refs so IoObject @%p->%p gets NOT marked\n",
                 //    i->first, i->first->getRefs(), i->second, i->second->object);
-	        }
-	    }
-	}
-	
-	// Callback for the lifetime coupler Io object in every IoStateEx.
-	// Called whenever one of the coupled objects has been free'd
-	void lifetime_coupler_notification(IoObject *self, IoObject *removed) {
-	    //ls_message("Notification: %p collected.\n", removed);
-	    // Delete the entry with the removed object from the list.
-	    typedef std::vector<std::pair<Object*,IoObject*> >::iterator Iter;
-	    IoStateEx *state = reinterpret_cast<IoStateEx*>(IOSTATE);
-	    for(Iter i=state->coupled_objects.begin(); i!=state->coupled_objects.end(); ++i) {
-	        if (i->second == removed) {
+            }
+        }
+    }
+    
+    // Callback for the lifetime coupler Io object in every IoStateEx.
+    // Called whenever one of the coupled objects has been free'd
+    void lifetime_coupler_notification(void *_self, void *_removed) {
+        IoObject *self = (IoObject *) _self;
+        IoObject *removed = (IoObject *) _removed;
+        
+        //ls_message("Notification: %p collected.\n", removed);
+        // Delete the entry with the removed object from the list.
+        typedef std::vector<std::pair<Object*,IoObject*> >::iterator Iter;
+        IoStateEx *state = reinterpret_cast<IoStateEx*>(IOSTATE);
+        for(Iter i=state->coupled_objects.begin(); i!=state->coupled_objects.end(); ++i) {
+            if (i->second == removed) {
                 //ls_message("Coupling between C++ object @%p and IoObject @%p->%p removed because the latter was free'd.\n",
                 //    i->first, i->second, i->second->object);
-	            state->coupled_objects.erase(i);
-	            break;
-	        }
-	    }
-	}
+                state->coupled_objects.erase(i);
+                break;
+            }
+        }
+    }
+    
+    void lifetime_coupler_free(void *_self) {
+        IoObject *self = (IoObject *) _self;
+        ls_message("IoState %p: lifetime coupler freed: %p\n", IOSTATE, self);
+        
+        typedef std::vector<std::pair<Object*,IoObject*> >::iterator Iter;
+        IoStateEx *state = reinterpret_cast<IoStateEx*>(IOSTATE);
+        
+        // On deletion time, we assure that all left-over coupled objects are unregistered.
+        // This prevents their free function from notifing the lifetime coupler (which at that
+        // time has been deleted already).
+        for(Iter i=state->coupled_objects.begin(); i!=state->coupled_objects.end(); ++i) {
+            Object *cpp_object = i->first;
+            IoObject *io_object = i->second;
+            IoStateEx_removeCoupling(cpp_object, io_object);
+        }
+        
+        state->lifetime_coupler = 0;
+        ls_message("Lifetime coupler freed.\n");
+    }
 }
 
 void IoCallbackContext::connectTo(IoState *state) {
@@ -142,8 +167,9 @@ IoState * IoScriptingManager::createIoStateEx() {
     
     IoTag *tag = IoTag_newWithName_("LifetimeCoupler");
     tag->state = io_state;
-    tag->markFunc = (IoTagMarkFunc*) lifetime_coupler_mark;
-    tag->notificationFunc = (IoTagNotificationFunc*) lifetime_coupler_notification;
+    tag->markFunc = lifetime_coupler_mark;
+    tag->freeFunc = lifetime_coupler_free;
+    tag->notificationFunc = lifetime_coupler_notification;
     IoObject_tag_(self, tag);
     
     state->lifetime_coupler = self;
@@ -182,6 +208,7 @@ void IoStateEx_removeCoupling(Object* cpp_object, IoObject* io_object) {
     for(Iter i=state->coupled_objects.begin(); i!=state->coupled_objects.end(); ++i) {
         if (i->first == cpp_object && i->second == io_object) {
             state->coupled_objects.erase(i);
+            IoObject_removeListener_(io_object, state->lifetime_coupler);
             break;
         }
     }
