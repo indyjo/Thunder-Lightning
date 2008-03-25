@@ -33,8 +33,7 @@ void main (void)
 {
     if(Fog >= 1.0) {
         gl_FragColor = gl_Fog.color;
-        return;
-    }
+    } else {
     vec3 EyeDirNorm = normalize(EyeDir);
     
     vec3 bumpColor = vec3(0.0,0.0,0.0);
@@ -73,5 +72,6 @@ void main (void)
     envColor += SunColor * PhongFactor * pow(max(0.0,dot(reflectDir,SunDir)), PhongExponent);
     envColor = mix(envColor, gl_Fog.color.rgb, Fog);
     gl_FragColor = vec4 (envColor, 1.0);
+    }
 }
 

@@ -23,26 +23,25 @@ float groundFog(float y_a, float y_b, float dist) {
         y_b = dummy;
     }
     
-    if (y_b >= GroundFog_max) {
-        return 0.0;
-    }
-    if (y_a <= GroundFog_min) {
-        return 0.0;
+    float result = 0.0;
+    
+    if (y_a > GroundFog_min && y_b < GroundFog_max) {
+    
+        if (y_a > GroundFog_max) {
+            dist *= (GroundFog_max-y_b) / (y_a-y_b);
+            y_a = GroundFog_max;
+        }
+        
+        
+        if (y_b < GroundFog_min) {
+            dist *= (GroundFog_min-y_a) / (y_b-y_a);
+            //y_b = GroundFog_min;
+        }
+            
+        result = dist * GroundFog_scale;
     }
     
-    if (y_a > GroundFog_max) {
-        dist *= (GroundFog_max-y_b) / (y_a-y_b);
-        y_a = GroundFog_max;
-    }
-    
-    /*
-    if (y_b < GroundFog_min) {
-        dist *= (GroundFog_min-y_a) / (y_b-y_a);
-        //y_b = GroundFog_min;
-    }
-    */
-    
-    return dist * GroundFog_scale;
+    return result;
 }
 
 void main(void) 
