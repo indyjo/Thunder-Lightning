@@ -16,7 +16,7 @@ Settings := Object clone do(
         if (System platform asLowercase == "windows") then(
             self dir := Config base_dir
         ) else (
-            self dir := System getenv("HOME") .. "/.tnl"
+            self dir := System getEnvironmentVariable("HOME") .. "/.tnl"
         )
         
         # Make sure the settings dir exists and is a directory
