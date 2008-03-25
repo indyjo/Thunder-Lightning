@@ -24,7 +24,9 @@ tnl_bin_SOURCES = game.cc game.h tnl.h \
                         RenderContext.cc RenderContext.h \
                         RenderPass.cc RenderPass.h \
                         SceneRenderPass.cc SceneRenderPass.h \
-                        AxisTransform.cc AxisTransform.h
+                        AxisTransform.cc AxisTransform.h \
+                        TnlCeguiLogger.cc TnlCeguiLogger.h
+                     
 tnl_libs = \
     modules/scripting/libscripting.a \
     modules/LoDTerrain/libLoDTerrain.a \

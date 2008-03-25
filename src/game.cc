@@ -7,6 +7,7 @@
 #include <glew.h>
 #include <CEGUIDefaultResourceProvider.h>
 #include <CEGUI.h>
+#include <TnlCeguiLogger.h>
 #include <RendererModules/OpenGLGUIRenderer/openglrenderer.h>
 #include <modules/math/Vector.h>
 #include <modules/camera/camera.h>
@@ -300,6 +301,8 @@ void Game::startupSystem(Status & stat) {
     try {
         using namespace CEGUI;
         
+        CEGUI::Logger * logger = new TnlCeguiLogger;
+
         CEGUI::DefaultResourceProvider * resource_provider = new CEGUI::DefaultResourceProvider;
         resource_provider->setResourceGroupDirectory("", config->query("Game_cegui_dir","."));
         
