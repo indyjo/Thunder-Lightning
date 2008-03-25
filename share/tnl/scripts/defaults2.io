@@ -2,8 +2,7 @@
 // depend on a value set there or because they should override some value.
 
 Config do(
-  // Only grab the mouse if the game is to run fullscreen
-  Game_grab_mouse := Game_fullscreen
+  Game_grab_mouse := "true"
   
   // Camera configuration
   Camera_focus                     := "1.5"

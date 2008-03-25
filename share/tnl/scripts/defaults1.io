@@ -24,7 +24,7 @@ Config do(
   ////////////////////////////////////////////////////////////////////////////
   
   // Whether or not the game should run fullscreen ("true") or windowed ("false")
-  Game_fullscreen := "true"
+  Game_fullscreen := "false"
   
   // Use automatically detected resolution (only if Game_fullscreen is "true")
   Game_auto_resolution := "true"
