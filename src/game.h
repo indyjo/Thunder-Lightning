@@ -115,6 +115,7 @@ private:
     bool game_done;
     bool debug_mode;
     bool is_interactive;
+    bool mouse_grabbed;
     Ptr<DataNode> debug_data;
 
     SDL_Surface *surface;

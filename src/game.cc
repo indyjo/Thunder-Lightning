@@ -121,6 +121,7 @@ void setup_paths(Ptr<IConfig> config, const char **argv) {
 Game::Game(int argc, const char **argv)
 : argc(argc), argv(argv)
 , debug_mode(false)
+, mouse_grabbed(false)
 , debug_data(new DataNode)
 , view_is_external(false)
 , render_context(0)
@@ -285,11 +286,6 @@ void Game::startupSystem(Status & stat) {
     if (GLEW_VERSION_2_0) ls_message("  - detected OpenGL 2.0 support. Nice!\n");
     ls_message("Done.\n");
     
-    if (config->queryBool("Game_grab_mouse",false)) {
-	    SDL_WM_GrabInput(SDL_GRAB_ON);
-	    SDL_ShowCursor(SDL_DISABLE);
-    }
-
     ls_message("Initializing managers... ");
     texman = new TextureManager(*config, *renderer);
     modelman = new ModelMan(texman);
@@ -661,7 +657,41 @@ void Game::doEvents()
     
     event_remapper->beginEvents();
     while(SDL_PollEvent(&event)) { // Loop while there are events on the queue
-        // special-case handling for SDL quit events
+        // special-case handling for some SDL events
+        
+        // If we don't have mouse focus, the first click grabs it again
+        if (event.type == SDL_MOUSEBUTTONDOWN && !mouse_grabbed) {
+            mouse_grabbed = true;
+            
+            if (config->queryBool("Game_grab_mouse",false)) {
+                SDL_WM_GrabInput(SDL_GRAB_ON);
+                SDL_ShowCursor(SDL_DISABLE);
+            }
+            ls_message("Mouse grab aquired.\n");
+        }
+        
+        if (event.type == SDL_ACTIVEEVENT) {
+            ls_message("ActiveEvent of state %d with gain %d\n", event.active.state, event.active.gain);
+            if (!event.active.gain) {
+                SDL_WM_GrabInput(SDL_GRAB_OFF);
+                SDL_ShowCursor(SDL_ENABLE);
+                mouse_grabbed = false;
+                ls_message("Mouse grab released.\n");
+            }
+            if ((event.active.state & SDL_APPACTIVE) && event.active.gain==0) {
+                ls_message("Game inactive.\n");
+                while(SDL_WaitEvent(&event)) {
+                    if (event.type == SDL_QUIT) {
+                        ls_message("Game quitting.\n");
+                        break;
+                    } else if (event.type == SDL_ACTIVEEVENT && (event.active.state&SDL_APPACTIVE) && event.active.gain) {
+                        ls_message("Game active again.\n");
+                        break;
+                    }
+                }
+            }
+        }
+        
         if (event.type == SDL_QUIT) {
             endGame();
         } else {
