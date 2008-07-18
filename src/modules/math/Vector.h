@@ -79,6 +79,7 @@ public:
 
 // raw data access
     inline const T * raw() const { return v; }
+    inline T * raw() { return v; }
 
 
 // Operators
