@@ -4,6 +4,8 @@
 #include <tnl.h>
 #include <modules/math/Quaternion.h>
 
+struct IContinuousStateReader;
+struct IContinuousStateWriter;
 
 struct RigidBodyState {
     Vector     x;          // Position in world coordinates
@@ -147,6 +149,17 @@ public:
         float e,
         const RigidBody & A,
         const Vector & p, const Vector & n);
+    
+    // The following member functions can be used to implement IIntegratable 
+    
+    /// Writes the current state
+    void getState(IContinuousStateWriter &);
+    
+    /// Writes the current derivative into the stream
+    void getDerivative(IContinuousStateWriter &);
+    
+    /// Sets the current state from the given stream
+    void setState(IContinuousStateReader &);
 
 protected:
     void updateDerivedVariables();

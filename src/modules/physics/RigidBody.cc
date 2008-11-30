@@ -1,3 +1,5 @@
+#include <interfaces/IContinuousStateReader.h>
+#include <interfaces/IContinuousStateWriter.h>
 #include "RigidBody.h"
 
 RigidBody::RigidBody() {
@@ -100,3 +102,28 @@ float RigidBody::collisionImpulseMagnitude(
     return x1 / (x2 + x5);
 }
 
+void RigidBody::getState(IContinuousStateWriter & out) {
+    out.writeVector(x);
+    out.writeQuaternion(q);
+    out.writeVector(P);
+    out.writeVector(L);
+}
+
+/// Writes the current derivative into the stream
+void RigidBody::getDerivative(IContinuousStateWriter & out) {
+    RigidBodyState d = getDerivative();
+    out.writeVector(d.x);
+    out.writeQuaternion(d.q);
+    out.writeVector(d.P);
+    out.writeVector(d.L);
+}
+
+/// Sets the current state from the given stream
+void RigidBody::setState(IContinuousStateReader & in) {
+    in.readVector(x);
+    in.readQuaternion(q);
+    in.readVector(P);
+    in.readVector(L);
+    
+    q = q.normalize();
+}
