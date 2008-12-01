@@ -6,7 +6,7 @@ noinst_PROGRAMS = tnltest
 
 
 runner.cc: Makefile
-	$(srcdir)/cxxtest/cxxtestgen.py --error-printer -o $@ $(srcdir)/*.h
+	python $(srcdir)/cxxtest/cxxtestgen.py --error-printer -o $@ $(srcdir)/*.h
 	
 tnltest_SOURCES = DummySuite.h CollidePrimitivesSuite.h
 nodist_tnltest_SOURCES = runner.cc
