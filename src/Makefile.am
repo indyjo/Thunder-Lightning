@@ -3,7 +3,7 @@ SUBDIRS = modules boost interfaces
 bin_PROGRAMS = tnl-bin
 
 tnl_bin_SOURCES = game.cc game.h tnl.h \
-                        glew.c glew.h \
+                        glew.c glew.h glxew.h wglew.h \
                         CEGUIEventFilter.cc CEGUIEventFilter.h \
                         Factory.h \
                         object.cc object.h \
