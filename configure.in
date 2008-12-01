@@ -46,8 +46,6 @@ AC_ARG_WITH(
     openal-libs,
     [  --with-openal-libs=PATH      Specify OpenAL libs],
     OPENAL_LIBS="$withval")
-CXXFLAGS="$CXXFLAGS $OPENAL_CFLAGS"
-LDFLAGS="$LDFLAGS $OPENAL_LIBS"
 AC_SUBST(OPENAL_CFLAGS)
 AC_SUBST(OPENAL_LIBS)
 
@@ -64,12 +62,8 @@ AC_ARG_WITH(
     alut-libs,
     [  --with-alut-libs=PATH      Specify ALut libs],
     ALUT_LIBS="$withval")
-CXXFLAGS="$CXXFLAGS $ALUT_CFLAGS"
-LDFLAGS="$LDFLAGS $ALUT_LIBS"
 AC_SUBST(ALUT_CFLAGS)
 AC_SUBST(ALUT_LIBS)
-
-
 
 AC_ARG_WITH(
     libpng-cflags,

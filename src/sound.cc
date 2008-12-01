@@ -5,10 +5,10 @@
 
 #include <tnl.h>
 #include <interfaces/IConfig.h>
-#include "sound.h"
+#include "sound_openal.h"
 
 //#include <AL/alu.h>
-#include <FreeAlut/alut.h>
+#include <AL/alut.h>
 
 using namespace std;
 
@@ -43,7 +43,7 @@ static void alCheck() {
 }
 
 
-Sound::Sound( const string & filename ) {
+ALSound::ALSound( const string & filename ) {
     ls_message("Sound::Sound('%s')\n", filename.c_str());
     alGetError(); // reset error state
     buffer = alutCreateBufferFromFile(filename.c_str());
@@ -58,11 +58,11 @@ Sound::Sound( const string & filename ) {
     }
 }
 
-Sound::~Sound() {
+ALSound::~ALSound() {
     alDeleteBuffers( 1, &buffer );
 }
 
-float Sound::getLengthInSecs() {
+float ALSound::getLengthInSecs() {
     ALint size, bits, freq;
     alGetBufferi(buffer, AL_SIZE, &size);
     alGetBufferi(buffer, AL_BITS, &bits);
@@ -72,7 +72,7 @@ float Sound::getLengthInSecs() {
 }
 
 static int nsources=0;
-SoundSource::SoundSource(Ptr<SoundMan> soundman)
+ALSoundSource::ALSoundSource(Ptr<ALSoundMan> soundman)
 :   soundman(soundman),
     state(AL_INITIAL),
     audible(true),
@@ -86,52 +86,53 @@ SoundSource::SoundSource(Ptr<SoundMan> soundman)
     //ls_message("Created sound source %p\n", this);
 }
 
-SoundSource::~SoundSource() {
+ALSoundSource::~ALSoundSource() {
     //ls_message("nsources: %d (last source audible: %s)\n",--nsources, audible?"yes":"no");
     if (isPlaying()) stop();
     alDeleteSources(1, & source );
     //ls_message("Deleted sound source %p\n", this);
 }
 
-void SoundSource::setPosition(const Vector & pos) {
+void ALSoundSource::setPosition(const Vector & pos) {
     alSource3f(source, AL_POSITION, pos[0], pos[1], pos[2]);
     CHECKVECTOR(pos);
     if (pos[0]!=pos[0])
-        ls_error("Sound source %p position %f %f %f\n", this, pos[0],pos[1],pos[2]);
+        ls_error("ALSound source %p position %f %f %f\n", this, pos[0],pos[1],pos[2]);
 }
 
-void SoundSource::setVelocity(const Vector & vel) {
+void ALSoundSource::setVelocity(const Vector & vel) {
     alSource3f(source, AL_VELOCITY, vel[0], vel[1], vel[2]);
     CHECKVECTOR(vel);
     if (vel[0]!=vel[0])
-        ls_message("Sound source %p velocity %f %f %f\n", this, vel[0],vel[1],vel[2]);
+        ls_message("ALSound source %p velocity %f %f %f\n", this, vel[0],vel[1],vel[2]);
 }
 
-void SoundSource::setLooping(bool loop) {
+void ALSoundSource::setLooping(bool loop) {
     alSourcei(source, AL_LOOPING, loop?AL_TRUE:AL_FALSE);
 }
 
-void SoundSource::setPitch(float pitch) {
+void ALSoundSource::setPitch(float pitch) {
     alSourcef(source, AL_PITCH, pitch);
 }
 
-void SoundSource::setGain(float gain) {
+void ALSoundSource::setGain(float gain) {
     alSourcef(source, AL_GAIN, gain );
 }
 
-void SoundSource::setReferenceDistance(float dist) {
+void ALSoundSource::setReferenceDistance(float dist) {
     alSourcef(source, AL_REFERENCE_DISTANCE, dist);
 }
 
-void SoundSource::setMinGain(float gain) {
+void ALSoundSource::setMinGain(float gain) {
     alSourcef(source, AL_MIN_GAIN, gain );
 }
 
-void SoundSource::setMaxGain(float gain) {
+void ALSoundSource::setMaxGain(float gain) {
     alSourcef(source, AL_MAX_GAIN, gain );
 }
 
-void SoundSource::play(Ptr<Sound> sound) {
+void ALSoundSource::play(Ptr<Sound> _sound) {
+    Ptr<ALSound> sound = (Ptr<ALSound>) sound;
     this->sound = sound;
     ALuint buffer = sound->getResource();
     alSourceQueueBuffers( source, 1, & buffer );
@@ -146,7 +147,7 @@ void SoundSource::play(Ptr<Sound> sound) {
     }
 }
 
-void SoundSource::pause() {
+void ALSoundSource::pause() {
     if (audible) {
         alSourcePause(source);
     } else {
@@ -154,7 +155,15 @@ void SoundSource::pause() {
     }
 }
 
-void SoundSource::stop() {
+void ALSoundSource::resume() {
+    if (audible) {
+        alSourcePlay(source);
+    } else {
+        if (state == AL_PAUSED) state = AL_PLAYING;
+    }
+}
+
+void ALSoundSource::stop() {
     if (audible) {
         alSourceStop(source);
     } else {
@@ -164,7 +173,7 @@ void SoundSource::stop() {
     }
 }
 
-void SoundSource::rewind() {
+void ALSoundSource::rewind() {
     if (audible) {
         alSourceRewind(source);
     } else {
@@ -174,49 +183,49 @@ void SoundSource::rewind() {
     }
 }
 
-Vector SoundSource::getPosition() {
+Vector ALSoundSource::getPosition() {
     float vec[3];
     alGetSourcefv(source, AL_POSITION, vec);
     return Vector(vec[0], vec[1], vec[2]);
 }
 
-Vector SoundSource::getVelocity() {
+Vector ALSoundSource::getVelocity() {
     float vec[3];
     alGetSourcefv(source, AL_VELOCITY, vec);
     return Vector(vec[0], vec[1], vec[2]);
 }
 
-bool SoundSource::isLooping() {
+bool ALSoundSource::isLooping() {
     ALint b;
     alGetSourcei(source, AL_LOOPING, &b);
     return b;
 }
 
-float  SoundSource::getGain() {
+float  ALSoundSource::getGain() {
     float g;
     alGetSourcef(source, AL_GAIN, &g);
     return g;
 }
 
-float  SoundSource::getReferenceDistance() {
+float  ALSoundSource::getReferenceDistance() {
     float d;
     alGetSourcef(source, AL_REFERENCE_DISTANCE, &d);
     return d;
 }
 
-float  SoundSource::getMinGain() {
+float  ALSoundSource::getMinGain() {
     float g;
     alGetSourcef(source, AL_MIN_GAIN, &g);
     return g;
 }
 
-float  SoundSource::getMaxGain() {
+float  ALSoundSource::getMaxGain() {
     float g;
     alGetSourcef(source, AL_MAX_GAIN, &g);
     return g;
 }
 
-bool SoundSource::isPlaying() {
+bool ALSoundSource::isPlaying() {
     ALenum s;
     if (audible) {
         alGetSourcei(source, AL_SOURCE_STATE, &s);
@@ -226,7 +235,7 @@ bool SoundSource::isPlaying() {
     return s == AL_PLAYING;
 }
 
-bool SoundSource::isPaused() {
+bool ALSoundSource::isPaused() {
     ALenum s;
     if (audible) {
         alGetSourcei(source, AL_SOURCE_STATE, &s);
@@ -236,7 +245,7 @@ bool SoundSource::isPaused() {
     return s == AL_PAUSED;
 }
 
-float SoundSource::getCurrentOffsetInSecs() {
+float ALSoundSource::getCurrentOffsetInSecs() {
     float ofs;
     if (audible)
         alGetSourcef(source, AL_SEC_OFFSET, &ofs);
@@ -246,7 +255,7 @@ float SoundSource::getCurrentOffsetInSecs() {
     return ofs;
 }
 
-float SoundSource::getEffectiveGain() {
+float ALSoundSource::getEffectiveGain() {
     // perform effective gain calculation for OpenAL's
     // INVERSE_DISTANCE model
     float dist = (soundman->getListenerPosition() - getPosition()).length();
@@ -256,7 +265,7 @@ float SoundSource::getEffectiveGain() {
     return gain * refdist / (refdist + rolloff*(dist-refdist));
 }
 
-void SoundSource::setAudible(bool audible) {
+void ALSoundSource::setAudible(bool audible) {
     if (this->audible == audible) return;
     
     if (audible) {
@@ -284,7 +293,7 @@ void SoundSource::setAudible(bool audible) {
     }
 }
 
-void SoundSource::update(float delta_t) {
+void ALSoundSource::update(float delta_t) {
     if (audible) {
         // Nothing to do
     } else if (isPlaying()) {
@@ -329,16 +338,16 @@ static void check(ALCdevice *dev=NULL) {
     }
 }
 
-SoundMan::SoundMan(Ptr<IConfig> config)
+ALSoundMan::ALSoundMan(Ptr<IConfig> config)
 :	sound_dir(config->query("SoundMan_sound_dir"))
 ,   playing_sources(0)
 {
-    ls_message("Initializing SoundMan... ");
+    ls_message("Initializing ALSoundMan... ");
 
     device = alcOpenDevice( NULL );
     check();
     if (device == NULL ) {
-        throw std::runtime_error("SoundMan: Failed to initialize Sound subsystem.");
+        throw std::runtime_error("ALSoundMan: Failed to initialize Sound subsystem.");
     } else {
         const ALCbyte * device_specifier =
             alcGetString(device, ALC_DEVICE_SPECIFIER);
@@ -349,7 +358,7 @@ SoundMan::SoundMan(Ptr<IConfig> config)
     context = alcCreateContext( device, NULL );
     check();
     if (context == NULL ) {
-        throw std::runtime_error("Soundman: Couldn't open audio context.");
+        throw std::runtime_error("ALSoundman: Couldn't open audio context.");
     }
     alcMakeContextCurrent( (ALCcontext*) context );
     check(device);
@@ -386,21 +395,21 @@ SoundMan::SoundMan(Ptr<IConfig> config)
     ls_message("done.\n");
 }
 
-SoundMan::~SoundMan() {
+ALSoundMan::~ALSoundMan() {
     alutExit();
     alcDestroyContext( (ALCcontext*) context );
     alcCloseDevice( device );
-    ls_message("SoundMan shutdown complete.\n");
+    ls_message("ALSoundMan shutdown complete.\n");
 }
 
-Ptr<Sound> SoundMan::querySound(const string & name) {
+Ptr<Sound> ALSoundMan::querySound(const string & name) {
     if (sounds.find(name) == sounds.end())
-        sounds[name] = new Sound(sound_dir + "/" + name);
+        sounds[name] = new ALSound(sound_dir + "/" + name);
     return sounds[name];
 }
 
-Ptr<SoundSource> SoundMan::requestSource() {
-    Ptr<SoundSource> s = new SoundSource(this);
+Ptr<SoundSource> ALSoundMan::requestSource() {
+    Ptr<ALSoundSource> s = new ALSoundSource(this);
     all_sources.push_back(ptr(s));
     
     if (   openal_major < 1 
@@ -428,16 +437,16 @@ Ptr<SoundSource> SoundMan::requestSource() {
     return s;
 }
 
-bool invalid(WeakPtr<SoundSource> s) { return !s.valid(); }
-bool playing(WeakPtr<SoundSource> s) {
-    Ptr<SoundSource> p = s.lock();
+bool invalid(WeakPtr<ALSoundSource> s) { return !s.valid(); }
+bool playing(WeakPtr<ALSoundSource> s) {
+    Ptr<ALSoundSource> p = s.lock();
     return p && p->isAudible() && p->isPlaying();
 }
-bool not_playing(Ptr<SoundSource> p) { return !p->isPlaying(); }
+bool not_playing(Ptr<ALSoundSource> p) { return !p->isPlaying(); }
 
-void SoundMan::update(float delta_t) {
-    typedef vector<WeakPtr<SoundSource> >::iterator WSI;
-    typedef vector<Ptr<SoundSource> >::iterator PSI;
+void ALSoundMan::update(float delta_t) {
+    typedef vector<WeakPtr<ALSoundSource> >::iterator WSI;
+    typedef vector<Ptr<ALSoundSource> >::iterator PSI;
 
     // remove all managed sources no longer playing
     managed_sources.resize(
@@ -475,7 +484,7 @@ void SoundMan::update(float delta_t) {
     // make not-so-silent inaudible sources audible, provided there
     //      are enough channels left
     for(WSI i=all_sources.begin(); i!= all_sources.end(); ++i) {
-        SoundSource *source = ptr(*i);
+        ALSoundSource *source = ptr(*i);
         float gain = source->getEffectiveGain();
         if (source->isAudible() && gain < minimum_gain) {
             source->setAudible(false);
@@ -492,24 +501,24 @@ void SoundMan::update(float delta_t) {
     //ls_message("%d playing sources.\n", playing_sources);
     
     for(WSI i=all_sources.begin(); i!= all_sources.end(); ++i) {
-        SoundSource *source = ptr(*i);
+        ALSoundSource *source = ptr(*i);
         source->update(delta_t);
     }
 }            
 
-void SoundMan::manage(Ptr<SoundSource> src) {
+void ALSoundMan::manage(Ptr<SoundSource> src) {
 	managed_sources.push_back(src);
 }
 
-void SoundMan::setListenerPosition( const Vector & pos ) {
+void ALSoundMan::setListenerPosition( const Vector & pos ) {
     alListener3f( AL_POSITION, pos[0], pos[1], pos[2]);
 }
 
-void SoundMan::setListenerVelocity( const Vector & vel ) {
+void ALSoundMan::setListenerVelocity( const Vector & vel ) {
     alListener3f( AL_VELOCITY, vel[0], vel[1], vel[2]);
 }
 
-void SoundMan::setListenerOrientation(
+void ALSoundMan::setListenerOrientation(
         const Vector & up, const Vector & front ) {
     float upfront[6];
     
@@ -519,31 +528,31 @@ void SoundMan::setListenerOrientation(
     alListenerfv( AL_ORIENTATION, upfront);
 }
 
-Vector SoundMan::getListenerPosition() {
+Vector ALSoundMan::getListenerPosition() {
     float vec[3];
     alGetListenerfv(AL_POSITION, vec);
     return Vector(vec[0],vec[1],vec[2]);
 }
 
-Vector SoundMan::getListenerVelocity() {
+Vector ALSoundMan::getListenerVelocity() {
     float vec[3];
     alGetListenerfv(AL_VELOCITY, vec);
     return Vector(vec[0],vec[1],vec[2]);
 }
 
-void SoundMan::getListenerOrientation(Vector & up, Vector & front) {
+void ALSoundMan::getListenerOrientation(Vector & up, Vector & front) {
     float vec[6];
     alGetListenerfv(AL_ORIENTATION, vec);
     up    = Vector(vec[0],vec[1],vec[2]);
     front = Vector(vec[3],vec[4],vec[5]);
 }
 
-void SoundMan::flush() {
+void ALSoundMan::flush() {
     sounds.clear();
 }
 
-void SoundMan::shutdown() {
-	typedef vector<Ptr<SoundSource> > Sources;
+void ALSoundMan::shutdown() {
+	typedef vector<Ptr<ALSoundSource> > Sources;
 	typedef Sources::iterator SIter;
 	
 	flush();

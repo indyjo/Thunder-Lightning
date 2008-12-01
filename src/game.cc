@@ -33,7 +33,7 @@
 #include <modules/actors/Observer.h>
 #include <modules/config/config.h>
 #include <SceneRenderPass.h>
-#include <sound.h>
+#include <sound_openal.h>
 #include <Faction.h>
 
 #include <SDL/SDL_Main.h>
@@ -290,7 +290,7 @@ void Game::startupSystem(Status & stat) {
     texman = new TextureManager(*config, *renderer);
     modelman = new ModelMan(texman);
     fontman = new FontMan(this);
-    soundman = new SoundMan(config);
+    soundman = new ALSoundMan(config);
     ls_message("Done initializing managers\n");
 
     ls_message("Initializing CEGUI library.\n");

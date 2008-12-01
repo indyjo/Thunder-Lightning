@@ -1,131 +1,70 @@
 #ifndef SOUND_H
 #define SOUND_H
 
-#include <map>
-#include <vector>
-#include <al.h>
-#include <alc.h>
-#include <Weak.h>
-#include <modules/math/Vector.h>
-
-struct IConfig;
-class SoundMan;
+#include <string>
 
 class Sound : virtual public Object
 {
-    ALuint buffer;
 public:
-    Sound( const std::string & filename );
-    ~Sound();
-    
-    float getLengthInSecs();
-    
-protected:
-    friend class SoundSource;
-    friend class SoundMan;
-    inline ALuint getResource() { return buffer; }
+    virtual float getLengthInSecs() = 0;
 };
 
-class SoundSource : public Object, public Weak
+class SoundSource : virtual public Object
 {
-    ALuint source;
-    Ptr<SoundMan> soundman;
-    Ptr<Sound> sound;
-    
-    /// Caches state while inaudible
-    ALenum state;
-    float cached_offset;
-    bool audible;
-    
-    SoundSource(Ptr<SoundMan> soundman);
 public:
-    virtual ~SoundSource();
+    virtual void setPosition(const Vector &) = 0;
+    virtual void setVelocity(const Vector &) = 0;
+    virtual void setLooping(bool) = 0;
+    virtual void setPitch(float) = 0;
+    virtual void setGain(float) = 0;
+    virtual void setReferenceDistance(float) = 0;
+    virtual void setMinGain(float) = 0;
+    virtual void setMaxGain(float) = 0;
 
-    void setPosition(const Vector &);
-    void setVelocity(const Vector &);
-    void setLooping(bool);
-    void setPitch(float);
-    void setGain(float);
-    void setReferenceDistance(float);
-    void setMinGain(float);
-    void setMaxGain(float);
-
-    void play(Ptr<Sound> snd);
-    void pause();
-    void resume();
-    void stop();
-    void rewind();
+    virtual void play(Ptr<Sound> snd) = 0;
+    virtual void pause() = 0;
+    virtual void resume() = 0;
+    virtual void stop() = 0;
+    virtual void rewind() = 0;
     
-    Vector getPosition();
-    Vector getVelocity();
-    bool   isLooping();
-    float  getGain();
-    float  getReferenceDistance();
-    float  getMinGain();
-    float  getMaxGain();
+    virtual Vector getPosition() = 0;
+    virtual Vector getVelocity() = 0;
+    virtual bool   isLooping() = 0;
+    virtual float  getGain() = 0;
+    virtual float  getReferenceDistance() = 0;
+    virtual float  getMinGain() = 0;
+    virtual float  getMaxGain() = 0;
     
-    inline const Ptr<Sound> & getSound() {return sound; }
+    virtual Ptr<Sound> getSound() = 0;
     
-    bool isPlaying();
-    bool isPaused();
-    inline bool isAudible() { return audible; }
+    virtual bool isPlaying() = 0;
+    virtual bool isPaused() = 0;
+    virtual bool isAudible() = 0;
     
-    float getCurrentOffsetInSecs();
-    float getEffectiveGain();
-    
-private:
-    friend class SoundMan;
-        
-    inline ALuint getResource() { return source; }
-    void setAudible(bool);
-    void update(float delta_t);
+    virtual float getCurrentOffsetInSecs() = 0;
+    virtual float getEffectiveGain() = 0;
 };
 
-class SoundMan : public Object
+class SoundMan : virtual public Object
 {
-    /// OpenAL version number
-    /// Some functions are not supported on OpenAL1.0
-    int openal_major, openal_minor;
-    std::map<std::string, Ptr<Sound> > sounds;
-    
-    std::vector<Ptr<SoundSource> > managed_sources;
-    std::vector<WeakPtr<SoundSource> > all_sources;
-    
-    std::string sound_dir;
-    
-    ALCdevice * device;
-    void * context;
-    int play_channels;
-    int playing_sources;
-    
-    float minimum_gain, hysteresis;
-    
-	friend class SoundSource;
-
 public:
-
-    SoundMan(Ptr<IConfig>);
-    ~SoundMan();
-
-    Ptr<Sound> querySound(const std::string & name);
-    Ptr<SoundSource> requestSource();
+    virtual Ptr<Sound> querySound(const std::string & name) = 0;
+    virtual Ptr<SoundSource> requestSource() = 0;
     
-    void update(float delta_t);
+    virtual void update(float delta_t) = 0;
     
-    void manage(Ptr<SoundSource>);
+    virtual void manage(Ptr<SoundSource>) = 0;
     
-    void setListenerPosition( const Vector & pos );
-    void setListenerVelocity( const Vector & vel );
-    void setListenerOrientation( const Vector & up, const Vector & front );
+    virtual void setListenerPosition( const Vector & pos ) = 0;
+    virtual void setListenerVelocity( const Vector & vel ) = 0;
+    virtual void setListenerOrientation( const Vector & up, const Vector & front ) = 0;
     
-    Vector getListenerPosition();
-    Vector getListenerVelocity();
-    void getListenerOrientation( Vector & up, Vector & front);
+    virtual Vector getListenerPosition() = 0;
+    virtual Vector getListenerVelocity() = 0;
+    virtual void getListenerOrientation( Vector & up, Vector & front) = 0;
     
-    void flush();
-    void shutdown();
-protected:
-    
+    virtual void flush() = 0;
+    virtual void shutdown() = 0;
 };
 
 #endif

@@ -1,6 +1,6 @@
 noinst_LIBRARIES = libjogi.a
 
-INCLUDES = -I${top_srcdir}/src @LIBPNG_CFLAGS@
+INCLUDES = -I${top_srcdir}/src @LIBPNG_CFLAGS@ @OPENGL_CFLAGS@
 
 libjogi_a_SOURCES = \
     JCamera.cc JCamera.h \
