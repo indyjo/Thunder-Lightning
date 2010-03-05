@@ -1,6 +1,7 @@
 #include <iostream>
 #include <getopt.h>
 #include <cstdlib>
+#include <climits>
 #include <convert.h>
 
 using namespace std;
