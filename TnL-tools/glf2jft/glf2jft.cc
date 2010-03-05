@@ -23,6 +23,7 @@ struct GlFontChar
 ostream & operator<< (ostream & out, const GlFontChar & c) {
     out << c.dx << " " << c.dy << "\t";
     out << c.tx1 << " " << c.ty1 << "\t" << c.tx2 << " " << c.ty2;
+    return out;
 }
 
 //glFont structure
