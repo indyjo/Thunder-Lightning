@@ -531,6 +531,7 @@ namespace UI {
             
             loadAxes();
         }
+        return true;
     }
     
     void SettingsDlg::onFrame() {

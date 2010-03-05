@@ -738,6 +738,7 @@ bool intersectLineNode(const Vector &a, const Vector &b,
             return found;
         }
     }
+    return true;
 } 
 
 

@@ -463,6 +463,7 @@ jError JOpenGLRenderer::createTxtidFromGLTex(unsigned int gltex, jrtxtid_t *txti
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &texture[tex].size_w);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &texture[tex].size_h);
     glPopAttrib();
+    return JERR_OK;
 }
 
 int JOpenGLRenderer::getTextureWidth(jrtxtid_t tex)

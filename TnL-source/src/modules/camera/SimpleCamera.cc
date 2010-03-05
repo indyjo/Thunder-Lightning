@@ -150,6 +150,7 @@ SimpleCamera & SimpleCamera::operator= (ICamera & other) {
     location = other.getLocation();
     near_dist = other.getNearDistance();
     far_dist = other.getFarDistance();
+    return *this;
 }
 
 Vector SimpleCamera::getLocation()

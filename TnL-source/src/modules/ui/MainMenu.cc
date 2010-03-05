@@ -47,6 +47,7 @@ namespace UI {
     bool MainMenu::exitGame(const CEGUI::EventArgs &) {
         Ptr<IGame> game = main_gui.getGame();
         if (game) game->endGame();
+        return true;
     }
     bool MainMenu::loadMission(const CEGUI::EventArgs &) {
         main_gui.switchToMissionSelector();
