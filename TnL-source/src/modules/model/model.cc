@@ -1,6 +1,7 @@
 #include <fstream>
 #include <cctype>
 #include <cstdio>
+#include <cstring>
 //#include <modules/actors/fx/DebugObject.h>
 #include "model.h"
 
