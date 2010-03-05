@@ -8,7 +8,7 @@
 #include <CEGUIDefaultResourceProvider.h>
 #include <CEGUI.h>
 #include <TnlCeguiLogger.h>
-#include <RendererModules/OpenGLGUIRenderer/openglrenderer.h>
+#include <RendererModules/OpenGL/CEGUIOpenGLRenderer.h>
 #include <modules/math/Vector.h>
 #include <modules/camera/camera.h>
 #include <modules/camera/FollowingCamera.h>
@@ -317,15 +317,15 @@ void Game::startupSystem(Status & stat) {
         resource_provider->setResourceGroupDirectory("looknfeels", config->query("Game_cegui_looknfeels_dir","."));
         WidgetLookManager::setDefaultResourceGroup("looknfeels");
 
-        CEGUI::OpenGLRenderer * opengl_renderer = new CEGUI::OpenGLRenderer(0);
+        CEGUI::OpenGLRenderer & opengl_renderer = CEGUI::OpenGLRenderer::create();
 
-        new CEGUI::System(opengl_renderer, resource_provider);
+        CEGUI::System::create(opengl_renderer, resource_provider);
         
         // load in the scheme file, which auto-loads the TaharezLook imageset
-        CEGUI::SchemeManager::getSingleton().loadScheme("TaharezLook.scheme");
+        CEGUI::SchemeManager::getSingleton().create("TaharezLook.scheme");
 
         // load in a font.  The first font loaded automatically becomes the default font.
-        CEGUI::FontManager::getSingleton().createFont("Commonwealth-10.font");
+        CEGUI::FontManager::getSingleton().create("Commonwealth-10.font");
         
         CEGUI::System::getSingleton().setDefaultMouseCursor("TaharezLook", "MouseArrow");
         
