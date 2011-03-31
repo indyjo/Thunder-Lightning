@@ -1,0 +1,53 @@
+# Boring file regexps:
+\.hi$
+\.o$
+\.Po$
+\.a$
+\.so$
+\.o\.cmd$
+\.deps$
+# *.ko files aren't boring by default because they might
+# be Korean translations rather than kernel modules.
+# \.ko$
+\.ko\.cmd$
+\.mod\.c$
+(^|/)\.tmp_versions($|/)
+(^|/)CVS($|/)
+(^|/)RCS($|/)
+~$
+#(^|/)\.[^/]
+(^|/)_darcs($|/)
+\.bak$
+\.BAK$
+\.orig$
+(^|/)vssver\.scc$
+\.swp$
+(^|/)MT($|/)
+(^|/)\{arch\}($|/)
+(^|/).arch-ids($|/)
+(^|/),
+\.class$
+\.prof$
+(^|/)\.DS_Store$
+(^|/)BitKeeper($|/)
+(^|/)ChangeSet($|/)
+(^|/)\.svn($|/)
+\.py[co]$
+\#
+\.cvsignore$
+(^|/)Thumbs\.db$
+#
+#
+# The following regexps have been added to prevent autoconf/automake-generated
+# files from appearing.
+#
+#
+(^|/)aclocal.m4$
+(^|/)autom4te.cache($|/)
+(^|/)configure$
+(^|/)Makefile.in$
+(^|/)Makefile
+# Don't include xcode-generated files
+^build(/|$)
+\.pbxuser$
+\.mode1v3$

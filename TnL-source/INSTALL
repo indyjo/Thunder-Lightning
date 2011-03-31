@@ -1,0 +1,4 @@
+Step 1: Call autoreconf to generate a configure script.
+Step 2: Call the configure script with lots of parameters.
+Step 3: make && make install
+

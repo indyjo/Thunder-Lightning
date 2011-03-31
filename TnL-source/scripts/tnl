@@ -1,0 +1,106 @@
+#!/bin/bash
+
+function on_error() {
+  xset r on
+  echo
+  echo "TnL has exited with a non-zero return value."
+  echo "This usually means that something has gone wrong and the game has crashed."
+  echo "  * See /tmp/stdout.txt and /tmp/stderr.txt for information"
+  echo "    on what happened."
+  echo "  * Visit http://tnlgame.net for information and to contact"
+  echo "    the author and the community."
+  echo "  * If you want to help the author fix this bug, send a copy"
+  echo "    of /tmp/stdout.txt and /tmp/stderr.txt to bugs@tnlgame.net"
+  echo "    or post it on the discussion board at http://forum.tnlgame.net"
+  if [[ $debug_enabled==no ]]; then
+    echo "  * If you would like to debug TnL, start again with"
+    echo "    tnl --debug or set TNL_DEBUG=1"
+  fi
+  echo
+  echo -n "Press Enter to continue."
+  read
+  exit -1
+}
+
+
+exec_dir_relative=`dirname $0`
+exec_dir=`cd $exec_dir_relative; pwd`
+base_dir=`cd $exec_dir/..;pwd`
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$base_dir/lib:$base_dir/lib/tnl"
+
+command="$exec_dir/tnl-bin"
+
+debug_enabled=no
+verbose_enabled=no
+
+while [[ $# -gt 0 ]]; do
+  if [[ $1 == "-d" || $1 == "--debug" ]]; then
+    debug_enabled=yes
+  elif [[ $1 == "-v" || $1 == "--verbose" ]]; then
+    verbose_enabled=yes
+  fi
+  shift
+done
+
+if [[ -n "$TNL_DEBUG" ]]; then
+  debug_enabled=yes
+fi
+
+
+if [[ $debug_enabled == yes ]]; then
+  debug_1="ddd --args"
+  debug_2="valgrind -v --leak-check=yes --log-file=tnl --num-callers=18"
+  debug_3="gdb --args"
+  echo "Please choose a debugger:"
+  echo "1 $debug_1"
+  echo "2 $debug_2"
+  echo "3 $debug_3"
+  read num
+  case $num in
+    1) command="$debug_1 $command" ;;
+    2) command="$debug_2 $command" ;;
+    3) command="$debug_3 $command" ;;
+  esac
+fi
+
+# CEGUI will write its log file (CEGUI.log) into the current directory.
+# Unfortunately, it will crash if that directory is not writable.
+# Workaround: start from /tmp, which usually is writable (which we test)
+if [[ -z "$TNL_WORKING_DIR" ]]; then
+  TNL_WORKING_DIR=/tmp
+fi
+
+if [[ ! -d "$TNL_WORKING_DIR" ]]; then
+  echo "Working directory '$TNL_WORKING_DIR' is not a directory."
+  echo "Please pass a different directory in \$TNL_WORKING_DIR."
+  exit 1
+fi
+if [[ ! -w "$TNL_WORKING_DIR" ]]; then
+  echo "Working directory '$TNL_WORKING_DIR' is not writable."
+  echo "Please pass a different directory in \$TNL_WORKING_DIR"
+  echo "or make '$TNL_WORKING_DIR' a writable directory."
+  exit 1
+fi
+if [[ ! -x "$TNL_WORKING_DIR" ]]; then
+  echo "Working directory '$TNL_WORKING_DIR' is not executable."
+  echo "Please pass a different directory in \$TNL_WORKING_DIR"
+  echo "or make '$TNL_WORKING_DIR' an executable directory."
+  exit 1
+fi
+
+cd $TNL_WORKING_DIR || exit 1
+
+echo "Logging to directory '$TNL_WORKING_DIR'"
+
+echo $command $@
+if [[ $debug_enabled == yes ]]; then
+  $command $@
+elif [[ $verbose_enabled == yes ]]; then
+  $command $@
+else
+  $command $@ >stdout.txt 2>stderr.txt
+fi
+if [[ $? != 0 ]]; then
+  on_error
+fi
+
