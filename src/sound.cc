@@ -135,7 +135,7 @@ void ALSoundSource::setMaxGain(float gain) {
 }
 
 void ALSoundSource::play(Ptr<Sound> _sound) {
-    Ptr<ALSound> sound = (Ptr<ALSound>) sound;
+    Ptr<ALSound> sound = (Ptr<ALSound>) _sound;
     this->sound = sound;
     ALuint buffer = sound->getResource();
     alSourceQueueBuffers( source, 1, & buffer );
@@ -326,7 +326,7 @@ void ALSoundSource::update(float delta_t) {
     }
 }
 
-static void check(ALCdevice *dev=NULL) {
+static void check(ALCdevice *dev) {
     ALCenum error = alcGetError(dev);
     if (error != ALC_NO_ERROR) {
         ls_error("OpenAL (ALC) Error %d", error);
@@ -348,7 +348,6 @@ ALSoundMan::ALSoundMan(Ptr<IConfig> config)
     ls_message("Initializing ALSoundMan... ");
 
     device = alcOpenDevice( NULL );
-    check();
     if (device == NULL ) {
         throw std::runtime_error("ALSoundMan: Failed to initialize Sound subsystem.");
     } else {
@@ -359,7 +358,7 @@ ALSoundMan::ALSoundMan(Ptr<IConfig> config)
     }
     
     context = alcCreateContext( device, NULL );
-    check();
+    check(device);
     if (context == NULL ) {
         throw std::runtime_error("ALSoundman: Couldn't open audio context.");
     }
