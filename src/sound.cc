@@ -7,8 +7,11 @@
 #include <interfaces/IConfig.h>
 #include "sound_openal.h"
 
-//#include <AL/alu.h>
+#ifdef __APPLE__
+#include <FreeAlut/alut.h>
+#else
 #include <AL/alut.h>
+#endif
 
 using namespace std;
 

@@ -3,8 +3,14 @@
 
 #include <map>
 #include <vector>
+#ifdef __APPLE__
+#include <OpenAL/al.h>
+#include <OpenAL/alc.h>
+#else
 #include <al.h>
 #include <alc.h>
+#endif
+
 #include <modules/math/Vector.h>
 #include <Weak.h>
 
