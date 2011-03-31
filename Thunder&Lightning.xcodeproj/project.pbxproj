@@ -180,11 +180,10 @@
 		DDA41D200D96FBF90060D5AA /* SDL.framework in Copy Bundle Frameworks */ = {isa = PBXBuildFile; fileRef = DD83143F0D797AC600CDD6EC /* SDL.framework */; };
 		DDA41D210D96FC150060D5AA /* CEGUI.framework in Copy Bundle Frameworks */ = {isa = PBXBuildFile; fileRef = DD519F8C0D83058400505942 /* CEGUI.framework */; };
 		DDA41DC80D96FC1D0060D5AA /* FreeType.framework in Copy Bundle Frameworks */ = {isa = PBXBuildFile; fileRef = DD8316DC0D7B344000CDD6EC /* FreeType.framework */; };
-		DDA42FC40D9700AD0060D5AA /* libiovmall.dylib in Copy Bundle Frameworks */ = {isa = PBXBuildFile; fileRef = DDA41DF80D96FFFC0060D5AA /* libiovmall.dylib */; };
 		DDA42FC90D9701C50060D5AA /* io in Resources */ = {isa = PBXBuildFile; fileRef = DDA42FC80D9701C50060D5AA /* io */; };
-		DDA42FDF0D97044F0060D5AA /* libiovmall.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DDA41DF80D96FFFC0060D5AA /* libiovmall.dylib */; };
 		DDA430240D97090C0060D5AA /* CEGUIOpenGLRenderer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DDA430230D97090C0060D5AA /* CEGUIOpenGLRenderer.framework */; };
 		DDA430EC0D97093E0060D5AA /* CEGUIOpenGLRenderer.framework in Copy Bundle Frameworks */ = {isa = PBXBuildFile; fileRef = DDA430230D97090C0060D5AA /* CEGUIOpenGLRenderer.framework */; };
+		DDE0B2D210F37DFD0038FDA3 /* libiovmall.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DDE0B2D110F37DFD0038FDA3 /* libiovmall.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -195,7 +194,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				DDA430EC0D97093E0060D5AA /* CEGUIOpenGLRenderer.framework in Copy Bundle Frameworks */,
-				DDA42FC40D9700AD0060D5AA /* libiovmall.dylib in Copy Bundle Frameworks */,
 				DDA41DC80D96FC1D0060D5AA /* FreeType.framework in Copy Bundle Frameworks */,
 				DDA41D210D96FC150060D5AA /* CEGUI.framework in Copy Bundle Frameworks */,
 				DDA41D200D96FBF90060D5AA /* SDL.framework in Copy Bundle Frameworks */,
@@ -215,6 +213,7 @@
 		DD519E950D82FEC100505942 /* TnlCeguiLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TnlCeguiLogger.h; sourceTree = "<group>"; };
 		DD519E960D82FEC100505942 /* TnlCeguiLogger.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TnlCeguiLogger.cc; sourceTree = "<group>"; };
 		DD519F8C0D83058400505942 /* CEGUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CEGUI.framework; path = ../../Library/Frameworks/CEGUI.framework; sourceTree = SOURCE_ROOT; };
+		DD7A729E0EE730E900F88D3E /* sound_openal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sound_openal.h; sourceTree = "<group>"; };
 		DD8311550D79746800CDD6EC /* TnL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TnL.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD8311580D79746800CDD6EC /* TnL-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "TnL-Info.plist"; sourceTree = "<group>"; };
 		DD83115D0D79748400CDD6EC /* ActorStage.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ActorStage.cc; sourceTree = "<group>"; };
@@ -674,9 +673,9 @@
 		DD8318920D7CB00700CDD6EC /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		DD831CCD0D7CB8B000CDD6EC /* share */ = {isa = PBXFileReference; lastKnownFileType = folder; name = share; path = "../TnL-data/share"; sourceTree = SOURCE_ROOT; };
 		DDA41C890D96D6190060D5AA /* tnlgame.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = tnlgame.icns; path = extras/tnlgame.icns; sourceTree = "<group>"; };
-		DDA41DF80D96FFFC0060D5AA /* libiovmall.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiovmall.dylib; path = "../TnL-bundle/lib/libiovmall.dylib"; sourceTree = SOURCE_ROOT; };
-		DDA42FC80D9701C50060D5AA /* io */ = {isa = PBXFileReference; lastKnownFileType = folder; name = io; path = "../TnL-bundle/lib/io"; sourceTree = SOURCE_ROOT; };
+		DDA42FC80D9701C50060D5AA /* io */ = {isa = PBXFileReference; explicitFileType = folder; name = io; path = /usr/local/lib/io; sourceTree = "<absolute>"; };
 		DDA430230D97090C0060D5AA /* CEGUIOpenGLRenderer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CEGUIOpenGLRenderer.framework; path = ../../Library/Frameworks/CEGUIOpenGLRenderer.framework; sourceTree = SOURCE_ROOT; };
+		DDE0B2D110F37DFD0038FDA3 /* libiovmall.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiovmall.dylib; path = /usr/local/lib/libiovmall.dylib; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -685,7 +684,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				DDA430240D97090C0060D5AA /* CEGUIOpenGLRenderer.framework in Frameworks */,
-				DDA42FDF0D97044F0060D5AA /* libiovmall.dylib in Frameworks */,
 				DD8314400D797AC600CDD6EC /* SDL.framework in Frameworks */,
 				DD8314940D797B4E00CDD6EC /* OpenGL.framework in Frameworks */,
 				DD8316DD0D7B344000CDD6EC /* FreeType.framework in Frameworks */,
@@ -695,6 +693,7 @@
 				DD83173B0D7B58B600CDD6EC /* Foundation.framework in Frameworks */,
 				DD8318930D7CB00700CDD6EC /* Carbon.framework in Frameworks */,
 				DD519F8D0D83058400505942 /* CEGUI.framework in Frameworks */,
+				DDE0B2D210F37DFD0038FDA3 /* libiovmall.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -704,10 +703,10 @@
 		DD830F530D79739600CDD6EC = {
 			isa = PBXGroup;
 			children = (
+				DDE0B2D110F37DFD0038FDA3 /* libiovmall.dylib */,
 				DDA430230D97090C0060D5AA /* CEGUIOpenGLRenderer.framework */,
 				DDA42FC80D9701C50060D5AA /* io */,
 				DDA41C890D96D6190060D5AA /* tnlgame.icns */,
-				DDA41DF80D96FFFC0060D5AA /* libiovmall.dylib */,
 				DD519F8C0D83058400505942 /* CEGUI.framework */,
 				DD831CCD0D7CB8B000CDD6EC /* share */,
 				DD8318920D7CB00700CDD6EC /* Carbon.framework */,
@@ -772,6 +771,7 @@
 				DD8313410D79748500CDD6EC /* SceneRenderPass.h */,
 				DD8313420D79748500CDD6EC /* signals.h */,
 				DD8313430D79748500CDD6EC /* sound.cc */,
+				DD7A729E0EE730E900F88D3E /* sound_openal.h */,
 				DD8313440D79748500CDD6EC /* sound.h */,
 				DD8313450D79748500CDD6EC /* TargetInfo.cc */,
 				DD8313460D79748500CDD6EC /* TargetInfo.h */,
@@ -1742,7 +1742,7 @@
 					"\"$(SRCROOT)/../CEGUI-0.5.0/include\"",
 					"\"/opt/local/lib/sigc++-1.2/include\"",
 					"\"/opt/local/include/sigc++-1.2\"",
-					"/Users/jonas/src/Io-2008-02-09/_build/headers",
+					/Users/jonas/src/git/io/_build/headers,
 					src,
 				);
 				INFOPLIST_FILE = "TnL-Info.plist";
@@ -1751,6 +1751,14 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../TnL-bundle/lib\"",
 					/opt/local/lib,
+					"\"$(SRCROOT)/../git/io/libs/basekit/_build/dll\"",
+					"\"$(SRCROOT)/../git/io/libs/basekit/_build/lib\"",
+					"\"$(SRCROOT)/../git/io/libs/coroutine/_build/dll\"",
+					"\"$(SRCROOT)/../git/io/libs/coroutine/_build/lib\"",
+					"\"$(SRCROOT)/../git/io/libs/garbagecollector/_build/dll\"",
+					"\"$(SRCROOT)/../git/io/libs/garbagecollector/_build/lib\"",
+					"\"$(SRCROOT)/../git/io/libs/iovm/_build/dll\"",
+					"\"$(SRCROOT)/../git/io/libs/iovm/_build/lib\"",
 				);
 				OTHER_LDFLAGS = (
 					"-lsigc-1.2",
@@ -1785,7 +1793,7 @@
 					"\"$(SRCROOT)/../CEGUI-0.5.0/include\"",
 					"\"/opt/local/lib/sigc++-1.2/include\"",
 					"\"/opt/local/include/sigc++-1.2\"",
-					"/Users/jonas/src/Io-2008-02-09/_build/headers",
+					/Users/jonas/src/git/io/_build/headers,
 					src,
 				);
 				INFOPLIST_FILE = "TnL-Info.plist";
@@ -1794,6 +1802,14 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../TnL-bundle/lib\"",
 					/opt/local/lib,
+					"\"$(SRCROOT)/../git/io/libs/basekit/_build/dll\"",
+					"\"$(SRCROOT)/../git/io/libs/basekit/_build/lib\"",
+					"\"$(SRCROOT)/../git/io/libs/coroutine/_build/dll\"",
+					"\"$(SRCROOT)/../git/io/libs/coroutine/_build/lib\"",
+					"\"$(SRCROOT)/../git/io/libs/garbagecollector/_build/dll\"",
+					"\"$(SRCROOT)/../git/io/libs/garbagecollector/_build/lib\"",
+					"\"$(SRCROOT)/../git/io/libs/iovm/_build/dll\"",
+					"\"$(SRCROOT)/../git/io/libs/iovm/_build/lib\"",
 				);
 				OTHER_LDFLAGS = (
 					"-lsigc-1.2",
