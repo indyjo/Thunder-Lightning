@@ -1,0 +1,14 @@
+perlin_wrap.c
+
+[ Python Module : perlin ]
+
+
+noise1(u)
+        [ returns double  ]
+
+noise2(u,v)
+        [ returns float  ]
+
+noise3(u,v,w)
+        [ returns float  ]
+

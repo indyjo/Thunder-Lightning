@@ -1,0 +1,36 @@
+------------
+| Fontopus |
+------------
+
+This folder contains fontopus, a replacement for glf2jft.
+
+It currently outputs a .png file containing all glyphs of a particular font
+face. It also outputs a descriptive .font file with all information necessary
+to extract the glyphs and render text to the screen.
+
+Fontopus was developed a long time ago but has not been integrated into
+Thunder&Lightning yet. TnL is still lacking the capability of reading .font
+files and the author thinks about alternatively introducing freetype loading
+capability directly into TnL.
+
+---------
+| Usage |
+---------
+
+Fontopus - Converts a TrueType or Type1 font into a png file plus glyph info.
+Usage: fontopus [-s <size>] [-o <outfile>] [-h] <infile>
+where
+  <infile>          is the name of the font file to be read.
+  -s, --font-size   sets the desired font size in pixels (default 12).
+  -o, --outfile     set the name of the output .png file to write.
+                    The info file will be named <outfile>.font
+  -h                shows this help text.
+
+-----------
+| License |
+-----------
+
+Fontopus is published under the GNU General Public License. See the file
+COPYING for details.
+For custom licenses please contact Jonas Eschenburg <jonas@tnlgame.net>
+

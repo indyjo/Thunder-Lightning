@@ -1,0 +1,47 @@
+#!/usr/bin/python
+
+from vector import *
+from optparse import OptionParser
+from copy import copy
+import objformat
+import skeletonspec
+import sys
+
+usage = "usage: %prog [-h] [-r|--reverse] {SPECFILE|-} INFILE OUTFILE"
+parser = OptionParser(usage)
+parser.add_option("-r", "--reverse", action="store_true", dest="reverse", default=False,
+    help="Turn a skeletopussed file back into a normal file")
+
+(options, args) = parser.parse_args()
+if len(args) != 3:
+    parser.error("incorrect number of arguments")
+
+specfile = args[0]
+infile = args[1]
+outfile = args[2]
+
+if specfile == "-":
+    spec = skeletonspec.read_spec(sys.stdin)
+else:
+    spec = skeletonspec.read_spec(open(specfile))
+scene = objformat.obj_import(infile)
+
+table = skeletonspec.make_translate_table(spec)
+if options.reverse:
+    skeletonspec.reverse_table(table)
+    
+print "Manipulating scene %s" % scene[0]
+print "table: "
+print table
+i = 0
+for obj in scene[1]:
+    objname, vlist, vnlist, vtlist, groups = obj
+    if objname is not None and table.has_key(objname):
+        trans = table[objname]
+        print "Object: ", objname, " -> ",trans
+        vlist = map(lambda v: v+trans, vlist)
+        scene[1][i] = objname, vlist, vnlist, vtlist, groups
+    i += 1
+
+print "Saving into %s.\n" % outfile
+objformat.obj_export(scene, outfile)

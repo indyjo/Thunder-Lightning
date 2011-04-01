@@ -1,0 +1,8 @@
+tex 7 color 224 224 224 when fract(8,0.65,8.0,0.0,0.0) >  0.375
+tex 6 color 192 192 192 when fract(8,0.65,8.0,0.0,0.0) >  0.25
+tex 5 color 160 160 160 when fract(8,0.65,8.0,0.0,0.0) >  0.125
+tex 4 color 128 128 128 when fract(8,0.65,8.0,0.0,0.0) >  0.0
+tex 3 color 96 96 96    when fract(8,0.65,8.0,0.0,0.0) > -0.125
+tex 2 color 64 64 64    when fract(8,0.65,8.0,0.0,0.0) > -0.25
+tex 1 color 32 32 32    when fract(8,0.65,8.0,0.0,0.0) > -0.375
+tex 0 color 0 0 0       when true

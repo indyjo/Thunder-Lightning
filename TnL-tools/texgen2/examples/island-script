@@ -1,0 +1,40 @@
+dimensions 72000.0 72000.0 1500.0
+
+#Water
+tex 8 color 45 79 96 when height(u(), v()) == 0.0 
+                        && height(u()+1, v()) == 0.0
+                        && height(u()+1, v()+1) == 0.0
+                        && height(u(), v()+1) == 0.0
+#Snow
+#tex 1 color 207 242 249 when height() > 1000.0 && slope() < 60.0
+tex 1 color 207 242 249 when 
+    (height() > 1000.0 &&
+    slope() < 60.0)
+    ||
+    (height() > 600.0 &&
+    height() <= average_height(4))
+    
+#Forest
+#tex 0 color 39 73 33 when 
+#Dark forest
+tex 0 color 1 26 33 when 
+    height() > 100.0 &&
+    height() < 800.0 &&
+    slope() <= 40.0 && (
+        (fract(8, 0.5, 8.0, 0.0, 0.0) <  0.25 &&
+        fract(8, 0.5, 8.0, 0.0, 0.0) > -0.25)
+    ||
+        (height() <= average_height(5))
+    )
+#Beach
+tex 2 color 150 141 99 when height() < 20.0 && slope() <= 20.0
+#Grass
+tex 3 color 111 117 78 when
+    height() <= 200.0 && slope() <= 35.0 && fract(5, 0.7, 8.0, 0.0, 0.0) < 0.25
+#Dark Grass
+tex 4 color 67 75 32 when
+    (height() <= 400.0 && slope() <= 45.0)
+    ||
+    (height() <=1100.0 && slope() <= 45.0 && height() >= average_height(2))
+#Dark rock
+tex 5 color 34 34 34 when true

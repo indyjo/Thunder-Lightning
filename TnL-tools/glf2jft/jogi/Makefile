@@ -1,0 +1,2 @@
+all: JSprite.o
+

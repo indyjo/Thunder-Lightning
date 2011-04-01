@@ -1,0 +1,34 @@
+-----------
+| glf2jft |
+-----------
+
+This folder contains glf2jft, the tool currently used to create fonts for
+Thunder&Lightning.
+
+It is based on glFont by Brad Fish.
+http://students.cs.byu.edu/~bfish/glfont.php
+
+The idea is to use glFont to create a .glf file with glFont and convert it
+to TnL's jft (an imaginary abbreviation of JoFont, guess what that means)
+format with glf2jft.
+
+---------
+| Usage |
+---------
+
+glf2jft - Convert font data in glf format into jft format.
+Usage: glf2jft <glf-file> <jft-file> <spr-file>
+Where
+  <glf-file> is the glFont file that contains the original font data.
+  <jft-file> is the JoFont file that you want to produce.
+  <spr-file> is the font sprite that contains the glyphs.
+
+
+-----------
+| License |
+-----------
+
+glf2jft is published under the GNU General Public License. See the file
+COPYING for details.
+For custom licenses please contact Jonas Eschenburg <jonas@tnlgame.net>
+

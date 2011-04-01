@@ -1,0 +1,39 @@
+-----------
+| texgen2 |
+-----------
+
+This folder contains texgen2, the successor of texgen. Texgen2 is used to place
+different texture types on a heightfield. It can use inputs like slope or perlin
+noise to decide which texture type to place.
+
+---------
+| Usage |
+---------
+
+texgen [parameters]
+parameters:
+  -s or --script file.texgen    Load file.texgen as script
+  -i or --infile file.tga:u:v   Load file.tga to position (u,v)
+                                It is possible to load multiple height fields
+                                using multiple instances of this parameter.
+                                Not using it at all is also possible, which will
+                                result in height 0 for all points.
+  -o or --outfile file.tga      Save output file to file.tga
+  -w or --width                 Set output image width
+  -h or --height                Set output image height
+  -u or --usage or --help       Display this information
+
+------------
+| Examples |
+------------
+
+See the examples folder for some hints how to write scripts.
+
+-----------
+| License |
+-----------
+
+texgen2 is published under the GNU General Public License. See the file
+COPYING for details.
+For custom licenses please contact Jonas Eschenburg <jonas@tnlgame.net>
+
