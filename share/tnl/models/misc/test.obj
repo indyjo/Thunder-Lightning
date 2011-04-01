@@ -1,0 +1,13 @@
+# Exported from Wings 3D 0.98.23b
+mtllib test.mtl
+o cube1
+#3 vertices, 1 faces
+v -10.0000 -10.0000 0.00000e+0
+v 0.00000e+0 10.0000 0.00000e+0
+v 10.0000 -10.0000 0.00000e+0
+vn 0.00000e+0 0.00000e+0 -1.00000
+vn 0.00000e+0 0.00000e+0 -1.00000
+vn 0.00000e+0 0.00000e+0 -1.00000
+g cube1_default
+usemtl default
+f 2//2 3//3 1//1

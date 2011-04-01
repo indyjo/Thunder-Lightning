@@ -1,0 +1,35 @@
+# Blender3D MTL File: lightning-with-interior.blend
+# Material Count: 3
+newmtl Interior_InteriorTex.png
+Ns 98.039216
+Ka 0.500000 0.500000 0.500000
+Kd 0.730666 0.800000 0.677334
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd InteriorTex.png
+
+
+newmtl Canopy_InteriorTex.png
+Ns 98.039216
+Ka 0.500000 0.500000 0.500000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd InteriorTex.png
+
+
+newmtl Hull_lightning.png
+Ns 98.039216
+Ka 0.500000 0.500000 0.500000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd lightning.png
+
+
