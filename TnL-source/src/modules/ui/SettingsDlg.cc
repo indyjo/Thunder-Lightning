@@ -722,7 +722,7 @@ namespace UI {
         // First look for non-inverted ("+") axes
         typedef std::vector<EventRemapper::JoystickAxis> JoystickAxes;
         JoystickAxes joystick_axes = remapper->getJoystickAxesForAxis(
-            (std::string("+js_") + item->getText()).c_str());
+            (std::string("+js_") + item->getText().c_str()).c_str());
         
         bool axis_configured = false;
         EventRemapper::JoystickAxis configured_axis;
@@ -736,7 +736,7 @@ namespace UI {
         
         /// now check for inverted axes
         joystick_axes = remapper->getJoystickAxesForAxis(
-            (std::string("-js_") + item->getText()).c_str());
+            (std::string("-js_") + item->getText().c_str()).c_str());
 
         if (!joystick_axes.empty()) {
             joystick_axis_inverted_checkbox->setEnabled(true);

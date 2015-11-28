@@ -36,7 +36,7 @@
 #include <sound_openal.h>
 #include <Faction.h>
 
-#include <SDL/SDL_main.h>
+#include <SDL_main.h>
 #include "game.h"
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
