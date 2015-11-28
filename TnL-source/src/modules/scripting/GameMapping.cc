@@ -18,11 +18,13 @@ Ptr<IGame> unwrapObject<Ptr<IGame> >(IoObject * self) {
 namespace {
 	
 	struct GameMapping : public TemplatedObjectMapping<IGame> {
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(lobby,IOSYMBOL("Game"), self);
 			retarget(self, ptr(thegame));
 		}
@@ -100,6 +102,8 @@ namespace {
     	GETTER(Ptr<DataNode>, getDebugData)
 		
 	};
+    
+    const char *const GameMapping::id = "Game";
 }
 
 template<>
@@ -109,5 +113,5 @@ void addMapping<IGame>(Ptr<IGame> game, IoState *state) {
 
 template<>
 IoObject *getProtoObject<Ptr<IGame> >(IoState * state) {
-	return IoState_protoWithInitFunction_(state, GameMapping::proto);
+	return IoState_protoWithId_(state, GameMapping::id);
 }

@@ -14,11 +14,13 @@ namespace {
     struct TargeterMapping
         :   public TemplatedObjectMapping<Targeter, ReinterpretCastMapping<Targeter> >
     {
+        static const char *const id;
+        
         static void addMapping(Ptr<IGame> game, IoState * state) {
             IoObject *lobby = state->lobby;
             
             IoObject *self = proto(state);
-            IoState_registerProtoWithFunc_(state, self, proto);
+            IoState_registerProtoWithId_(state, self, id);
             IoObject_setSlot_to_(lobby, IOSYMBOL("Targeter"), self);
         }
         
@@ -48,7 +50,7 @@ namespace {
             return self;
         }
         
-        CREATE_FUNC(Targeter)
+        CREATE_FUNC(Targeter, id)
         
         GET_NUMBER(getMaxRange)
         SET_FLOAT(setMaxRange)
@@ -67,6 +69,8 @@ namespace {
         VOID_FUNC(selectTargetInGunsight)
         
     };
+    
+    const char *const TargeterMapping::id = "Targeter";
 } // namespace
 
 template<>

@@ -9,11 +9,13 @@
 namespace {
 	
     struct DroneMapping : public TemplatedObjectMapping<Drone, DynamicCastMapping<Drone> > {
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(lobby, IOSYMBOL("Drone"), self);
 		}
 		
@@ -42,7 +44,7 @@ namespace {
 			return self;
 		}
 	
-		CREATE_FUNC(Drone)
+		CREATE_FUNC(Drone, id)
 		
 		static IoObject * rawClone(IoObject *self) 
 		{ 
@@ -65,6 +67,8 @@ namespace {
 		}
 		
 	};
+    
+    const char *const DroneMapping::id = "Drone";
 }
 
 template<>
@@ -87,5 +91,5 @@ wrapObject(Ptr<Drone> drone, IoState * state) {
 
 template<>
 IoObject *getProtoObject<Ptr<Drone> >(IoState * state) {
-	return IoState_protoWithInitFunction_(state, DroneMapping::proto);
+	return IoState_protoWithId_(state, DroneMapping::id);
 }

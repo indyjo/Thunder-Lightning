@@ -19,11 +19,13 @@ namespace {
 	struct SimpleActorMapping
         :	public TemplatedObjectMapping<SimpleActor, DynamicCastMapping<SimpleActor> >
 	{
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> game, IoState * state) {
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(lobby, IOSYMBOL("SimpleActor"), self);
 		}
 		
@@ -58,7 +60,7 @@ namespace {
 			return self;
 		}
 
-		CREATE_FUNC(SimpleActor)
+		CREATE_FUNC(SimpleActor, id)
 		TAG_FUNC
 		
 		static IoObject * rawClone(IoObject *self) 
@@ -66,7 +68,7 @@ namespace {
 			Ptr<IGame> game = unwrapObject<Ptr<IGame> >(
 				getProtoObject<Ptr<IGame> >(IOSTATE));
 			IoObject *clone = IoObject_rawClonePrimitive(
-				IoState_protoWithInitFunction_(IOSTATE, proto));
+				IoState_protoWithId_(IOSTATE, id));
 			retarget(clone, new SimpleActor(game));
 			return clone;
 		}
@@ -121,6 +123,8 @@ namespace {
         GETTER(Ptr<Targeter>, getTargeter)
 
 	};
+    
+    const char *const ::SimpleActorMapping::id = "SimpleActor";
 } // namespace
 
 template<>
@@ -143,5 +147,5 @@ Ptr<SimpleActor> unwrapObject(IoObject * self) {
 
 template<>
 IoObject *getProtoObject<Ptr<SimpleActor> >(IoState * state) {
-	return IoState_protoWithInitFunction_(state, SimpleActorMapping::proto);
+	return IoState_protoWithId_(state, SimpleActorMapping::id);
 }

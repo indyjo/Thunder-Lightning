@@ -11,9 +11,11 @@
 namespace {
 	
 	struct ModelManMapping : public TemplatedObjectMapping<IModelMan> {
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> game, IoState * state) {
 			IoObject * self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(state->lobby, IOSYMBOL("ModelMan"), self);
 			retarget(self, ptr(game->getModelMan()));
 		}
@@ -43,6 +45,8 @@ namespace {
 				getObject(self)->query(name), IOSTATE);
 		}
 	};
+    
+    const char *const ModelManMapping::id = "ModelMan";
 }
 
 template<>

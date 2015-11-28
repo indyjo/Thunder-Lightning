@@ -12,9 +12,11 @@ namespace {
 	struct PositionReceiverMapping
         :	public TemplatedObjectMapping<IPositionReceiver, DynamicCastMapping<IPositionReceiver> >
 	{
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject * self =  proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(state->lobby, IOSYMBOL("PositionReceiver"), self);
 		}
 		static IoObject *proto(void *state) {
@@ -44,17 +46,21 @@ namespace {
 			return self;
 		}
 		
-		CREATE_FUNC(IPositionReceiver)
+		CREATE_FUNC(IPositionReceiver, id)
 		
 		SET_VECTOR(setLocation)
 	};
+    
+    const char *const PositionReceiverMapping::id = "PositionReceiver";
 	
 	struct MovementReceiverMapping
         :	public TemplatedObjectMapping<IMovementReceiver, DynamicCastMapping<IMovementReceiver> >
 	{
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject * self =  proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(state->lobby, IOSYMBOL("MovementReceiver"), self);
 		}
 		
@@ -71,10 +77,12 @@ namespace {
 			return self;
 		}
 		
-		CREATE_FUNC(IMovementReceiver)
+		CREATE_FUNC(IMovementReceiver, id)
 		
 		SET_VECTOR(setMovementVector)
 	};
+    
+    const char *const MovementReceiverMapping::id = "MovementReceiver";
 }
 
 template<>
@@ -95,7 +103,7 @@ Ptr<IPositionReceiver> unwrapObject<Ptr<IPositionReceiver> >(IoObject * self) {
 
 template<>
 IoObject *getProtoObject<Ptr<IPositionReceiver> >(IoState * state) {
-	return IoState_protoWithInitFunction_(state, PositionReceiverMapping::proto);
+	return IoState_protoWithId_(state, PositionReceiverMapping::id);
 }
 
 template<>
@@ -116,5 +124,5 @@ Ptr<IMovementReceiver> unwrapObject(IoObject * self) {
 
 template<>
 IoObject *getProtoObject<Ptr<IMovementReceiver> >(IoState * state) {
-	return IoState_protoWithInitFunction_(state, MovementReceiverMapping::proto);
+	return IoState_protoWithId_(state, MovementReceiverMapping::id);
 }

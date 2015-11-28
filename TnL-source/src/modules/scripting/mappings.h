@@ -182,7 +182,7 @@ struct ReinterpretCastMapping {
 
 template<class T, class Base=ReinterpretCastMapping<T> >
 struct TemplatedObjectMapping : Base {
-	static IoTag *tag(void * state, char * name) {
+	static IoTag *tag(void * state, const char * name) {
 	    IoTag *tag = IoTag_newWithName_(name);
 	    tag->state = state;
 	    tag->cloneFunc = (IoTagCloneFunc *)rawClone;
@@ -209,17 +209,17 @@ struct TemplatedObjectMapping : Base {
 	}
 };
 
-#define CREATE_FUNC(T)														\
+#define CREATE_FUNC(T, ID)													\
 	static IoObject * create(Ptr<T> p, IoState *state) 						\
 	{																		\
-		IoObject *child = IOCLONE(						\
-			IoState_protoWithInitFunction_(state, proto));					\
+		IoObject *child = IOCLONE(                                          \
+			IoState_protoWithId_(state, (ID)));                             \
 		retarget(child, ptr(p));											\
 		return child;														\
 	}
 	
 #define TAG_FUNC															\
-	static IoTag *tag(void * state, char * name) {							\
+	static IoTag *tag(void * state, const char * name) {					\
 	    IoTag *tag = IoTag_newWithName_(name);								\
 	    tag->state = state;													\
 	    tag->cloneFunc = (IoTagCloneFunc *)rawClone;							\

@@ -14,11 +14,13 @@ namespace {
     struct ArmamentMapping
         :   public TemplatedObjectMapping<Armament, ReinterpretCastMapping<Armament> >
     {
+        static const char *const id;
+        
         static void addMapping(Ptr<IGame> game, IoState * state) {
             IoObject *lobby = state->lobby;
             
             IoObject *self = proto(state);
-            IoState_registerProtoWithFunc_(state, self, proto);
+            IoState_registerProtoWithId_(state, self, id);
             IoObject_setSlot_to_(lobby, IOSYMBOL("Armament"), self);
         }
         
@@ -35,7 +37,7 @@ namespace {
             return self;
         }
         
-        CREATE_FUNC(Armament)
+        CREATE_FUNC(Armament, id)
         
         static IoObject *weaponNames(IoObject *self, IoObject*locals, IoObject*m) {
             BEGIN_FUNC("Armament.weaponNames")
@@ -56,6 +58,8 @@ namespace {
             return wrapObject<Ptr<Weapon> >(w, IOSTATE);
         }
     };
+    
+    const char *const ArmamentMapping::id = "Armament";
 } // namespace
 
 template<>

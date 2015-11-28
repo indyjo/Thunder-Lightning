@@ -12,9 +12,11 @@ namespace {
 	struct PositionProviderMapping
         :	public TemplatedObjectMapping<IPositionProvider, DynamicCastMapping<IPositionProvider> >
 	{
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject * self =  proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(state->lobby, IOSYMBOL("PositionProvider"), self);
 		}
 		static IoObject *proto(void *state) {
@@ -42,20 +44,24 @@ namespace {
 			getObject(self)->getOrientation(&up,&right,&front);
 			return wrapObject<Matrix3>(MatrixFromColumns(right,up,front), IOSTATE);
 		}
-		CREATE_FUNC(IPositionProvider)
+		CREATE_FUNC(IPositionProvider, id)
 		
 		GET_VECTOR(getLocation)
 		GET_VECTOR(getUpVector)
 		GET_VECTOR(getFrontVector)
 		GET_VECTOR(getRightVector)
 	};
+    
+    const char *const PositionProviderMapping::id = "PositionProvider";
 	
 	struct MovementProviderMapping
 	:	public TemplatedObjectMapping<IMovementProvider, DynamicCastMapping<IMovementProvider> >
 	{
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject * self =  proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(state->lobby, IOSYMBOL("MovementProvider"), self);
 			IoObject_setDataPointer_(self, 0);
 		}
@@ -71,10 +77,12 @@ namespace {
 			IoObject_addTaglessMethodTable_(self, methodTable);
 			return self;
 		}
-		CREATE_FUNC(IMovementProvider)
+		CREATE_FUNC(IMovementProvider, id)
 		
 		GET_VECTOR(getMovementVector)
 	};
+    
+    const char *const MovementProviderMapping::id = "MovementProvider";
 }
 
 template<>
@@ -96,7 +104,7 @@ Ptr<IPositionProvider> unwrapObject<Ptr<IPositionProvider> >(IoObject * self) {
 
 template<>
 IoObject *getProtoObject<Ptr<IPositionProvider> >(IoState * state) {
-	return IoState_protoWithInitFunction_(state, PositionProviderMapping::proto);
+	return IoState_protoWithId_(state, PositionProviderMapping::id);
 }
 
 
@@ -119,5 +127,5 @@ Ptr<IMovementProvider> unwrapObject(IoObject * self) {
 
 template<>
 IoObject *getProtoObject<Ptr<IMovementProvider> >(IoState * state) {
-	return IoState_protoWithInitFunction_(state, MovementProviderMapping::proto);
+	return IoState_protoWithId_(state, MovementProviderMapping::id);
 }

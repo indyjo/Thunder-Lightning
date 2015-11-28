@@ -17,9 +17,11 @@ namespace {
 	struct ModelMapping
 	:	public TemplatedObjectMapping<Model>
 	{
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> game, IoState * state) {
 			IoObject *self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(state->lobby, IOSYMBOL("Model"), self);
 		}
 		
@@ -42,7 +44,7 @@ namespace {
 			return self;
 		}
 		
-		CREATE_FUNC(Model)
+		CREATE_FUNC(Model, id)
 		
         static IoObject * setCullmode (
         IoObject *self, IoObject *locals, IoMessage *m) {
@@ -55,6 +57,8 @@ namespace {
         	return self;
         }
 	};
+    
+    const char *const ModelMapping::id = "Model";
 } // namespace
 
 template<>
@@ -70,5 +74,5 @@ IoObject * wrapObject(Ptr<Model> model, IoState *state) {
 
 template<>
 IoObject *getProtoObject<Ptr<Model> >(IoState * state) {
-	return IoState_protoWithInitFunction_(state, ModelMapping::proto);
+	return IoState_protoWithId_(state, ModelMapping::id);
 }

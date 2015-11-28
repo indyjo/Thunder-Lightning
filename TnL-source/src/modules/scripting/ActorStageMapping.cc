@@ -13,7 +13,7 @@ namespace {
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, "ActorStage");
 			IoObject_setSlot_to_(lobby,IOSYMBOL("ActorStage"), self);
 		}
 		
@@ -109,7 +109,7 @@ template<>
 IoObject * 
 wrapObject(Ptr<IActorStage> config, IoState * state) {
 	IoObject *new_object = IOCLONE(
-		IoState_protoWithInitFunction_(state, ActorStageMapping::proto));
+		IoState_protoWithId_(state, "ActorStage"));
 	ActorStageMapping::retarget(new_object, &*config);
 	return new_object;
 }

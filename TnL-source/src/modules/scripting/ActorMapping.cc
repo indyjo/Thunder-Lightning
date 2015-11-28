@@ -14,11 +14,13 @@ namespace {
 	struct ActorMapping
         :	public TemplatedObjectMapping<IActor, DynamicCastMapping<IActor> >
 	{
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> game, IoState * state) {
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(lobby, IOSYMBOL("Actor"), self);
 		}
 		
@@ -67,7 +69,7 @@ namespace {
 				return IOFALSE(self);
 			}
 		}
-		CREATE_FUNC(IActor)
+		CREATE_FUNC(IActor, id)
 		
 		SET_ENUM(setControlMode, IActor::ControlMode)
 		GET_NUMBER(getControlMode)
@@ -108,6 +110,8 @@ namespace {
 			return IOSYMBOL(buf);
 		}
 	};
+    
+    const char *const ActorMapping::id = "Actor";
 } // namespace
 
 template<>
@@ -132,5 +136,5 @@ IoObject * wrapObject<Ptr<IActor> >(Ptr<IActor> actor, IoState *state) {
 
 template<>
 IoObject *getProtoObject<Ptr<IActor> >(IoState * state) {
-	return IoState_protoWithInitFunction_(state, ActorMapping::proto);
+	return IoState_protoWithId_(state, ActorMapping::id);
 }

@@ -8,11 +8,13 @@
 namespace {
 	
 	struct ConfigMapping : public TemplatedObjectMapping<IConfig> {
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(lobby, IOSYMBOL("Config"), self);
 			retarget(self, ptr(thegame->getConfig()));
 		}
@@ -56,6 +58,8 @@ namespace {
 			return self;
 		}
 	};
+    
+    const char *const ConfigMapping::id = "Config";
 }
 
 template<>
@@ -67,7 +71,7 @@ template<>
 IoObject * 
 wrapObject<Ptr<IConfig> >(Ptr<IConfig> config, IoState * state) {
 	IoObject *new_object = IOCLONE(
-		IoState_protoWithInitFunction_(state, ConfigMapping::proto));
+		IoState_protoWithId_(state, ConfigMapping::id));
 	ConfigMapping::retarget(new_object, &*config);
 	return new_object;
 }

@@ -31,11 +31,13 @@
 namespace {
 	
 	struct DataNodeMapping : public TemplatedObjectMapping<DataNode> {
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(lobby, IOSYMBOL("DataNode"), self);
 			retarget(self, new DataNode);
 		}
@@ -78,6 +80,8 @@ namespace {
 		GETSET(Vector, getVector, setVector, hasVector)
 
 	};
+    
+    const char *const DataNodeMapping::id = "DataNode";
 }
 
 template<>
@@ -89,7 +93,7 @@ template<>
 IoObject * 
 wrapObject<Ptr<DataNode> >(Ptr<DataNode> node, IoState * state) {
 	IoObject *new_object = IOCLONE(
-		IoState_protoWithInitFunction_(state, DataNodeMapping::proto));
+		IoState_protoWithId_(state, DataNodeMapping::id));
 	DataNodeMapping::retarget(new_object, ptr(node));
 	return new_object;
 }

@@ -10,10 +10,12 @@ namespace {
 	struct EventMapping
 	:	public TemplatedObjectMapping<EventRemapper>
 	{
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject *self = proto(state);
 			retarget(self, ptr(thegame->getEventRemapper()));
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(
 				state->lobby, IOSYMBOL("EventRemapper"), self);
 		}
@@ -44,7 +46,7 @@ namespace {
 			return self;
 		}
 	
-		CREATE_FUNC(EventRemapper)
+		CREATE_FUNC(EventRemapper, id)
 		
 		static IoObject * mapKey
 		(IoObject *self, IoObject *locals, IoMessage *m) {
@@ -238,6 +240,8 @@ namespace {
 			return axes_list;
 		}
 	};
+    
+    const char *const EventMapping::id = "EventRemapper";
 }
 
 template<>

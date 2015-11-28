@@ -14,13 +14,15 @@ Ptr<Tank> unwrapObject(IoObject * self) {
 namespace {
 	
     struct TankMapping : public TemplatedObjectMapping<Tank, DynamicCastMapping<Tank> > {
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
 		    IoObject_tag(self)->cloneFunc = (IoTagCloneFunc *)rawClone;
 		    
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(lobby, IOSYMBOL("Tank"), self);
 		}
 		
@@ -42,7 +44,7 @@ namespace {
 		static IoObject * create(Ptr<Tank> tank, IoState *state) 
 		{
 			IoObject *child = IOCLONE(
-				IoState_protoWithInitFunction_(state, proto));
+				IoState_protoWithId_(state, id));
 			retarget(child, ptr(tank));
 			return child;
 		}
@@ -52,7 +54,7 @@ namespace {
 			Ptr<IGame> game = unwrapObject<Ptr<IGame> >(
 				getProtoObject<Ptr<IGame> >(IOSTATE));
 			IoObject *peer = IoObject_rawClonePrimitive(
-				IoState_protoWithInitFunction_(IOSTATE, proto));
+				IoState_protoWithId_(IOSTATE, id));
 			Ptr<Tank> clone = new Tank(game, peer);
             retarget(peer, ptr(clone));
             if (getObject(self)) {
@@ -77,6 +79,8 @@ namespace {
 
 		TAG_FUNC
 	};
+    
+    const char *const ::TankMapping::id = "Tank";
 }
 
 template<>
@@ -94,5 +98,5 @@ wrapObject<Ptr<Tank> >(Ptr<Tank> tank, IoState * state) {
 
 template<>
 IoObject *getProtoObject<Ptr<Tank> >(IoState * state) {
-	return IoState_protoWithInitFunction_(state, TankMapping::proto);
+	return IoState_protoWithId_(state, TankMapping::id);
 }

@@ -9,9 +9,11 @@
 namespace {
 	
 	struct TerrainMapping : public TemplatedObjectMapping<ITerrain> {
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> game, IoState * state) {
 			IoObject * self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(state->lobby, IOSYMBOL("Terrain"), self);
 			retarget(self, ptr(game->getTerrain()));
 		}
@@ -66,6 +68,8 @@ namespace {
 		}
 		
 	};
+    
+    const char *const TerrainMapping::id = "Terrain";
 	
 } // namespace
 

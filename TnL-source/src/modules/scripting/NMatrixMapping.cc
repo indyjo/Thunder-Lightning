@@ -14,6 +14,8 @@ namespace {
 	#define ISMAT(x) IoObject_hasCloneFunc_((x), rawClone)
 	
 	struct NMatrixMapping {
+        static const char *const id;
+        
 	    static Mat* getObject(IoObject *o)
         { return reinterpret_cast<Mat*>(IoObject_dataPointer(o)); }
         
@@ -29,7 +31,7 @@ namespace {
 		static IoObject * create(const Mat & mat, IoState *state) 
 		{
 			IoObject *child = IOCLONE(
-				IoState_protoWithInitFunction_(state, proto));
+				IoState_protoWithId_(state, id));
 			(*getObject(child)) = mat;
 			return child;
 		}
@@ -45,7 +47,7 @@ namespace {
 			ls_message("done\n");
 	    }
 
-	    static IoTag *tag(void * state, char * name) {
+	    static IoTag *tag(void * state, const char * name) {
 	        IoTag *tag = IoTag_newWithName_(name);
 	        tag->state = state;
 	        tag->cloneFunc = rawClone;
@@ -58,7 +60,7 @@ namespace {
 
 		static void addMapping(Ptr<IGame> game, IoState * state) {
 			IoObject * self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(state->lobby, IOSYMBOL("NMatrix"), self);
 		}
 	
@@ -224,6 +226,8 @@ namespace {
             return create(result, IOSTATE);
 		}
     };
+    
+    const char *const NMatrixMapping::id = "NMatrix";
 }
 
 template<>

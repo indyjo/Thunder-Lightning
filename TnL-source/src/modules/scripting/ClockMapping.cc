@@ -11,7 +11,7 @@ namespace {
 	struct ClockMapping : public TemplatedObjectMapping<Clock> {
 		static void addMapping(Ptr<IGame> game, IoState * state) {
 			IoObject * self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, "Clock");
 			IoObject_setSlot_to_(state->lobby, IOSYMBOL("Clock"), self);
 			retarget(self, ptr(game->getClock()));
 		}

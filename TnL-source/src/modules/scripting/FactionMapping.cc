@@ -14,11 +14,13 @@ Ptr<Faction> unwrapObject(IoObject * self) {
 namespace {
 	
 	struct FactionMapping : public TemplatedObjectMapping<Faction> {
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(lobby, IOSYMBOL("Faction"), self);
 		}
 		
@@ -48,7 +50,7 @@ namespace {
 		{
             IoState_pushCollectorPause(state);
 			IoObject *child = IoObject_rawClone(
-				IoState_protoWithInitFunction_(state, proto));
+				IoState_protoWithId_(state, id));
 			retarget(child, ptr(faction));
             IoState_addValueIfNecessary_(state, child);
             IoState_popCollectorPause(state);
@@ -94,6 +96,8 @@ namespace {
 		GET_VECTOR(getColor)
 		SET_VECTOR(setColor)
 	};
+    
+    const char *const FactionMapping::id = "Faction";
 }
 
 template<>
@@ -109,5 +113,5 @@ wrapObject<Ptr<Faction> >(Ptr<Faction> faction, IoState * state) {
 
 template<>
 IoObject *getProtoObject<Ptr<Faction> >(IoState * state) {
-	return IoState_protoWithInitFunction_(state, FactionMapping::proto);
+	return IoState_protoWithId_(state, FactionMapping::id);
 }

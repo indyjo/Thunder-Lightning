@@ -8,11 +8,13 @@
 namespace {
 	
 	struct EnvironmentMapping : public TemplatedObjectMapping<Environment> {
+        static const char *const id;
+        
 		static void addMapping(Ptr<IGame> thegame, IoState * state) {
 			IoObject *lobby = state->lobby;
 			
 			IoObject *self = proto(state);
-			IoState_registerProtoWithFunc_(state, self, proto);
+			IoState_registerProtoWithId_(state, self, id);
 			IoObject_setSlot_to_(lobby, IOSYMBOL("Environment"), self);
 			retarget(self, &*thegame->getEnvironment());
 		}
@@ -54,6 +56,8 @@ namespace {
 		SET_FLOAT(setClipMax)
 	
 	};
+    
+    const char *const EnvironmentMapping::id = "Environment";
 }
 
 template<>
@@ -65,7 +69,7 @@ template<>
 IoObject * 
 wrapObject(Ptr<Environment> environment, IoState * state) {
 	IoObject *new_object = IOCLONE(
-		IoState_protoWithInitFunction_(state, EnvironmentMapping::proto));
+		IoState_protoWithId_(state, EnvironmentMapping::id));
 	EnvironmentMapping::retarget(new_object, ptr(environment));
 	return new_object;
 }
