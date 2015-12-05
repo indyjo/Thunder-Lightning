@@ -3,20 +3,6 @@
 
 #include "DataNode.h"
 
-const DataNodeBase & DataNodeBase::operator= (const DataNodeBase &other) {
-    delete _strings;
-    delete _floats;
-    delete _ints;
-    delete _bools;
-    
-    if (other.hasBools()) bools() = other.bools();
-    if (other.hasInts()) ints() = other.ints();
-    if (other.hasFloats()) floats() = other.floats();
-    if (other.hasStrings()) strings() = other.strings();
-
-    return *this;
-}
-
 DataNodeBase::Bools &   DataNodeBase::bools() const {
     if (!hasBools()) const_cast<DataNodeBase*>(this)->_bools = new Bools;
     return *_bools;

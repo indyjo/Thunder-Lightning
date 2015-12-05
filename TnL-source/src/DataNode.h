@@ -25,8 +25,6 @@ public:
         delete _vectors;
     }
     
-    const DataNodeBase& operator= (const DataNodeBase &);
-    
     Bools &   bools() const;
     Ints &    ints() const;
     Floats &  floats() const;
