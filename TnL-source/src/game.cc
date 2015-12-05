@@ -5,10 +5,9 @@
 #include <algorithm>
 #include <sigc++/bind.h>
 #include <glew.h>
-#include <CEGUIDefaultResourceProvider.h>
-#include <CEGUI.h>
+#include <CEGUIBase/CEGUI.h>
+#include <CEGUIOpenGLRenderer/CEGUIOpenGLRenderer.h>
 #include <TnlCeguiLogger.h>
-#include <RendererModules/OpenGL/CEGUIOpenGLRenderer.h>
 #include <modules/math/Vector.h>
 #include <modules/camera/camera.h>
 #include <modules/camera/FollowingCamera.h>

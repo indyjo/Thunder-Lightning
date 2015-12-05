@@ -1,7 +1,7 @@
 #ifndef TNL_MAINMENU_H
 #define TNL_MAINMENU_H
 
-#include <CEGUI.h>
+#include <CEGUIBase/CEGUIBase.h>
 #include "Dialog.h"
 
 namespace UI {

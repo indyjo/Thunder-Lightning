@@ -1,7 +1,7 @@
 #ifndef TNL_MAINGUI_H
 #define TNL_MAINGUI_H
 
-#include <CEGUI.h>
+#include <CEGUIBase/CEGUIBase.h>
 #include <interfaces/IGame.h>
 #include <Weak.h>
 

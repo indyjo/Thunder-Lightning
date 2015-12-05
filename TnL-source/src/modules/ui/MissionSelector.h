@@ -1,7 +1,7 @@
 #ifndef TNL_MISSIONSELECTOR_H
 #define TNL_MISSIONSELECTOR_H
 
-#include <CEGUI.h>
+#include <CEGUIBase/CEGUIBase.h>
 #include "Dialog.h"
 
 namespace UI {

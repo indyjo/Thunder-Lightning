@@ -2,7 +2,7 @@
 #define TNL_SETTINGSDLG_H
 
 #include <interfaces/IConfig.h>
-#include <CEGUI.h>
+#include <CEGUIBase/CEGUIBase.h>
 #include "Dialog.h"
 
 class EventRemapper;

@@ -2,6 +2,8 @@
 #include "MainGUI.h"
 #include "MainMenu.h"
 
+#include <CEGUIBase/CEGUI.h>
+
 namespace UI {
     void MainMenu::enable(MainGUI & main_gui) {
         CEGUI::Window *window = CEGUI::WindowManager::getSingleton().loadWindowLayout(

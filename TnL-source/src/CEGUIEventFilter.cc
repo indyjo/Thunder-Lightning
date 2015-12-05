@@ -1,5 +1,6 @@
 #include <modules/clock/clock.h>
-#include <CEGUI.h>
+#
+#include <CEGUIBase/CEGUI.h>
 #include "CEGUIEventFilter.h"
 
 /************************************************************************

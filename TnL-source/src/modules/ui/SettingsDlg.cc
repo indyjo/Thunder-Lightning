@@ -9,6 +9,7 @@
 #include <modules/scripting/IoScriptingManager.h>
 #include <debug.h>
 #include <remap.h>
+#include <CEGUIBase/CEGUI.h>
 
 #include "MainGUI.h"
 #include "SettingsDlg.h"

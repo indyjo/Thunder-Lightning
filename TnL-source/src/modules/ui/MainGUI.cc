@@ -1,3 +1,4 @@
+#include <CEGUIBase/CEGUI.h>
 #include <CEGUIEventFilter.h>
 #include <remap.h>
 #include "Dialog.h"
