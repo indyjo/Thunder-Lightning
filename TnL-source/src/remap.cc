@@ -185,6 +185,7 @@ void EventRemapper::pushEventFilter(Ptr<IEventFilter> filter) {
 }
 
 void EventRemapper::popEventFilter() {
+    ls_message("Pop event filter.\n");
     if (!event_filters.empty())
         event_filters.pop_back();
 }
@@ -222,10 +223,16 @@ void EventRemapper::endEvents() {
 
 void EventRemapper::feedEvent(SDL_Event & ev)
 {
-    // First pass the event to the filters
-    for(int i=event_filters.size()-1; i>=0; i--)
-        if (!event_filters[i]->feedEvent(ev))
-            return;
+    // First pass the event to the filters (used for dialogs).
+    // As filters might de-register themselves, copy the list first.
+    // Iterate from back to front so that the most-recently-pushed filter
+    // gets the first chance to handle the event.
+    if (!event_filters.empty()) {
+        std::vector<Ptr<IEventFilter> > event_filters_copy = event_filters;
+        for(int i=event_filters_copy.size()-1; i>=0; i--)
+            if (!event_filters_copy[i]->feedEvent(ev))
+                return;
+    }
 
     switch(ev.type) {
     case SDL_KEYUP:
