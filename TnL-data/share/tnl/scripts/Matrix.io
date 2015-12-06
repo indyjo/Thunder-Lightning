@@ -14,8 +14,8 @@ assert := nil
 
 NMatrix do(
   setList := method( values,
-    r:=0
-    c:=0
+    r := 0
+    c := 0
     values foreach(v,
       self atSet(r,c,v)
       r = r + 1

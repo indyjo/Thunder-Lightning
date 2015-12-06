@@ -1,16 +1,12 @@
 
 Sequence do (
   updateSlot("beginsWithSeq", method(seq,
-    self and (seq size <= size) and (slice(0,seq size) == seq)
+    self and (seq size <= size) and (exSlice(0,seq size) == seq)
   ))
   updateSlot("endsWithSeq", method(seq,
-    self and (seq size <= size) and (slice(size - seq size) == seq)
+    self and (seq size <= size) and (exSlice(size - seq size) == seq)
   ))
 )
-
-// beginsWith -> beginsWithSeq
-// endsWith->endsWithSeq
-// substring -> slice
 
 Completion := Object clone do(
   openers := Map clone atPut(")","(") atPut("}","{") atPut("]","[")
@@ -20,12 +16,12 @@ Completion := Object clone do(
     braces := list
     stack := list(0)
     for(i, 0, str size - 1,
-      c := str slice(i,i+1)
+      c := str exSlice(i,i+1)
       if (inComment and c=="\n",
         inComment = nil; continue)
-      if (inString and c=="\"" and str slice(i-1,i)  != "\\", 
+      if (inString and c=="\"" and str exSlice(i-1,i)  != "\\",
         inString = nil; continue)
-      if (c == "#" or c=="/" and i != (str size - 1) and str slice(i+1,i+2) == "/",
+      if (c == "#" or c=="/" and i != (str size - 1) and str exSlice(i+1,i+2) == "/",
         inComment = 1; continue)
       if (c == "(" or c=="{" or c=="[",
         stack push(i+1)
@@ -37,7 +33,7 @@ Completion := Object clone do(
         stack push(i + 1))
     )
     if (inString or inComment, return nil)
-    command := str slice(stack pop)
+    command := str exSlice(stack pop)
   )
     
   complete := method(str, context,
@@ -65,7 +61,7 @@ Completion := Object clone do(
     
     if (res,
       slots := allSlotNamesOf(res) select(i,v, v beginsWithSeq(prefix))
-      slots mapInPlace (i,v, v slice(prefix size)) sort
+      slots mapInPlace (i,v, v exSlice(prefix size)) sort
     ,
       list)
   )
