@@ -7,14 +7,6 @@
 #include <DataNode.h>
 #include "mappings.h"
 
-
-template<>
-Ptr<IGame> unwrapObject<Ptr<IGame> >(IoObject * self) {
-	return (IGame*)IoObject_dataPointer(self);
-}
-
-
-
 namespace {
 	
 	struct GameMapping : public TemplatedObjectMapping<IGame> {
@@ -104,6 +96,11 @@ namespace {
 	};
     
     const char *const GameMapping::id = "Game";
+}
+
+template<>
+Ptr<IGame> unwrapObject<Ptr<IGame> >(IoObject * self) {
+    return GameMapping::getObject(self);
 }
 
 template<>

@@ -5,12 +5,6 @@
 #include <modules/actors/carrier/Carrier.h>
 #include "mappings.h"
 
-template<>
-Ptr<Carrier> unwrapObject(IoObject * self) {
-	return (Carrier*)IoObject_dataPointer(self);
-}
-
-
 namespace {
 	
     struct CarrierMapping : public TemplatedObjectMapping<Carrier, DynamicCastMapping<Carrier> > {
@@ -86,6 +80,11 @@ namespace {
 template<>
 void addMapping<Carrier>(Ptr<IGame> game, IoState *state) {
 	CarrierMapping::addMapping(game,state);
+}
+
+template<>
+Ptr<Carrier> unwrapObject(IoObject * self) {
+    return CarrierMapping::getObject(self);
 }
 
 template<>

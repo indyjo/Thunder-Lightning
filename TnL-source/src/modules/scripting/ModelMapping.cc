@@ -7,11 +7,6 @@
 
 #include "mappings.h"
 
-template<>
-Ptr<Model> unwrapObject(IoObject * self) {
-	return (Model*)IoObject_dataPointer(self);
-}
-
 namespace {
 	
 	struct ModelMapping
@@ -70,6 +65,11 @@ template<>
 IoObject * wrapObject(Ptr<Model> model, IoState *state) {
 	if (!model) return state->ioNil;
 	return ModelMapping::create(model, state);
+}
+
+template<>
+Ptr<Model> unwrapObject(IoObject * self) {
+    return ModelMapping::getObject(self);
 }
 
 template<>

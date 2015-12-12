@@ -80,6 +80,6 @@ void addMapping<ITerrain>(Ptr<IGame> game, IoState *state) {
 
 template<>
 Ptr<ITerrain> unwrapObject<Ptr<ITerrain> >(IoObject * self) {
-	return (ITerrain*)IoObject_dataPointer(self);
+    return TerrainMapping::getObject(self);
 }
 

@@ -100,6 +100,6 @@ wrapObject<Ptr<DataNode> >(Ptr<DataNode> node, IoState * state) {
 
 template<>
 Ptr<DataNode> unwrapObject<Ptr<DataNode> >(IoObject * self) {
-	return (DataNode*)IoObject_dataPointer(self);
+    return DataNodeMapping::getObject(self);
 }
 

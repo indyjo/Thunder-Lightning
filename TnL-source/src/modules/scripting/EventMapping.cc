@@ -257,6 +257,6 @@ IoObject * wrapObject<Ptr<EventRemapper> >
 
 template<>
 Ptr<EventRemapper> unwrapObject<Ptr<EventRemapper> >(IoObject * self) {
-	return (EventRemapper*)IoObject_dataPointer(self);
+    return EventMapping::getObject(self);
 }
 

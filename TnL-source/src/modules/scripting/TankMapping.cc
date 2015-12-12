@@ -5,12 +5,6 @@
 #include <modules/actors/tank/tank.h>
 #include "mappings.h"
 
-template<>
-Ptr<Tank> unwrapObject(IoObject * self) {
-	return (Tank*)IoObject_dataPointer(self);
-}
-
-
 namespace {
 	
     struct TankMapping : public TemplatedObjectMapping<Tank, DynamicCastMapping<Tank> > {
@@ -94,6 +88,11 @@ wrapObject<Ptr<Tank> >(Ptr<Tank> tank, IoState * state) {
 	if (!tank) return state->ioNil;
     IoObject *obj = tank->getIoObject();
     return obj?obj:TankMapping::create(tank,state);
+}
+
+template<>
+Ptr<Tank> unwrapObject(IoObject * self) {
+    return TankMapping::getObject(self);
 }
 
 template<>

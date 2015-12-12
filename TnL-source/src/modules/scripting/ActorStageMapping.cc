@@ -116,6 +116,6 @@ wrapObject(Ptr<IActorStage> config, IoState * state) {
 
 template<>
 Ptr<IActorStage> unwrapObject(IoObject * self) {
-	return (IActorStage*)IoObject_dataPointer(self);
+    return ActorStageMapping::getObject(self);
 }
 

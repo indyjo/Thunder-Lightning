@@ -55,6 +55,6 @@ void addMapping<Clock>(Ptr<IGame> game, IoState *state) {
 
 template<>
 Ptr<Clock> unwrapObject<Ptr<Clock> >(IoObject * self) {
-	return (Clock*)IoObject_dataPointer(self);
+    return ClockMapping::getObject(self);
 }
 

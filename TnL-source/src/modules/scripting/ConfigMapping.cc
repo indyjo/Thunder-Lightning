@@ -78,6 +78,6 @@ wrapObject<Ptr<IConfig> >(Ptr<IConfig> config, IoState * state) {
 
 template<>
 Ptr<IConfig> unwrapObject<Ptr<IConfig> >(IoObject * self) {
-	return (IConfig*)IoObject_dataPointer(self);
+    return ConfigMapping::getObject(self);
 }
 

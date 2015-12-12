@@ -5,12 +5,6 @@
 #include <Faction.h>
 #include "mappings.h"
 
-template<>
-Ptr<Faction> unwrapObject(IoObject * self) {
-	return (Faction*)IoObject_dataPointer(self);
-}
-
-
 namespace {
 	
 	struct FactionMapping : public TemplatedObjectMapping<Faction> {
@@ -69,7 +63,7 @@ namespace {
 		(IoObject *self, IoObject *locals, IoMessage *m) {
 			BEGIN_FUNC("Faction.getAttitudeTowards")
 			IOASSERT(IoMessage_argCount(m) == 1,"Expected one argument")
-			Ptr<Faction> other = unwrapObject<Ptr<Faction> > (
+			Ptr<Faction> other = getObject(
 				IoMessage_locals_valueArgAt_(m, locals, 0));
 			return wrapObject<int>(
 				getObject(self)->getAttitudeTowards(other), IOSTATE);
@@ -79,7 +73,7 @@ namespace {
 		(IoObject *self, IoObject *locals, IoMessage *m) {
 			BEGIN_FUNC("Faction.setAttitudeTowards")
 			IOASSERT(IoMessage_argCount(m) == 2,"Expected two arguments")
-			Ptr<Faction> other = unwrapObject<Ptr<Faction> > (
+			Ptr<Faction> other = getObject(
 				IoMessage_locals_valueArgAt_(m, locals, 0));
 			int attitude = unwrapObject<int> (
 				IoMessage_locals_valueArgAt_(m, locals, 1));
@@ -110,6 +104,12 @@ IoObject *
 wrapObject<Ptr<Faction> >(Ptr<Faction> faction, IoState * state) {
 	return FactionMapping::create(faction, state);
 }
+
+template<>
+Ptr<Faction> unwrapObject(IoObject * self) {
+    return FactionMapping::getObject(self);
+}
+
 
 template<>
 IoObject *getProtoObject<Ptr<Faction> >(IoState * state) {

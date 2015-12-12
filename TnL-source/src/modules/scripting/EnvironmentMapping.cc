@@ -76,6 +76,6 @@ wrapObject(Ptr<Environment> environment, IoState * state) {
 
 template<>
 Ptr<Environment> unwrapObject(IoObject * self) {
-	return (Environment*) IoObject_dataPointer(self);
+    return EnvironmentMapping::getObject(self);
 }
 
