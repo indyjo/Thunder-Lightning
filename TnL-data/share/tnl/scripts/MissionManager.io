@@ -12,7 +12,7 @@ MissionManager := Object clone do(
       mission doFile(path .. "/" .. name)
       missions append(mission)
     )
-    missions sortByKey(name)
+    missions sortInPlace(name)
   )
   
   // The following functions are called from C++. Their interface is fixed.
