@@ -25,7 +25,7 @@ using namespace std;
     }
 #else
 // The debug version causes a segfault to enable debugging
-#define CHECKFLOAT(f) if ((f) != (f) || 2*(f) == (f) && (f) != 0) { *(char*)0x0 = 'X'; }
+#define CHECKFLOAT(f) if ((f) != (f) || 2*(f) == (f) && (f) != 0) { __builtin_trap(); }
 #endif
 
 #define CHECKVECTOR(v) CHECKFLOAT(v[0]); CHECKFLOAT(v[1]); CHECKFLOAT(v[2]);
@@ -399,6 +399,8 @@ ALSoundMan::ALSoundMan(Ptr<IConfig> config)
 
 ALSoundMan::~ALSoundMan() {
     alutExit();
+    // Deselect context before destroying
+    alcMakeContextCurrent(NULL);
     alcDestroyContext( (ALCcontext*) context );
     alcCloseDevice( device );
     ls_message("ALSoundMan shutdown complete.\n");

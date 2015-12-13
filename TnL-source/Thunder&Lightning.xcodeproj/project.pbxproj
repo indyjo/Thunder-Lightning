@@ -714,8 +714,8 @@
 				DD8314400D797AC600CDD6EC /* SDL.framework in Frameworks */,
 				DD8314940D797B4E00CDD6EC /* OpenGL.framework in Frameworks */,
 				DD8316DD0D7B344000CDD6EC /* FreeType.framework in Frameworks */,
-				DD8316F30D7B4EE300CDD6EC /* OpenAL.framework in Frameworks */,
 				DD8316F80D7B4EFC00CDD6EC /* FreeAlut.framework in Frameworks */,
+				DD8316F30D7B4EE300CDD6EC /* OpenAL.framework in Frameworks */,
 				DD3A9BB71C00E99900C05CB1 /* libcoroutine.dylib in Frameworks */,
 				DD3A9BB21C00C6A700C05CB1 /* CEGUIBase.framework in Frameworks */,
 				DD8317360D7B588700CDD6EC /* AppKit.framework in Frameworks */,
@@ -1777,6 +1777,7 @@
 					"~/Library/Frameworks",
 					/Library/Frameworks,
 					"$(USER_LIBRARY_DIR)/Frameworks",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
@@ -1825,6 +1826,7 @@
 					"~/Library/Frameworks",
 					/Library/Frameworks,
 					"$(USER_LIBRARY_DIR)/Frameworks",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 				);
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
