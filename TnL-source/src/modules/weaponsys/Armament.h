@@ -38,6 +38,8 @@ public:
     void previousWeapon(groupid);
     /// Get currently selected weapon of group
     Ptr<Weapon> currentWeapon(groupid);
+    /// Set currently selected weapon of group
+    void selectWeapon(groupid, Ptr<Weapon>);
     
     /// Returns a vector of pointers to all the weapons in the armament.
     Weapons getAllWeapons();

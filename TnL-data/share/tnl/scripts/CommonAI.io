@@ -62,7 +62,8 @@ CommonAI := EventTarget clone do(
         handler := nil
         
         loop(
-            if (handler isNil not and handler running not,
+            if (handler isNil not and handler running not) then(
+                (Game viewSubject == me) ifTrue(("Ending command because handler no longer running: " .. command) say)
                 command = handler = nil
                 me command_queue endCurrentCommand
             )
@@ -83,7 +84,9 @@ CommonAI := EventTarget clone do(
             c ifNil(
                 newCommand := me AdHocCommand
                 me command_queue setAdHocCommand(newCommand)
-                //("New ad hoc command: " .. newCommand ?action) say
+                if (me == Game viewSubject, ("New ad hoc command: " .. newCommand ?action) say)
+                handler ifNonNil( handler interrupt )
+                handler = nil
             )
             
             sleep(0.5)
@@ -141,21 +144,23 @@ CommonAI := EventTarget clone do(
     hasSidewindersLeft := method(
         armament weapon("Sidewinder") roundsLeft > 0
     )
+    hasHydrasLeft := method(
+        armament weapon("Hydra") roundsLeft > 0
+    )
     hasVulcanRoundsLeft := method(
         armament weapon("Vulcan") roundsLeft > 0
-        false
     )
     hasEffectiveAntiAirAmmo := method(
         hasSidewindersLeft
     )
     hasAntiAirAmmo := method(
-        hasSidewindersLeft //or hasVulcanRoundsLeft
+        hasSidewindersLeft or hasVulcanRoundsLeft
     )
     hasEffectiveAntiGroundAmmo := method(
-        hasSidewindersLeft
+        hasSidewindersLeft or hasHydrasLeft
     )
     hasAntiGroundAmmo := method(
-        hasSidewindersLeft //or hasVulcanRoundsLeft
+        hasSidewindersLeft or hasHydrasLeft or hasVulcanRoundsLeft
     )
     hasEffectiveAmmo := method(
         hasEffectiveAntiAirAmmo and hasEffectiveAntiGroundAmmo

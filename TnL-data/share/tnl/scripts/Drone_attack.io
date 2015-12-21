@@ -31,6 +31,8 @@ Drone do(
     )
         
     AttackWithSidewinderSalvo := coro(me, target,
+        weapon := me armament weapon("Sidewinder")
+        me armament selectWeapon(weapon)
         me dispatchSubordinates(me command_queue currentCommand)
         dirToTarget := block(
             (target location - me location) norm
@@ -47,9 +49,43 @@ Drone do(
             pass
         )
         
-        me armament weapon("Sidewinder") trigger
+        weapon trigger
         sleep(1)
-        if (Random value > 0.7, me armament weapon("Sidewinder") trigger)
+        if (Random value > 0.7, weapon trigger)
+        
+        sleep(4)
+    )
+
+    AttackWithHydraSalvo := coro(me, target,
+        weapon := me armament weapon("Hydra")
+        me armament selectWeapon(weapon)
+        me dispatchSubordinates(me command_queue currentCommand)
+        dirToTarget := block(
+            // Do some ballistics compensation with made-up numbers
+            line := (target location - me location) scaledBy(1.0/1000)
+            // aim a little higher than the target
+            aimTarget := target location + vector(0, 3 + line lenSquare * 6, 0)
+            (aimTarget - me location) norm
+        )
+
+        self fv := me FlyVector clone start(me)
+        fv target_vector := dirToTarget call * (300 / 3.6)
+        fv tag := "Attack with Hydra"
+        manage(fv)
+        
+        // now point to target
+        while( me state dir dot( dirToTarget call ) < 0.995,
+            fv target_vector := dirToTarget call * (300 / 3.6)
+            pass
+        )
+        
+        // Fire some rockets
+        weapon trigger
+        sleep(1)
+        while (Random value < 0.5,
+            weapon trigger
+            sleep(1)
+        )
         
         sleep(4)
     )
@@ -106,6 +142,7 @@ Drone do(
         saved_location := target location2
         
         self tr := manage( me TravelTo clone start(me, target location2) )
+        tr travel_speed := me ATTACK_SPEED
         loop(
             sleep(15 + 10*Random value)
             
@@ -116,6 +153,7 @@ Drone do(
             if ((target location2 - saved_location) length > 1000,
                 tr interrupt
                 tr = manage( me TravelTo clone start(me, target location2) )
+                tr travel_speed := me ATTACK_SPEED
                 saved_location = target location2
             )
         )
@@ -131,8 +169,14 @@ Drone do(
             return ApproachHigh clone
         ) elseif (dist > 1000) then(
             if (self hasLineOfSightTo(target),
-                if (Game viewSubject == self, "Sidewinder salvo" say)
-                return AttackWithSidewinderSalvo clone
+                // Probability of a sidewinder attack gets higher with distance
+                if (hasHydrasLeft not or (target isAirborneTarget or Random value < (dist - 1000) / 6000)) then(
+                    if (Game viewSubject == self, "Sidewinder salvo" say)
+                    return AttackWithSidewinderSalvo clone
+                ) else(
+                    if (Game viewSubject == self, "Hydra salvo" say)
+                    return AttackWithHydraSalvo clone
+                )
             ,
                 if (Game viewSubject == self, "Establish line-of-sight" say)
                 return EstablishLineOfSight clone
@@ -154,10 +198,15 @@ Drone do(
                 break
             )
             me targeter currentTarget ifNil(
-                state = "LOSTTARGET"
-                break
+                // After losing the target, it is still followed for a while
+                if(Random value < 0.01) then(
+                    state = "LOSTTARGET"
+                    break
+                ) else(
+                   me targeter setCurrentTarget(target)
+                )
             )
-            me hasAmmoAgainst(target) ifFalse(
+            me hasEffectiveAmmoAgainst(target) ifFalse(
                 state = "OUTOFAMMO"
                 break
             )
@@ -168,6 +217,7 @@ Drone do(
             
             if (attackTask isNil or attackTask running not,
                 attackTask = me ChooseAttackTask(target) start(me, target)
+                manage(attackTask)
             )
         
             ex := try( sleep(0.5) )
@@ -176,6 +226,7 @@ Drone do(
                 abort = true
             )
         )
+        (me == Game viewSubject) ifTrue(("Attack finished, state: " .. state) say)
     )
 )
 

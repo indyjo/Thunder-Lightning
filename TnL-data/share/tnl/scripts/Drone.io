@@ -11,6 +11,7 @@ Drone do(
     appendProto(CommonAI)
     
     TRAVEL_SPEED := 400 / 3.6
+    ATTACK_SPEED := 500 / 3.6
     TRAVEL_HEIGHT := 500
 
     init := method(
@@ -478,7 +479,12 @@ Drone do(
     )
     
     Land := coro(me, rwy, get_eaten,
+        p := rwy location
         ex := try(
+            (me == Game viewSubject) ifTrue("Travel to runway" say)
+            travel := me TravelTo clone start(me, vector(p x, p z))
+            while(travel running, pass)
+            (me == Game viewSubject) ifTrue("Landing" say)
             manage( me PerformLanding clone start(me, rwy, get_eaten) )
             loop(pass)
         )
@@ -536,6 +542,8 @@ Drone do(
     
     TravelTo := coro(me, target,
         if((self ?travel_height) isNil, self travel_height := me TRAVEL_HEIGHT)
+        if((self ?travel_speed) isNil, self travel_speed := me TRAVEL_SPEED)
+        (Game viewSubject == me) ifTrue(("TravelTo speed=" .. self travel_speed * 3.6) say)
         steps_per_frame := 5
 
         segment_length := 300
@@ -575,7 +583,7 @@ Drone do(
         
         navpath := NavPath clone with(path)
         #writeln("Navpath: ", navpath size, " points: ", navpath path)
-        manage ( me FollowPath clone start(me, navpath, me TRAVEL_SPEED) )
+        manage ( me FollowPath clone start(me, navpath, travel_speed) )
         while( navpath done not,
             pass
         )

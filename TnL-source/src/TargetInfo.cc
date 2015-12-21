@@ -19,7 +19,7 @@ const Type TargetInfo::NAVPOINT("Navpoint", &VIRTUAL, &STATIC, 0);
 const Type TargetInfo::AIMINGHELPER("Aiming Helper", &VIRTUAL, 0);
 const Type TargetInfo::BULLET("Bullet", &BALLISTIC,  &PHYSICAL, 0);
 const Type TargetInfo::DUMB_MISSILE("Dumb Missile", &MISSILE, 0);
-const Type TargetInfo::GUIDED_MISSILE("Guided Missile", &MISSILE, &GUIDED, &DETECTABLE, 0);
+const Type TargetInfo::GUIDED_MISSILE("Guided Missile", &MISSILE, &GUIDED, 0);
 const Type TargetInfo::TANK("Tank", &VEHICLE, 0);
 const Type TargetInfo::CARRIER("Carrier", &SHIP, 0);
 const Type TargetInfo::DECOY_FLARE("Decoy flare", &DECOY, &BALLISTIC, 0);

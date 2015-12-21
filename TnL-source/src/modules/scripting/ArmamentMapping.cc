@@ -28,6 +28,7 @@ namespace {
             IoMethodTable methodTable[] = {
                 {"weaponNames", weaponNames},
                 {"weapon", weapon},
+                {"selectWeapon", selectWeapon},
                 {NULL, NULL}
             };
             IoObject *self = IoObject_new(state);
@@ -56,6 +57,14 @@ namespace {
             char * weapon_name = IoMessage_locals_cStringArgAt_(m,locals,0);
             Ptr<Weapon> w = getObject(self)->getWeapon(weapon_name);
             return wrapObject<Ptr<Weapon> >(w, IOSTATE);
+        }
+
+        static IoObject *selectWeapon(IoObject *self, IoObject *locals, IoObject *m) {
+            BEGIN_FUNC("Armament.selectWeapon")
+            IOASSERT(IoMessage_argCount(m) == 1, "selectWeapon accepts 1 argument");
+            Ptr<Weapon> w = unwrapObject<Ptr<Weapon> >(IoMessage_locals_valueArgAt_(m, locals, 0));
+            getObject(self)->selectWeapon(0, w);
+            return IOSTATE->ioNil;
         }
     };
     

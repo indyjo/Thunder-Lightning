@@ -57,6 +57,16 @@ Ptr<Weapon> Armament::currentWeapon(groupid id) {
     return group.weapons[group.current];
 }
 
+void Armament::selectWeapon(groupid id, Ptr<Weapon> weapon) {
+    WeaponGroup& group = weapon_groups.at(id);
+    for(int i = 0; i < group.weapons.size(); ++i) {
+        if (weapon == group.weapons[i]) {
+            group.current = i;
+            return;
+        }
+    }
+}
+
 Armament::Weapons Armament::getAllWeapons() {
     Weapons all_weapons;
     typedef WeaponGroups::iterator Iter;
