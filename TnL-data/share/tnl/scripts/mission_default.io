@@ -1,4 +1,4 @@
-name="Triple Tank Takeout"
+name="Combat 2 - Triple Tank Takeout"
 description=(
     "Our spy satellite has spotted tank movements on the island. " ..
     "We have credible intelligence that a group of three tanks has " ..

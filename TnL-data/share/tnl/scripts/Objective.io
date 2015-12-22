@@ -14,7 +14,7 @@ KillObjective := Objective clone do (
 SurviveObjective := Objective clone do (
   newSlot("target")
   evaluate := method(
-    if (target isAlive, REACHED, MISSED)
+    if (target isAlive, UNDECIDED, MISSED)
   )
 )
 

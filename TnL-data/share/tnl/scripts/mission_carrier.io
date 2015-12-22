@@ -1,4 +1,4 @@
-name="Tutorial 2 - Carrier landing"
+name="Tutorial 2 - Carrier Landing"
 description=(
     "In this training mission, you start with your Lightning aircraft in the air, " ..
     "well-positioned for a carrier landing.")
@@ -30,6 +30,7 @@ addCarrier := method(pos, orient,
 )
 
 startup := method(
+Mission theMission := self
     if (Game controlledActor,
         self me := Game controlledActor
         mypos := me getLocation
@@ -58,9 +59,13 @@ startup := method(
         me setMovementVector(myvelocity)
         me setFaction(us)
         me command_queue appendCommand(Command Land clone with(carrier))
+        me setControlMode(Actor MANUAL)
         Game addActor(me)
+        objective := SurviveObjective clone
+        objective setTarget(me)
+        objectives append(objective)
     )
-    
+
     Game setControlledActor(me)
     Game setView(me, 0)
     

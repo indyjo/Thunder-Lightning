@@ -1,4 +1,4 @@
-name="Carrier Defense"
+name="Combat 3 - Carrier Defense"
 description=(
     "The carrier is waiting for our drones to return from their mission. " ..
     "It's your job to command the deck gun and protect your ship. " ..

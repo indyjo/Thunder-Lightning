@@ -1,5 +1,6 @@
-name = "Simple Fight"
-description = "You against one drone and one tank. Easy, or is it?"
+name = "Combat 1 - Simple Fight"
+description = ("You against one drone and one tank. Easy, isn't it?\n" ..
+    "Unfortunately for you, the drone has missiles and the tank is armed with a rather deadly Vulcan cannon.")
 
 startup := method(
     mypos := vector(11341,1518,-1008)
@@ -19,10 +20,14 @@ startup := method(
         drone setControlMode(Actor AUTOMATIC)
         drone setFaction( them )
         Game addActor(drone)
+
+        drone armament weapon("Sidewinder") setRoundsLeft(2)
         
-        drone armament weapon("Sidewinder") setRoundsLeft(0)
+        killObjective := KillObjective clone
+        killObjective setTarget(drone)
+        objectives append(killObjective)
     )
-    
+
     ntanks := 1
     for(i,0,ntanks-1,
         tank := Tank clone
@@ -35,6 +40,9 @@ startup := method(
         tank setControlMode(Actor AUTOMATIC)
         tank setFaction( them )
         Game addActor(tank)
+        killObjective := KillObjective clone
+        killObjective setTarget(tank)
+        objectives append(killObjective)
     )
     
 
@@ -48,5 +56,11 @@ startup := method(
     Game setControlledActor(me)
     Game setView(me, 0)
     self home := method( Game setControlledActor(me); Game setView(me, 0) )
+
+    surviveObjective := SurviveObjective clone
+    surviveObjective setTarget(me)
+    objectives append(surviveObjective)
+
+
 )
 
