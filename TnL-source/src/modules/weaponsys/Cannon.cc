@@ -39,7 +39,7 @@ WeakPtr<IActor> Cannon::onFire() {
     Vector deviation(0,0,0);
     for(int i=0; i<5; ++i)
     	deviation += Vector(RAND2,RAND2,0);
-    deviation *= 0.001/5;
+    deviation *= 0.02/5;
     
     float muzzle_velocity = cfg->queryFloat(name+"_reference_speed", 1200);
     move += muzzle_velocity * (front + right*deviation[0] + up*deviation[1]);
