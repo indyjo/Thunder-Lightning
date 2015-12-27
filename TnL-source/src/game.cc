@@ -827,7 +827,7 @@ void Game::renderScene(SceneRenderPass * pass)
     if (ctx->clip_above_water) renderer->popClipPlanes(1);
     if (ctx->clip_below_water) renderer->popClipPlanes(1);
     t1 = SDL_GetTicks();
-    getDebugData()->setInt("render_terrain", (int) (t1-t0));
+    getDebugData()->setInt("render_terrain", getDebugData()->getInt("render_terrain") + (int) (t1-t0));
 
     t0 = SDL_GetTicks();
     if (ctx->draw_water) {
@@ -836,7 +836,7 @@ void Game::renderScene(SceneRenderPass * pass)
         renderer->setZBufferFunc(JR_ZBFUNC_LEQUAL);
     }
     t1 = SDL_GetTicks();
-    getDebugData()->setInt("render_water", (int) (t1-t0));
+    getDebugData()->setInt("render_water", getDebugData()->getInt("render_water") + (int) (t1-t0));
 
     t0 = SDL_GetTicks();
     if (ctx->clip_above_water) renderer->pushClipPlane(Vector(0,-1,0), 0);
@@ -845,7 +845,7 @@ void Game::renderScene(SceneRenderPass * pass)
     if (ctx->clip_above_water) renderer->popClipPlanes(1);
     if (ctx->clip_below_water) renderer->popClipPlanes(1);
     t1 = SDL_GetTicks();
-    getDebugData()->setInt("render_actors", (int) (t1-t0));
+    getDebugData()->setInt("render_actors", getDebugData()->getInt("render_actors") + (int) (t1-t0));
 
     this->camera = old_camera;
     
@@ -854,6 +854,9 @@ void Game::renderScene(SceneRenderPass * pass)
 
 void Game::doFrame()
 {
+    getDebugData()->setInt("render_terrain", 0);
+    getDebugData()->setInt("render_water", 0);
+    getDebugData()->setInt("render_actors", 0);
     Uint32 t[16];
     int n=0;
     t[n++] = SDL_GetTicks(); // mainloop_0:

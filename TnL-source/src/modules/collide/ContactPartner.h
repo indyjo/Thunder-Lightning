@@ -53,6 +53,19 @@ struct ContactPartner {
     inline bool mustSubdivide() {
         return isNode() && !data.node->isValidBoundingBox();
     }
+    inline float volume() {
+        switch(type) {
+            case GEOM:
+            {
+                float r = data.geom->getBoundingRadius();
+                return 4*3.141593f*r*r*r/3;
+            }
+            case NODE:
+                return data.node->box.dim[0]*data.node->box.dim[1]*data.node->box.dim[2];
+            case TRIANGLE:
+                return 0;
+        }
+    }
 };
 
 } // namespace Collide

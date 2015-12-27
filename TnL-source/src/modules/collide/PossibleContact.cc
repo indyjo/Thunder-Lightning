@@ -239,6 +239,14 @@ void PossibleContact::subdivide(std::priority_queue<PossibleContact> & q) {
         swap(ti[0], ti[1]);
     }
     // We can assume that it is possible to subdivide partners[1] now!
+    if (partners[0].canSubdivide()) {
+        // We can choose which collision partner to subdivide
+        if (partners[0].mustSubdivide() || partners[0].volume() > partners[1].volume()) {
+            // Swap so that we subdivide the larger one
+            swap(partners[0], partners[1]);
+            swap(ti[0], ti[1]);
+        }
+    }
     PossibleContact new_contact;
     new_contact.t0 = t0;
     new_contact.t1 = t1;

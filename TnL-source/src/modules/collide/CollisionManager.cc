@@ -164,6 +164,7 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
 
         ContactList possible_contacts;
         sweep_n_prune.findContacts(possible_contacts);
+        debug_msg("SweepNPrune found %d contact candidates.\n", possible_contacts.size());
 
         // Now that we have our test candidates we feed them into the collision
         // queue
@@ -190,6 +191,8 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
         bool found = false;
         int max_iters = 2048;
         int iter_count = 0;
+        int count_subdiv_time = 0;
+        int count_subdiv_space = 0;
         while(!queue.empty()) {
             if (iter_count++ == max_iters) {
                 ls_warning("Aborting collsion test because of number of iterations.\n");
@@ -201,25 +204,37 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
             if (found_contacts>0 && pc.t0 > stop_time) break;
 
             if (pc.mustSubdivide()) {
+                debug_msg("[% 8d]: must subdivide %s <-> %s\n",
+                          pc.identifier,
+                          pc.partners[0].isTriangle()?"Triangle":(pc.partners[0].isNode()?"Node":"Sphere"),
+                          pc.partners[1].isTriangle()?"Triangle":(pc.partners[1].isNode()?"Node":"Sphere"));
+                ++count_subdiv_space;
+                debug_msg("  -> subdivide space\n");
                 pc.subdivide(queue);
                 continue;
             }
 
             bool collision = pc.collide(delta_t, hints);
-            debug_msg("%s collision test %s <-> %s\n",
+            debug_msg("[% 8d]: %s collision test %s <-> %s\n",
+                pc.identifier,
                 collision?"positive":"negative",
                 pc.partners[0].isTriangle()?"Triangle":(pc.partners[0].isNode()?"Node":"Sphere"),
                 pc.partners[1].isTriangle()?"Triangle":(pc.partners[1].isNode()?"Node":"Sphere"));
             
             if (collision) {
                 if (pc.shouldDivideTime(hints)) {
+                    ++count_subdiv_time;
+                    debug_msg("  -> subdivide time\n");
                     pc.divideTime(queue);
                     continue;
                 }
                 if (pc.canSubdivide()) {
+                    ++count_subdiv_space;
+                    debug_msg("  -> subdivide space\n");
                     pc.subdivide(queue);
                     continue;
                 }
+                debug_msg("  -> apply contact\n");
 
                 if (pc.makeContact(contact[found_contacts], delta_t, hints)) {
                     Contact & c = contact[found_contacts++];
@@ -278,6 +293,8 @@ void CollisionManager::run(Ptr<IGame> game, float delta_t) {
         
         debug_msg("Finished collision detection after %d iterations with %d contacts\n",
             iter_count-1, found_contacts);
+        debug_msg("  Time subdivs:  %d\n", count_subdiv_time);
+        debug_msg("  Space subdivs: %d\n", count_subdiv_space);
         
         // If there was no collision we integrate up to delta_t and break
         if (found_contacts == 0) {
