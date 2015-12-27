@@ -102,7 +102,6 @@ void JOpenGLRenderer::setVertexMode(jrvertexmode_t mode)
 
 void JOpenGLRenderer::setCullMode(jrcullmode_t mode)
 {
-    glFlush();
     switch(mode) {
     case JR_CULLMODE_NO_CULLING:
         glDisable(GL_CULL_FACE);

@@ -38,7 +38,9 @@ void SmokeColumn::SmokePuff::action(IGame *game,
 }
 
 void SmokeColumn::SmokePuff::draw(JRenderer *r,
-                                  Ptr<IPositionProvider> observer,
+                                  const Vector &obs_pos,
+                                  const Vector &obs_right,
+                                  const Vector &obs_up,
                                   const PuffParams & params)
 {
     float size = params.start_size + (age / ttl) *
@@ -56,7 +58,7 @@ void SmokeColumn::SmokePuff::draw(JRenderer *r,
     
     r->setAlpha(alpha);
     r->setColor(params.color(age/ttl));
-    drawBillboard(r, p, observer, age * omega, size, size, 0);
+    drawBillboard(r, p, obs_pos, obs_right, obs_up, age * omega, size, size, 0);
 }
 
 
@@ -110,9 +112,13 @@ void SmokeColumn::draw()
     renderer->setCullMode(JR_CULLMODE_NO_CULLING);
     renderer->setTexture(smoke_tex->getTxtid());
     renderer->disableZBufferWriting();
+    
+    Vector cam_pos = camera->getLocation();
+    Vector cam_right = camera->getRightVector();
+    Vector cam_up = camera->getUpVector();
 
     for (SmokeIterator i=smokelist.begin(); i!=smokelist.end(); i++) {
-        (*i)->draw(renderer, camera, puff_params);
+        (*i)->draw(renderer, cam_pos, cam_right, cam_up, puff_params);
     }
 
     renderer->enableZBufferWriting();

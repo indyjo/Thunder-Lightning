@@ -60,8 +60,10 @@ public:
         inline bool isDead() { return ttl<age; };
         void action(IGame *game, double time_passed, const PuffParams & params);
         void draw(JRenderer *r,
-                Ptr<IPositionProvider> observer,
-                const PuffParams & params);
+                  const Vector &obs_pos,
+                  const Vector &obs_right,
+                  const Vector &obs_up,
+                  const PuffParams & params);
     };
 
     typedef std::list<SmokePuff*> SmokeList;
