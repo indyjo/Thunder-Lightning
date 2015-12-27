@@ -878,17 +878,20 @@ void Game::doFrame()
 
     pre_draw.emit();
     
+    t[n++] = SDL_GetTicks(); // mainloop_8:
     // draw all layers: renderpass, optional texture mosaic, GUI, console
     renderpass_overlay->render();
+    
+    t[n++] = SDL_GetTicks(); // mainloop_9:
     if (debug_mode) renderpass_overlay->drawMosaic();
     CEGUI::System::getSingleton().renderGUI();
     console->draw(renderer);
     
     post_draw.emit();
     
-    t[n++] = SDL_GetTicks(); // mainloop_8:
+    t[n++] = SDL_GetTicks(); // mainloop_10:
     SDL_GL_SwapBuffers();
-    t[n++] = SDL_GetTicks(); // mainloop_9:
+    t[n++] = SDL_GetTicks(); // mainloop_11:
 
     updateIoScripting();
     t[n++] = SDL_GetTicks();
@@ -901,6 +904,7 @@ void Game::doFrame()
         getDebugData()->setInt(buf, (int) (t[n]-t[n-1]));
         sum += t[n]-t[n-1];
     }
+    
     getDebugData()->setInt("mainloop_sum", (int) sum);
 }
 

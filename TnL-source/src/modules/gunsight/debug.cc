@@ -29,9 +29,9 @@ void FlexibleGunsight::addProfilingGraph(Ptr<IGame> game) {
     mod->setWidth(500);
     mod->setHeight(100);
     mod->watchData(debugdata, "mainloop_1", Vector(0,0,1));
-    mod->watchData(debugdata, "mainloop_7", Vector(1,0,0));
-    mod->watchData(debugdata, "mainloop_9", Vector(0,1,0));
-    mod->watchData(debugdata, "mainloop_10", Vector(0,1,0));
+    mod->watchData(debugdata, "mainloop_8", Vector(1,0,0));
+    mod->watchData(debugdata, "mainloop_9", Vector(1,0,1));
+    mod->watchData(debugdata, "mainloop_11", Vector(0,1,0));
     mod->watchData(debugdata, "mainloop_sum", Vector(.5,.5,.5));
     mod->watchData(debugdata, "render_terrain", Vector(1,.5,.2));
     mod->watchData(debugdata, "render_water", Vector(0,1,1));
@@ -163,7 +163,7 @@ void TimeGraphModule::watchData(Ptr<DataNode> datanode, const std::string& key, 
     series_list.push_back(series);
 }
 
-#define RUNNING_AVERAGE 10
+#define RUNNING_AVERAGE 3
 
 void TimeGraphModule::draw(UI::Panel & panel) {
     updateSeries();
