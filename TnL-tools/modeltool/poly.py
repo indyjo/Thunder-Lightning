@@ -29,205 +29,228 @@ class AssignmentList:
 def clip(polygon, plane):
     vertices, transform, domain = polygon
     if len(vertices) == 0:
-	return (vertices, transform, domain)
-	
+        return (vertices, transform, domain)
+    
     (n,c) = plane
     result = []
     last = vertices[-1]
     last_d = n*last + c
     for current in vertices:
-	current_d = n*current + c
-	if current_d * last_d < 0.0:
-	    new_point = (last * abs(current_d) +
-			 current * abs(last_d))
-	    new_point /= abs(last_d) + abs(current_d)
-	    result += [new_point]
-	if (current_d >= 0.0):
-	    result += [current]
-	last = current
-	last_d = current_d
+        current_d = n*current + c
+        if current_d * last_d < 0.0:
+            new_point = (last * abs(current_d) +
+                 current * abs(last_d))
+            new_point /= abs(last_d) + abs(current_d)
+            result += [new_point]
+        if (current_d >= 0.0):
+            result += [current]
+        last = current
+        last_d = current_d
     return (result, transform, domain)
-	
+
+def clip_polys_against_bounds(polys, bnds):
+    result_polys, polys = polys, []
+    for dim in range(3):
+        result_polys, polys = [], result_polys
+        n = vector.Vector(0, 0, 0)
+        n[dim] = 1
+        for poly in polys:
+            poly = clip(clip(poly, (n, -bnds[dim][0])), (-n, bnds[dim][1]))
+            if len(poly[0]) > 0:
+                result_polys.append(poly)
+        
+    return result_polys
+    
+# Selects those polys that have at least one vertex on the non-negative side of the plane
+def filter_by_plane(polys, plane):
+    (n,c) = plane
+    return filter(lambda poly: any(map(lambda v: n*v + c >= 0, poly[0])), polys)
+    
+# Returns whether an AABB (given by bnds) is separated from a polygon (given by its vertices)
+# by an axis.
+def separated_by_axis(vertices, bnds, axis):
+    d = 0
+    for i in range(3):
+        v = vector.Vector(0,0,0)
+        a,b = bnds[i]
+        v[i] = (b-a)/2
+        d += abs(v * axis)
+    
+    bnds_center = vector.Vector(map(sum, bnds)) * 0.5
+    projected = map(lambda v: (v - bnds_center) * axis, vertices)
+    return min(projected) > d or max(projected) < -d
+    
+def separated(vertices, bnds):
+    if separated_by_axis(vertices, bnds, (vertices[1]-vertices[0])%(vertices[2]-vertices[0])):
+        return True
+    
+    for i in range(3):
+        e = vector.Vector(0,0,0)
+        e[i] = 1
+        for j in range(3):
+            f = vertices[(j+1)%3] - vertices[j]
+            if separated_by_axis(vertices, bnds, e%f):
+                return True
+    
+    return False
+        
+    
+def filter_by_bounds(polys, bnds):
+    return filter(lambda poly: not separated(poly[0], bnds), polys)
+    
+        
 def bounds(vertices):
     n = len(vertices[0])
     result = []
     for i in range(n):
-	values = map(lambda v: v[i], vertices)
-	minimum = reduce(min, values)
-	maximum = reduce(max, values)
-	result += [(minimum, maximum)]
+        values = map(lambda v: v[i], vertices)
+        minimum = reduce(min, values)
+        maximum = reduce(max, values)
+        result += [(minimum, maximum)]
     return result
 
 
 class IntervalEdge:
     def __init__(self, type, value):
-	self.type = type
-	self.value = value
-	self.left = 0
-	self.right = 0
-	self.count = 0
+        self.type = type
+        self.value = value
+        self.left = 0
+        self.right = 0
+        self.count = 0
     
     def is_lower(self):
-	return self.type == 0
+        return self.type == 0
 
     def is_upper(self):
-	return self.type == 1
-	
+        return self.type == 1
+        
     def compare(a,b):
-	if a.value == b.value:
-	    return a.type - b.type
-	if a.value < b.value:
-	    return -1
-	return 1
-	
+        if a.value == b.value:
+            return a.type - b.type
+        if a.value < b.value:
+            return -1
+        return 1
+        
     def rating(a,b):
-	return 2*abs(a.left - b.right) + a.count
+        return 2*abs(a.left - b.right) + a.count
 
 
 # calculates minimum and maximum signed distance of a poly to a plane
 def minmax(poly, plane):
     (n,c) = plane
     if len(poly) == 0:
-	return (0.0, 0.0)
+        return (0.0, 0.0)
     
     min = max = n * poly[0] + c
     for vertice in poly:
-	d = n * vertice + c
-	if d < min:
-	    min = d
-	if d > max:
-	    max = d
+        d = n * vertice + c
+        if d < min:
+            min = d
+        if d > max:
+            max = d
     return (min, max)
 
 def make_list(polys, plane):
     edges = []
     for poly in polys:
-	if len(poly) == 0:
-	    continue
-	(min, max) = minmax(poly, plane)
-	edges.append(IntervalEdge(0, min))
-	edges.append(IntervalEdge(1, max))
+        if len(poly) == 0:
+            continue
+        (min, max) = minmax(poly, plane)
+        edges.append(IntervalEdge(0, min))
+        edges.append(IntervalEdge(1, max))
     edges.sort(IntervalEdge.compare)
     
     before = 0
     for edge in edges:
-	edge.left = before
-	if edge.is_lower():
-	    before += 1
+        edge.left = before
+        if edge.is_lower():
+            before += 1
     
     edges.reverse()
     
     before = 0
     for edge in edges:
-	edge.right = before
-	if edge.is_upper():
-	    before += 1
+        edge.right = before
+        if edge.is_upper():
+            before += 1
     
     edges.reverse()
     
     count = 0
     for edge in edges:
-	if edge.is_lower():
-	    count += 1
-	else:
-	    count -= 1
-	edge.count = count
-	
+        if edge.is_lower():
+            count += 1
+        else:
+            count -= 1
+        edge.count = count
+        
     new_edges = []
     lower_edges = []
     for edge in edges:
-	if edge.is_lower():
-	    lower_edges.append(edge)
-	else:
-	    if (len(lower_edges) > 0 and
-		abs(lower_edges[-1].value - edge.value) < 1e-5):
-		lower_edges.pop()
-	    else:
-		new_edges.extend(lower_edges)
-		new_edges.append(edge)
-		lower_edges = []
+        if edge.is_lower():
+            lower_edges.append(edge)
+        else:
+            if (len(lower_edges) > 0 and
+                abs(lower_edges[-1].value - edge.value) < 1e-5):
+                lower_edges.pop()
+            else:
+                new_edges.extend(lower_edges)
+                new_edges.append(edge)
+                lower_edges = []
     if len(lower_edges) != 0:
-	print "Errorrrrrrrrrr!!!!!!!!!!!!!!"
+        print "Errorrrrrrrrrr!!!!!!!!!!!!!!"
     edges = new_edges
-	
+        
     new_edges = []
     for edge in edges:
-	if len(new_edges) == 0:
-	    new_edges.append(edge)
-	    continue
-	last_edge = new_edges[-1]
-	if (last_edge.type == edge.type and
-	    last_edge.value == edge.value):
-	    if edge.is_lower():
-		new_edges[-1].count = edge.count
-		new_edges[-1].right = edge.right
-	    else:
-		new_edges[-1].count = edge.count
-		new_edges[-1].left = edge.left
-	else:
-	    new_edges.append(edge)
+        if len(new_edges) == 0:
+            new_edges.append(edge)
+            continue
+        last_edge = new_edges[-1]
+        if (last_edge.type == edge.type and
+            last_edge.value == edge.value):
+            if edge.is_lower():
+                new_edges[-1].count = edge.count
+                new_edges[-1].right = edge.right
+            else:
+                new_edges[-1].count = edge.count
+                new_edges[-1].left = edge.left
+        else:
+            new_edges.append(edge)
     edges = new_edges
     
     return edges
-	
+        
     print "Edges generated:"
     if len(edges) == 0:
-	print "None!"
-	return edges
+        print "None!"
+        return edges
     
     last_edge = edges[0]
     for edge in edges:
-	if edge.type == 0:
-	    t = "lower"
-	else:
-	    t = "upper"
-	print "%s at %f (equal=%d), left=%d right=%d count=%d rating = %d" % (
-	    t, edge.value, edge.value==last_edge.value,
-	    edge.left, edge.right, edge.count,
-	    IntervalEdge.rating(last_edge, edge))
-	last_edge = edge
+        if edge.type == 0:
+            t = "lower"
+        else:
+            t = "upper"
+        print "%s at %f (equal=%d), left=%d right=%d count=%d rating = %d" % (
+            t, edge.value, edge.value==last_edge.value,
+            edge.left, edge.right, edge.count,
+            IntervalEdge.rating(last_edge, edge))
+        last_edge = edge
     return edges
 
 def find_best(edges):
     if len(edges) == 0:
-	return -1, 0.0
-	
+        return -1, 0.0
+        
     for i in xrange(len(edges) - 1):
-	rating = IntervalEdge.rating(edges[i], edges[i+1])
-	if i == 0 or rating < min_rating:
-	    min_rating = rating
-	    min_value = 0.5*(edges[i].value+edges[i+1].value)
+        rating = IntervalEdge.rating(edges[i], edges[i+1])
+        if i == 0 or rating < min_rating:
+            min_rating = rating
+            min_value = 0.5*(edges[i].value+edges[i+1].value)
     
     return min_rating, min_value
-	
-
-def make_bounds(eps, polys):
-    #polys = filter(len, polys) # sort out empty polys
-    vertices = []
-    for vs, t, d in polys:
-        vertices.add( vs )
-    if len(vertices) == 0:
-	return None
-    bnds = bounds(vertices)
-    
-    for i in range(len(bnds)):
-	a,b = bnds[i]
-	d = b-a
-	if i == 0 or d > longest:
-	    longest = d
-	    longest_axis = i
-    if longest <= eps:
-	return bnds, None, None, polys
-
-    n = vector.Vector([0.0] * len(bnds))
-    n[longest_axis] = 1.0
-    c = - 0.5*(bnds[longest_axis][0]+bnds[longest_axis][1])
-    return (bnds, 
-	make_bounds(eps,
-	    map(lambda poly: clip(poly, (n,c)), polys)),
-	make_bounds(eps,
-	    map(lambda poly: clip(poly, (-n,-c)), polys)),
-	[])
+        
 
 def get_transforms(polys):
     transforms={}
@@ -273,16 +296,25 @@ GATE=5
 # in incorrect bounding hierarchies.
 USE_GATE_FOR_XFORMS=True
 
-def make_tree(eps, cur_transform, cur_domain, polys):
-    # filter out polys without vertices
-    polys = filter(lambda poly: len(poly[0]) > 0, polys)
-
+def vertices_of(polys):
     vertices = []
     for (vs, t, d) in polys:
         vertices.extend( vs )
     if len(vertices) == 0:
-	return None
-    bnds = bounds(vertices)
+        raise RuntimeError("Vertices are empty")
+    return vertices
+
+
+def make_tree(eps, cur_transform, cur_domain, polys, bnds=None, level=0):
+    print (" "*level)+"make_tree", len(polys), "polys"
+    # filter out polys without vertices
+    polys = filter(lambda poly: len(poly[0]) > 0, polys)
+
+    if len(polys) == 0:
+        raise RuntimeError("Polys are empty")
+    
+    if bnds is None:
+        bnds = bounds(vertices_of(polys))
 
     contained_xforms = get_transforms(polys)
     n_transforms = len(contained_xforms)
@@ -294,56 +326,77 @@ def make_tree(eps, cur_transform, cur_domain, polys):
         for xform_id in contained_xforms.keys():
             polys_with_xform_id, polys = split_polys_by_transform(polys, xform_id)
             children.append(
-                make_tree(eps, cur_transform, cur_domain, polys_with_xform_id))
+                make_tree(eps, cur_transform, cur_domain, polys_with_xform_id, bnds, level+1))
         return (GATE, children)
     
     if n_transforms == 1 and polys[0][1] != cur_transform:
         return (NEWTRANSFORM, polys[0][1], bnds,
-            make_tree(eps, polys[0][1], cur_domain, polys))
+            make_tree(eps, polys[0][1], cur_domain, polys, bnds, level+1))
     if n_domains == 1 and polys[0][2] != cur_domain:
         return (NEWDOMAIN, polys[0][2], bnds,
-            make_tree(eps, cur_transform, polys[0][2], polys))
+            make_tree(eps, cur_transform, polys[0][2], polys, bnds, level+1))
     
     if n_transforms > 1:
         new_transform = polys[0][1]
         polys1, polys2 = split_polys_by_transform(polys, new_transform)
         return (INNER, bnds, 
                 (NEWTRANSFORM, new_transform, bnds,
-                    make_tree(eps, new_transform, cur_domain, polys1)),
-                make_tree(eps, cur_transform, cur_domain, polys2))
+                    make_tree(eps, new_transform, cur_domain, polys1, bnds, level+1)),
+                make_tree(eps, cur_transform, cur_domain, polys2, bnds, level+1))
     
     # Find out the longest bounding box axis
     # If it is shorter than eps, we are done
     for i in range(len(bnds)):
-	a,b = bnds[i]
-	d = b-a
-	if i == 0 or d > longest:
-	    longest = d
-	    longest_axis = i
-	#maxpolys=32
-    if longest <= eps: # and len(polys) <= maxpolys:
+        a,b = bnds[i]
+        d = b-a
+        if i == 0 or d > longest:
+            longest = d
+            longest_axis = i
+    if longest <= eps:
+        try:
+            bnds = bounds(vertices_of(clip_polys_against_bounds(polys, bnds)))
+        except:
+            pass
         return (LEAF, bnds, polys)
 
-        
-    
     if n_domains > 1:
         new_domain = polys[0][2]
         polys1, polys2 = split_polys_by_domain(polys, new_domain)
         return (INNER, bnds,
-            (NEWDOMAIN, new_domain, bnds, make_tree(eps, cur_transform, new_domain, polys1)),
-            make_tree(eps, cur_transform, cur_domain, polys2))
+            (NEWDOMAIN, new_domain, bnds, make_tree(eps, cur_transform, new_domain, polys1, bnds, level+1)),
+            make_tree(eps, cur_transform, cur_domain, polys2, bnds, level+1))
             
     # print "longest axis is %d with %.2f, still bigger than %f with %d polys" %(longest_axis, longest, eps, len(polys))
     # subdivide!
     # TODO: find better clipping plane
     n = vector.Vector(0,0,0)
     n[longest_axis] = 1.0
-    c = - 0.5*(bnds[longest_axis][0]+bnds[longest_axis][1])
-    return (INNER, bnds,
-        make_tree(eps, cur_transform, cur_domain,
-            map(lambda poly: clip(poly, (n,c)), polys)),
-        make_tree(eps, cur_transform, cur_domain,
-            map(lambda poly: clip(poly, (-n,-c)), polys)))
+    c = 0.5*(bnds[longest_axis][0]+bnds[longest_axis][1])
+    polys1 = filter_by_plane(polys, ( n, -c))
+    polys2 = filter_by_plane(polys, (-n,  c))
+    
+    bnds1 = bnds[:]
+    bnds1[longest_axis] = (c, bnds1[longest_axis][1])
+    bnds2 = bnds[:]
+    bnds2[longest_axis] = (bnds2[longest_axis][0], c)
+
+    polys1 = filter_by_bounds(polys1, bnds1)
+    polys2 = filter_by_bounds(polys2, bnds2)
+    if len(polys1) + len(polys2) < len(polys):
+        print map(len, [polys, polys1, polys2])
+        raise RuntimeError("Something is wrong")
+    
+    
+    if len(polys1) == 0:
+        print "replacing:",bnds,bnds2,len(polys),len(polys2)
+        return make_tree(eps, cur_transform, cur_domain, polys2, bnds2, level+1)
+    elif len(polys2) == 0:
+        print "replacing:",bnds,bnds1,len(polys),len(polys1)
+        return make_tree(eps, cur_transform, cur_domain, polys1, bnds1, level+1)
+    else:
+        return (INNER, bnds,
+            make_tree(eps, cur_transform, cur_domain, polys1, bnds1, level+1),
+            make_tree(eps, cur_transform, cur_domain, polys2, bnds2, level+1))
     
 
 nodetypes={
@@ -384,36 +437,36 @@ def compress_bounds(eps, node):
     print "Sorry, feature disabled."
     return
     if node is None:
-	return (None, 0.0, 0.0)
+        return (None, 0.0, 0.0)
     b,t1,t2,polys = node
     vol = reduce(operator.mul,
         map(lambda x: x[1]-x[0], b))
     if t1 is None or t2 is None or vol==0.0:
-	return (node, vol, 0.0)
+        return (node, vol, 0.0)
     preserved = vol
     child1, child_vol, child_preserved = compress_bounds(
-	eps, t1)
+        eps, t1)
     if child1 is not None:
-	preserved += child_preserved
-	preserved -= child_vol
+        preserved += child_preserved
+        preserved -= child_vol
     child2, child_vol, child_preserved = compress_bounds(
-	eps, t2)
+        eps, t2)
     if child2 is not None:
-	preserved += child_preserved
-	preserved -= child_vol
+        preserved += child_preserved
+        preserved -= child_vol
     if (preserved/vol < eps):
-	b1,t11,t12,polys1 = child1
-	b2,t21,t22,polys2 = child2
-	polys1.extend(polys2)
-	return ((b, None, None, polys1), vol, preserved)
+        b1,t11,t12,polys1 = child1
+        b2,t21,t22,polys2 = child2
+        polys1.extend(polys2)
+        return ((b, None, None, polys1), vol, preserved)
     else:
-	return ((b, child1, child2, polys), vol, preserved)
+        return ((b, child1, child2, polys), vol, preserved)
     
 
 def print_bounds(indent, node):
     if node is None:
-	print " "*indent+"None"
-	return
+        print " "*indent+"None"
+        return
     b,t1,t2,polys = node
     print (" "*indent)+"( "+str(b)
     print_bounds(indent+1, t1)
@@ -484,7 +537,7 @@ def obj_import(filename, transforms, domains):
             faceList.append( (vi, ti, ni, transform, domain) )
         elif words[0] == "mtllib":
             continue
-	    # try to export materials
+            # try to export materials
             directory, dummy = os.path.split(filename)
             filename = os.path.join(directory, words[1])
             try:

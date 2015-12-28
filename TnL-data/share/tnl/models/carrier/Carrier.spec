@@ -4,7 +4,7 @@ model carrier-translated.obj
 bounding_radius 78
 bounds carrier.bounds
 boundsexport bounds.obj
-exactness 20
+exactness 5
 
 root Hull 0 0 0
 childof Hull Deck 0 0 0

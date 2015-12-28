@@ -2,12 +2,17 @@
 
 import sys
 from poly import *
+
 from vector import *
 from boundsexport import *
+
 import operator
 import wildcard
+
 from optparse import OptionParser, Option, OptionValueError
 from copy import copy
+
+
 
 
 
@@ -52,6 +57,7 @@ if len(args) != 1:
 print options.parents
 
 infile = args[0]
+
 if options.outfile:
     output = options.outfile
 elif infile.endswith(".obj"):
@@ -68,13 +74,19 @@ prettyprint(tree)
 
 if options.compress and False:
     print "Compressing bounds."
+
     bnds, vol, preserved = compress_bounds(options.compress, bnds)
+
     print "Now Volume:", vol, ", preserved:", preserved,", max polys/box:", max_polys_in(bnds)
+
+
 
 if options.exportfile:
     print "Exporting bounds to",options.exportfile
     exporter = ExportAsObj(open(options.exportfile, "w"))
+
     exporter.export(tree)
+
 
 
 parents = {}
@@ -82,7 +94,11 @@ for (c,p) in options.parents:
     parents[c]=p
 
 print "Saving bounds."
+
 exporter = ExportAsBounds(open(output, "w"), parents)
 exporter.export(tree)
+
+
+
 
 
