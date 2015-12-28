@@ -325,6 +325,10 @@ void Game::startupSystem(Status & stat) {
 
         // load in a font.  The first font loaded automatically becomes the default font.
         CEGUI::FontManager::getSingleton().create("Commonwealth-10.font");
+        CEGUI::FontManager::getSingleton().create("Commonwealth-12.font");
+        CEGUI::FontManager::getSingleton().create("Commonwealth-14.font");
+        CEGUI::FontManager::getSingleton().create("Commonwealth-16.font");
+        CEGUI::FontManager::getSingleton().create("Commonwealth-18.font");
         
         CEGUI::System::getSingleton().setDefaultMouseCursor("TaharezLook", "MouseArrow");
         

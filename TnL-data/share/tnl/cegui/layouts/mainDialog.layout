@@ -13,7 +13,7 @@
             <Property Name="SizingEnabled" Value="False" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
             <Property Name="TitlebarEnabled" Value="True" />
-            <Property Name="UnifiedAreaRect" Value="{{0.043125,0},{0.0597203,0},{0.339376,0},{0.941387,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.043125,0},{0.0597203,0},{0.339376,0},{0.641387,0}}" />
             <Property Name="CloseButtonEnabled" Value="False" />
             <Window Type="DefaultWindow" Name="mainDialog/content" >
                 <Property Name="Font" Value="Commonwealth-10" />
@@ -21,12 +21,12 @@
                 <Property Name="UnifiedAreaRect" Value="{{0.0400861,0},{0.111284,0},{0.952531,0},{0.969014,0}}" />
                 <Window Type="TaharezLook/Button" Name="mainDialog/content/loadMission" >
                     <Property Name="Font" Value="Commonwealth-12" />
-                    <Property Name="Text" Value="Single Mission" />
+                    <Property Name="Text" Value="Start Mission" />
                     <Property Name="Alpha" Value="0.75" />
                     <Property Name="Tooltip" Value="Starts a single mission" />
                     <Property Name="InheritsAlpha" Value="False" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.0855494,0},{0.147492,0},{0.94133,0},{0.230823,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.0855494,0},{0.0625,0},{0.94133,0},{0.1875,0}}" />
                 </Window>
                 <Window Type="TaharezLook/Button" Name="mainDialog/content/resumeGame" >
                     <Property Name="Font" Value="Commonwealth-12" />
@@ -35,8 +35,9 @@
                     <Property Name="Tooltip" Value="Continue playing at the point where you left off" />
                     <Property Name="InheritsAlpha" Value="False" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.089307,0},{0.011004,0},{0.945087,0},{0.0877226,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.089307,0},{0.3125,0},{0.945087,0},{0.4375,0}}" />
                 </Window>
+                <!--
                 <Window Type="TaharezLook/Button" Name="mainDialog/content/startCampaign" >
                     <Property Name="Font" Value="Commonwealth-12" />
                     <Property Name="Text" Value="Start Campaign" />
@@ -64,6 +65,7 @@
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                     <Property Name="UnifiedAreaRect" Value="{{0.0867053,0},{0.484926,0},{0.942487,0},{0.566053,0}}" />
                 </Window>
+                 -->
                 <Window Type="TaharezLook/Button" Name="mainDialog/content/settings" >
                     <Property Name="Font" Value="Commonwealth-12" />
                     <Property Name="Text" Value="Settings" />
@@ -71,8 +73,9 @@
                     <Property Name="Tooltip" Value="Edit audio, video and controls settings." />
                     <Property Name="InheritsAlpha" Value="False" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.0812143,0},{0.63851,0},{0.936996,0},{0.719636,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.0812143,0},{0.5625,0},{0.936996,0},{0.6875,0}}" />
                 </Window>
+                <!--
                 <Window Type="TaharezLook/Button" Name="mainDialog/content/credits" >
                     <Property Name="Font" Value="Commonwealth-12" />
                     <Property Name="Text" Value="Credits" />
@@ -82,6 +85,7 @@
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                     <Property Name="UnifiedAreaRect" Value="{{0.0849713,0},{0.774461,0},{0.940753,0},{0.855588,0}}" />
                 </Window>
+                -->
                 <Window Type="TaharezLook/Button" Name="mainDialog/content/exitGame" >
                     <Property Name="Font" Value="Commonwealth-10" />
                     <Property Name="Text" Value="Exit Game" />
@@ -89,7 +93,7 @@
                     <Property Name="Tooltip" Value="Exit Thunder&amp;Lightning." />
                     <Property Name="InheritsAlpha" Value="False" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.07948,0},{0.906005,0},{0.935263,0},{0.987132,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.07948,0},{0.8125,0},{0.935263,0},{0.9375,0}}" />
                 </Window>
             </Window>
         </Window>
