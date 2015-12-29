@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DD241A1A1C3288770028D13A /* libcoroutine.dylib in Copy Bundle Frameworks */ = {isa = PBXBuildFile; fileRef = DD3A9BB61C00E99900C05CB1 /* libcoroutine.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		DD241A1B1C3288770028D13A /* libgarbagecollector.dylib in Copy Bundle Frameworks */ = {isa = PBXBuildFile; fileRef = DD3A9BB41C00E99200C05CB1 /* libgarbagecollector.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		DD241A1C1C3288770028D13A /* libiovmall.dylib in Copy Bundle Frameworks */ = {isa = PBXBuildFile; fileRef = DDE0B2D110F37DFD0038FDA3 /* libiovmall.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		DD241A1D1C3288770028D13A /* libbasekit.dylib in Copy Bundle Frameworks */ = {isa = PBXBuildFile; fileRef = DD3A9BB81C00E99D00C05CB1 /* libbasekit.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		DD241A1F1C32C25D0028D13A /* libpng15.15.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DD241A1E1C32C25D0028D13A /* libpng15.15.dylib */; };
+		DD241A211C32C2860028D13A /* libsigc-1.2.5.0.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DD241A201C32C2860028D13A /* libsigc-1.2.5.0.7.dylib */; };
+		DD241A221C32C2D80028D13A /* libsigc-1.2.5.0.7.dylib in Copy Bundle Frameworks */ = {isa = PBXBuildFile; fileRef = DD241A201C32C2860028D13A /* libsigc-1.2.5.0.7.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		DD241A231C32C2D80028D13A /* libpng15.15.dylib in Copy Bundle Frameworks */ = {isa = PBXBuildFile; fileRef = DD241A1E1C32C25D0028D13A /* libpng15.15.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		DD360F0E0E082F050006F031 /* ContinuousStateVector.cc in Sources */ = {isa = PBXBuildFile; fileRef = DD360F0D0E082F050006F031 /* ContinuousStateVector.cc */; };
 		DD3A9BB11C00C11200C05CB1 /* CEGUIBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD3A9BB01C00C11200C05CB1 /* CEGUIBase.framework */; };
 		DD3A9BB21C00C6A700C05CB1 /* CEGUIBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD3A9BB01C00C11200C05CB1 /* CEGUIBase.framework */; };
@@ -213,6 +221,12 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				DD241A221C32C2D80028D13A /* libsigc-1.2.5.0.7.dylib in Copy Bundle Frameworks */,
+				DD241A231C32C2D80028D13A /* libpng15.15.dylib in Copy Bundle Frameworks */,
+				DD241A1A1C3288770028D13A /* libcoroutine.dylib in Copy Bundle Frameworks */,
+				DD241A1B1C3288770028D13A /* libgarbagecollector.dylib in Copy Bundle Frameworks */,
+				DD241A1C1C3288770028D13A /* libiovmall.dylib in Copy Bundle Frameworks */,
+				DD241A1D1C3288770028D13A /* libbasekit.dylib in Copy Bundle Frameworks */,
 				DDA430EC0D97093E0060D5AA /* CEGUIOpenGLRenderer.framework in Copy Bundle Frameworks */,
 				DD3A9BB31C00C6A700C05CB1 /* CEGUIBase.framework in Copy Bundle Frameworks */,
 				DDA41DC80D96FC1D0060D5AA /* FreeType.framework in Copy Bundle Frameworks */,
@@ -225,6 +239,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		DD241A1E1C32C25D0028D13A /* libpng15.15.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpng15.15.dylib; path = ../../../../../../opt/png/lib/libpng15.15.dylib; sourceTree = "<group>"; };
+		DD241A201C32C2860028D13A /* libsigc-1.2.5.0.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsigc-1.2.5.0.7.dylib"; path = "../../../../../../opt/sigc/lib/libsigc-1.2.5.0.7.dylib"; sourceTree = "<group>"; };
 		DD360EF40E05AC430006F031 /* IIntegratable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IIntegratable.h; sourceTree = "<group>"; };
 		DD360EF70E05AECD0006F031 /* IContinuousStateWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IContinuousStateWriter.h; sourceTree = "<group>"; };
 		DD360EF80E05B0030006F031 /* IContinuousStateReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IContinuousStateReader.h; sourceTree = "<group>"; };
@@ -719,12 +735,14 @@
 				DD3A9BB71C00E99900C05CB1 /* libcoroutine.dylib in Frameworks */,
 				DD3A9BB21C00C6A700C05CB1 /* CEGUIBase.framework in Frameworks */,
 				DD8317360D7B588700CDD6EC /* AppKit.framework in Frameworks */,
+				DD241A1F1C32C25D0028D13A /* libpng15.15.dylib in Frameworks */,
 				DD3A9BB11C00C11200C05CB1 /* CEGUIBase.framework in Frameworks */,
 				DD83173B0D7B58B600CDD6EC /* Foundation.framework in Frameworks */,
 				DD8318930D7CB00700CDD6EC /* Carbon.framework in Frameworks */,
 				DD3A9BB91C00E99D00C05CB1 /* libbasekit.dylib in Frameworks */,
 				DD3A9BB51C00E99200C05CB1 /* libgarbagecollector.dylib in Frameworks */,
 				DDE0B2D210F37DFD0038FDA3 /* libiovmall.dylib in Frameworks */,
+				DD241A211C32C2860028D13A /* libsigc-1.2.5.0.7.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -734,6 +752,8 @@
 		DD830F530D79739600CDD6EC = {
 			isa = PBXGroup;
 			children = (
+				DD241A201C32C2860028D13A /* libsigc-1.2.5.0.7.dylib */,
+				DD241A1E1C32C25D0028D13A /* libpng15.15.dylib */,
 				DD49D18B1C134646008C89E3 /* CEGUIFalagardWRBase.bundle */,
 				DD49D1891C1345DA008C89E3 /* CEGUISILLYImageCodec.bundle */,
 				DD49D1871C13452C008C89E3 /* CEGUIExpatParser.bundle */,
@@ -1531,6 +1551,7 @@
 				DD8311530D79746800CDD6EC /* Frameworks */,
 				DDA41C9B0D96D70A0060D5AA /* Copy Bundle Frameworks */,
 				DD49D1861C1344E7008C89E3 /* Copy Bundle PlugIns */,
+				DD241A241C32C3450028D13A /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -1577,6 +1598,22 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		DD241A241C32C3450028D13A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd $CONFIGURATION_BUILD_DIR/TnL.app/Contents/Frameworks\nmv libsigc-1.2.5.0.7.dylib libsigc-1.2.5.dylib";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		DD8311520D79746800CDD6EC /* Sources */ = {
@@ -1762,7 +1799,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				COPY_PHASE_STRIP = YES;
+				COPY_PHASE_STRIP = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				SDKROOT = macosx10.9;
 			};
@@ -1771,7 +1808,6 @@
 		DD8311590D79746900CDD6EC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"~/Library/Frameworks",
@@ -1797,7 +1833,7 @@
 				);
 				INFOPLIST_FILE = "TnL-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks /opt/io/lib";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/opt/png/lib,
@@ -1805,10 +1841,6 @@
 					/opt/sigc/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				OTHER_LDFLAGS = (
-					"-lsigc-1.2",
-					"-lpng",
-				);
 				PREBINDING = NO;
 				PRODUCT_NAME = TnL;
 				WRAPPER_EXTENSION = app;
@@ -1819,7 +1851,6 @@
 		DD83115A0D79746900CDD6EC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1845,7 +1876,7 @@
 				);
 				INFOPLIST_FILE = "TnL-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks /opt/io/lib";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/opt/png/lib,
@@ -1853,10 +1884,6 @@
 					/opt/sigc/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				OTHER_LDFLAGS = (
-					"-lsigc-1.2",
-					"-lpng",
-				);
 				PREBINDING = NO;
 				PRODUCT_NAME = TnL;
 				WRAPPER_EXTENSION = app;
