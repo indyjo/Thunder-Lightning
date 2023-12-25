@@ -1,3 +1,5 @@
+#ifdef HAVE_CEGUI
+
 #include <debug.h>
 #include "TnlCeguiLogger.h"
 
@@ -19,4 +21,4 @@ void TnlCeguiLogger::logEvent(const CEGUI::String& message, CEGUI::LoggingLevel 
     }
 }
 
-
+#endif // HAVE_CEGUI

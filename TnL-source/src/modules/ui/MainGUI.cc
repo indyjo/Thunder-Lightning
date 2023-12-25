@@ -1,3 +1,5 @@
+#ifdef HAVE_CEGUI
+
 #include <CEGUIBase/CEGUI.h>
 #include <CEGUIEventFilter.h>
 #include <remap.h>
@@ -71,3 +73,4 @@ namespace UI {
 
 } // namespace UI
 
+#endif // HAVE_CEGUI

@@ -447,6 +447,11 @@ public:
     }
     
     virtual Ptr<RenderPass> createRenderPass(JRenderer * renderer) {
+        if (!renderer)
+        {
+            throw std::invalid_argument("RadarModule: renderer is null");
+        }
+
         Ptr<IGame> thegame = game.lock();
         if (!thegame) return new RenderPass(renderer);
         
@@ -616,6 +621,7 @@ DroneCockpit::DroneCockpit( WeakPtr<IGame> game,
     , mfd_model(mfd_model)
     , current_mfd_module(0)
 {
+    if (!renderer) throw std::invalid_argument("DroneCockpit::DroneCockpit renderer is null");
     mfd_pass = new RenderPass(renderer);
     mfd_pass->enableClearDepth(false);
     
@@ -632,6 +638,8 @@ DroneCockpit::DroneCockpit( WeakPtr<IGame> game,
     mfd_pass->stackedOn( module->createRenderPass(renderer) );
     
     mfd_tex = mfd_model->getDefaultObject()->getGroups().back()->mtl.tex;
+    assert(!mfd_model->getDefaultObject()->getGroups().empty());
+    assert(mfd_tex);
 }
 
 DroneCockpit::~DroneCockpit()
@@ -653,7 +661,12 @@ void DroneCockpit::switchMfdMode() {
 }
 
 Ptr<RenderPass> DroneCockpit::createRenderPass(Ptr<ICamera> cam) {
-    Ptr<RenderPass> result = new RenderPass(mfd_pass->getRenderer());
+    JRenderer *r = mfd_pass->getRenderer();
+    if (!r)
+    {
+        throw std::invalid_argument("DroneCockpit:: renderer is null");
+    }
+    Ptr<RenderPass> result = new RenderPass(r);
     Ptr<Drone> drone = this->drone.lock();
     if (!drone) return result;
     

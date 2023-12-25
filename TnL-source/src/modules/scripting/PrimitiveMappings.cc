@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  PrimitiveMappings                                          |
 // ---------------------------------------------------------------
@@ -78,3 +80,5 @@ template<> vector<Ptr<IActor> > unwrapObject(IoObject *self)
 { return unwrap_vector<Ptr<IActor> >(self); }
 template<> vector<string> unwrapObject(IoObject *self)
 { return unwrap_vector<string>(self); }
+
+#endif // HAVE_IO

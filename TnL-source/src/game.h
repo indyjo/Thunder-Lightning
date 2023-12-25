@@ -7,21 +7,29 @@
 #include <DataNode.h>
 #include <RenderPass.h>
 #include <Weak.h>
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 class Status;
 struct ILoDQuadManager;
 struct ISkyBox;
+#ifdef HAVE_IO
 class IoScriptingManager;
+#endif
+#ifdef HAVE_CEGUI
 namespace UI {
 	class Console;
 	class MainGUI;
 }
+#endif
 class Water;
 struct RenderContext;
 class Camera;
 
 class Game: public IGame, public ActorStage, public SigObject
 {
+    friend EM_BOOL one_iter(double time, void* userData);
 public:
     static Game * the_game;
 
@@ -48,7 +56,9 @@ public:
     virtual Ptr<IFontMan> getFontMan();
     virtual Ptr<SoundMan> getSoundMan();
     virtual Ptr<Collide::CollisionManager> getCollisionMan();
+#ifdef HAVE_IO
     virtual Ptr<IoScriptingManager> getIoScriptingManager();
+#endif
     virtual void infoMessage(const char * msg, const Vector color);
     
     virtual double  getTimeDelta();
@@ -85,8 +95,7 @@ private:
     void updateView();
     void updateSound();
     void setupMainRender();
-    void updateIoScripting();
-    
+    void updateIoScripting();  
     void doFrame();
 
     void mainMenu();
@@ -143,10 +152,14 @@ private:
     Ptr<ISkyBox> skybox;
     Ptr<Environment> environment;
     Ptr<Water> water;
+#ifdef HAVE_IO
 	Ptr<IoScriptingManager> io_scripting_manager;
-    Ptr<UI::Console> console;
+#endif
     Ptr<RenderPass> renderpass_main;
     Ptr<RenderPass> renderpass_overlay;
+#ifdef HAVE_CEGUI
+    Ptr<UI::Console> console;
     Ptr<UI::MainGUI> main_gui;
+#endif
 };
 

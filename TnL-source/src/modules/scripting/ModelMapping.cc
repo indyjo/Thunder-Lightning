@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  ModelMapping                                               |
 // ---------------------------------------------------------------
@@ -76,3 +78,5 @@ template<>
 IoObject *getProtoObject<Ptr<Model> >(IoState * state) {
 	return IoState_protoWithId_(state, ModelMapping::id);
 }
+
+#endif // HAVE_IO

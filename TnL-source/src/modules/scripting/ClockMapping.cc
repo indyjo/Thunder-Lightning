@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  ClockMapping                                               |
 // ---------------------------------------------------------------
@@ -58,3 +60,4 @@ Ptr<Clock> unwrapObject<Ptr<Clock> >(IoObject * self) {
     return ClockMapping::getObject(self);
 }
 
+#endif // HAVE_IO

@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 #include "mappings.h"
 
 class DataNode;
@@ -56,3 +58,4 @@ void addMappings(Ptr<IGame> game, IoState * state) {
 	addMapping<Carrier>(game,state);
 }
 
+#endif // HAVE_IO

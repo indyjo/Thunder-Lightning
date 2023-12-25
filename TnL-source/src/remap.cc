@@ -76,7 +76,7 @@ std::string EventRemapper::Button::getFriendlyName() const {
     }
     
     switch(type) {
-    case KEYBOARD_KEY: out << button << " (" << SDL_GetKeyName((SDLKey)button) << ")"; break;
+    case KEYBOARD_KEY: out << button << " (" << SDL_GetKeyName((SDL_Keycode)button) << ")"; break;
     case MOUSE_BUTTON: out << button; break;
     case JOYSTICK_BUTTON: {
             if (button < 256) {

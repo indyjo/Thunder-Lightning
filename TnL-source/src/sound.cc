@@ -70,7 +70,9 @@ float ALSound::getLengthInSecs() {
     alGetBufferi(buffer, AL_SIZE, &size);
     alGetBufferi(buffer, AL_BITS, &bits);
     alGetBufferi(buffer, AL_FREQUENCY, &freq);
-    
+    if (size == 0 || bits == 0 || freq == 0) {
+        return 0;
+    }
     return size / (bits/8) / (float) freq;
 }
 
@@ -330,7 +332,7 @@ static void check(ALCdevice *dev) {
     ALCenum error = alcGetError(dev);
     if (error != ALC_NO_ERROR) {
         ls_error("OpenAL (ALC) Error %d", error);
-        const ALbyte * errtxt = alcGetString(NULL,error);
+        const ALCchar * errtxt = alcGetString(NULL,error);
         error = alcGetError(dev);
         if (error == ALC_NO_ERROR) {
             ls_error(": %s \n", errtxt);
@@ -351,7 +353,7 @@ ALSoundMan::ALSoundMan(Ptr<IConfig> config)
     if (device == NULL ) {
         throw std::runtime_error("ALSoundMan: Failed to initialize Sound subsystem.");
     } else {
-        const ALCbyte * device_specifier =
+        const ALCchar * device_specifier =
             alcGetString(device, ALC_DEVICE_SPECIFIER);
         check(device);
         ls_message("  Using device \"%s\"\n", device_specifier);

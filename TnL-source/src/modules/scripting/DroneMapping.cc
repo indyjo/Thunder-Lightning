@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  DroneMapping                                               |
 // ---------------------------------------------------------------
@@ -93,3 +95,5 @@ template<>
 IoObject *getProtoObject<Ptr<Drone> >(IoState * state) {
 	return IoState_protoWithId_(state, DroneMapping::id);
 }
+
+#endif

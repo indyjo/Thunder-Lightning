@@ -2,11 +2,11 @@ dist-hook:
 	mkdir $(distdir)/cxxtest \
 	    cp -p $(srcdir)/cxxtest/* $(distdir)/cxxtest
 
-noinst_PROGRAMS = tnltest
+check_PROGRAMS = tnltest
 
 
 runner.cc: Makefile
-	python $(srcdir)/cxxtest/cxxtestgen.py --error-printer -o $@ $(srcdir)/*.h
+	$(PYTHON) $(srcdir)/cxxtest/cxxtestgen.py --error-printer -o $@ $(srcdir)/*.h
 	
 tnltest_SOURCES = DummySuite.h CollidePrimitivesSuite.h
 nodist_tnltest_SOURCES = runner.cc

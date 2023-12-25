@@ -1,4 +1,8 @@
-SUBDIRS = src scripts tests
+SUBDIRS = src scripts
+
+if WITH_TESTS
+SUBDIRS += tests
+endif
 
 dist-hook:
 	mkdir $(distdir)/autopackage; \

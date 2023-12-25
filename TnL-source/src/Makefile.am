@@ -1,9 +1,9 @@
 SUBDIRS = modules boost interfaces
 
-bin_PROGRAMS = tnl-bin
+bin_PROGRAMS = tnl-bin$(EXEEXT)
 
 tnl_bin_SOURCES = game.cc game.h tnl.h \
-                        glew.c glew.h glxew.h wglew.h \
+                        defaults.cc defaults.h \
                         CEGUIEventFilter.cc CEGUIEventFilter.h \
                         Factory.h \
                         object.cc object.h \
@@ -25,7 +25,8 @@ tnl_bin_SOURCES = game.cc game.h tnl.h \
                         RenderPass.cc RenderPass.h \
                         SceneRenderPass.cc SceneRenderPass.h \
                         AxisTransform.cc AxisTransform.h \
-                        TnlCeguiLogger.cc TnlCeguiLogger.h
+                        TnlCeguiLogger.cc TnlCeguiLogger.h \
+                        mission.cc
                      
 tnl_libs = \
     modules/scripting/libscripting.a \
@@ -60,7 +61,4 @@ tnl_bin_LDADD = $(tnl_libs) @SDL_LIBS@ @SIGC_LIBS@ @OPENGL_LIBS@  \
     @OPENAL_LIBS@ @ALUT_LIBS@ @LIBPNG_LIBS@ @IO_LIBS@
 
 INCLUDES = @SDL_CFLAGS@ @SIGC_CFLAGS@ @OPENGL_CFLAGS@ @OPENAL_CFLAGS@ @ALUT_CFLAGS@
-
-# Compile the lonely .c file (glew.c) like the .cc files
-AM_CFLAGS=$(CXXFLAGS)
 

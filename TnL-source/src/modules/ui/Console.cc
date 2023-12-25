@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 #include <modules/environment/environment.h>
 #include <modules/jogi/JRenderer.h>
 #include <modules/scripting/IoScriptingManager.h>
@@ -304,3 +306,5 @@ void Console::exitCallback() {
 
 
 } // namespace UI
+
+#endif // HAVE_IO

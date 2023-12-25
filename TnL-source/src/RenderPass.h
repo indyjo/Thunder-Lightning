@@ -25,7 +25,7 @@ public:
     RenderPass(JRenderer *r);
     ~RenderPass();
     
-    inline JRenderer * getRenderer() { return renderer; }
+    JRenderer * getRenderer();
     
     /// Sets whether this RenderPass will be drawn (true) or not (false).
     /// Default to true.

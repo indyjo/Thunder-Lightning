@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  GameMapping                                                |
 // ---------------------------------------------------------------
@@ -112,3 +114,5 @@ template<>
 IoObject *getProtoObject<Ptr<IGame> >(IoState * state) {
 	return IoState_protoWithId_(state, GameMapping::id);
 }
+
+#endif // HAVE_IO

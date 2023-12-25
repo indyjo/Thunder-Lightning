@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  EventMapping                                               |
 // ---------------------------------------------------------------
@@ -260,3 +262,4 @@ Ptr<EventRemapper> unwrapObject<Ptr<EventRemapper> >(IoObject * self) {
     return EventMapping::getObject(self);
 }
 
+#endif // HAVE_IO

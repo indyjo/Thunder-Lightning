@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 #include <cassert>
 #include <tnl.h>
 #include <modules/math/SpecialMatrices.h>
@@ -84,3 +86,5 @@ template<> Matrix4 unwrapObject(IoObject *self) {
 	unwrap_raw(self, v, 4, 4);
 	return Matrix4::Array(v);
 }
+
+#endif // HAVE_IO

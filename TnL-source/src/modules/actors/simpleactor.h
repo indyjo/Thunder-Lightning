@@ -23,7 +23,9 @@ class SimpleActor : virtual public IActor, virtual public SigObject
 {
 protected:
     Ptr<IGame> thegame;
+#ifdef HAVE_IO
     IoObject *self;
+#endif
     Ptr<IEngine> engine;
     State state;
     Ptr<TargetInfo> target_info;
@@ -42,10 +44,12 @@ public:
     virtual ~SimpleActor();
 
     void createIoObject();
+#ifdef HAVE_IO
     void setIoObject(IoObject *self);
     /// Called by Io object's free function
     inline void rawResetIoObject() { self=0; }
-    
+#endif
+
     void onLinked();
     void onUnlinked();
     inline bool isLinked() { return is_linked; }
@@ -79,9 +83,11 @@ public:
     // with 'G'. The Actor must decide whether to proceed or to ignore.
     virtual void onSelectTargetInView(IView * view);
 
+#ifdef HAVE_IO
     typedef SigC::Signal2<void, std::string, IoObject *> MessageSignal;
     /// Emitted when a message was received
     MessageSignal message_signal;
+#endif
 
     // IPositionProvider
     virtual Vector getLocation();
@@ -124,9 +130,10 @@ public:
     virtual bool hasControlMode(ControlMode);
     virtual void setControlMode(ControlMode);
     virtual ControlMode getControlMode();
+#ifdef HAVE_IO
     virtual IoObject* message(std::string name, IoObject* args);
     virtual IoObject* getIoObject();
-
+#endif
     // IDrawable
     virtual void draw();
 };

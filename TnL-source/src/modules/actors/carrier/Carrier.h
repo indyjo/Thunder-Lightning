@@ -12,7 +12,11 @@ struct IWeapon;
 
 class Carrier : public SimpleActor, virtual public Collide::Collidable, virtual public SigObject {
 public:
-    Carrier(Ptr<IGame> thegame, IoObject * io_peer=0);
+    Carrier(Ptr<IGame> thegame
+#ifdef HAVE_IO
+        , IoObject * io_peer=0
+#endif
+    );
     //~Carrier();
 
     virtual void onLinked();

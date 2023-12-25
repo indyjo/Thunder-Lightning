@@ -22,6 +22,12 @@ AC_ARG_ENABLE(
     [  --enable-release             Enables building a release (debug code free) version],
     CXXFLAGS="$CXXFLAGS -DNDEBUG")
 
+AC_ARG_ENABLE(
+    tests,
+    [  --enable-tests               Enables tests to be built and executed],
+    AM_CONDITIONAL(WITH_TESTS, true),
+    AM_CONDITIONAL(WITH_TESTS, false))
+
 AC_ARG_WITH(
     opengl-cflags,
     [  --with-opengl-cflags=PATH    Specify OpenGL cflags],
@@ -93,6 +99,7 @@ if [[ "$IO_DIR" ]]; then
         IO_CFLAGS="-I$IO_DIR/vm/_include -I$IO_DIR/vm/_include/base"
         IO_LIBS="$IO_DIR/vm/_libs/libIoVM.a"
     fi
+    AC_DEFINE([HAVE_IO],[1],[Use Io scripting language])
 fi
 
 AC_ARG_WITH(
@@ -126,10 +133,14 @@ AM_PATH_SDL(1.2.10, , AC_MSG_ERROR([SDL version 1.2.10+ needed]))
 CXXFLAGS="$CXXFLAGS $SDL_CFLAGS"
 LDFLAGS="$LDFLAGS $SDL_LDFLAGS"
 
+AM_PATH_PYTHON([2.5])
+
 dnl ---------------------------------------------------------------------------
 dnl CEGUI GUI library configuration
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES(CEGUI,CEGUI-OPENGL)
+PKG_CHECK_MODULES(CEGUI,CEGUI-OPENGL,
+    [AC_DEFINE([HAVE_CEGUI],[1],[Use CEGUI])]
+    ,[echo NO CEGUI])
 CXXFLAGS="$CXXFLAGS $CEGUI_CFLAGS"
 LDFLAGS="$LDFLAGS $CEGUI_LIBS"
 

@@ -1,7 +1,9 @@
 #ifndef IACTOR_H
 #define IACTOR_H
 
+#ifdef HAVE_IO
 #include <IoObject.h>
+#endif
 #include <string>
 #include <interfaces/IDrawable.h>
 #include <interfaces/IMovementProvider.h>
@@ -50,11 +52,13 @@ public:
     virtual void setControlMode(ControlMode)=0;
     virtual ControlMode getControlMode()=0;
 
+#ifdef HAVE_IO
     /// Generic interface for sending specific messages to actors which can be handled from Io
     virtual IoObject* message(std::string name, IoObject* args)=0;
     /// Returns the Io Object that represents this actor
     /// Actors may cache an Io object or return a newly created one on each call.
     virtual IoObject* getIoObject()=0;
+#endif
 };
 
 #endif

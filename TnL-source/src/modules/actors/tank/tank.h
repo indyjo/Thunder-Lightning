@@ -18,7 +18,11 @@ class Targeter;
 
 class Tank : public SimpleActor, virtual public Collide::Collidable, virtual public SigObject {
 public:
-    Tank(Ptr<IGame> thegame, IoObject * io_peer=0);
+    Tank(Ptr<IGame> thegame
+#ifdef HAVE_IO
+        , IoObject * io_peer=0
+#endif
+    );
     ~Tank();
 
     virtual void onLinked();

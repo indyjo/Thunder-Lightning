@@ -39,8 +39,9 @@ Bullet::Bullet(IGame *thegame, Ptr<IActor> source, float factor)
     setBoundingGeometry(new Collide::BoundingGeometry(1,1));
     getBoundingGeometry()->setBoundingRadius(0.01f);
     setRigidBody(&*engine);
+#ifdef HAVE_IO
     setActor(this);
-    
+#endif    
     setNoCollideTag(&no_collide_tag);
 }
 

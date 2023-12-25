@@ -206,7 +206,9 @@ public:
     virtual void setWrapMode(jrtexdim_t dim, jrwrapmode_t mode) = 0;
     
     virtual unsigned int getGLTexFromTxtid(jrtxtid_t txtid) = 0;
+#ifndef __EMSCRIPTEN__
     virtual jError createTxtidFromGLTex(unsigned int tex, jrtxtid_t *txtid) = 0;
+#endif
     
     virtual int getTextureWidth(jrtxtid_t tex) = 0;
     virtual int getTextureHeight(jrtxtid_t tex) = 0;

@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  ReceiverMapping                                            |
 // ---------------------------------------------------------------
@@ -126,3 +128,5 @@ template<>
 IoObject *getProtoObject<Ptr<IMovementReceiver> >(IoState * state) {
 	return IoState_protoWithId_(state, MovementReceiverMapping::id);
 }
+
+#endif // HAVE_IO

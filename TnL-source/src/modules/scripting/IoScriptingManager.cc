@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 #include <cstddef>
 #include <cstring>
 #include <cassert>
@@ -215,3 +217,4 @@ void IoStateEx_removeCoupling(Object* cpp_object, IoObject* io_object) {
 }
 	
 
+#endif // HAVE_IO

@@ -3,7 +3,11 @@
 
 namespace UI {
 
-PanelRenderPass::PanelRenderPass(JRenderer *r) : RenderPass(r) { }
+PanelRenderPass::PanelRenderPass(JRenderer *r) : RenderPass(r) {
+    if (!r) {
+        throw std::invalid_argument("PanelRenderPass: r is null");
+    }
+}
 PanelRenderPass::~PanelRenderPass() { }
     
 void PanelRenderPass::setPanel(Ptr<Panel> p) {

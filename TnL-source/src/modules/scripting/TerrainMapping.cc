@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  TerrainMapping                                             |
 // ---------------------------------------------------------------
@@ -83,3 +85,4 @@ Ptr<ITerrain> unwrapObject<Ptr<ITerrain> >(IoObject * self) {
     return TerrainMapping::getObject(self);
 }
 
+#endif // HAVE_IO

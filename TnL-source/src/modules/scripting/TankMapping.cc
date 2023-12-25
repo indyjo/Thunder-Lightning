@@ -1,3 +1,4 @@
+#ifdef HAVE_IO
 // ---------------------------------------------------------------
 // |  TankMapping                                               |
 // ---------------------------------------------------------------
@@ -99,3 +100,5 @@ template<>
 IoObject *getProtoObject<Ptr<Tank> >(IoState * state) {
 	return IoState_protoWithId_(state, TankMapping::id);
 }
+
+#endif // HAVE_IO

@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  FactionMapping                                             |
 // ---------------------------------------------------------------
@@ -115,3 +117,5 @@ template<>
 IoObject *getProtoObject<Ptr<Faction> >(IoState * state) {
 	return IoState_protoWithId_(state, FactionMapping::id);
 }
+
+#endif // HAVE_IO

@@ -1,3 +1,4 @@
+#ifdef HAVE_IO
 // ---------------------------------------------------------------
 // |  ProviderMapping                                            |
 // ---------------------------------------------------------------
@@ -129,3 +130,5 @@ template<>
 IoObject *getProtoObject<Ptr<IMovementProvider> >(IoState * state) {
 	return IoState_protoWithId_(state, MovementProviderMapping::id);
 }
+
+#endif // HAVE_IO

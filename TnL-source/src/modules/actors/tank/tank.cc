@@ -50,17 +50,22 @@ struct TurretView: public SimpleView {
 };
 */
 
-Tank::Tank(Ptr<IGame> thegame, IoObject * io_peer_init)
+Tank::Tank(Ptr<IGame> thegame
+#ifdef HAVE_IO
+    , IoObject * io_peer_init
+#endif
+)
 : SimpleActor(thegame),
   renderer(thegame->getRenderer()),
   terrain(thegame->getTerrain()), damage(0),
   age(0)
 {
+#ifdef HAVE_IO
     if (io_peer_init)
         setIoObject(io_peer_init);
     else
         createIoObject();
-    
+#endif    
     setTargetInfo(new TargetInfo(
         "Tank", RADIUS, TargetInfo::TANK));
 

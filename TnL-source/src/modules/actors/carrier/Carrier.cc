@@ -18,16 +18,21 @@
 #include <SceneRenderPass.h>
 #include "Carrier.h"
 
-Carrier::Carrier(Ptr<IGame> thegame, IoObject * io_peer_init)
+Carrier::Carrier(Ptr<IGame> thegame
+#ifdef HAVE_IO
+    , IoObject * io_peer_init
+#endif
+)
     : SimpleActor(thegame)
     , control_target(CARRIER)
 {
+#ifdef HAVE_IO
     if (io_peer_init)
         setIoObject(io_peer_init);
     else {
         //createIoObject();
     }
-    
+#endif    
     setTargetInfo(new TargetInfo(
         "Carrier", 78, TargetInfo::CARRIER));
         
@@ -57,7 +62,9 @@ Carrier::Carrier(Ptr<IGame> thegame, IoObject * io_peer_init)
         thegame->getCollisionMan()->queryGeometry(
             thegame->getConfig()->query("Carrier_model_bounds")));
     setRigidBody(ptr(engine));
+#ifdef HAVE_IO
     setActor(this);
+#endif
     
     Transform xform(
         Quaternion::Rotation(Vector(-1,0,0), 70*3.141593f/180), 

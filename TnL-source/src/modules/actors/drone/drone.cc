@@ -74,7 +74,11 @@ struct TargetView: public SimpleView {
 */
 
 
-Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
+Drone::Drone(Ptr<IGame> thegame
+#ifdef HAVE_IO
+    , IoObject* io_peer_init
+#endif
+)
 : SimpleActor(thegame),
   renderer(thegame->getRenderer()),
   terrain(thegame->getTerrain()), damage(0),
@@ -83,11 +87,12 @@ Drone::Drone(Ptr<IGame> thegame, IoObject* io_peer_init)
   engine_power(1.0)
 {
 	ls_message("<Drone::Drone>\n");
+#ifdef HAVE_IO
     if (io_peer_init)
         setIoObject(io_peer_init);
     else
         createIoObject();
-    		
+#endif    		
 	ls_message("</Drone::Drone>\n");
 }
 
@@ -154,9 +159,14 @@ void Drone::init() {
     armament->addWeapon(0,decoy_launcher);
 
     // Prepare collidable
-    setBoundingGeometry(
-        thegame->getCollisionMan()->queryGeometry(
-            cfg->query("Drone_model_bounds")));
+    Ptr<Collide::BoundingGeometry> bounds =
+        thegame->getCollisionMan()->queryGeometry(cfg->query("Drone_model_bounds"));
+    if (!bounds) {
+        throw std::runtime_error("Bounds are null");
+    } else {
+        ls_message("Drone: setting bounds to %p\n", &*bounds);
+    }
+    setBoundingGeometry(bounds);
     setRigidBody(&*engine);
     setActor(this);
     
@@ -248,6 +258,7 @@ Drone::~Drone() {
 }
 
 void Drone::onLinked() {
+    ls_message("Drone linked\n");
     SimpleActor::onLinked();
     thegame->getCollisionMan()->add(this);
     
@@ -262,6 +273,7 @@ void Drone::onLinked() {
 
     skeleton->setBoneTransform("Body",getTransform());
     updateDerivedObjects();
+    ls_message("Done: Drone linked\n");
 }
 
 void Drone::onUnlinked() {

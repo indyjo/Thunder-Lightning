@@ -1,8 +1,12 @@
 #include <fstream>
 #include <string>
 #include <cstring>
+#ifdef HAVE_REGAL
+#include <GL/Regal.h>
+#else
 #include <glew.h>
 #include <gl.h>
+#endif
 
 #include <interfaces/ICamera.h>
 #include <interfaces/IConfig.h>
@@ -26,7 +30,7 @@ class WaterImpl : public SigObject
     Ptr<IConfig> cfg;
     Ptr<IGame> thegame;
     bool use_shaders;
-    GLhandleARB vertex_shader, fragment_shader, program;
+    GLuint program;
     // number of tiles to draw in each dimension
     int tiles_num;
     double age;
@@ -45,44 +49,42 @@ public:
         tiles_num = cfg->queryInt("Water_tile_num", 21);
 
         use_shaders = cfg->queryBool("Game_use_shaders", true) && cfg->queryBool("Water_use_shaders", true);
+        #ifdef __EMSCRIPTEN__
+        use_shaders = false;
+        #endif
         
-        const char *extensions = "GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_ARB_multitexture";
-        if (use_shaders && glewIsSupported(extensions)) {
+        if (use_shaders) {
             ls_message("Compiling vertex shader.\n");
-            vertex_shader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
+            GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
             readShader(vertex_shader, cfg->query("Water_vertex_shader"));
             compileShader(vertex_shader);
             
             ls_message("Compiling fragment shader.\n");
-            fragment_shader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
+            GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
             readShader(fragment_shader, cfg->query("Water_fragment_shader"));
             compileShader(fragment_shader);
             
-            program = glCreateProgramObjectARB();
+            program = glCreateProgram();
             linkProgram(program, vertex_shader, fragment_shader);
-            glDeleteObjectARB(vertex_shader);
-            glDeleteObjectARB(fragment_shader);
+            glDeleteShader(vertex_shader);
+            glDeleteShader(fragment_shader);
 
             {
-                glValidateProgramARB(program);
-                GLcharARB buf[1024];
-                glGetInfoLogARB(program, 1024, NULL, buf);
+                glValidateProgram(program);
+                GLchar buf[1024];
+                glGetProgramInfoLog(program, 1024, NULL, buf);
                 ls_message("Validation result: %s\n", buf);
             }
             
             bump_tex = game->getTexMan()->query(cfg->query("Water_bumpmap"), JR_HINT_FULLOPACITY);
         } else {
-            if (!glewIsSupported(extensions)) {
-                ls_warning("OpenGL Shading Language extensions not supported. Falling back to normal texture.\n");
-                use_shaders = false;
-            }
             fallback_tex = game->getTexMan()->query(cfg->query("Water_fallback_texture"), JR_HINT_FULLOPACITY);
         }
     }
     
     ~WaterImpl() {
         if (use_shaders) {
-            glDeleteObjectARB(program);
+            glDeleteProgram(program);
         }
     }
     
@@ -113,30 +115,42 @@ public:
         int tile_x_end = tile_x_begin + tiles_num;
         int tile_z_end = tile_z_begin + tiles_num;
         
-        glActiveTexture(GL_TEXTURE0_ARB);
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D,
             thegame->getRenderer()->getGLTexFromTxtid(tex->getTxtid()));
         glEnable(GL_TEXTURE_2D);
 
-        glActiveTexture(GL_TEXTURE1_ARB);
+        glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, r->getGLTexFromTxtid(bump_tex->getTxtid()));
         glEnable(GL_TEXTURE_2D);
 
         if (first_draw) ls_message("Use program object.\n");
-        glUseProgramObjectARB(program);
+        glUseProgram(program);
         
         if (first_draw) ls_message("Specify uniform values.\n");
-        glUniform1fARB(glGetUniformLocationARB(program, "waves"), 0.778f);
-        glUniform1fARB(glGetUniformLocationARB(program, "aspect"), r->getAspect());
-        glUniform1fARB(glGetUniformLocationARB(program, "focus"), thegame->getCamera()->getFocus());
-        glUniform3fARB(glGetUniformLocationARB(program, "BaseColor"), 0.23, 0.421, 0.418);
-        glUniform1fARB(glGetUniformLocationARB(program, "FresnelExponent"), 1.702f);
-        glUniform1fARB(glGetUniformLocationARB(program, "Reflectivity"), 0.943f);
-        glUniform1iARB(glGetUniformLocationARB(program, "MirrorMap"), 0);
-        glUniform1iARB(glGetUniformLocationARB(program, "BumpMap"), 1);
-        glUniform1fARB(glGetUniformLocationARB(program, "Time"), age);
-        glUniform3fARB(glGetUniformLocationARB(program, "CamPos"), campos[0], campos[1], campos[2]);
-        glUniformMatrix3fvARB(glGetUniformLocationARB(program, "CamToMir"), 1, GL_FALSE, cam2mir.glMatrix());
+        glUniform1f(glGetUniformLocation(program, "waves"), 0.778f);
+        glUniform1f(glGetUniformLocation(program, "aspect"), r->getAspect());
+        glUniform1f(glGetUniformLocation(program, "focus"), thegame->getCamera()->getFocus());
+        glUniform3f(glGetUniformLocation(program, "BaseColor"), 0.23, 0.421, 0.418);
+        glUniform1f(glGetUniformLocation(program, "FresnelExponent"), 1.702f);
+        glUniform1f(glGetUniformLocation(program, "Reflectivity"), 0.943f);
+        glUniform1i(glGetUniformLocation(program, "MirrorMap"), 0);
+        glUniform1i(glGetUniformLocation(program, "BumpMap"), 1);
+        glUniform1f(glGetUniformLocation(program, "Time"), age);
+        glUniform3f(glGetUniformLocation(program, "CamPos"), campos[0], campos[1], campos[2]);
+        glUniformMatrix3fv(glGetUniformLocation(program, "CamToMir"), 1, GL_FALSE, cam2mir.glMatrix());
+
+        GLuint vtx_buffer;
+        // Generate an ID (buffer object name)
+        glGenBuffers(1, &vtx_buffer);
+        // Binds that ID to the binding point GL_ARRAY_BUFFER and creates a buffer object
+        glBindBuffer(GL_ARRAY_BUFFER, vtx_buffer);
+
+        GLuint elem_buffer;
+        glGenBuffers(1, &elem_buffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vtx_buffer);
+        GLfloat elem_data[] = {0, 1, 2, 3};
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elem_data), elem_data, GL_STATIC_DRAW);
 
         if (first_draw) ls_message("Drawing.\n");
         glBegin(GL_QUADS);
@@ -144,27 +158,41 @@ public:
         glColor4f(1,1,1,1);
         for (int tile_z=tile_z_begin; tile_z < tile_z_end; ++tile_z) {
             for (int tile_x=tile_x_begin; tile_x < tile_x_end; ++tile_x) {
+                GLfloat vtx_data[] = {
+                    tile_size * tile_x, 0, tile_size * tile_z, 0, 0,
+                    tile_size * (tile_x+1), 0, tile_size * tile_z, tile_uvspan, 0,
+                    tile_size * (tile_x+1), 0, tile_size * (tile_z+1), tile_uvspan, tile_uvspan,
+                    tile_size * tile_x, 0, tile_size * (tile_z+1), 0, tile_uvspan,
+                };
+                /*
+                glBufferData(GL_ARRAY_BUFFER, sizeof(vtx_data), vtx_data, GL_STATIC_DRAW);
+                glClientActiveTexture(GL_TEXTURE0);
+                glTexCoordPointer(2, GL_FLOAT, 12, vtx_data + 3);
+                //glEnableTex
+
+
                 glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 0, 0);
                 glVertex3f(tile_size * tile_x, 0, tile_size * tile_z);
 
-                glMultiTexCoord2fARB(GL_TEXTURE0_ARB, tile_uvspan, 0);
+                glMultiTexCoord2f(GL_TEXTURE0, tile_uvspan, 0);
                 glVertex3f(tile_size * (tile_x+1), 0, tile_size * tile_z);
 
-                glMultiTexCoord2fARB(GL_TEXTURE0_ARB, tile_uvspan, tile_uvspan);
+                glMultiTexCoord2f(GL_TEXTURE0, tile_uvspan, tile_uvspan);
                 glVertex3f(tile_size * (tile_x+1), 0, tile_size * (tile_z+1));
 
-                glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 0, tile_uvspan);
+                glMultiTexCoord2f(GL_TEXTURE0, 0, tile_uvspan);
                 glVertex3f(tile_size * tile_x, 0, tile_size * (tile_z+1));
+                */
             }
         }
         glEnd();
         if (first_draw) ls_message("Done drawing.\n");
 
-        glActiveTexture(GL_TEXTURE1_ARB);
+        glActiveTexture(GL_TEXTURE1);
         glDisable(GL_TEXTURE_2D);
 
-        glUseProgramObjectARB(0);
-        glActiveTexture(GL_TEXTURE0_ARB);
+        glUseProgram(0);
+        glActiveTexture(GL_TEXTURE0);
     }
 
     void drawWithoutShaders() {
@@ -181,25 +209,28 @@ public:
         r->enableTexturing();
         r->enableFog();
 
-        r->begin(JR_DRAWMODE_QUADS);
-        r->setNormal(Vector(0,1.0f,0));
         r->setColor(Vector(1,1,1));
         for (int tile_z=tile_z_begin; tile_z < tile_z_end; ++tile_z) {
             for (int tile_x=tile_x_begin; tile_x < tile_x_end; ++tile_x) {
+                r->begin(JR_DRAWMODE_TRIANGLE_FAN);
+                r->setNormal(Vector(0,1.0f,0));
                 r->setUVW(Vector(0,0,0));
                 r->vertex(Vector(tile_size * tile_x, 0, tile_size * tile_z));
 
+                r->setNormal(Vector(0,1.0f,0));
                 r->setUVW(Vector(tile_uvspan, 0, 0));
                 r->vertex(Vector(tile_size * (tile_x+1), 0, tile_size * tile_z));
 
+                r->setNormal(Vector(0,1.0f,0));
                 r->setUVW(Vector(tile_uvspan, tile_uvspan, 0));
                 r->vertex(Vector(tile_size * (tile_x+1), 0, tile_size * (tile_z+1)));
 
+                r->setNormal(Vector(0,1.0f,0));
                 r->setUVW(Vector(0, tile_uvspan, 0));
                 r->vertex(Vector(tile_size * tile_x, 0, tile_size * (tile_z+1)));
+                r->end();
             }
         }
-        r->end();
         r->disableFog();
         r->disableTexturing();
         
@@ -232,7 +263,7 @@ public:
         r->disableAlphaBlending();
     }
     
-    void readShader(GLhandleARB shader, const char *filename) {
+    void readShader(GLuint shader, const char *filename) {
         std::ifstream in(filename);
         if (!in) {
             ls_error("Error reading shader: %s\n", filename);
@@ -241,23 +272,23 @@ public:
         int length = in.tellg();
         in.seekg(0, std::ios::beg);
         
-        GLcharARB *buffer = new char[length+1];
+        GLchar *buffer = new char[length+1];
         in.read(buffer, length);
         buffer[length] = 0;
         
-        const GLcharARB *strings[] = {buffer};
-        glShaderSourceARB(shader, 1, strings, NULL);
+        const GLchar *strings[] = {buffer};
+        glShaderSource(shader, 1, strings, NULL);
         ls_message("Shader source:\n%s\n", buffer);
         delete [] buffer;
     }
     
-    bool compileShader(GLhandleARB shader) {
+    bool compileShader(GLuint shader) {
         GLint status;
         
-        glCompileShaderARB(shader);
-        glGetObjectParameterivARB(shader, GL_OBJECT_COMPILE_STATUS_ARB, &status);
-        GLcharARB buf[1024];
-        glGetInfoLogARB(shader, 1024, NULL, buf);
+        glCompileShader(shader);
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+        GLchar buf[1024];
+        glGetShaderInfoLog(shader, 1024, NULL, buf);
         if (GL_TRUE == status) {
             ls_message("Compiling successful: [%s]\n", buf);
             return true;
@@ -267,15 +298,15 @@ public:
         }
     }
     
-    bool linkProgram(GLhandleARB prg, GLhandleARB vshader, GLhandleARB fshader) {
-        glAttachObjectARB(prg, vshader);
-        glAttachObjectARB(prg, fshader);
+    bool linkProgram(GLuint prg, GLuint vshader, GLuint fshader) {
+        glAttachShader(prg, vshader);
+        glAttachShader(prg, fshader);
         glLinkProgram(prg);
 
         GLint status;
-        glGetObjectParameterivARB(prg, GL_OBJECT_LINK_STATUS_ARB, &status);
-        GLcharARB buf[1024];
-        glGetInfoLogARB(prg, 1024, NULL, buf);
+        glGetShaderiv(prg, GL_LINK_STATUS, &status);
+        GLchar buf[1024];
+        glGetProgramInfoLog(prg, 1024, NULL, buf);
         if (GL_TRUE == status) {
             ls_message("Linking successful: [%s]\n", buf);
             return true;

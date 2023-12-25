@@ -4,10 +4,17 @@
 #include <list>
 #include <algorithm>
 #include <sigc++/bind.h>
+#ifdef HAVE_REGAL
+#include <GL/RegalGLEW.h>
+#include <GL/Regal.h>
+#else
 #include <glew.h>
+#endif
+#ifdef HAVE_CEGUI
 #include <CEGUIBase/CEGUI.h>
 #include <CEGUIOpenGLRenderer/CEGUIOpenGLRenderer.h>
 #include <TnlCeguiLogger.h>
+#endif
 #include <modules/math/Vector.h>
 #include <modules/camera/camera.h>
 #include <modules/camera/FollowingCamera.h>
@@ -21,9 +28,13 @@
 #include <modules/fontman/fontman.h>
 #include <modules/gunsight/gunsight.h>
 #include <modules/ui/loadingscreen.h>
+#ifdef HAVE_CEGUI
 #include <modules/ui/MainGUI.h>
+#endif
 #include <modules/collide/CollisionManager.h>
+#ifdef HAVE_CEGUI
 #include <modules/ui/Console.h>
+#endif
 #include <modules/ui/Surface.h>
 #include <modules/ui/PanelRenderPass.h>
 #include <modules/scripting/IoScriptingManager.h>
@@ -34,6 +45,7 @@
 #include <SceneRenderPass.h>
 #include <sound_openal.h>
 #include <Faction.h>
+#include <defaults.h>
 
 #include <SDL_main.h>
 #include "game.h"
@@ -47,6 +59,9 @@
 #elif defined(__APPLE__)
     #define READ_PATH_FROM_ARGV0
     #define HAS_RESOURCES_PREFIX
+#elif defined(__EMSCRIPTEN__)
+    #define PATH_IS_LOCAL
+    #define PREFIX_IS_BINDIR
 #else
     #define READ_PATH_FROM_ARGV0
 #endif
@@ -83,13 +98,17 @@ void setup_paths(Ptr<IConfig> config, const char **argv) {
     }
 #endif
 
+#ifdef PATH_IS_LOCAL
+    std::string bin_dir = "./";
+#else
     int last_sep = bin.find_last_of("/\\");
     if (last_sep == std::string::npos) {
         ls_error("Strange binary location without separators: %s\n", bin.c_str());
         throw runtime_error("Failed to determine binary location");
     }
     std::string bin_dir = bin.substr(0,last_sep);
-    
+#endif
+
 #ifdef PREFIX_IS_BINDIR
     std::string prefix = bin_dir;
 #else
@@ -145,7 +164,8 @@ void Game::startupSystem(Status & stat) {
     // Pass command line arguments to configuration, if any
     // The locations given above may be overridden here
     config->feedArguments(argc, argv);
-    
+
+#ifdef HAVE_IO
     ls_message("Creating IoScriptingManager (system)\n");
     Ptr<IoScriptingManager> system_scripting_manager = new IoScriptingManager(this);
     ls_message("Adding basic mappings...");
@@ -161,6 +181,9 @@ void Game::startupSystem(Status & stat) {
 		IoState_doFile_(system_scripting_manager->getMainState(), buf);
     }
     ls_message("Back in C++.\n");
+#else
+    initialize_config(config);
+#endif // HAVE_IO
 
     event_remapper = new EventRemapper();
     event_remapper->sig_action_triggered.connect(SigC::slot(*this, &Game::actionTriggered));
@@ -219,9 +242,9 @@ void Game::startupSystem(Status & stat) {
                 fullscreen?"fullscreen":"in a window",
                 autores?"auto-detected":"manual");
 
-        SDL_GL_SetAttribute( SDL_GL_RED_SIZE, config->queryInt("Game_red_bits", 5) );
-        SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, config->queryInt("Game_green_bits", 5) );
-        SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, config->queryInt("Game_blue_bits", 5) );
+        SDL_GL_SetAttribute( SDL_GL_RED_SIZE, config->queryInt("Game_red_bits", 8) );
+        SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, config->queryInt("Game_green_bits", 8) );
+        SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, config->queryInt("Game_blue_bits", 8) );
         SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, config->queryInt("Game_zbuffer_bits", 16) );
         SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
         if (config->queryBool("Game_fsaa_enabled", false)) {
@@ -262,6 +285,7 @@ void Game::startupSystem(Status & stat) {
     }
     ls_message("Done initializing video.\n");
     
+#ifdef HAVE_IO
     ls_message("Performing second stage of Io initialization.\n");
     {
 		char buf[256];
@@ -272,6 +296,7 @@ void Game::startupSystem(Status & stat) {
 		IoState_doFile_(system_scripting_manager->getMainState(), buf);
     }
     ls_message("Done.\n");
+#endif // HAVE_IO
     
     ls_message("Initializing GLEW:\n");
     GLenum err = glewInit();
@@ -279,10 +304,14 @@ void Game::startupSystem(Status & stat) {
         ls_error("Error: %s\n", glewGetErrorString(err));
         throw runtime_error("Could not initialize GLEW library.");
     }
+#ifdef HAVE_REGAL
+    RegalMakeCurrent((RegalSystemContext)1);
+#else
     if (GLEW_VERSION_1_3) ls_message("  - detected OpenGL 1.3 support\n");
     if (GLEW_VERSION_1_4) ls_message("  - detected OpenGL 1.4 support\n");
     if (GLEW_VERSION_1_5) ls_message("  - detected OpenGL 1.5 support\n");
     if (GLEW_VERSION_2_0) ls_message("  - detected OpenGL 2.0 support. Nice!\n");
+#endif
     ls_message("Done.\n");
     
     ls_message("Initializing managers... ");
@@ -292,6 +321,7 @@ void Game::startupSystem(Status & stat) {
     soundman = new ALSoundMan(config);
     ls_message("Done initializing managers\n");
 
+#ifdef HAVE_CEGUI
     ls_message("Initializing CEGUI library.\n");
     try {
         using namespace CEGUI;
@@ -338,6 +368,8 @@ void Game::startupSystem(Status & stat) {
         throw;
     }
     ls_message("Done.\n");
+
+#endif // HAVE_CEGUI
 
     stat.endJob();
 }
@@ -417,6 +449,7 @@ void Game::startupSimulation(Status & stat) {
     this->renderpass_overlay = overlay_pass;
     overlay_pass->stackedOn(renderpass_main);
     
+#ifdef HAVE_IO
     // Create the Io scripting manager responsible for high-level manipulation
     // and low-level AI during this simulation session.
     stat.nextJob("Initializing Io scripting manager (simulation)");
@@ -433,11 +466,16 @@ void Game::startupSimulation(Status & stat) {
 		IoState_doFile_(io_scripting_manager->getMainState(), buf);
     }
     ls_message("Done.\n");
+#else // HAVE_IO
+    initialize_input(event_remapper);
+#endif
 
+#ifdef HAVE_CEGUI
     stat.nextJob("Initializing Console");
     console = new UI::Console(this);
     stat.endJob();
-    
+#endif
+
     // Every simulation session is marked non-interactive initially
     setInteractive(false);
 
@@ -449,8 +487,10 @@ void Game::teardownSimulation(Status & stat) {
     stat.beginJob("Clearing event remapper");
     event_remapper->removeEventSheet(event_sheet);
     event_sheet = 0;
+#ifdef HAVE_IO
     stat.nextJob("Removing Io scripting manager (simulation)");
     io_scripting_manager = 0;
+#endif
     stat.nextJob("Removing actors from scene");
     current_actor = 0;
     removeAllActors();
@@ -463,7 +503,9 @@ void Game::teardownSimulation(Status & stat) {
     skybox = 0;
     environment = 0;
     water = 0;
+#ifdef HAVE_CEGUI
     console = 0;
+#endif
     renderpass_main = 0;
     renderpass_overlay = 0;
     stat.nextJob("Removing collision manager");
@@ -471,6 +513,27 @@ void Game::teardownSimulation(Status & stat) {
     stat.endJob();
     stat.endJob();
 }
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include <emscripten/html5.h>
+
+EM_BOOL one_iter(double time, void* userData) {
+    Game *game = (Game*) userData;
+#ifdef HAVE_IO
+    IoState_pushRetainPool(game->io_scripting_manager->getMainState());
+#endif
+    game->doFrame();
+#ifdef HAVE_CIO
+    IoState_popRetainPool(game->io_scripting_manager->getMainState());
+#endif
+    return game->game_done ? EM_FALSE : EM_TRUE;
+}
+#endif // __EMSCRIPTEN__
+
+#if !defined(HAVE_IO) && !defined(HAVE_CEGUI)
+void setup_mission(Ptr<IGame> game);
+#endif
 
 void Game::run()
 {
@@ -485,18 +548,36 @@ void Game::run()
         startupSimulation(stat);
     }
     
+#ifdef HAVE_IO
     // Start the demo script
     IoState_doFile_(io_scripting_manager->getMainState(), config->query("Game_demo_script"));
+#endif
+#ifdef HAVE_CEGUI
     // Show main menu
     main_gui->switchToMainMenu(false, false);
+#endif
+#if !defined(HAVE_IO) && !defined(HAVE_CEGUI)
+    setup_mission(this);
+#endif
 
     doEvents();
+#if defined(__EMSCRIPTEN__)
+    // Prevent game from being destroyed when main() exits.
+    this->ref();
+    // Receives a function to call and some user data to provide it.
+    emscripten_request_animation_frame_loop(one_iter, this);
+#else // no __EMSCRIPTEN:
+
     while (!game_done) {
+#ifdef HAVE_IO
         IoState_pushRetainPool(io_scripting_manager->getMainState());
+#endif
         doFrame();
+#ifdef HAVE_CIO
         IoState_popRetainPool(io_scripting_manager->getMainState());
+#endif
     }
-    
+
     {
         Status stat;
         {
@@ -506,6 +587,8 @@ void Game::run()
         }
         teardownSystem(stat);
     }
+#endif // no __EMSCRIPTEN__
+    
 }
 
 
@@ -580,9 +663,11 @@ Ptr<Water> Game::getWater() {
     return water;
 }
 
+#ifdef HAVE_IO
 Ptr<IoScriptingManager> Game::getIoScriptingManager() {
 	return io_scripting_manager;
 }
+#endif
 
 void Game::infoMessage(const char * msg, const Vector color) {
     info_message_signal(msg,color);
@@ -683,6 +768,7 @@ void Game::doEvents()
             }
             if ((event.active.state & SDL_APPACTIVE) && event.active.gain==0) {
                 ls_message("Game inactive.\n");
+#ifndef __EMSCRIPTEN__
                 while(SDL_WaitEvent(&event)) {
                     if (event.type == SDL_QUIT) {
                         ls_message("Game quitting.\n");
@@ -692,6 +778,7 @@ void Game::doEvents()
                         break;
                     }
                 }
+#endif
             }
         }
         
@@ -773,6 +860,7 @@ void Game::setupMainRender() {
 }
 
 void Game::updateIoScripting() {
+#ifdef HAVE_IO
    // notifiy Io scripting that another frame has passed by sending a
     // "postFrame" message to Game
     if (!clock->isPaused()) {
@@ -785,6 +873,7 @@ void Game::updateIoScripting() {
             IoState_tryToPerform(IOSTATE, self, IOSTATE->lobby, msg);
         }
     }
+#endif
 }
 
 Ptr<SceneRenderPass> Game::createRenderPass(Ptr<IMovementProvider> view) {
@@ -888,8 +977,10 @@ void Game::doFrame()
     
     t[n++] = SDL_GetTicks(); // mainloop_9:
     if (debug_mode) renderpass_overlay->drawMosaic();
+#ifdef HAVE_CEGUI
     CEGUI::System::getSingleton().renderGUI();
     console->draw(renderer);
+#endif
     
     post_draw.emit();
     
@@ -941,9 +1032,11 @@ void Game::toggleDebugMode() {
 }
 
 void Game::mainMenu() {
+#ifdef HAVE_CEGUI
     if (UI::MainGUI::OFF == main_gui->currentState()) {
         main_gui->switchToMainMenu(true, true);
     }
+#endif
 }
 
 void Game::endGame() {
@@ -1070,6 +1163,7 @@ void Game::toggleControlMode() {
 }
 
 void Game::actionTriggered(const char *action) {
+#ifdef HAVE_IO
     IoObject* self = getProtoObject<Ptr<IGame> >(
         io_scripting_manager->getMainState());
 
@@ -1081,6 +1175,7 @@ void Game::actionTriggered(const char *action) {
 
     
     IoObject * result = IoState_tryToPerform(IOSTATE, self, IOSTATE->lobby, message);
+#endif // HAVE_IO
 }
 
 int main(int argc, char *argv[])
@@ -1088,6 +1183,7 @@ int main(int argc, char *argv[])
     try {
         Ptr<Game> game = new Game(argc, (const char**)argv);
         game->run();
+#ifndef __EMSCRIPTEN__
         if (game->getRefs() > 1) {
             ls_warning("Game still has %d references. Killing Game.\n", game->getRefs());
             Object::debug();
@@ -1095,6 +1191,7 @@ int main(int argc, char *argv[])
             game = 0;
             delete g;
         }
+#endif
     } catch (std::exception & e) {
         ls_error("Caught exception: %s\n", e.what());
 #ifndef NDEBUG

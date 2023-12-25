@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  EnvironmentMapping                                              |
 // ---------------------------------------------------------------
@@ -79,3 +81,4 @@ Ptr<Environment> unwrapObject(IoObject * self) {
     return EnvironmentMapping::getObject(self);
 }
 
+#endif // HAVE_IO

@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  DataNodeMapping                                            |
 // ---------------------------------------------------------------
@@ -103,3 +105,4 @@ Ptr<DataNode> unwrapObject<Ptr<DataNode> >(IoObject * self) {
     return DataNodeMapping::getObject(self);
 }
 
+#endif // HAVE_IO

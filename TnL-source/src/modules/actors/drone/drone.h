@@ -28,7 +28,11 @@ class EventSheet;
 
 class Drone : public SimpleActor, public Collide::Collidable, virtual public SigObject {
 public:
-    Drone(Ptr<IGame> thegame, IoObject * io_peer=0);
+    Drone(Ptr<IGame> thegame
+#ifdef HAVE_IO
+        , IoObject * io_peer=0
+#endif
+    );
     virtual ~Drone();
     
     void init();

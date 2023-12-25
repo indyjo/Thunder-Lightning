@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  ActorStageMapping                                          |
 // ---------------------------------------------------------------
@@ -119,3 +121,4 @@ Ptr<IActorStage> unwrapObject(IoObject * self) {
     return ActorStageMapping::getObject(self);
 }
 
+#endif // HAVE_IO

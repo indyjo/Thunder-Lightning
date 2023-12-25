@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  ArmamentMapping                                            |
 // ---------------------------------------------------------------
@@ -90,3 +92,4 @@ IoObject * wrapObject<Ptr<Armament> >(Ptr<Armament> armament, IoState *state) {
     return obj;
 }
 
+#endif // HAVE_IO

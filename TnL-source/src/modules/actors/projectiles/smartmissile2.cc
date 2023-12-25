@@ -60,6 +60,7 @@ void SmartMissile2::action()
             // detracting the missile every time we check!
             float randval = RAND;
             if (is_decoy && randval < 0.15f) {
+#ifdef HAVE_IO
                 // Send the target a message signalling that the missile lost its lock
                 IoState * state = thegame->getIoScriptingManager()->getMainState();
                 IoState_pushRetainPool(state);
@@ -73,6 +74,7 @@ void SmartMissile2::action()
                 target->message("lockLost", self);
 
                 IoState_popRetainPool(state);
+#endif
 
                 // Now change the target to the decoy
                 target = *i;

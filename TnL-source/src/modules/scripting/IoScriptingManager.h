@@ -1,5 +1,6 @@
 #ifndef IOSCRIPTINGMANAGER_H
 #define IOSCRIPTINGMANAGER_H
+#ifdef HAVE_IO
 
 #include "IoIncludes.h"
 #include <object.h>
@@ -36,4 +37,5 @@ void IoStateEx_coupleLifetime(Object* cpp_object, IoObject* io_object);
 void IoStateEx_removeCoupling(Object* cpp_object, IoObject* io_object);
 	
 
+#endif
 #endif

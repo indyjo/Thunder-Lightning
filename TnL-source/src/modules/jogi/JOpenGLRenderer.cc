@@ -4,8 +4,13 @@
 #if defined(__MINGW32__) || defined(_MSC_VER)
 #include <windows.h>
 #endif
+#ifdef HAVE_REGAL
+#include <GL/Regal.h>
+#include <GL/RegalGLU.h>
+#else
 #include <gl.h>
 #include <glu.h>
+#endif
 #include "jogi.h"
 #include "JOpenGLRenderer.h"
 
@@ -20,6 +25,7 @@ JOpenGLRenderer::JOpenGLRenderer()
 {
     ls_message("<JOpenGLRenderer::JOpenGLRenderer)>\n");
 
+#ifdef HAVE_CEGUI
     // This is an ugly hack to force linking to GLU.
     // Why would we want to do that? Because CEGUIOpenGLRenderer depends on a
     // (one!) symbol of libGLU and doesn't link in libGLU by itself.
@@ -27,6 +33,7 @@ JOpenGLRenderer::JOpenGLRenderer()
     // and CEGUIOpenGLRender won't be able to satisfy its dependencies.
     // So we perform some random NOP call to GLU.
     gluErrorString(GLU_OUT_OF_MEMORY);
+#endif
 
     coord_sys=JR_CS_WORLD;
 
@@ -330,6 +337,8 @@ jError JOpenGLRenderer::createTexture(const jsprite_t *sprite,
     }
 
     // Choose OpenGL texture format depending on the hint argument
+    // Emscripten apparently doesn't support any format except GL_RGBA.
+#ifndef __EMSCRIPTEN__
     if (hint & JR_HINT_FULLOPACITY) {
         if (hint & JR_HINT_GREYSCALE) {
             tex_format = GL_LUMINANCE;
@@ -351,6 +360,7 @@ jError JOpenGLRenderer::createTexture(const jsprite_t *sprite,
             }
         }
     }
+#endif
 
     if (mipmap) {
         int w=sprite->w, h=sprite->h;
@@ -446,6 +456,7 @@ unsigned int JOpenGLRenderer::getGLTexFromTxtid(jrtxtid_t txtid)
     return (unsigned int) texture[txtid].gl_tex_name;
 }
 
+#ifndef __EMSCRIPTEN__
 jError JOpenGLRenderer::createTxtidFromGLTex(unsigned int gltex, jrtxtid_t *txtid)
 {
     int tex=findFreeTexture();
@@ -464,6 +475,7 @@ jError JOpenGLRenderer::createTxtidFromGLTex(unsigned int gltex, jrtxtid_t *txti
     glPopAttrib();
     return JERR_OK;
 }
+#endif
 
 int JOpenGLRenderer::getTextureWidth(jrtxtid_t tex)
 {
@@ -962,11 +974,13 @@ void JOpenGLMaterial::activate() {
 		{specular[0],specular[1],specular[2],1},
 		{ambient[0],ambient[1],ambient[2],1},
 		{emission[0],emission[1],emission[2],1}};
+#ifndef __EMSCRIPTEN__
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, param[0]);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, param[1]);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, param[2]);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, param[3]);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &shininess);
+#endif
 };
 
 void JOpenGLMaterial::setDiffuse(const Vector &c) { diffuse = c; }

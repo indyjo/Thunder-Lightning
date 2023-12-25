@@ -1,3 +1,5 @@
+#ifdef HAVE_CEGUI
+
 #include <cstdio>
 #include <stdexcept>
 #include <string>
@@ -820,3 +822,4 @@ namespace UI {
     
 } // namespace UI
 
+#endif // HAVE_CEGUI

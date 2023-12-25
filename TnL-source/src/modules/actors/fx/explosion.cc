@@ -16,7 +16,7 @@
 #define PI 3.141593
 
 namespace {
-    bool file_exists(const char *name) { std::ifstream in(name); return in; }
+    bool file_exists(const char *name) { std::ifstream in(name); return (bool)in; }
 }
 
 Explosion::Explosion(Ptr<IGame> thegame, const Vector & pos,

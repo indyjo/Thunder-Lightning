@@ -1,5 +1,6 @@
+#ifdef HAVE_CEGUI
 #include <modules/clock/clock.h>
-#
+
 #include <CEGUIBase/CEGUI.h>
 #include "CEGUIEventFilter.h"
 
@@ -199,3 +200,4 @@ void CEGUIEventFilter::tick() {
     CEGUI::System::getSingleton().injectTimePulse(clock->getRealFrameDelta());
 }
 
+#endif // HAVE_CEGUI

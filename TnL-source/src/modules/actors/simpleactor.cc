@@ -1,4 +1,6 @@
+#ifdef HAVE_IO
 #include <IoState.h>
+#endif
 #include "simpleactor.h"
 #include <interfaces/ICamera.h>
 #include <interfaces/IProjectile.h>
@@ -15,7 +17,11 @@
 #include <SceneRenderPass.h>
 
 SimpleActor::SimpleActor( Ptr<IGame> game)
-:   thegame(game), self(0), state(ALIVE), control_mode(UNCONTROLLED), is_linked(false)
+:   thegame(game)
+#ifdef HAVE_IO
+, self(0)
+#endif
+, state(ALIVE), control_mode(UNCONTROLLED), is_linked(false)
 {
     engine = new RigidEngine(thegame);
     faction = Faction::basic_factions.none;
@@ -27,6 +33,7 @@ SimpleActor::SimpleActor( Ptr<IGame> game)
 SimpleActor::~SimpleActor() {
 }
 
+#ifdef HAVE_IO
 void SimpleActor::createIoObject() {
     setIoObject(wrapObject<Ptr<SimpleActor> >( this, thegame->getIoScriptingManager()->getMainState()));
 }
@@ -40,15 +47,18 @@ void SimpleActor::setIoObject(IoObject *newself) {
         IoStateEx_coupleLifetime(this, self);
     }
 }
+#endif
 
 void SimpleActor::onLinked() {
     if (!is_linked) {
+#ifdef HAVE_IO
         if (self) {
             message("linked", IONIL(self));
         }
         if (self && AUTOMATIC == getControlMode()) {
             message("start_ai", IONIL(self));
         }
+#endif
         is_linked = true;
         if (skeleton) {
             skeleton->setRootBoneTransform(getTransform());
@@ -58,12 +68,14 @@ void SimpleActor::onLinked() {
 void SimpleActor::onUnlinked()
 {
     if (is_linked) {
+#ifdef HAVE_IO
         if (self && AUTOMATIC == getControlMode()) {
             message("stop_ai", IONIL(self));
         }
         if (self) {
             message("unlinked", IONIL(self));
         }
+#endif
         is_linked = false;
     }
 }
@@ -149,16 +161,19 @@ void SimpleActor::action() {
 }
 void SimpleActor::kill() {
     state = DEAD;
+#ifdef HAVE_IO
     if(self) {
         IoState_pushRetainPool(IOSTATE);
         message("kill", IONIL(self));
         IoState_popRetainPool(IOSTATE);
     }
+#endif
 }
 
 IActor::State SimpleActor::getState() { return state; }
 float SimpleActor::getRelativeDamage() { return 0.0f; }
 void SimpleActor::applyDamage(float damage, int domain, Ptr<IProjectile> projectile) {
+#ifdef HAVE_IO
     if (self) {
         IoState_pushRetainPool(IOSTATE);
         IoObject *args = IoObject_new(IOSTATE);
@@ -173,6 +188,7 @@ void SimpleActor::applyDamage(float damage, int domain, Ptr<IProjectile> project
 
         IoState_popRetainPool(IOSTATE);
     }
+#endif
 }
 
 int SimpleActor::getNumViews() { return 1; }
@@ -187,6 +203,7 @@ bool SimpleActor::hasControlMode(ControlMode m) {
   return m==UNCONTROLLED;
 }
 void SimpleActor::setControlMode(ControlMode m) {
+#ifdef HAVE_IO
     if (self && isLinked()) {
         // send notification messages to script peer
         if (AUTOMATIC!=getControlMode() && AUTOMATIC == m) {
@@ -196,6 +213,7 @@ void SimpleActor::setControlMode(ControlMode m) {
             message("stop_ai", IONIL(self));
         }
     }
+#endif
     
     if (control_mode==MANUAL && m!=control_mode && event_sheet)  {
         thegame->getEventRemapper()->removeEventSheet(getEventSheet());
@@ -209,6 +227,7 @@ IActor::ControlMode SimpleActor::getControlMode() {
     return control_mode;
 }
 
+#ifdef HAVE_IO
 IoObject* SimpleActor::message(std::string name, IoObject *args) {
     IoObject * result = ((IoState*)IoObject_tag(args)->state)->ioNil;
     
@@ -234,6 +253,7 @@ IoObject* SimpleActor::message(std::string name, IoObject *args) {
 IoObject* SimpleActor::getIoObject() {
     return self;
 }
+#endif
 
 // IPositionProvider
 Vector SimpleActor::getLocation() { return engine->getLocation(); }

@@ -1,3 +1,4 @@
+#ifdef HAVE_IO
 // ---------------------------------------------------------------
 // |  ActorMapping                                               |
 // ---------------------------------------------------------------
@@ -138,3 +139,4 @@ template<>
 IoObject *getProtoObject<Ptr<IActor> >(IoState * state) {
 	return IoState_protoWithId_(state, ActorMapping::id);
 }
+#endif // HAVE_IO

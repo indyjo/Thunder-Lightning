@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  TargeterMapping                                            |
 // ---------------------------------------------------------------
@@ -92,3 +94,4 @@ IoObject * wrapObject<Ptr<Targeter> >(Ptr<Targeter> targeter, IoState *state) {
     return obj;
 }
 
+#endif // HAVE_IO

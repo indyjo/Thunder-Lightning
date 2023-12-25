@@ -49,6 +49,7 @@ WeakPtr<IActor> ProjectileLauncher::onFire() {
     //ls_message("to: "); move.dump();
     projectile->shoot(start, move, front);
     
+#ifdef HAVE_CEGUI
     if (isGuided()) {
         // Send the target a message signalling the missile shot
         IoState *state = game->getIoScriptingManager()->getMainState();
@@ -69,6 +70,7 @@ WeakPtr<IActor> ProjectileLauncher::onFire() {
 
         IoState_popRetainPool(IOSTATE);
     }
+#endif
     
     return projectile;
 }

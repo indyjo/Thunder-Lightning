@@ -1,5 +1,6 @@
 #ifndef SCRIPTING_MAPPINGS_H
 #define SCRIPTING_MAPPINGS_H
+#ifdef HAVE_IO
 
 #include <interfaces/IGame.h>
 #include "IoIncludes.h"
@@ -230,4 +231,4 @@ struct TemplatedObjectMapping : Base {
 
 
 #endif
-
+#endif

@@ -19,22 +19,27 @@ struct MissileWarningModule : public UI::Component, public SigObject {
 	Ptr<IFont> font;
     Ptr<SoundMan> soundman;
     Ptr<SoundSource> sndsource;
+#ifdef HAVE_IO
     SigC::Connection connection;
+#endif
 	
 	MissileWarningModule(const char *name, Ptr<IGame> game, Ptr<SimpleActor> actor)
 	:	UI::Component(name, 250, 50),
 		actor(actor),
         soundman(game->getSoundMan())
 	{
+#ifdef HAVE_IO
         connection = actor->message_signal.connect(
             SigC::slot(*this, &MissileWarningModule::onMessage));
         connection.block(true);
+#endif
         sndsource = soundman->requestSource();
         sndsource->setLooping(true);
         game->getFontMan()->selectNamedFont("HUD_font_big");
         font = game->getFontMan()->getFont();
     }
 
+#ifdef HAVE_IO
     void onMessage(std::string name, IoObject *args) {
         if (name == "missileShot") {
             ls_message("MissileWarningModule: Handling missileShot event\n");
@@ -70,7 +75,7 @@ struct MissileWarningModule : public UI::Component, public SigObject {
             ls_message("lockLost done.\n");
         }
     }
-
+#endif
     void updateMissileList() {
 	    int removed=0;
 	    for(int i=0; i<missiles.size(); ++i) {
@@ -132,11 +137,15 @@ struct MissileWarningModule : public UI::Component, public SigObject {
 	}
 	
 	void enable() {
+#ifdef HAVE_IO
         connection.block(false);
+#endif
 	}
 	
 	void disable() {
+#ifdef HAVE_IO
         connection.block(true);
+#endif
 	    sndsource->stop();
 	}
 };

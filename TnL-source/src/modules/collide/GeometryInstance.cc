@@ -12,7 +12,11 @@ GeometryInstance::GeometryInstance()
 GeometryInstance::GeometryInstance(Ptr<Collidable> c)
 :   collidable(c)
 {
-    int n = c->getBoundingGeometry()->getNumOfTransforms();
+    Ptr<Collide::BoundingGeometry> bounds = c->getBoundingGeometry();
+    if (!bounds) {
+        throw std::invalid_argument("Create GeometryInstance from Collidable without BoundingGeometry");
+    }
+    int n = bounds->getNumOfTransforms();
     transforms_0 = new Transform[n];
     transforms_1 = new Transform[n];
 }

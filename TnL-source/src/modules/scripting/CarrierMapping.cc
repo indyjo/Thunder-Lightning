@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  CarrierMapping                                             |
 // ---------------------------------------------------------------
@@ -99,3 +101,6 @@ template<>
 IoObject *getProtoObject<Ptr<Carrier> >(IoState * state) {
 	return IoState_protoWithId_(state, CarrierMapping::id);
 }
+
+#endif // HAVE_IO
+

@@ -24,6 +24,7 @@ Status::Status() {
 }
 
 void Status::beginJob(const string & desc, int steps) {
+    ls_message("Beginning job: %s\n", desc.c_str());
     Job job;
     job.desc = desc;
     job.steps = steps;

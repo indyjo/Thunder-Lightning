@@ -1,3 +1,5 @@
+#ifdef HAVE_CEGUI
+
 #include "Dialog.h"
 #include "MainGUI.h"
 #include "MainMenu.h"
@@ -62,3 +64,4 @@ namespace UI {
 
 } // namespace UI
 
+#endif // HAVE_CEGUI

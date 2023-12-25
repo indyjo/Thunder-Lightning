@@ -1,3 +1,4 @@
+#ifdef HAVE_IO
 // ---------------------------------------------------------------
 // |  ModelManMapping                                            |
 // ---------------------------------------------------------------
@@ -54,3 +55,4 @@ void addMapping<IModelMan>(Ptr<IGame> game, IoState *state) {
 	ModelManMapping::addMapping(game,state);
 }
 
+#endif // HAVE_IO

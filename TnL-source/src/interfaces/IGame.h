@@ -13,7 +13,9 @@ class Clock;
 class DataNode;
 class Environment;
 class SoundMan;
+#ifdef HAVE_IO
 class IoScriptingManager;
+#endif
 class Water;
 
 struct IActor;
@@ -66,7 +68,9 @@ struct IGame : virtual public Object, virtual public IActorStage, virtual public
     virtual Ptr<IFontMan> getFontMan()=0;
     virtual Ptr<SoundMan> getSoundMan()=0;
     virtual Ptr<Collide::CollisionManager> getCollisionMan()=0;
+#ifdef HAVE_IO
     virtual Ptr<IoScriptingManager> getIoScriptingManager()=0;
+#endif
     
     /// Display a user-visible message in the given color.
     /// @note For the message to show up, the current gunsight

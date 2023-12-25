@@ -1,7 +1,11 @@
 #include <algorithm>
 #include <stack>
 
+#ifdef HAVE_REGAL
+#include <GL/Regal.h>
+#else
 #include <gl.h>
+#endif
 
 #include <modules/math/MatrixVector.h>
 #include <modules/jogi/JRenderer.h>
@@ -15,10 +19,22 @@ RenderPass::RenderPass(JRenderer *r)
     , clear_color_enabled(false)
     , background_color(Vector(0,0,0))
 {
+    if (!r) {
+        throw std::invalid_argument("renderer is null");
+    }
 }
 
 RenderPass::~RenderPass()
 { }
+
+JRenderer * RenderPass::getRenderer() {
+    JRenderer *r = renderer;
+    if (!r) {
+        ls_error("getRenderer() this:%p\n", this);
+        throw std::invalid_argument("RenderPass::getRenderer() renderer is null");
+    }
+    return r;
+}
 
 void RenderPass::setEnabled(bool b) { enabled = b; }
 bool RenderPass::isEnabled() { return enabled; }

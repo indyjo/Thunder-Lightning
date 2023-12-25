@@ -566,6 +566,7 @@ void LoDQuad::drawTexturedTriangle(JRenderer * r, LoDTriangle * tri, float * y)
     r->setWrapMode( JR_TEXDIM_V, JR_WRAPMODE_REPEAT );
 
     r->begin(JR_DRAWMODE_TRIANGLES);
+    r->setAlpha(1.0f);
     r->setColor(Vector(1,1,1));
     for (int i=0; i<3; i++) {
         r->setUVW(Vector(uv[i][0],uv[i][1],0));
@@ -610,6 +611,7 @@ void LoDQuad::drawTexturedTriangle(JRenderer * r, LoDTriangle * tri, float * y)
     
     // We're done! Restore renderer state to default.
     r->disableAlphaBlending();
+    r->disableTexturing();
 }
 
 void LoDQuad::drawFogTriangle(JRenderer * r, LoDTriangle * tri,

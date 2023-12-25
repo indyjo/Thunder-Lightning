@@ -1,3 +1,5 @@
+#ifdef HAVE_IO
+
 // ---------------------------------------------------------------
 // |  ConfigMapping                                              |
 // ---------------------------------------------------------------
@@ -81,3 +83,4 @@ Ptr<IConfig> unwrapObject<Ptr<IConfig> >(IoObject * self) {
     return ConfigMapping::getObject(self);
 }
 
+#endif // HAVE_IO
