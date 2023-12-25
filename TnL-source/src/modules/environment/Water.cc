@@ -238,9 +238,9 @@ public:
         r->setZBufferFunc(JR_ZBFUNC_EQUAL);
         r->setColor(env->getFogColor());
         r->enableAlphaBlending();
-        r->begin(JR_DRAWMODE_QUADS);
         for (int tile_z=tile_z_begin; tile_z < tile_z_end; ++tile_z) {
             for (int tile_x=tile_x_begin; tile_x < tile_x_end; ++tile_x) {
+                r->begin(JR_DRAWMODE_TRIANGLE_FAN);
                 Vector v1(tile_size * tile_x, 0, tile_size * tile_z);
                 r->setAlpha(env->getGroundFogStrengthAt(v1));
                 r->vertex(v1);
@@ -256,9 +256,9 @@ public:
                 Vector v4(tile_size * tile_x, 0, tile_size * (tile_z+1));
                 r->setAlpha(env->getGroundFogStrengthAt(v4));
                 r->vertex(v4);
+                r->end();
             }
         }
-        r->end();
         r->setZBufferFunc(JR_ZBFUNC_LEQUAL);
         r->disableAlphaBlending();
     }
