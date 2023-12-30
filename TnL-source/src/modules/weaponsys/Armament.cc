@@ -77,10 +77,14 @@ Armament::Weapons Armament::getAllWeapons() {
 }
 
 void Armament::trigger(groupid id) {
-    if (!currentWeapon(id)) return; currentWeapon(id)->trigger();
+    auto weapon = currentWeapon(id);
+    if (!weapon) return;
+    weapon->trigger();
 }
 void Armament::release(groupid id) {
-    if (!currentWeapon(id)) return; currentWeapon(id)->release();
+    auto weapon = currentWeapon(id);
+    if (!weapon) return;
+    weapon->release();
 }
 
 void Armament::draw(JRenderer *r) {

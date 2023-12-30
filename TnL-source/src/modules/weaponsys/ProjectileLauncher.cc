@@ -17,7 +17,7 @@ ProjectileLauncher::ProjectileLauncher(
 {
     Ptr<IConfig> cfg = game->getConfig();
     launch_speed = cfg->queryFloat(name+"_launch_speed", 0.0f);
-    needs_target = cfg->queryFloat(name+"_needs_target", true);
+    needs_target = cfg->queryBool(name+"_needs_target", true);
 }
 
 

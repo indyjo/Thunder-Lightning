@@ -436,10 +436,12 @@ Ptr<IView> Drone::getView(int n) {
     
     Transform xform(Quaternion(1,0,0,0), pilot_pos);
 
+    // For now, use flight modules in every view
+    gunsight->addFlightModules(thegame, flight_info, controls);
 	switch(n) {
     case 0:
 	    gunsight->addBasicCrosshairs();
-    	gunsight->addFlightModules(thegame, flight_info, controls);
+    	//gunsight->addFlightModules(thegame, flight_info, controls);
         chaser->setEngine(new ChasingEngine(thegame,this, 0.0f, 0.1f,
             xform,
             Transform::identity() ));

@@ -536,11 +536,24 @@ void TailHook::applyEffect(RigidBody &rigid, Ptr<DataNode> controls) {
         Vector p1_wcs = rigid.getState().x + rigid.getState().q.rot(p1);
         Ptr<Collide::Collidable> collidable =
             collision_manager->lineQuery(p0_wcs, p1_wcs, 0, 0, nocollide.lock());
-        if (collidable && collidable->getActor()->getTargetInfo()
-            && collidable->getActor()->getTargetInfo()->isA(TargetInfo::CARRIER))
-        {
-            partner = collidable->getRigid();
+        if (!collidable) return;
+        auto actor = collidable->getActor();
+        if (!actor) {
+            //ls_message("Tailhook: partner is not associated with an actor\n");
+            return;
         }
+        auto targetInfo = actor->getTargetInfo();
+        if (!targetInfo) {
+            //ls_message("Tailhook: partner has no target info\n");
+            return;
+        }
+
+        if (!targetInfo->isA(TargetInfo::CARRIER))
+        {
+            //ls_message("Tailhook: partner is not a carrier\n");
+            return;
+        }
+        partner = collidable->getRigid();
     }
     if (partner) { // already arrested
         Vector p1_wcs = rigid.getState().x + rigid.getState().q.rot(p1);

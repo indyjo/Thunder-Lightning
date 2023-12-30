@@ -62,9 +62,7 @@ Carrier::Carrier(Ptr<IGame> thegame
         thegame->getCollisionMan()->queryGeometry(
             thegame->getConfig()->query("Carrier_model_bounds")));
     setRigidBody(ptr(engine));
-#ifdef HAVE_IO
     setActor(this);
-#endif
     
     Transform xform(
         Quaternion::Rotation(Vector(-1,0,0), 70*3.141593f/180), 

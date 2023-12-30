@@ -38,6 +38,7 @@ void Model::parseObjFile(TextureManager & texman, const string & filename)
     string::size_type n = filename.rfind('/');
     if ( n == string::npos ) dir = "./";
     else dir = filename.substr(0, n+1);
+    ls_message("[Model: %s dir: %s]\n", filename.c_str(), dir.c_str());
     ifstream in(filename.c_str());
 
     Ptr<Object> current_object = new Object(meshdata);
@@ -244,10 +245,7 @@ void Model::setCullmode(jrcullmode_t cullmode) {
     }
 }
 
-// HACK
-// MSVC has issues with nested classes, so we typedef around that
-typedef Model::Object MObject;
-void MObject::draw(JRenderer & r)
+void Model::Object::draw(JRenderer & r)
 {
     Ptr<JMaterial> jmat = r.createMaterial();
     
@@ -312,7 +310,7 @@ void MObject::draw(JRenderer & r)
     }
 }
 
-void MObject::setCullmode(jrcullmode_t cullmode) {
+void Model::Object::setCullmode(jrcullmode_t cullmode) {
     typedef std::vector<Ptr<Group> > Groups;
     typedef Groups::iterator Iter;
     
