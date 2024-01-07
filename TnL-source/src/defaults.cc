@@ -36,6 +36,7 @@ void initialize_config(Ptr<IConfig> config)
     config->set("Drone_max_tailhook_force", "40000");
     config->set("Drone_mfd_model_file", std::string(config->query("Drone_model_path")) + "/lightning-mfd.obj");
     config->set("Drone_model_bounds", std::string(config->query("Drone_model_path")) + "/lightning.bounds");
+    config->set("Drone_pilot_pos", "Vector3( 0 0.8 1.9)");
     config->set("Drone_skeleton", std::string(config->query("Drone_model_path")) + "/lightning.spec");
     config->set("Drone_wheel_model_file", std::string(config->query("model_dir")) + "/misc/tire.obj");
     config->set("Drone_LeftWheel_C_norm", "1000");
@@ -94,10 +95,15 @@ void initialize_config(Ptr<IConfig> config)
     config->set("Game_info_message_font", "dejavu-sans-24");
     config->set("Game_loading_screen", std::string(config->query("texture_dir")) + "/loading-screen.png");
     config->set("Game_loading_screen_font", "dejavu-sans-16-bold");
+    config->set("Game_auto_resolution", "false");
+    config->set("Game_fullscreen", "true");
+    config->set("Game_fsaa_enabled", "true");
     config->set("Game_max_frame_delta", "0.066667");
     config->set("Game_max_ms_for_simulation", "33.333333");
     config->set("Game_max_step_delta", "0.033333");
     config->set("Game_use_shaders", "true");
+    config->set("Game_xres", "1280");
+    config->set("Game_yres", "960");
     config->set("HUD_font_big", "dejavu-sans-20-bold");
     config->set("HUD_font_medium", "dejavu-sans-16-bold");
     config->set("HUD_font_small", "dejavu-sans-10");
@@ -150,6 +156,9 @@ void initialize_config(Ptr<IConfig> config)
     config->set("Sidewinder_reference_speed", "0.0");
     config->set("Sidewinder_singleshot", "true");
     config->set("Sidewinder_time_of_accel", "1.05");
+    config->set("SmartMissile_Kp", "8");
+    config->set("SmartMissile_Ki", "0");
+    config->set("SmartMissile_Kd", "20");
     config->set("SkyBox_texture_path", std::string(config->query("texture_dir")) + "/skybox/pastel");
     config->set("SoundMan_sound_dir", config->query("sounds_dir"));
     config->set("TexMan_cache_size", "256");

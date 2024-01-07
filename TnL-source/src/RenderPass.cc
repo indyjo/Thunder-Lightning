@@ -4,6 +4,7 @@
 #ifdef HAVE_REGAL
 #include <GL/Regal.h>
 #else
+#include <glew.h>
 #include <gl.h>
 #endif
 
@@ -112,16 +113,41 @@ void RenderPass::renderToTexture(Ptr<Texture> tex) {
     int saved_width = renderer->getWidth();
     int saved_height = renderer->getHeight();
     renderer->resize(tex->getWidth(), tex->getHeight());
-    
-    render();
-    
-    glReadBuffer(GL_BACK);
-    renderer->setTexture(tex->getTxtid());
-    glCopyTexImage2D(GL_TEXTURE_2D, 0,
-        GL_RGB,
-        0,0,tex->getWidth(),tex->getHeight(),
-        0);
-        
+
+    GLuint framebuf_id = 0;
+    glGenFramebuffers(1, &framebuf_id);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuf_id);
+
+    // Create and bind a depth buffer
+    GLuint depthbuf_id = 0;
+    glGenRenderbuffers(1, &depthbuf_id);
+    glBindRenderbuffer(GL_RENDERBUFFER, depthbuf_id);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, tex->getWidth(), tex->getHeight());
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuf_id);
+
+    // Set the texture as the framebuffer's color attachment #0
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+        renderer->getGLTexFromTxtid(tex->getTxtid()), 0);
+
+    // Set the list of draw buffers.
+    GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+    static bool warning_logged = false;
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+        render();
+    } else if (!warning_logged) {
+        ls_warning("Framebuffer incomplete\n");
+        warning_logged = true;
+    }
+
+    // Bind default framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // Delete Framebuffer
+    glDeleteFramebuffers(1, &framebuf_id);
+    // Delete Depth buffer
+    glDeleteRenderbuffers(1, &depthbuf_id);
+    // Restore screen dimensions
     renderer->resize(saved_width, saved_height);
 }
 
